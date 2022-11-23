@@ -35,6 +35,14 @@ $ cd atspi
 $ cargo build
 ```
 
+If you have permissions to publish to crate to [crates.io](https://crates.io/),
+then please make sure to tag it like so, pushing it to get, and *then* publishing to crates.io:
+
+```bash
+$ git tag -a vMAJ.MIN.PATCH -m "New feature in tag"
+$ git push origin --tags
+```
+
 ## License
 
 The `atspi` library is licensed as [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) or [MIT](https://mit-license.org/).
