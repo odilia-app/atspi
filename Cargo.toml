@@ -1,12 +1,12 @@
 [package]
 name = "atspi"
-version = "0.3.2"
+version = "0.3.5"
 authors = ["Michael Connor Buchan <mikey@blindcomputing.org>", "Tait Hoyem <tait@tait.tech>", "Alberto Tirla <albertotirla@gmail.com>", "DataTriny <datatriny@gmail.com>"]
 description = "Bindings to the Assistive Technology Service Provider Interface over dbus"
 license = "Apache-2.0 OR MIT" # For ease of integration in the Rust ecosystem.
 readme = "README.md"
-repository = "https://github.com/odilia-app/odilia"
-homepage = "https://odilia.app"
+repository = "https://github.com/odilia-app/atspi"
+homepage = "https://github.com/odilia-app/atspi""
 keywords = ["screen-reader", "accessibility", "a11y", "tts", "linux"]
 categories = ["accessibility", "api-bindings"]
 edition = "2021"
