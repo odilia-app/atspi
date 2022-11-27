@@ -13,11 +13,10 @@
 use crate::{InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus::{
-    CacheProperties,
     dbus_proxy,
     names::UniqueName,
     zvariant::{ObjectPath, Type},
-    Connection,
+    CacheProperties, Connection,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
