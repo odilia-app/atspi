@@ -7,7 +7,6 @@ use crate::{
     image::ImageProxy, registry::RegistryProxy, selection::SelectionProxy, table::TableProxy,
     table_cell::TableCellProxy, text::TextProxy, value::ValueProxy, Interface,
 };
-use async_trait::async_trait;
 use zbus::{CacheProperties, Error};
 
 enum Interfaces {
@@ -86,7 +85,6 @@ impl ToString for Interfaces {
     }
 }
 
-#[async_trait]
 pub trait Convertable {
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>>;
     async fn to_action<'a>(&'a self) -> zbus::Result<ActionProxy<'a>>;
@@ -113,7 +111,6 @@ pub trait Convertable {
 
 /* REST OF FILE IS ALL GENERATED (kinda) */
 
-#[async_trait]
 impl Convertable for AccessibleProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -379,7 +376,6 @@ impl Convertable for AccessibleProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for ApplicationProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -645,7 +641,6 @@ impl Convertable for ApplicationProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for CacheProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -911,7 +906,6 @@ impl Convertable for CacheProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for CollectionProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1177,7 +1171,6 @@ impl Convertable for CollectionProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for ComponentProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1443,7 +1436,6 @@ impl Convertable for ComponentProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for DeviceEventControllerProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1709,7 +1701,6 @@ impl Convertable for DeviceEventControllerProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for DeviceEventListenerProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1975,7 +1966,6 @@ impl Convertable for DeviceEventListenerProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for DocumentProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -2241,7 +2231,6 @@ impl Convertable for DocumentProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for EditableTextProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -2507,7 +2496,6 @@ impl Convertable for EditableTextProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for HyperlinkProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -2773,7 +2761,6 @@ impl Convertable for HyperlinkProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for HypertextProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3039,7 +3026,6 @@ impl Convertable for HypertextProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for ImageProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3305,7 +3291,6 @@ impl Convertable for ImageProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for TextProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3571,7 +3556,6 @@ impl Convertable for TextProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for TableProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3837,7 +3821,6 @@ impl Convertable for TableProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for TableCellProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -4103,7 +4086,6 @@ impl Convertable for TableCellProxy<'_> {
         Err(Error::InterfaceNotFound)
     }
 }
-#[async_trait]
 impl Convertable for ValueProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {

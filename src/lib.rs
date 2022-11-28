@@ -1,3 +1,4 @@
+#![feature(async_fn_in_trait)]
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
 // #![deny(clippy::missing_docs)]
 

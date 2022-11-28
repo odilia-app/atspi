@@ -5,14 +5,12 @@ use crate::{
     InterfaceSet,
 };
 use async_recursion::async_recursion;
-use async_trait::async_trait;
 use std::{collections::HashMap, error::Error};
 use zbus::CacheProperties;
 
 pub type MatcherArgs =
     (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
 
-#[async_trait]
 pub trait AccessibleExt {
     // Assumes that an accessible can be made from the component parts
     async fn get_id(&self) -> Option<u32>;
@@ -87,7 +85,6 @@ impl AccessibleProxy<'_> {
     }
 }
 
-#[async_trait]
 impl AccessibleExt for AccessibleProxy<'_> {
     async fn get_id(&self) -> Option<u32> {
         let path = self.path();
