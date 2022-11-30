@@ -15,7 +15,7 @@ use zbus::dbus_proxy;
 #[dbus_proxy(
     interface = "org.a11y.atspi.Socket",
     default_path = "/org/a11y/atspi/accessible/root",
-    default_service = "org.a11y.atspi.Registry",
+    default_service = "org.a11y.atspi.Registry"
 )]
 trait Socket {
     /// Embed method

@@ -9,14 +9,8 @@ use async_trait::async_trait;
 use std::{collections::HashMap, error::Error};
 use zbus::CacheProperties;
 
-pub type MatcherArgs = (
-    Vec<Role>,
-    MatchType,
-    HashMap<String, String>,
-    MatchType,
-    InterfaceSet,
-    MatchType,
-);
+pub type MatcherArgs =
+    (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
 
 #[async_trait]
 pub trait AccessibleExt {
@@ -84,8 +78,7 @@ impl AccessibleProxy<'_> {
                 return Ok(Some(child));
             }
             /* 0 here is ignored because we are recursive; see the line starting with if !recur */
-            if let Some(found_decendant) =
-                child.find_inner(0, matcher_args, backward, true).await?
+            if let Some(found_decendant) = child.find_inner(0, matcher_args, backward, true).await?
             {
                 return Ok(Some(found_decendant));
             }
@@ -136,7 +129,7 @@ impl AccessibleExt for AccessibleProxy<'_> {
         }
         Ok(children)
     }
-    async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>  {
+    async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>> {
         let parent = self.get_parent_ext().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
         let children: Vec<AccessibleProxy<'a>> = parent

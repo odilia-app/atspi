@@ -68,7 +68,10 @@ pub struct EventBodyOwned {
 impl From<EventBodyQT> for EventBodyOwned {
     fn from(body: EventBodyQT) -> Self {
         let mut props = HashMap::new();
-        props.insert(body.properties.0, Value::ObjectPath(body.properties.1.into_inner()).to_owned());
+        props.insert(
+            body.properties.0,
+            Value::ObjectPath(body.properties.1.into_inner()).to_owned(),
+        );
         Self {
             kind: body.kind,
             detail1: body.detail1,
@@ -118,10 +121,7 @@ impl Event {
     /// components of the event type. It is meant for logging, etc.
     pub fn event_string(&self) -> String {
         let interface = self.interface().expect("Event should have an interface");
-        let interface = interface
-            .rsplit('.')
-            .next()
-            .expect("Interface should contain a '.'");
+        let interface = interface.rsplit('.').next().expect("Interface should contain a '.'");
         let member = self.member().expect("Event should have a member");
         let kind = self.kind();
         format!("{interface}:{member}:{kind}")

@@ -10,8 +10,8 @@
 //! section of the zbus documentation.
 //!
 
-use crate::StateSet;
 use crate::InterfaceSet;
+use crate::StateSet;
 use zbus::dbus_proxy;
 
 /// A structure which represents a cache item from AT-SPI.

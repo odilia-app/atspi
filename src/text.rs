@@ -17,7 +17,7 @@ use zbus::{
     CacheProperties, Connection,
 };
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 /// Level of granularity to get text of, in relation to a cursor position.
 pub enum TextGranularity {
