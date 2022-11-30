@@ -45,6 +45,7 @@ pub enum Interface {
     Value,
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for Interface {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -93,6 +94,7 @@ impl<'de> Deserialize<'de> for Interface {
     }
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for Interface {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -152,6 +154,7 @@ impl InterfaceSet {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for InterfaceSet {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -181,6 +184,7 @@ impl<'de> Deserialize<'de> for InterfaceSet {
     }
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for InterfaceSet {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

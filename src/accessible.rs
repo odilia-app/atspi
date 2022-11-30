@@ -11,6 +11,7 @@
 //!
 
 use crate::{InterfaceSet, StateSet};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use zbus::{
     dbus_proxy,
@@ -19,7 +20,10 @@ use zbus::{
     CacheProperties, Connection,
 };
 
+#[cfg(feature = "serde")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
+#[cfg(not(feature = "serde"))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Type, Hash)]
 /// An accessible object role.
 /// To think of it in terms of HTML, any semantic element likely has a corollary in this enum.
 /// For example: `<button>`, `<input>`, `<form>` or `<h4>`.

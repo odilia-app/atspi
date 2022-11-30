@@ -10,10 +10,14 @@
 //! section of the zbus documentation.
 //!
 
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
 
+#[cfg(feature = "serde")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[cfg(not(feature = "serde"))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Type)]
 #[repr(u32)]
 pub enum SortOrder {
     Invalid,
@@ -26,7 +30,10 @@ pub enum SortOrder {
     LastDefined,
 }
 
+#[cfg(feature = "serde")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[cfg(not(feature = "serde"))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Type)]
 #[repr(u32)]
 pub enum TreeTraversalType {
     RestrictChildren,
@@ -35,7 +42,10 @@ pub enum TreeTraversalType {
     LastDefined,
 }
 
+#[cfg(feature = "serde")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[cfg(not(feature = "serde"))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Type)]
 #[repr(i32)]
 pub enum MatchType {
     Invalid,

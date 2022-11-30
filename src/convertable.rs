@@ -1,12 +1,63 @@
-use crate::{
-    accessible::AccessibleProxy, action::ActionProxy, application::ApplicationProxy,
-    cache::CacheProxy, collection::CollectionProxy, component::ComponentProxy,
-    device_event_controller::DeviceEventControllerProxy,
-    device_event_listener::DeviceEventListenerProxy, document::DocumentProxy,
-    editable_text::EditableTextProxy, hyperlink::HyperlinkProxy, hypertext::HypertextProxy,
-    image::ImageProxy, registry::RegistryProxy, selection::SelectionProxy, table::TableProxy,
-    table_cell::TableCellProxy, text::TextProxy, value::ValueProxy, Interface,
-};
+#[cfg(feature = "accessible")]
+use crate::accessible::AccessibleProxy;
+
+#[cfg(feature = "action")]
+use crate::action::ActionProxy;
+
+#[cfg(feature = "application")]
+use crate::application::ApplicationProxy;
+
+#[cfg(feature = "cache")]
+use crate::cache::CacheProxy;
+
+#[cfg(feature = "collection")]
+use crate::collection::CollectionProxy;
+
+#[cfg(feature = "component")]
+use crate::component::ComponentProxy;
+
+#[cfg(feature = "device_event_controller")]
+use crate::device_event_controller::DeviceEventControllerProxy;
+
+#[cfg(feature = "device_event_listener")]
+use crate::device_event_listener::DeviceEventListenerProxy;
+
+#[cfg(feature = "document")]
+use crate::document::DocumentProxy;
+
+#[cfg(feature = "editable_text")]
+use crate::editable_text::EditableTextProxy;
+
+#[cfg(feature = "hyperlink")]
+use crate::hyperlink::HyperlinkProxy;
+
+#[cfg(feature = "hypertext")]
+use crate::hypertext::HypertextProxy;
+
+#[cfg(feature = "image")]
+use crate::image::ImageProxy;
+
+#[cfg(feature = "registry")]
+use crate::registry::RegistryProxy;
+
+#[cfg(feature = "selection")]
+use crate::selection::SelectionProxy;
+
+#[cfg(feature = "table")]
+use crate::table::TableProxy;
+
+#[cfg(feature = "table_cell")]
+use crate::table_cell::TableCellProxy;
+
+#[cfg(feature = "text")]
+use crate::text::TextProxy;
+
+#[cfg(feature = "value")]
+use crate::value::ValueProxy;
+
+#[cfg(feature = "interfaces")]
+use crate::interfaces::Interface;
+
 use async_trait::async_trait;
 use zbus::{CacheProperties, Error};
 
@@ -114,6 +165,7 @@ pub trait Convertable {
 /* REST OF FILE IS ALL GENERATED (kinda) */
 
 #[async_trait]
+#[cfg(feature = "accessible")]
 impl Convertable for AccessibleProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -380,6 +432,7 @@ impl Convertable for AccessibleProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "application")]
 impl Convertable for ApplicationProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -646,6 +699,7 @@ impl Convertable for ApplicationProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "cache")]
 impl Convertable for CacheProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -912,6 +966,7 @@ impl Convertable for CacheProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "collection")]
 impl Convertable for CollectionProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1178,6 +1233,7 @@ impl Convertable for CollectionProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "component")]
 impl Convertable for ComponentProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1444,6 +1500,7 @@ impl Convertable for ComponentProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "device_event_controller")]
 impl Convertable for DeviceEventControllerProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1710,6 +1767,7 @@ impl Convertable for DeviceEventControllerProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "device_event_listener")]
 impl Convertable for DeviceEventListenerProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -1976,6 +2034,7 @@ impl Convertable for DeviceEventListenerProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "document")]
 impl Convertable for DocumentProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -2242,6 +2301,7 @@ impl Convertable for DocumentProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "editable_text")]
 impl Convertable for EditableTextProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -2508,6 +2568,7 @@ impl Convertable for EditableTextProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "hyperlink")]
 impl Convertable for HyperlinkProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -2774,6 +2835,7 @@ impl Convertable for HyperlinkProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "hypertext")]
 impl Convertable for HypertextProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3040,6 +3102,7 @@ impl Convertable for HypertextProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "image")]
 impl Convertable for ImageProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3306,6 +3369,7 @@ impl Convertable for ImageProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "text")]
 impl Convertable for TextProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3572,6 +3636,7 @@ impl Convertable for TextProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "table")]
 impl Convertable for TableProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -3838,6 +3903,7 @@ impl Convertable for TableProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "table_cell")]
 impl Convertable for TableCellProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
@@ -4104,6 +4170,7 @@ impl Convertable for TableCellProxy<'_> {
     }
 }
 #[async_trait]
+#[cfg(feature = "value")]
 impl Convertable for ValueProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {

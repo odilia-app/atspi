@@ -10,12 +10,25 @@
 //! section of the zbus documentation.
 //!
 
+#[cfg(feature = "events_document")]
 pub mod document;
+
+#[cfg(feature = "events_focus")]
 pub mod focus;
+
+#[cfg(feature = "events_keyboard")]
 pub mod keyboard;
+
+#[cfg(feature = "events_mouse")]
 pub mod mouse;
+
+#[cfg(feature = "events_object")]
 pub mod object;
+
+#[cfg(feature = "events_terminal")]
 pub mod terminal;
+
+#[cfg(feature = "events_window")]
 pub mod window;
 
 use std::{collections::HashMap, sync::Arc};
@@ -27,6 +40,7 @@ use zbus::{
     Message,
 };
 
+#[cfg(feature = "events_body")]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
     #[serde(rename = "type")]
@@ -39,12 +53,14 @@ pub struct EventBody<'a, T> {
     pub properties: HashMap<&'a str, Value<'a>>,
 }
 
+#[cfg(feature = "events_body")]
 impl<T> Type for EventBody<'_, T> {
     fn signature() -> Signature<'static> {
         <(&str, i32, i32, Value, HashMap<&str, Value>)>::signature()
     }
 }
 
+#[cfg(feature = "events_body")]
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyQT {
     #[serde(rename = "type")]
@@ -55,6 +71,7 @@ pub struct EventBodyQT {
     pub properties: (String, OwnedObjectPath),
 }
 
+#[cfg(feature = "events_body")]
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyOwned {
     #[serde(rename = "type")]
@@ -65,6 +82,7 @@ pub struct EventBodyOwned {
     pub properties: HashMap<String, OwnedValue>,
 }
 
+#[cfg(feature = "events_body")]
 impl From<EventBodyQT> for EventBodyOwned {
     fn from(body: EventBodyQT) -> Self {
         let mut props = HashMap::new();
@@ -82,11 +100,13 @@ impl From<EventBodyQT> for EventBodyOwned {
     }
 }
 
+#[cfg(feature = "events_body")]
 pub struct Event {
     message: Arc<Message>,
     body: EventBodyOwned,
 }
 
+#[cfg(feature = "events_body")]
 impl TryFrom<Arc<Message>> for Event {
     type Error = zbus::Error;
 
@@ -106,6 +126,7 @@ impl TryFrom<Arc<Message>> for Event {
     }
 }
 
+#[cfg(feature = "events_body")]
 impl Event {
     pub fn sender(&self) -> zbus::Result<Option<UniqueName>> {
         Ok(self.message.header()?.sender()?.cloned())

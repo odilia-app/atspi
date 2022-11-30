@@ -11,7 +11,10 @@ use zbus::zvariant::{Signature, Type};
 /// an [`crate::accessible::AccessibleProxy`] object can assume.
 #[bitflags]
 #[repr(u64)]
+#[cfg(feature = "serde")]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg(not(feature = "serde"))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum State {
     /// Indicates an invalid state - probably an error condition.
