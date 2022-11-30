@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Action")]
+#[dbus_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
 trait Action {
     /// DoAction method
     fn do_action(&self, index: i32) -> zbus::Result<bool>;

@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Hypertext")]
+#[dbus_proxy(interface = "org.a11y.atspi.Hypertext", assume_defaults = true)]
 trait Hypertext {
     /// GetLink method
     fn get_link(&self, link_index: i32) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;

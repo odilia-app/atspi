@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Application")]
+#[dbus_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
 trait Application {
     /// DeregisterEventListener method
     fn deregister_event_listener(&self, event: &str) -> zbus::Result<()>;

@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.EditableText")]
+#[dbus_proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = true)]
 trait EditableText {
     /// CopyText method
     fn copy_text(&self, start_pos: i32, end_pos: i32) -> zbus::Result<()>;

@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.TableCell")]
+#[dbus_proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 trait TableCell {
     /// GetRowColumnSpan method
     fn get_row_column_span(&self) -> zbus::Result<(bool, i32, i32, i32, i32)>;

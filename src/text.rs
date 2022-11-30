@@ -33,7 +33,7 @@ pub enum TextGranularity {
     Paragraph,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.Text")]
+#[dbus_proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
 trait Text {
     /// AddSelection method
     fn add_selection(&self, start_offset: i32, end_offset: i32) -> zbus::Result<bool>;

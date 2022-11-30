@@ -1,6 +1,6 @@
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Event.Mouse", assume_defaults = true)]
+#[dbus_proxy(interface = "org.a11y.atspi.Event.Mouse")]
 trait Mouse {
     /// Abs signal
     #[dbus_proxy(signal)]

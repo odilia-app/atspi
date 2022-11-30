@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Value")]
+#[dbus_proxy(interface = "org.a11y.atspi.Value", assume_defaults = true)]
 trait Value {
     /// CurrentValue property
     #[dbus_proxy(property)]

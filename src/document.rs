@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Document")]
+#[dbus_proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
 trait Document {
     /// GetAttributeValue method
     fn get_attribute_value(&self, attributename: &str) -> zbus::Result<String>;

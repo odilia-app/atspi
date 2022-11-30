@@ -292,7 +292,7 @@ pub enum RelationType {
     ErrorFor,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.Accessible")]
+#[dbus_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
     /// GetApplication method
     fn get_application(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;

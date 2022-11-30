@@ -12,7 +12,7 @@
 
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Selection")]
+#[dbus_proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
 trait Selection {
     /// ClearSelection method
     fn clear_selection(&self) -> zbus::Result<bool>;

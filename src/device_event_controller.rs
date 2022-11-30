@@ -34,7 +34,7 @@ pub enum KeySynthType {
     Unlockmodifiers,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.DeviceEventController")]
+#[dbus_proxy(interface = "org.a11y.atspi.DeviceEventController", assume_defaults = true)]
 trait DeviceEventController {
     /// DeregisterDeviceEventListener method
     fn deregister_device_event_listener(

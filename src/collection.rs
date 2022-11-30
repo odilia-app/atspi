@@ -46,7 +46,7 @@ pub enum MatchType {
     LastDefined,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.Collection")]
+#[dbus_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
     /// GetActiveDescendant method
     fn get_active_descendant(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;

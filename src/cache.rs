@@ -52,7 +52,7 @@ type CacheStruct = (
     StateSet,
 ); // states
 
-#[dbus_proxy(interface = "org.a11y.atspi.Cache")]
+#[dbus_proxy(interface = "org.a11y.atspi.Cache", assume_defaults = true)]
 trait Cache {
     /// GetItems method
     fn get_items(&self) -> zbus::Result<Vec<CacheStruct>>;

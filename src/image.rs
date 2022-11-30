@@ -14,7 +14,7 @@ use zbus::dbus_proxy;
 
 use crate::CoordType;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Image")]
+#[dbus_proxy(interface = "org.a11y.atspi.Image", assume_defaults = true)]
 trait Image {
     /// GetImageExtents method
     fn get_image_extents(&self, coord_type: CoordType) -> zbus::Result<(i32, i32, i32, i32)>;
