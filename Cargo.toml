@@ -21,11 +21,6 @@ async-io = ["zbus/async-io"]
 gvariant = ["zbus/gvariant"]
 tokio = ["zbus/tokio"]
 
-[profile.dev]
-lto = false
-optimizations = 0
-strip = false
-
 [dependencies]
 async-recursion = "^1.0.0"
 async-trait = "^0.1.59"
