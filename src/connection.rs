@@ -85,7 +85,6 @@ impl Deref for Connection {
 /// * if creation of a [`StatusProxy`] fails
 /// * if the `IsEnabled` property cannot be read
 /// * the `IsEnabled` property cannot be set.
-#[must_use = "AT's are required to set `IsEnabled` on startup."]
 pub async fn set_session_accessibility(
     status: bool,
 ) -> std::result::Result<(), zbus::Error> {
