@@ -18,7 +18,7 @@ use zbus::{
     ProxyDefault,
 };
 
-/// Indicates AT-SPI interfaces an |`crate::accessible::AccessibleProxy`] can implement.
+/// Indicates AT-SPI interfaces an [`crate::accessible::AccessibleProxy`] can implement.
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
