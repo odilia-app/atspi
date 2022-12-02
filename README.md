@@ -29,17 +29,17 @@ We love people who add functionality, find bugs, or improve code quality!
 You can clone the repository and make modifications just by `git clone`-ing the repository like so:
 
 ```bash
-$ git clone https://github.com/odilia-app/atspi
-$ cd atspi
-$ cargo build
+git clone https://github.com/odilia-app/atspi
+cd atspi
+cargo build
 ```
 
 If you have permissions to publish to crate to [crates.io](https://crates.io/),
 then please make sure to tag it like so, pushing it to get, and *then* publishing to crates.io:
 
 ```bash
-$ git tag -a vMAJ.MIN.PATCH -m "New feature in tag"
-$ git push origin --tags
+git tag -a vMAJ.MIN.PATCH -m "New feature in tag"
+git push origin --tags
 ```
 
 ## License
