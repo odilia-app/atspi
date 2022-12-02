@@ -74,10 +74,9 @@ impl Deref for Connection {
 /// 
 ///  ## Example
 /// ```rust
-///     use atspi::set_session_accessibility;
-///     use smol::block_on;
+///     use futures_lite::future::block_on;
 /// 
-///     let result =  block_on( set_session_accessibility(true) );
+///     let result =  block_on( atspi::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
 /// ```
 ///  ## Errors
