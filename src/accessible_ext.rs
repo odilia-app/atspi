@@ -132,6 +132,8 @@ impl AccessibleExt for AccessibleProxy<'_> {
     async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>> {
         let parent = self.get_parent_ext().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
+        // Clippy false positive: Standard pattern for excluding index item from list.
+        #[allow(clippy::if_not_else)] 
         let children: Vec<AccessibleProxy<'a>> = parent
             .get_children_ext()
             .await?
