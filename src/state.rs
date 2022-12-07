@@ -219,6 +219,7 @@ pub enum State {
     ReadOnly,
 }
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// The bitflag representation of all states an object may have.
 pub struct StateSet(BitFlags<State>);
@@ -293,8 +294,8 @@ impl<'de> Deserialize<'de> for StateSet {
             {
                 match <Vec<u32> as Deserialize>::deserialize(deserializer) {
                     Ok(states) if states.len() == 2 => {
-                        let mut bits = states[0] as u64;
-                        bits |= (states[1] as u64) << 32;
+                        let mut bits = u64::from(states[0]);
+                        bits |= (u64::from(states[1])) << 32;
                         StateSet::from_bits(bits).map_err(|_| de::Error::custom("invalid state"))
                     }
                     Ok(states) => Err(de::Error::invalid_length(states.len(), &"array of size 2")),
@@ -314,6 +315,10 @@ impl Serialize for StateSet {
     {
         let mut seq = serializer.serialize_seq(Some(2))?;
         let bits = self.bits();
+
+        // This cast is safe and truncation is intentional.
+        //The shift is sound provided that `State` is `#[repr(u64)]`
+        #[allow(clippy::cast_possible_truncation)]
         seq.serialize_element(&(bits as u32))?;
         seq.serialize_element(&((bits >> 32) as u32))?;
         seq.end()
