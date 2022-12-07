@@ -224,6 +224,16 @@ pub enum State {
 pub struct StateSet(BitFlags<State>);
 
 impl StateSet {
+    /// Create a new [`StateSet`].
+    ///
+    ///## Example
+    ///```Rust
+    ///     let states = State::Focusable | State::Sensitive | State::Active;
+    ///     let set = StateSet::new(states);
+    ///
+    ///     assert!(set.contains(State::Active));
+    ///     assert!(!set.contains(State::Busy));
+    /// ```
     pub fn new<B: Into<BitFlags<State>>>(value: B) -> Self {
         Self(value.into())
     }
