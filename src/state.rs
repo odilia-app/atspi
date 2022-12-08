@@ -219,35 +219,55 @@ pub enum State {
     ReadOnly,
 }
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// The bitflag representation of all states an object may have.
 pub struct StateSet(BitFlags<State>);
 
 impl StateSet {
+    /// Create a new [`StateSet`].
+    ///
+    ///## Example
+    ///```Rust
+    ///     let states = State::Focusable | State::Sensitive | State::Active;
+    ///     let set = StateSet::new(states);
+    ///
+    ///     assert!(set.contains(State::Active));
+    ///     assert!(!set.contains(State::Busy));
+    /// ```
     pub fn new<B: Into<BitFlags<State>>>(value: B) -> Self {
         Self(value.into())
     }
 
+    /// Returns the [`StateSet`] that corresponds to the provided `u64`s bit pattern.
+    ///# Errors
+    /// When the argument encodes an undefined [`State`].
     pub fn from_bits(bits: u64) -> Result<StateSet, FromBitsError<State>> {
         Ok(StateSet(BitFlags::from_bits(bits)?))
     }
 
+    #[must_use]
+    /// Create an empty [`StateSet`]
     pub fn empty() -> StateSet {
         StateSet(State::empty())
     }
-
+    #[must_use]
+    /// Returns the state as represented by a u64.
     pub fn bits(&self) -> u64 {
         self.0.bits()
     }
 
+    /// Whether the [`StateSet`] contains a [`State`].
     pub fn contains<B: Into<BitFlags<State>>>(self, other: B) -> bool {
         self.0.contains(other)
     }
 
+    ///  Inserts a [`State`] in the [`StateSet`].
     pub fn insert<B: Into<BitFlags<State>>>(&mut self, other: B) {
         self.0.insert(other);
     }
 
+    /// Returns an iterator that yields each set [`State`].
     pub fn iter(self) -> impl Iterator<Item = State> {
         self.0.iter()
     }
@@ -274,8 +294,8 @@ impl<'de> Deserialize<'de> for StateSet {
             {
                 match <Vec<u32> as Deserialize>::deserialize(deserializer) {
                     Ok(states) if states.len() == 2 => {
-                        let mut bits = states[0] as u64;
-                        bits |= (states[1] as u64) << 32;
+                        let mut bits = u64::from(states[0]);
+                        bits |= (u64::from(states[1])) << 32;
                         StateSet::from_bits(bits).map_err(|_| de::Error::custom("invalid state"))
                     }
                     Ok(states) => Err(de::Error::invalid_length(states.len(), &"array of size 2")),
@@ -295,6 +315,10 @@ impl Serialize for StateSet {
     {
         let mut seq = serializer.serialize_seq(Some(2))?;
         let bits = self.bits();
+
+        // This cast is safe and truncation is intentional.
+        //The shift is sound provided that `State` is `#[repr(u64)]`
+        #[allow(clippy::cast_possible_truncation)]
         seq.serialize_element(&(bits as u32))?;
         seq.serialize_element(&((bits >> 32) as u32))?;
         seq.end()
