@@ -123,7 +123,7 @@ impl Serialize for Interface {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct InterfaceSet(BitFlags<Interface>);
 
 impl InterfaceSet {
