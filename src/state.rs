@@ -220,7 +220,7 @@ pub enum State {
 }
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// The bitflag representation of all states an object may have.
 pub struct StateSet(BitFlags<State>);
 
