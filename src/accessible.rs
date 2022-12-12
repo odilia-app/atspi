@@ -25,6 +25,7 @@ use zbus::{
 /// For example: `<button>`, `<input>`, `<form>` or `<h4>`.
 /// Non-semantic elements like `<span>`, `<div>` and `<b>` will not be represented here, and this information is not passed through via the atspi library.
 /// TODO: add examples for GTK/Qt libraries in addition to HTML examples.
+#[repr(u32)]
 pub enum Role {
     /// An invalid role used for either an invalid deserialization, or when trying to match for any possible role. TODO: confirm
     Invalid,
