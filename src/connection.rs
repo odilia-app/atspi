@@ -81,7 +81,7 @@ impl Deref for Connection {
 /// ```
 ///  ## Errors
 /// * when no connection with the session bus can be established,
-/// * if creation of a [`StatusProxy`] fails
+/// * if creation of a [`crate::bus::StatusProxy`] fails
 /// * if the `IsEnabled` property cannot be read
 /// * the `IsEnabled` property cannot be set.
 pub async fn set_session_accessibility(
