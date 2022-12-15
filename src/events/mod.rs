@@ -107,10 +107,16 @@ impl TryFrom<Arc<Message>> for Event {
 }
 
 impl Event {
+    /// Identifies the `sender` of the `Event`.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
     pub fn sender(&self) -> zbus::Result<Option<UniqueName>> {
         Ok(self.message.header()?.sender()?.cloned())
     }
 
+    /// The object path to the object where the signal is emitted from.
+    #[must_use]
     pub fn path(&self) -> Option<zvariant::ObjectPath> {
         self.message.path()
     }
@@ -119,6 +125,7 @@ impl Event {
     ///
     /// This should not be used for matching on events as it needlessly allocates and copies the 3
     /// components of the event type. It is meant for logging, etc.
+    #[must_use]
     pub fn event_string(&self) -> String {
         let interface = self.interface().expect("Event should have an interface");
         let interface = interface.rsplit('.').next().expect("Interface should contain a '.'");
@@ -133,38 +140,48 @@ impl Event {
     /// name, not to the lifetime of the message as it should be. In future, this will return only
     /// the last component of the interface name (I.E. "Object" from
     /// "org.a11y.atspi.Event.Object").
+    #[must_use]
     pub fn interface(&self) -> Option<InterfaceName<'_>> {
         self.message.interface()
     }
 
+    // Identifies this `Event`'s member (signal-) name on the bus.
+    #[must_use]
     pub fn member(&self) -> Option<MemberName<'_>> {
         self.message.member()
     }
 
+    #[must_use]
     pub fn kind(&self) -> &str {
         &self.body.kind
     }
 
+    #[must_use]
     pub fn detail1(&self) -> i32 {
         self.body.detail1
     }
 
+    #[must_use]
     pub fn detail2(&self) -> i32 {
         self.body.detail2
     }
 
+    #[must_use]
     pub fn any_data(&self) -> &zvariant::OwnedValue {
         &self.body.any_data
     }
 
+    #[must_use]
     pub fn properties(&self) -> &HashMap<String, zvariant::OwnedValue> {
         &self.body.properties
     }
 
+    #[must_use]
     pub fn message(&self) -> &Arc<Message> {
         &self.message
     }
 
+    #[must_use]
     pub fn body(&self) -> &EventBodyOwned {
         &self.body
     }
