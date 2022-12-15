@@ -54,6 +54,20 @@ impl Connection {
             }
         })
     }
+
+    pub fn compound_event_stream(&self) -> impl Stream<Item = zbus::Result<AtspiEvent>> {
+        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+            let msg = match res {
+                Ok(m) => m,
+                Err(e) => return Some(Err(e)),
+            };
+            if msg.header().ok()?.primary().msg_type() == MessageType::Signal {
+                Some(AtspiEvent::try_from(msg))
+            } else {
+                None
+            }
+        })
+    }
 }
 
 impl Deref for Connection {
@@ -65,17 +79,17 @@ impl Deref for Connection {
 }
 
 /// Set the `IsEnabled` property in the session bus.
-/// 
+///
 /// Assistive Technology provider applications (ATs) should set the accessibility
 /// `IsEnabled` status on the users session bus on startup as applications may monitor this property
 /// to  enable their accessibility support dynamically.
-/// 
-/// See: The [freedesktop - AT-SPI2 wiki](https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/) 
-/// 
+///
+/// See: The [freedesktop - AT-SPI2 wiki](https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/)
+///
 ///  ## Example
 /// ```rust
 ///     use futures_lite::future::block_on;
-/// 
+///
 ///     let result =  block_on( atspi::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
 /// ```
@@ -84,12 +98,10 @@ impl Deref for Connection {
 /// * if creation of a [`crate::bus::StatusProxy`] fails
 /// * if the `IsEnabled` property cannot be read
 /// * the `IsEnabled` property cannot be set.
-pub async fn set_session_accessibility(
-    status: bool,
-) -> std::result::Result<(), zbus::Error> {
+pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), zbus::Error> {
     // Get a connection to the session bus.
     let session = zbus::Connection::session().await?;
-    
+
     // Aqcuire a `StatusProxy` for the session bus.
     let status_proxy = crate::bus::StatusProxy::new(&session).await?;
 

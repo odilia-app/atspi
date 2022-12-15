@@ -106,6 +106,121 @@ impl TryFrom<Arc<Message>> for Event {
     }
 }
 
+// The signal signatures found on the a11y bus.
+const QT_EVENT: Signature<'static> = Signature::try_from("siiv(so)").unwrap();
+const EVENT_SIG: Signature<'static> = Signature::try_from("siiva{sv}").unwrap();
+const CACHE_ADD: Signature<'static> = Signature::try_from("(so)(so)(so)iiassusau").unwrap();
+const CACHE_REM: Signature<'static> = Signature::try_from("so").unwrap();
+ 
+
+impl TryFrom<Arc<Message>> for AtspiEvent {
+    type Error = zbus::Error;
+
+    fn try_from(message: Arc<Message>) -> zbus::Result<Self> {
+        let body: EventBodyOwned = match message.body_signature()? {
+            QT_EVENT => {
+                let body = EventBodyOwned::from(message.body::<EventBodyQT>()?);
+                let atspi_event: AtspiEvent = body.try_into()?;
+            }
+            EVENT_SIG => {
+                let body = message.body::<EventBodyOwned>()?;
+                let atspi_event: AtspiEvent = body.try_into()?;
+            }
+            CACHE_ADD => {todo!()},
+            CACHE_REM => {todo!()},
+
+        };
+        Ok(Self { message, body })
+    }
+}
+
+// we may want to have this live somewhere else
+/// Compound type that aggregates a11y bus events.
+#[derive(Clone, Debug, Eq)]
+pub enum AtspiEvent {
+    // Processed
+        AddAccessible(()),
+        RemoveAccessible(()),
+        EventListenerRegistered(()),
+        EventListenerDeregistered(()),
+    // Registry
+        EventListenerRegistered(()),
+        EventListenerDeregistered(()),
+    // DeviceEventListener
+        KeystrokeListenerRegistered(()),
+        KeystrokeListenerDeregistered(()),
+    // (Object).Event
+        PropertyChange(()),
+        BoundsChanged(()),
+        LinkSelected(()),
+        StateChanged(()),
+        ChildrenChanged(()),
+        VisibleDataChanged(()),
+        SelectionChanged(()),
+        ModelChanged(()),
+        ActiveDescendantChanged(()),
+        Announcement(()),
+        AttributesChanged(()),
+        RowInserted(()),
+        RowReordered(()),
+        RowDeleted(()),
+        ColumnInserted(()),
+        ColumnReordered(()),
+        ColumnDeleted(()),
+        TextBoundsChanged(()),
+        TextSelectionChanged(()),
+        TextChanged(()),
+        TextAttributesChanged(()),
+        TextCaretMoved(()),
+        PropertyChange(()),
+        Minimize(()),
+        Maximize(()),
+        Restore(()),
+        Close(()),
+        Create(()),
+        Reparent(()),
+        DesktopCreate(()),
+        DesktopDestroy(()),
+        Destroy(()),
+        Activate(()),
+        Deactivate(()),
+        Raise(()),
+        Lower(()),
+        Move(()),
+        Resize(()),
+        Shade(()),
+        uUshade(()),
+        Restyle(()),
+        Abs(()),
+        Rel(()),
+        Button(()),
+        Modifiers(()),
+        LineChanged(()),
+        ColumncountChanged(()),
+        LinecountChanged(()),
+        ApplicationChanged(()),
+        CharwidthChanged(()),
+        LoadComplete(()),
+        Reload(()),
+        LoadStopped(()),
+        ContentChanged(()),
+        AttributesChanged(()),
+        PageChanged(()),
+        Focus(()),
+    //  Cache.xml
+        AddAccessible(()),
+        RemoveAccessible(()),
+    // Socket    
+        Available(()),
+}
+
+// we get meny of these atspi leaf-types
+struct AtspiEventStruct;
+
+impl TryFrom<EventBodyOwned> for At
+
+
+
 impl Event {
     /// Identifies the `sender` of the `Event`.
     /// # Errors
