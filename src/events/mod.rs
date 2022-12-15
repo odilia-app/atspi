@@ -106,13 +106,15 @@ impl TryFrom<Arc<Message>> for Event {
     }
 }
 
+// TODO Complete list
 // The signal signatures found on the a11y bus.
 const QT_EVENT: Signature<'static> = Signature::try_from("siiv(so)").unwrap();
 const EVENT_SIG: Signature<'static> = Signature::try_from("siiva{sv}").unwrap();
 const CACHE_ADD: Signature<'static> = Signature::try_from("(so)(so)(so)iiassusau").unwrap();
 const CACHE_REM: Signature<'static> = Signature::try_from("so").unwrap();
- 
 
+ 
+// TODO complete match
 impl TryFrom<Arc<Message>> for AtspiEvent {
     type Error = zbus::Error;
 
@@ -149,7 +151,7 @@ pub enum AtspiEvent {
     // DeviceEventListener
         KeystrokeListenerRegistered(()),
         KeystrokeListenerDeregistered(()),
-    // (Object).Event
+    // Event
         PropertyChange(()),
         BoundsChanged(()),
         LinkSelected(()),
@@ -214,8 +216,6 @@ pub enum AtspiEvent {
         Available(()),
 }
 
-// we get meny of these atspi leaf-types
-struct AtspiEventStruct;
 
 impl TryFrom<EventBodyOwned> for At
 
