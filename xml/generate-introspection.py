@@ -7,7 +7,8 @@ RUST_TYPE_FROM_DBUS_TYPE = {
   "i": "i32",
   "u": "u32",
   "v": "OwnedValue",
-  "a{sv}": "HashMap<String, OwnedValue>"
+  "a{sv}": "HashMap<String, OwnedValue>",
+  "o": "OwnedPath"
 }
 
 for interface in root:

@@ -1,13 +1,45 @@
 use std::ops::Deref;
 
 use futures::stream::{Stream, StreamExt};
-use zbus::{Address, MessageStream};
+use zbus::{
+    names::InterfaceName, zvariant::Signature, Address, Message, MessageStream, MessageType,
+};
 
 use crate::{bus::BusProxy, events::Event, registry::RegistryProxy};
 
+// Event body signatures: These outline the event specific deserialized event type.
+// Safety: These are evaluated at compile time, the downstream user will not unwrap at runtime.
+// ----
+// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
+// -  Cache : RemoveAccessible
+// -  Socket: Available
+//  Both specify an `Accessible`, however their purpose is different.
+//
+// These two are separated streams, grouping these two semantically little sense.
+//
+// ATSPI- and QSPI both describe generic events. These can be converted into
+// specific signal typs with TryFrom implementations.
+//  AVAILABLE signals the availability of the `Registry` daeomon.
+//  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
+//  CACHE_ADD and *_REMOVE have very different types
+//  DEVICE_EVENT marks a type for both registerering and deregistering device events (? citation needed)
+const ATSPI_EVENT: Signature = Signature::from_static_str_unchecked("siiva{sv}");
+const QSPI_EVENT: Signature = Signature::from_static_str_unchecked("siiv(so)");
+const AVAILABLE: Signature = Signature::from_static_str_unchecked("(so)");
+const EVENT_LISTENER: Signature = Signature::from_static_str_unchecked("(ss)");
+const CACHE_ADD: Signature = Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+const CACHE_REM: Signature = Signature::from_static_str_unchecked("(so)");
+const DEVICE_EVENT: Signature = Signature::from_static_str_unchecked("(souua(iisi)u(bbb))");
+
 /// A connection to the at-spi bus
+///
+/// A number of types identified on ther bus:
+///
 pub struct Connection {
     registry: RegistryProxy<'static>,
+}
+pub fn valid_msg(msg: Message, sig: Signature) -> bool {
+    msg.body_signature() == Ok(sig) && msg.primary_header().msg_type() == MessageType::Signal
 }
 
 impl Connection {
@@ -41,33 +73,233 @@ impl Connection {
         Ok(Self { registry })
     }
 
-    pub fn event_stream(&self) -> impl Stream<Item = zbus::Result<Event>> {
+    /// Stream yielding `AtspiEvent` types.
+    ///
+    /// Monitor this stream to be notified and receive `QspiEvent` events.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn atspi_events(&self) -> impl Stream<Item = zbus::Result<Event>> {
         MessageStream::from(self.registry.connection()).filter_map(|res| async move {
             let msg = match res {
                 Ok(m) => m,
                 Err(e) => return Some(Err(e)),
             };
-            if msg.interface()?.starts_with("org.a11y.atspi.Event.") {
-                Some(Event::try_from(msg))
+            let valid = || {
+                (*msg).body_signature() == Ok(ATSPI_EVENT)
+                    && msg.primary_header().msg_type() == MessageType::Signal
+            };
+            if valid() {
+                Some(crate::events::Event::try_from(msg))
             } else {
                 None
             }
         })
     }
 
-    pub fn compound_event_stream(&self) -> impl Stream<Item = zbus::Result<AtspiEvent>> {
+    /// Stream yielding `QspiEvent` types.
+    ///
+    /// Monitor this stream to be notified and receive `QspiEvent` events.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn qtspi_events(&self) -> impl Stream<Item = zbus::Result<Event>> {
         MessageStream::from(self.registry.connection()).filter_map(|res| async move {
             let msg = match res {
                 Ok(m) => m,
                 Err(e) => return Some(Err(e)),
             };
-            if msg.header().ok()?.primary().msg_type() == MessageType::Signal {
-                Some(AtspiEvent::try_from(msg))
+            let valid = || {
+                (*msg).body_signature() == Ok(QSPI_EVENT)
+                    && msg.primary_header().msg_type() == MessageType::Signal
+            };
+            if valid() {
+                Some(crate::events::Event::try_from(msg))
             } else {
                 None
             }
         })
     }
+
+    /// Stream yielding `CacheAdd` event types.
+    ///
+    /// Monitor this stream to be notified of `CacheAdd` events.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn cache_added_events(&self) -> impl Stream<Item = zbus::Result<Event>> {
+        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+            let msg = match res {
+                Ok(m) => m,
+                Err(e) => return Some(Err(e)),
+            };
+            let valid = || {
+                (*msg).body_signature() == Ok(CACHE_ADD)
+                    && msg.primary_header().msg_type() == MessageType::Signal
+            };
+            if valid() {
+                Some(crate::events::Event::try_from(msg))
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Stream yielding `CacheRemove` events.
+    ///
+    /// You want to monitor this stream if you want to be notified of `CacheRemove` events.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn cache_removed_events(&self) -> impl Stream<Item = zbus::Result<Event>> {
+        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+            let msg = match res {
+                Ok(m) => m,
+                Err(e) => return Some(Err(e)),
+            };
+            let msg_header = match msg.header() {
+                Ok(hdr) => hdr,
+                Err(e) => return Some(Err(e)),
+            };
+            if msg_header.interface()
+                != Ok(Some(&InterfaceName::from_static_str("org.a11y.atspi.Socket").unwrap()))
+            {
+                return None;
+            }
+            let valid = || {
+                (*msg).body_signature() == Ok(CACHE_REM)
+                    && msg.primary_header().msg_type() == MessageType::Signal
+            };
+            if valid() {
+                Some(crate::events::Event::try_from(msg))
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Stream yielding `DeviceEvent`s.
+    ///
+    /// This yields events of both `Register` and `Deregister` kinds.
+    /// You want to monitor this stream if you want to be notified of these events.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn device_events(&self) -> impl Stream<Item = zbus::Result<Event>> {
+        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+            let msg = match res {
+                Ok(m) => m,
+                Err(e) => return Some(Err(e)),
+            };
+            let valid = || {
+                (*msg).body_signature() == Ok(DEVICE_EVENT)
+                    && msg.primary_header().msg_type() == MessageType::Signal
+            };
+            if valid() {
+                Some(crate::events::Event::try_from(msg))
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Stream yielding the `Available` bus types.
+    ///
+    ///  The `Registry` interface,provided by the registry daemon,
+    /// becomes available on the a11y bus.
+    /// The registry daemon emits this signal upon startup.
+    ///
+    /// Monitor this stream to be notified of bus registry availability
+    /// and receive corresponding `Available` events.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn registry_available(&self) -> impl Stream<Item = zbus::Result<Event>> {
+        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+            let msg = match res {
+                Ok(m) => m,
+                Err(e) => return Some(Err(e)),
+            };
+            let msg_header = match msg.header() {
+                Ok(hdr) => hdr,
+                Err(e) => return Some(Err(e)),
+            };
+            if msg_header.interface()
+                != Ok(Some(&InterfaceName::from_static_str("org.a11y.atspi.Socket").unwrap()))
+            // TODO: Static InterfaceName to avoid unwrap please
+            {
+                return None;
+            }
+            let valid = || {
+                (*msg).body_signature() == Ok(AVAILABLE)
+                    && msg.primary_header().msg_type() == MessageType::Signal
+            };
+            if valid() {
+                // TODO: Create Deserialized type that fits this stream (so)
+                Some(crate::events::Event::try_from(msg))
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Stream yielding the `EventListenerRegister` and `EventListenerDeregister` bus types.
+    ///
+    /// Monitor this stream to be notified of bus `EventListenerRegister` and
+    /// `EventListenerDeregister` tyoes.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn event_listener_events(&self) -> impl Stream<Item = zbus::Result<Event>> {
+        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+            let msg = match res {
+                Ok(m) => m,
+                Err(e) => return Some(Err(e)),
+            };
+            let __msg_header = match msg.header() {
+                Ok(hdr) => hdr,
+                Err(e) => return Some(Err(e)),
+            };
+            let valid = || {
+                (*msg).body_signature() == Ok(EVENT_LISTENER)
+                    && msg.primary_header().msg_type() == MessageType::Signal
+            };
+            if valid() {
+                // TODO: Create Deserialized type that fits this stream (ss)
+                Some(crate::events::Event::try_from(msg))
+            } else {
+                None
+            }
+        })
+    }
+
+    // pub fn compound_event_stream(&self) -> impl Stream<Item = zbus::Result<AtspiEvent>> {
+    //     MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+    //         let msg = match res {
+    //             Ok(m) => m,
+    //             Err(e) => return Some(Err(e)),
+    //         };
+    //         if msg.header().ok()?.primary().msg_type() == MessageType::Signal {
+    //             Some(AtspiEvent::try_from(msg))
+    //         } else {
+    //             None
+    //         }
+    //     })
+    // }
 }
 
 impl Deref for Connection {

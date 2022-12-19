@@ -1,0 +1,18 @@
+[package]
+name = "atspi-macros"
+version = "0.1.0"
+edition = "2021"
+authors = ["Luuk van der Duim <luukvanderduim@gmail.com>"]
+description = "Macros to assist in creation of the lunanode crate."
+license = "MIT"
+readme = "README.md"
+keywords = ["macros", "helper"]
+
+[lib]
+proc_macro = true
+
+[dependencies]
+proc-macro2 = "1.0"
+syn = { version = "1.0", features = ["full"] }
+quote = "1.0"
+zbus_names = "2.4.0"

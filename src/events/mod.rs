@@ -82,144 +82,35 @@ impl From<EventBodyQT> for EventBodyOwned {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Event {
     message: Arc<Message>,
     body: EventBodyOwned,
+}
+
+#[derive(Debug, Clone)]
+pub struct AtspiEvent {
+    message: Arc<Message>,
+    body: EventBodyOwned,
+}
+
+impl TryFrom<Arc<Message>> for AtspiEvent {
+    type Error = zbus::Error;
+
+    fn try_from(message: Arc<Message>) -> zbus::Result<Self> {
+        let body: EventBodyOwned = message.body::<EventBodyOwned>()?;
+        Ok(Self { message, body })
+    }
 }
 
 impl TryFrom<Arc<Message>> for Event {
     type Error = zbus::Error;
 
     fn try_from(message: Arc<Message>) -> zbus::Result<Self> {
-        let qt_sig = Signature::try_from("siiv(so)").unwrap();
-        let body: EventBodyOwned = match message.body_signature() {
-            Ok(sig) => {
-                if sig == qt_sig {
-                    EventBodyOwned::from(message.body::<EventBodyQT>()?)
-                } else {
-                    message.body::<EventBodyOwned>()?
-                }
-            }
-            Err(e) => return Err(e),
-        };
+        let body: EventBodyOwned = message.body::<EventBodyOwned>()?;
         Ok(Self { message, body })
     }
 }
-
-// TODO Complete list
-// The signal signatures found on the a11y bus.
-const QT_EVENT: Signature<'static> = Signature::try_from("siiv(so)").unwrap();
-const EVENT_SIG: Signature<'static> = Signature::try_from("siiva{sv}").unwrap();
-const CACHE_ADD: Signature<'static> = Signature::try_from("(so)(so)(so)iiassusau").unwrap();
-const CACHE_REM: Signature<'static> = Signature::try_from("so").unwrap();
-
- 
-// TODO complete match
-impl TryFrom<Arc<Message>> for AtspiEvent {
-    type Error = zbus::Error;
-
-    fn try_from(message: Arc<Message>) -> zbus::Result<Self> {
-        let body: EventBodyOwned = match message.body_signature()? {
-            QT_EVENT => {
-                let body = EventBodyOwned::from(message.body::<EventBodyQT>()?);
-                let atspi_event: AtspiEvent = body.try_into()?;
-            }
-            EVENT_SIG => {
-                let body = message.body::<EventBodyOwned>()?;
-                let atspi_event: AtspiEvent = body.try_into()?;
-            }
-            CACHE_ADD => {todo!()},
-            CACHE_REM => {todo!()},
-
-        };
-        Ok(Self { message, body })
-    }
-}
-
-// we may want to have this live somewhere else
-/// Compound type that aggregates a11y bus events.
-#[derive(Clone, Debug, Eq)]
-pub enum AtspiEvent {
-    // Processed
-        AddAccessible(()),
-        RemoveAccessible(()),
-        EventListenerRegistered(()),
-        EventListenerDeregistered(()),
-    // Registry
-        EventListenerRegistered(()),
-        EventListenerDeregistered(()),
-    // DeviceEventListener
-        KeystrokeListenerRegistered(()),
-        KeystrokeListenerDeregistered(()),
-    // Event
-        PropertyChange(()),
-        BoundsChanged(()),
-        LinkSelected(()),
-        StateChanged(()),
-        ChildrenChanged(()),
-        VisibleDataChanged(()),
-        SelectionChanged(()),
-        ModelChanged(()),
-        ActiveDescendantChanged(()),
-        Announcement(()),
-        AttributesChanged(()),
-        RowInserted(()),
-        RowReordered(()),
-        RowDeleted(()),
-        ColumnInserted(()),
-        ColumnReordered(()),
-        ColumnDeleted(()),
-        TextBoundsChanged(()),
-        TextSelectionChanged(()),
-        TextChanged(()),
-        TextAttributesChanged(()),
-        TextCaretMoved(()),
-        PropertyChange(()),
-        Minimize(()),
-        Maximize(()),
-        Restore(()),
-        Close(()),
-        Create(()),
-        Reparent(()),
-        DesktopCreate(()),
-        DesktopDestroy(()),
-        Destroy(()),
-        Activate(()),
-        Deactivate(()),
-        Raise(()),
-        Lower(()),
-        Move(()),
-        Resize(()),
-        Shade(()),
-        uUshade(()),
-        Restyle(()),
-        Abs(()),
-        Rel(()),
-        Button(()),
-        Modifiers(()),
-        LineChanged(()),
-        ColumncountChanged(()),
-        LinecountChanged(()),
-        ApplicationChanged(()),
-        CharwidthChanged(()),
-        LoadComplete(()),
-        Reload(()),
-        LoadStopped(()),
-        ContentChanged(()),
-        AttributesChanged(()),
-        PageChanged(()),
-        Focus(()),
-    //  Cache.xml
-        AddAccessible(()),
-        RemoveAccessible(()),
-    // Socket    
-        Available(()),
-}
-
-
-impl TryFrom<EventBodyOwned> for At
-
-
 
 impl Event {
     /// Identifies the `sender` of the `Event`.
@@ -260,7 +151,9 @@ impl Event {
         self.message.interface()
     }
 
-    // Identifies this `Event`'s member (signal-) name on the bus.
+    /// Identifies this `Event`'s interface member name on the bus.
+    /// Members of the interface are either signals, methods or properties.
+    /// eg. `PropertyChanged` or `TextChanged`
     #[must_use]
     pub fn member(&self) -> Option<MemberName<'_>> {
         self.message.member()
@@ -271,16 +164,19 @@ impl Event {
         &self.body.kind
     }
 
+    /// Event dependant detail.
     #[must_use]
     pub fn detail1(&self) -> i32 {
         self.body.detail1
     }
 
+    /// Event dependant detail.
     #[must_use]
     pub fn detail2(&self) -> i32 {
         self.body.detail2
     }
 
+    /// Event dependant generic `Value`.
     #[must_use]
     pub fn any_data(&self) -> &zvariant::OwnedValue {
         &self.body.any_data
@@ -291,11 +187,13 @@ impl Event {
         &self.body.properties
     }
 
+    /// Serialized bus message.
     #[must_use]
     pub fn message(&self) -> &Arc<Message> {
         &self.message
     }
 
+    /// Deserialized body type.
     #[must_use]
     pub fn body(&self) -> &EventBodyOwned {
         &self.body
