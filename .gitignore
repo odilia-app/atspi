@@ -1,2 +1,4 @@
 /target
 Cargo.lock
+/atspi-macros/target
+/atspi-matcros/Cargo.lock

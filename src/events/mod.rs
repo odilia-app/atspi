@@ -18,14 +18,16 @@ pub mod object;
 pub mod terminal;
 pub mod window;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, error::Error, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use zbus::{
     names::{InterfaceName, MemberName, UniqueName},
-    zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
+    zvariant::{self, ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
     Message,
 };
+
+use crate::{cache::CacheItem, connection, ATSPI_EVENT};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
@@ -45,6 +47,7 @@ impl<T> Type for EventBody<'_, T> {
     }
 }
 
+// Signature:  "siiv(so)",
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyQT {
     #[serde(rename = "type")]
@@ -55,6 +58,7 @@ pub struct EventBodyQT {
     pub properties: (String, OwnedObjectPath),
 }
 
+// Signature (siiva{sv}),
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyOwned {
     #[serde(rename = "type")]
@@ -82,10 +86,89 @@ impl From<EventBodyQT> for EventBodyOwned {
     }
 }
 
+/// Encapsulates the different bus signal types
 #[derive(Debug, Clone)]
-pub struct Event {
+pub enum Event {
+    /// Includes Atspi and Qspi events
+    Atspi(AtspiEvent),
+    /// Both `CacheAdd` and `CacheRemove` signals
+    Cache(CacheEvent),
+    //  Device(DeviceEvent),
+    //  Listener(EventListener),
+}
+
+#[derive(Debug, Clone)]
+pub enum CacheEvent {
+    Add(CacheAddEvent),
+    Remove(CacheRemoveEvent),
+}
+
+impl TryFrom<Arc<Message>> for CacheEvent {
+    type Error = Box<dyn Error>;
+
+    fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
+        let rem = CacheRemoveEvent::try_from(value.clone());
+        let add = CacheAddEvent::try_from(value);
+        match (rem, add) {
+            (Ok(rem), _) => Ok(CacheEvent::Remove(rem)),
+            (_, Ok(add)) => Ok(CacheEvent::Add(add)),
+            _ => Err("conversion to cache variant failed".into()),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CacheAddEvent {
     message: Arc<Message>,
-    body: EventBodyOwned,
+    body: CacheItem,
+}
+
+#[derive(Debug, Clone)]
+pub struct CacheRemoveEvent {
+    message: Arc<Message>,
+    body: Accessible,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct Accessible {
+    name: String,
+    path: OwnedObjectPath,
+}
+
+impl TryFrom<Arc<Message>> for CacheRemoveEvent {
+    type Error = Box<dyn Error>;
+
+    fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
+        // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
+        let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
+        if value.interface() != Some(iface) {
+            return Err("incorrect interface, not Cache".into());
+        }
+        if value.member() == Some(MemberName::from_static_str("Remove").unwrap()) {
+            let body = value.body::<Accessible>()?;
+            Ok(Self { message: value, body })
+        } else {
+            Err("convert to CacheRemoveEvent failed".into())
+        }
+    }
+}
+
+impl TryFrom<Arc<Message>> for CacheAddEvent {
+    type Error = Box<dyn Error>;
+
+    fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
+        // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
+        let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
+        if value.interface() != Some(iface) {
+            return Err("incorrect interface, not Cache".into());
+        }
+        if value.member() == Some(MemberName::from_static_str("Add").unwrap()) {
+            let body = value.body::<CacheItem>()?;
+            Ok(Self { message: value, body })
+        } else {
+            Err("conversion to CacheAddEvent failed".into())
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -98,21 +181,54 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
     type Error = zbus::Error;
 
     fn try_from(message: Arc<Message>) -> zbus::Result<Self> {
-        let body: EventBodyOwned = message.body::<EventBodyOwned>()?;
+        let qt_sig = Signature::try_from("siiv(so)").unwrap();
+        let body: EventBodyOwned = match message.body_signature() {
+            Ok(sig) => {
+                if sig == qt_sig {
+                    EventBodyOwned::from(message.body::<EventBodyQT>()?)
+                } else {
+                    message.body::<EventBodyOwned>()?
+                }
+            }
+            Err(e) => return Err(e),
+        };
         Ok(Self { message, body })
     }
 }
 
 impl TryFrom<Arc<Message>> for Event {
-    type Error = zbus::Error;
+    type Error = Box<dyn Error>;
 
-    fn try_from(message: Arc<Message>) -> zbus::Result<Self> {
-        let body: EventBodyOwned = message.body::<EventBodyOwned>()?;
-        Ok(Self { message, body })
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+        let atspistr: &str = connection::ATSPI_EVENT.as_str();
+        let qspistr: &str = connection::QSPI_EVENT.as_str();
+        let cache_add_str: &str = connection::CACHE_ADD.as_str();
+        let cache_rem_str: &str = connection::CACHE_REM.as_str();
+
+        match message.body_signature()?.as_str() {
+            atspistr => {
+                let ev = AtspiEvent::try_from(message)?;
+                Ok(Event::Atspi(ev))
+            }
+            qspistr => {
+                let ev = AtspiEvent::try_from(message)?;
+                Ok(Event::Atspi(ev))
+            }
+            cache_add_str => {
+                let ev = CacheEvent::try_from(message)?;
+                Ok(Event::Cache(ev))
+            }
+            cache_rem_str => {
+                let ev = CacheEvent::try_from(message)?;
+                Ok(Event::Cache(ev))
+            }
+            _ => Err("(currently) unsupported bus type signature".into()),
+        }
     }
 }
 
-impl Event {
+// TODO: exxtract methods that apply to all Event types and create a trait for all Events.
+impl AtspiEvent {
     /// Identifies the `sender` of the `Event`.
     /// # Errors
     /// - when deserializeing the header failed, or

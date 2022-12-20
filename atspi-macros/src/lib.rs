@@ -20,10 +20,10 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
 
     // Generate the expanded code
     let expanded = quote! {
-        impl TryFrom<Event> for #name {
+        impl TryFrom<AtspiEvent> for #name {
             type Error = Box<dyn std::error::Error>;
 
-            fn try_from(value: Event) -> Result<Self, Self::Error> {
+            fn try_from(value: AtspiEvent) -> Result<Self, Self::Error> {
                 if value.member() == Some(MemberName::from_static_str(#member)?) {
                     Ok(Self(value))
                 } else {

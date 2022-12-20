@@ -9,28 +9,29 @@ use serde::{Deserialize, Serialize};
 use zbus::dbus_proxy;
 use zbus::zvariant::{OwnedObjectPath, Type};
 
+/// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct CacheItem {
-    // The accessible object (within the application)   (so)
+    /// The accessible object (within the application)   (so)
     pub object: (String, OwnedObjectPath),
-    // The application (root object(?)    (so)
+    /// The application (root object(?)    (so)
     pub app: (String, OwnedObjectPath),
-    // The parent object.  (so)
+    /// The parent object.  (so)
     pub parent: (String, OwnedObjectPath),
-    // The accessbile index in parent.  i
+    /// The accessbile index in parent.  i
     pub index: i32,
-    // Child count of the accessible  i
+    /// Child count of the accessible  i
     pub children: i32,
-    // The exposed interfece(s) set.  as
+    /// The exposed interfece(s) set.  as
     pub ifaces: InterfaceSet,
-    // The short localized name.  s
+    /// The short localized name.  s
     pub short_name: String,
-    // Accessible role. u
+    /// Accessible role. u
     pub role: Role,
-    // More detailed localized name.
+    /// More detailed localized name.
     pub name: String,
-    // The states applicable to the accessible.  au
+    /// The states applicable to the accessible.  au
     pub states: StateSet,
 }
 
@@ -51,7 +52,7 @@ fn zvariant_type_signature_of_cache_item() {
 // }
 //
 
-#[dbus_proxy(interface = "org.a11y.atspi.Cache", default_path="/org/a11y/atspi/cache")]
+#[dbus_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {
     /// GetItems method
     fn get_items(&self) -> zbus::Result<Vec<CacheItem>>;
