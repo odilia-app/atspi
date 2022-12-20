@@ -1,9 +1,7 @@
 use std::{error::Error, ops::Deref};
 
 use futures::stream::{Stream, StreamExt};
-use zbus::{
-    names::InterfaceName, zvariant::Signature, Address, Message, MessageStream, MessageType,
-};
+use zbus::{zvariant::Signature, Address, Message, MessageStream, MessageType};
 
 use crate::{bus::BusProxy, events::Event, registry::RegistryProxy};
 
@@ -22,12 +20,11 @@ use crate::{bus::BusProxy, events::Event, registry::RegistryProxy};
 //  DEVICE_EVENT marks a type for both registerering and deregistering device events (? citation needed)
 pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
 pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const AVAILABLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
-pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-pub const CACHE_ADD: Signature<'_> =
-    Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
-pub const CACHE_REM: Signature<'_> = Signature::from_static_str_unchecked("(so)");
-pub const DEVICE_EVENT: Signature<'_> = Signature::from_static_str_unchecked("(souua(iisi)u(bbb))");
+pub const AVAILABLE: Signature<'_> = Signature::from_static_str_unchecked("so");
+pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("ss");
+pub const CACHE_ADD: Signature<'_> = Signature::from_static_str_unchecked("(so)(so)(so)iiassusau");
+pub const CACHE_REM: Signature<'_> = Signature::from_static_str_unchecked("so");
+pub const DEVICE_EVENT: Signature<'_> = Signature::from_static_str_unchecked("souua(iisi)u(bbb)");
 
 /// A connection to the at-spi bus
 pub struct Connection {
@@ -55,6 +52,8 @@ impl Connection {
         Self::connect(addr).await
     }
 
+    /// Errors
+    /// TODO
     pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
         tracing::debug!("Connecting to a11y bus");
         let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
@@ -73,11 +72,12 @@ impl Connection {
     /// ```
     /// todo!()
     /// ```
-    pub fn event_stream(&self) -> impl Stream<Item = Result<Event, Box<dyn Error>>> {
+    pub fn event_stream(&self) -> impl Stream<Item = Result<Event, zbus::Error>> {
         MessageStream::from(self.registry.connection()).filter_map(|res| async move {
-            let msg = res
-                .map_err(|e| return Some(Box::new(Err::<std::sync::Arc<Message>, zbus::Error>(e))))
-                .ok()?;
+            let msg = match res {
+                Ok(m) => m,
+                Err(e) => return Some(Box::new(Err(e))),
+            };
             match msg.message_type() {
                 // TOCO: Checkme: dot-ok is not-ok
                 MessageType::Signal => Some(Event::try_from(msg)),

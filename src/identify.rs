@@ -6,19 +6,17 @@
 //! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
 //!
 
-use crate::{events::Event, State};
-use atspi_macros::*;
-use serde::{Deserialize, Serialize};
+use atspi_macros::{Doc, Focus, Kbd, Mse, Obj, Term, TrySignify, Win};
 use std::collections::HashMap;
 use std::ops::Deref;
 use zbus::names::MemberName;
 use zbus::zvariant;
 use zvariant::OwnedValue;
 
-trait Signified {}
+pub trait Signified {}
 
 /// Shared functionality
-trait GenericEvent {
+pub trait GenericEvent {
     fn properties(&self) -> &HashMap<String, OwnedValue>;
 }
 
@@ -31,13 +29,14 @@ where
     }
 }
 
+// CONSIDERED BAD PRACTICE!
 // All types T : AtspiEvent should deref to [`crate::Event`]
 //  This ensures all methods on Event are available for all.
 impl Deref for dyn GenericEvent {
-    type Target = crate::events::Event;
+    type Target = crate::events::AtspiEvent;
 
     fn deref(&self) -> &Self::Target {
-        &*(self)
+        &**self
     }
 }
 
@@ -158,128 +157,128 @@ pub trait Focus {}
 pub trait Kbd {}
 
 #[derive(Debug, TrySignify, Obj)]
-pub struct PropertyChangeEvent(AtspiEvent);
+pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
 
 impl PropertyChangeEvent {
-    fn property(&self) -> &str {
+    pub fn property(&self) -> &str {
         self.0.kind()
     }
-    fn value(&self) -> &OwnedValue {
+    pub fn value(&self) -> &OwnedValue {
         self.0.any_data()
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct BoundsChangedEvent(AtspiEvent);
+pub struct BoundsChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct LinkSelectedEvent(AtspiEvent);
+pub struct LinkSelectedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct StateChangedEvent(AtspiEvent);
+pub struct StateChangedEvent(pub(crate) AtspiEvent);
 impl StateChangedEvent {
-    fn state(&self) -> &str {
+    pub fn state(&self) -> &str {
         self.0.kind()
     }
     //TODO checkme please!!
-    fn enabled(&self) -> bool {
+    pub fn enabled(&self) -> bool {
         self.0.detail1() == 0
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct ChildrenChangedEvent(AtspiEvent);
+pub struct ChildrenChangedEvent(pub(crate) AtspiEvent);
 impl ChildrenChangedEvent {
-    fn operation(&self) -> &str {
+    pub fn operation(&self) -> &str {
         self.0.kind()
     }
-    fn index_in_parent(&self) -> i32 {
+    pub fn index_in_parent(&self) -> i32 {
         self.0.detail1()
     } // usizes ?
-    fn child(&self) -> &OwnedValue {
+    pub fn child(&self) -> &OwnedValue {
         self.0.any_data()
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct VisibleDataChangedEvent(AtspiEvent);
+pub struct VisibleDataChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct SelectionChangedEvent(AtspiEvent);
+pub struct SelectionChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct ModelChangedEvent(AtspiEvent);
+pub struct ModelChangedEvent(pub(crate) AtspiEvent);
 
 // TODO Check my impl please.
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct ActiveDescendantChangedEvent(AtspiEvent);
+pub struct ActiveDescendantChangedEvent(pub(crate) AtspiEvent);
 impl ActiveDescendantChangedEvent {
-    fn child(&self) -> &zvariant::OwnedValue {
+    pub fn child(&self) -> &zvariant::OwnedValue {
         self.0.any_data() // TODO Make me a beter returner!
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct AnnouncementEvent(AtspiEvent);
+pub struct AnnouncementEvent(pub(crate) AtspiEvent);
 impl AnnouncementEvent {
-    fn text(&self) -> &str {
+    pub fn text(&self) -> &str {
         self.0.kind()
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct AttributesChangedEvent(AtspiEvent);
+pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct RowInsertedEvent(AtspiEvent);
+pub struct RowInsertedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct RowReorderedEvent(AtspiEvent);
+pub struct RowReorderedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct RowDeletedEvent(AtspiEvent);
+pub struct RowDeletedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct ColumnInsertedEvent(AtspiEvent);
+pub struct ColumnInsertedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct ColumnReorderedEvent(AtspiEvent);
+pub struct ColumnReorderedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct ColumnDeletedEvent(AtspiEvent);
+pub struct ColumnDeletedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct TextBoundsChangedEvent(AtspiEvent);
+pub struct TextBoundsChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct TextSelectionChangedEvent(AtspiEvent);
+pub struct TextSelectionChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct TextChangedEvent(AtspiEvent);
+pub struct TextChangedEvent(pub(crate) AtspiEvent);
 impl TextChangedEvent {
-    fn detail(&self) -> &str {
+    pub fn detail(&self) -> &str {
         self.0.kind()
     }
-    fn start_pos(&self) -> i32 {
+    pub fn start_pos(&self) -> i32 {
         self.0.detail1()
     }
-    fn end_pos(&self) -> i32 {
+    pub fn end_pos(&self) -> i32 {
         self.0.detail2()
     }
     // TODO zvariant::Value -> String me please
-    fn text(&self) -> &OwnedValue {
+    pub fn text(&self) -> &OwnedValue {
         self.0.any_data()
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct TextAttributesChangedEvent(AtspiEvent);
+pub struct TextAttributesChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Obj)]
-pub struct TextCaretMovedEvent(AtspiEvent);
+pub struct TextCaretMovedEvent(pub(crate) AtspiEvent);
 
 impl TextCaretMovedEvent {
-    fn position(&self) -> i32 {
+    pub fn position(&self) -> i32 {
         self.0.detail1()
     }
 }
@@ -296,104 +295,104 @@ mod win {
 
     //TODO Check my impl with bus signal
     #[derive(Debug, TrySignify, Win)]
-    pub struct PropertyChangeEvent(AtspiEvent);
+    pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
     impl PropertyChangeEvent {
-        fn property(&self) -> &str {
+        pub fn property(&self) -> &str {
             self.0.kind()
         }
     }
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct MinimizeEvent(AtspiEvent);
+    pub struct MinimizeEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct MaximizeEvent(AtspiEvent);
+    pub struct MaximizeEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct RestoreEvent(AtspiEvent);
+    pub struct RestoreEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct CloseEvent(AtspiEvent);
+    pub struct CloseEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct CreateEvent(AtspiEvent);
+    pub struct CreateEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct ReparentEvent(AtspiEvent);
+    pub struct ReparentEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct DesktopCreateEvent(AtspiEvent);
+    pub struct DesktopCreateEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct DesktopDestroyEvent(AtspiEvent);
+    pub struct DesktopDestroyEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct DestroyEvent(AtspiEvent);
+    pub struct DestroyEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct ActivateEvent(AtspiEvent);
+    pub struct ActivateEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct DeactivateEvent(AtspiEvent);
+    pub struct DeactivateEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct RaiseEvent(AtspiEvent);
+    pub struct RaiseEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct LowerEvent(AtspiEvent);
+    pub struct LowerEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct MoveEvent(AtspiEvent);
+    pub struct MoveEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct ResizeEvent(AtspiEvent);
+    pub struct ResizeEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct ShadeEvent(AtspiEvent);
+    pub struct ShadeEvent(pub(crate) AtspiEvent);
 
     #[allow(non_camel_case_types)]
     #[derive(Debug, TrySignify, Win)]
-    pub struct uUshadeEvent(AtspiEvent);
+    pub struct uUshadeEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, TrySignify, Win)]
-    pub struct RestyleEvent(AtspiEvent);
+    pub struct RestyleEvent(pub(crate) AtspiEvent);
 }
 
 // ----------<- end of Win signals
 // ----------> Start of Mse
 
 #[derive(Debug, Clone, TrySignify, Mse)]
-pub struct AbsEvent(AtspiEvent);
+pub struct AbsEvent(pub(crate) AtspiEvent);
 impl AbsEvent {
-    fn dx(&self) -> i32 {
+    pub fn x(&self) -> i32 {
         self.0.body().detail1
     }
-    fn dy(&self) -> i32 {
+    pub fn y(&self) -> i32 {
         self.0.body().detail2
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Mse)]
-pub struct RelEvent(AtspiEvent);
+pub struct RelEvent(pub(crate) AtspiEvent);
 impl RelEvent {
-    fn dx(&self) -> i32 {
+    pub fn dx(&self) -> i32 {
         self.0.body().detail1
     }
-    fn dy(&self) -> i32 {
+    pub fn dy(&self) -> i32 {
         self.0.body().detail2
     }
 }
 
 #[derive(Debug, Clone, TrySignify, Mse)]
-pub struct ButtonEvent(AtspiEvent);
+pub struct ButtonEvent(pub(crate) AtspiEvent);
 impl ButtonEvent {
-    fn button(&self) -> &str {
+    pub fn button(&self) -> &str {
         self.0.kind()
     }
-    fn x(&self) -> i32 {
+    pub fn x(&self) -> i32 {
         self.0.body().detail1
     }
-    fn y(&self) -> i32 {
+    pub fn y(&self) -> i32 {
         self.0.body().detail2
     }
 }
@@ -402,12 +401,12 @@ impl ButtonEvent {
 // ----------> Start of Kbd
 
 #[derive(Debug, Clone, TrySignify, Kbd)]
-pub struct ModifiersEvent(AtspiEvent);
+pub struct ModifiersEvent(pub(crate) AtspiEvent);
 impl ModifiersEvent {
-    fn previous_modifiers(&self) -> i32 {
+    pub fn previous_modifiers(&self) -> i32 {
         self.0.body().detail1
     }
-    fn current_modifiers(&self) -> i32 {
+    pub fn current_modifiers(&self) -> i32 {
         self.0.body().detail2
     }
 }
@@ -416,19 +415,19 @@ impl ModifiersEvent {
 // ----------> Start of Term
 
 #[derive(Debug, Clone, TrySignify, Term)]
-pub struct LineChangedEvent(AtspiEvent);
+pub struct LineChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Term)]
-pub struct ColumncountChangedEvent(AtspiEvent);
+pub struct ColumncountChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Term)]
-pub struct LinecountChangedEvent(AtspiEvent);
+pub struct LinecountChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Term)]
-pub struct ApplicationChangedEvent(AtspiEvent);
+pub struct ApplicationChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, Clone, TrySignify, Term)]
-pub struct CharwidthChangedEvent(AtspiEvent);
+pub struct CharwidthChangedEvent(pub(crate) AtspiEvent);
 
 // ----------<- end of Term signals
 // ----------> Start of Doc
@@ -440,28 +439,26 @@ mod doc {
     use crate::identify::Signified;
     use atspi_macros::TrySignify;
 
-    use crate::identify::Event;
+    #[derive(Debug, Clone, TrySignify, Doc)]
+    pub struct LoadCompleteEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, Clone, TrySignify, Doc)]
-    pub struct LoadCompleteEvent(AtspiEvent);
+    pub struct ReloadEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, Clone, TrySignify, Doc)]
-    pub struct ReloadEvent(AtspiEvent);
+    pub struct LoadStoppedEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, Clone, TrySignify, Doc)]
-    pub struct LoadStoppedEvent(AtspiEvent);
+    pub struct ContentChangedEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, Clone, TrySignify, Doc)]
-    pub struct ContentChangedEvent(AtspiEvent);
+    pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
 
     #[derive(Debug, Clone, TrySignify, Doc)]
-    pub struct AttributesChangedEvent(AtspiEvent);
-
-    #[derive(Debug, Clone, TrySignify, Doc)]
-    pub struct PageChangedEvent(AtspiEvent);
+    pub struct PageChangedEvent(pub(crate) AtspiEvent);
 }
 
 use crate::events::AtspiEvent;
 
 #[derive(Debug, Clone, TrySignify, Focus)]
-pub struct FocusEvent(AtspiEvent);
+pub struct FocusEvent(pub(crate) AtspiEvent);

@@ -23,11 +23,11 @@ use std::{collections::HashMap, error::Error, sync::Arc};
 use serde::{Deserialize, Serialize};
 use zbus::{
     names::{InterfaceName, MemberName, UniqueName},
-    zvariant::{self, ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
+    zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
     Message,
 };
 
-use crate::{cache::CacheItem, connection, ATSPI_EVENT};
+use crate::{cache::CacheItem, connection};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
@@ -197,33 +197,27 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 }
 
 impl TryFrom<Arc<Message>> for Event {
-    type Error = Box<dyn Error>;
+    type Error = Box<dyn std::error::Error>;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        let atspistr: &str = connection::ATSPI_EVENT.as_str();
-        let qspistr: &str = connection::QSPI_EVENT.as_str();
-        let cache_add_str: &str = connection::CACHE_ADD.as_str();
-        let cache_rem_str: &str = connection::CACHE_REM.as_str();
-
-        match message.body_signature()?.as_str() {
-            atspistr => {
-                let ev = AtspiEvent::try_from(message)?;
-                Ok(Event::Atspi(ev))
-            }
-            qspistr => {
-                let ev = AtspiEvent::try_from(message)?;
-                Ok(Event::Atspi(ev))
-            }
-            cache_add_str => {
-                let ev = CacheEvent::try_from(message)?;
-                Ok(Event::Cache(ev))
-            }
-            cache_rem_str => {
-                let ev = CacheEvent::try_from(message)?;
-                Ok(Event::Cache(ev))
-            }
-            _ => Err("(currently) unsupported bus type signature".into()),
+        if message.body_signature() == Ok(connection::ATSPI_EVENT) {
+            let ev = AtspiEvent::try_from(message)?;
+            return Ok(Event::Atspi(ev));
         }
+        if message.body_signature() == Ok(connection::QSPI_EVENT) {
+            let ev = AtspiEvent::try_from(message)?;
+            return Ok(Event::Atspi(ev));
+        }
+        if message.body_signature() == Ok(connection::CACHE_ADD) {
+            let ev = CacheEvent::try_from(message)?;
+            return Ok(Event::Cache(ev));
+        }
+        if message.body_signature() == Ok(connection::CACHE_REM) {
+            let ev = CacheEvent::try_from(message)?;
+            return Ok(Event::Cache(ev));
+        }
+
+        Err("signature error".into())
     }
 }
 
