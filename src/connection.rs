@@ -76,7 +76,7 @@ impl Connection {
         MessageStream::from(self.registry.connection()).filter_map(|res| async move {
             let msg = match res {
                 Ok(m) => m,
-                Err(e) => return Some(Box::new(Err(e))),
+                Err(e) => return Some(Err(e)),
             };
             match msg.message_type() {
                 // TOCO: Checkme: dot-ok is not-ok

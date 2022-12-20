@@ -104,16 +104,18 @@ pub enum CacheEvent {
 }
 
 impl TryFrom<Arc<Message>> for CacheEvent {
-    type Error = Box<dyn Error>;
+    type Error = zbus::Error;
 
-    fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
-        let rem = CacheRemoveEvent::try_from(value.clone());
-        let add = CacheAddEvent::try_from(value);
-        match (rem, add) {
-            (Ok(rem), _) => Ok(CacheEvent::Remove(rem)),
-            (_, Ok(add)) => Ok(CacheEvent::Add(add)),
-            _ => Err("conversion to cache variant failed".into()),
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+        if let Ok(rem) = CacheRemoveEvent::try_from(message.clone()) {
+            return Ok(CacheEvent::Remove(rem));
         }
+        if let Ok(add) = CacheAddEvent::try_from(message) {
+            return Ok(CacheEvent::Add(add));
+        }
+        // Err(format! {"Conversion to cachevariant failed"})
+
+        Err(zbus::Error::NoBodySignature)
     }
 }
 
@@ -197,7 +199,7 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 }
 
 impl TryFrom<Arc<Message>> for Event {
-    type Error = Box<dyn std::error::Error>;
+    type Error = zbus::Error;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
         if message.body_signature() == Ok(connection::ATSPI_EVENT) {
@@ -217,7 +219,7 @@ impl TryFrom<Arc<Message>> for Event {
             return Ok(Event::Cache(ev));
         }
 
-        Err("signature error".into())
+        Err(zbus::Error::Unsupported)
     }
 }
 
