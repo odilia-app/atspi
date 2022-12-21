@@ -1,9 +1,7 @@
-use std::{error::Error, ops::Deref};
-
+use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
 use futures::stream::{Stream, StreamExt};
-use zbus::{zvariant::Signature, Address, Message, MessageStream, MessageType};
-
-use crate::{bus::BusProxy, events::Event, registry::RegistryProxy};
+use std::ops::Deref;
+use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
 
 // Event body signatures: These outline the event specific deserialized event types.
 // Safety: These are evaluated at compile time.
@@ -72,14 +70,13 @@ impl Connection {
     /// ```
     /// todo!()
     /// ```
-    pub fn event_stream(&self) -> impl Stream<Item = Result<Event, zbus::Error>> {
+    pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
         MessageStream::from(self.registry.connection()).filter_map(|res| async move {
             let msg = match res {
                 Ok(m) => m,
-                Err(e) => return Some(Err(e)),
+                Err(e) => return Some(Err(e.into())),
             };
             match msg.message_type() {
-                // TOCO: Checkme: dot-ok is not-ok
                 MessageType::Signal => Some(Event::try_from(msg)),
                 _ => None,
             }
@@ -115,7 +112,7 @@ impl Deref for Connection {
 /// * if creation of a [`crate::bus::StatusProxy`] fails
 /// * if the `IsEnabled` property cannot be read
 /// * the `IsEnabled` property cannot be set.
-pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), zbus::Error> {
+pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), AtspiError> {
     // Get a connection to the session bus.
     let session = zbus::Connection::session().await?;
 

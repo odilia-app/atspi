@@ -15,7 +15,7 @@ pub mod document;
 pub mod editable_text;
 pub mod events;
 pub mod identify;
-pub use events::EventBody;
+pub use events::{Event, EventBody};
 pub mod hyperlink;
 pub mod hypertext;
 pub mod image;
@@ -40,10 +40,13 @@ pub use interfaces::*;
 mod state;
 pub use state::*;
 
+pub mod error;
+pub use error::AtspiError;
+
 pub use zbus;
+use zbus::zvariant::Type;
 
 use serde::{Deserialize, Serialize};
-use zbus::zvariant::Type;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]

@@ -18,7 +18,7 @@ pub mod object;
 pub mod terminal;
 pub mod window;
 
-use std::{collections::HashMap, error::Error, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use zbus::{
@@ -27,7 +27,7 @@ use zbus::{
     Message,
 };
 
-use crate::{cache::CacheItem, connection};
+use crate::{cache::CacheItem, connection, AtspiError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
@@ -104,7 +104,7 @@ pub enum CacheEvent {
 }
 
 impl TryFrom<Arc<Message>> for CacheEvent {
-    type Error = zbus::Error;
+    type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
         if let Ok(rem) = CacheRemoveEvent::try_from(message.clone()) {
@@ -113,9 +113,7 @@ impl TryFrom<Arc<Message>> for CacheEvent {
         if let Ok(add) = CacheAddEvent::try_from(message) {
             return Ok(CacheEvent::Add(add));
         }
-        // Err(format! {"Conversion to cachevariant failed"})
-
-        Err(zbus::Error::NoBodySignature)
+        Err(AtspiError::Conversion("Conversion to cache variant failed"))
     }
 }
 
@@ -138,37 +136,37 @@ pub struct Accessible {
 }
 
 impl TryFrom<Arc<Message>> for CacheRemoveEvent {
-    type Error = Box<dyn Error>;
+    type Error = AtspiError;
 
     fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
         // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
         let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
         if value.interface() != Some(iface) {
-            return Err("incorrect interface, not Cache".into());
+            return Err(AtspiError::Conversion("incorrect interface, not Cache"));
         }
         if value.member() == Some(MemberName::from_static_str("Remove").unwrap()) {
             let body = value.body::<Accessible>()?;
             Ok(Self { message: value, body })
         } else {
-            Err("convert to CacheRemoveEvent failed".into())
+            Err(AtspiError::Conversion("convert to CacheRemoveEvent failed"))
         }
     }
 }
 
 impl TryFrom<Arc<Message>> for CacheAddEvent {
-    type Error = Box<dyn Error>;
+    type Error = AtspiError;
 
     fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
         // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
         let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
         if value.interface() != Some(iface) {
-            return Err("incorrect interface, not Cache".into());
+            return Err(AtspiError::Conversion("incorrect interface, not Cache"));
         }
-        if value.member() == Some(MemberName::from_static_str("Add").unwrap()) {
+        if value.member() == Some(MemberName::from_static_str("Add")?) {
             let body = value.body::<CacheItem>()?;
             Ok(Self { message: value, body })
         } else {
-            Err("conversion to CacheAddEvent failed".into())
+            Err(AtspiError::Conversion("conversion to CacheAddEvent failed"))
         }
     }
 }
@@ -180,10 +178,10 @@ pub struct AtspiEvent {
 }
 
 impl TryFrom<Arc<Message>> for AtspiEvent {
-    type Error = zbus::Error;
+    type Error = AtspiError;
 
-    fn try_from(message: Arc<Message>) -> zbus::Result<Self> {
-        let qt_sig = Signature::try_from("siiv(so)").unwrap();
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+        let qt_sig = Signature::try_from("siiv(so)")?;
         let body: EventBodyOwned = match message.body_signature() {
             Ok(sig) => {
                 if sig == qt_sig {
@@ -192,16 +190,16 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
                     message.body::<EventBodyOwned>()?
                 }
             }
-            Err(e) => return Err(e),
+            Err(e) => return Err(AtspiError::from(e)),
         };
         Ok(Self { message, body })
     }
 }
 
 impl TryFrom<Arc<Message>> for Event {
-    type Error = zbus::Error;
+    type Error = AtspiError;
 
-    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+    fn try_from(message: Arc<Message>) -> Result<Event, AtspiError> {
         if message.body_signature() == Ok(connection::ATSPI_EVENT) {
             let ev = AtspiEvent::try_from(message)?;
             return Ok(Event::Atspi(ev));
@@ -219,11 +217,11 @@ impl TryFrom<Arc<Message>> for Event {
             return Ok(Event::Cache(ev));
         }
 
-        Err(zbus::Error::Unsupported)
+        Err(AtspiError::Conversion("invalid body signature in TryFrom<Arc<Message>> for Event"))
     }
 }
 
-// TODO: exxtract methods that apply to all Event types and create a trait for all Events.
+// TODO: extract methods that apply to all Event types and create a trait for all Events.
 impl AtspiEvent {
     /// Identifies the `sender` of the `Event`.
     /// # Errors
