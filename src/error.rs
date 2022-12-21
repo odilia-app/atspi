@@ -9,7 +9,7 @@ pub enum AtspiError {
     /// Add Atspi Errors as we identify them, rather than (ab)using 'Other'.
 
     /// Other errors.
-    Other(&'static str),
+    Owned(String),
 
     /// A `zbus` error. variant.
     Zbus(zbus::Error),
@@ -34,7 +34,7 @@ impl std::fmt::Display for AtspiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AtspiError::Conversion(e) => f.write_str(&format!("atspi: conversion failure: {e}")),
-            AtspiError::Other(e) => f.write_str(&format!("atspi: other error: {e}")),
+            AtspiError::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
             AtspiError::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
             AtspiError::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
             AtspiError::ZbusFdo(e) => f.write_str(&format!("D-Bus standard interfaces Error: {e}")),

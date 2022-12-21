@@ -135,6 +135,11 @@ pub struct Accessible {
     path: OwnedObjectPath,
 }
 
+#[test]
+fn test_accessible_signature() {
+    assert_eq!(Accessible::signature(), "(so)");
+}
+
 impl TryFrom<Arc<Message>> for CacheRemoveEvent {
     type Error = AtspiError;
 
@@ -200,24 +205,36 @@ impl TryFrom<Arc<Message>> for Event {
     type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Event, AtspiError> {
-        if message.body_signature() == Ok(connection::ATSPI_EVENT) {
+        let signature = message.body_signature()?;
+        if signature == connection::ATSPI_EVENT {
             let ev = AtspiEvent::try_from(message)?;
             return Ok(Event::Atspi(ev));
         }
-        if message.body_signature() == Ok(connection::QSPI_EVENT) {
+        if signature == connection::QSPI_EVENT {
             let ev = AtspiEvent::try_from(message)?;
             return Ok(Event::Atspi(ev));
         }
-        if message.body_signature() == Ok(connection::CACHE_ADD) {
+        if signature == connection::CACHE_ADD {
             let ev = CacheEvent::try_from(message)?;
             return Ok(Event::Cache(ev));
         }
-        if message.body_signature() == Ok(connection::CACHE_REM) {
+        if signature == connection::CACHE_REM {
             let ev = CacheEvent::try_from(message)?;
             return Ok(Event::Cache(ev));
+        }
+        if signature == connection::AVAILABLE {
+            todo!()
+        }
+        if signature == connection::DEVICE_EVENT {
+            todo!()
+        }
+        if signature == connection::EVENT_LISTENER {
+            todo!()
         }
 
-        Err(AtspiError::Conversion("invalid body signature in TryFrom<Arc<Message>> for Event"))
+        let signature = signature.to_string();
+        let s = format!("invalid body signature: {signature}");
+        Err(AtspiError::Owned(s))
     }
 }
 
