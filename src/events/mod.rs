@@ -110,9 +110,10 @@ impl TryFrom<Arc<Message>> for CacheEvent {
         if let Ok(rem) = CacheRemoveEvent::try_from(message.clone()) {
             return Ok(CacheEvent::Remove(rem));
         }
-        if let Ok(add) = CacheAddEvent::try_from(message) {
+        if let Ok(add) = CacheAddEvent::try_from(message.clone()) {
             return Ok(CacheEvent::Add(add));
         }
+
         Err(AtspiError::Conversion("Conversion to cache variant failed"))
     }
 }
@@ -143,15 +144,15 @@ fn test_accessible_signature() {
 impl TryFrom<Arc<Message>> for CacheRemoveEvent {
     type Error = AtspiError;
 
-    fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
         // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
         let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
-        if value.interface() != Some(iface) {
+        if message.interface() != Some(iface) {
             return Err(AtspiError::Conversion("incorrect interface, not Cache"));
         }
-        if value.member() == Some(MemberName::from_static_str("Remove").unwrap()) {
-            let body = value.body::<Accessible>()?;
-            Ok(Self { message: value, body })
+        if message.member() == Some(MemberName::from_static_str("RemoveAccessible").unwrap()) {
+            let body = message.body::<Accessible>()?;
+            Ok(Self { message, body })
         } else {
             Err(AtspiError::Conversion("convert to CacheRemoveEvent failed"))
         }
@@ -161,15 +162,15 @@ impl TryFrom<Arc<Message>> for CacheRemoveEvent {
 impl TryFrom<Arc<Message>> for CacheAddEvent {
     type Error = AtspiError;
 
-    fn try_from(value: Arc<Message>) -> Result<Self, Self::Error> {
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
         // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
         let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
-        if value.interface() != Some(iface) {
+        if message.interface() != Some(iface) {
             return Err(AtspiError::Conversion("incorrect interface, not Cache"));
         }
-        if value.member() == Some(MemberName::from_static_str("Add")?) {
-            let body = value.body::<CacheItem>()?;
-            Ok(Self { message: value, body })
+        if message.member() == Some(MemberName::from_static_str("AddAccessible")?) {
+            let body = message.body::<CacheItem>()?;
+            Ok(Self { message, body })
         } else {
             Err(AtspiError::Conversion("conversion to CacheAddEvent failed"))
         }
