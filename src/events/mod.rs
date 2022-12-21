@@ -18,15 +18,18 @@ pub mod object;
 pub mod terminal;
 pub mod window;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, ops::Deref, sync::Arc};
 
-use serde::{Deserialize, Serialize};
+use serde::{de::IntoDeserializer, Deserialize, Serialize};
 use zbus::{
     names::{InterfaceName, MemberName, UniqueName},
     zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
     Message,
 };
 
+use crate::connection::{
+    ATSPI_EVENT, AVAILABLE, CACHE_ADD, CACHE_REM, DEVICE_EVENT, EVENT_LISTENER, QSPI_EVENT,
+};
 use crate::{cache::CacheItem, connection, AtspiError};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -120,14 +123,14 @@ impl TryFrom<Arc<Message>> for CacheEvent {
 
 #[derive(Debug, Clone)]
 pub struct CacheAddEvent {
-    message: Arc<Message>,
-    body: CacheItem,
+    pub message: Arc<Message>,
+    pub body: CacheItem,
 }
 
 #[derive(Debug, Clone)]
 pub struct CacheRemoveEvent {
-    message: Arc<Message>,
-    body: Accessible,
+    pub message: Arc<Message>,
+    pub body: Accessible,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -150,7 +153,7 @@ impl TryFrom<Arc<Message>> for CacheRemoveEvent {
         if message.interface() != Some(iface) {
             return Err(AtspiError::Conversion("incorrect interface, not Cache"));
         }
-        if message.member() == Some(MemberName::from_static_str("RemoveAccessible").unwrap()) {
+        if message.member() == Some(MemberName::from_static_str("RemoveAccessible")?) {
             let body = message.body::<Accessible>()?;
             Ok(Self { message, body })
         } else {
@@ -187,10 +190,9 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
     type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        let qt_sig = Signature::try_from("siiv(so)")?;
         let body: EventBodyOwned = match message.body_signature() {
             Ok(sig) => {
-                if sig == qt_sig {
+                if sig == connection::QSPI_EVENT {
                     EventBodyOwned::from(message.body::<EventBodyQT>()?)
                 } else {
                     message.body::<EventBodyOwned>()?
@@ -205,37 +207,34 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 impl TryFrom<Arc<Message>> for Event {
     type Error = AtspiError;
 
-    fn try_from(message: Arc<Message>) -> Result<Event, AtspiError> {
-        let signature = message.body_signature()?;
-        if signature == connection::ATSPI_EVENT {
-            let ev = AtspiEvent::try_from(message)?;
-            return Ok(Event::Atspi(ev));
+    fn try_from(msg: Arc<Message>) -> Result<Event, AtspiError> {
+        let sig = msg.body_signature()?;
+        let sig_b = sig.as_bytes();
+        match sig_b {
+            _ if AVAILABLE.as_bytes() == sig_b => todo!(),
+            _ if ATSPI_EVENT.as_bytes() == sig_b => {
+                let ev = AtspiEvent::try_from(msg)?;
+                Ok(Event::Atspi(ev))
+            }
+            _ if QSPI_EVENT.as_bytes() == sig_b => {
+                let ev = AtspiEvent::try_from(msg)?;
+                Ok(Event::Atspi(ev))
+            }
+            _ if EVENT_LISTENER.as_bytes() == sig_b => todo!(),
+            _ if CACHE_ADD.as_bytes() == sig_b => {
+                let ev = CacheEvent::try_from(msg)?;
+                Ok(Event::Cache(ev))
+            }
+            _ if CACHE_REM.as_bytes() == sig_b => {
+                let ev = CacheEvent::try_from(msg)?;
+                Ok(Event::Cache(ev))
+            }
+            _ if DEVICE_EVENT.as_bytes() == sig_b => todo!(),
+            _ => {
+                let s = format!("invalid body signature: {}", msg.body_signature()?);
+                Err(AtspiError::Owned(s))
+            }
         }
-        if signature == connection::QSPI_EVENT {
-            let ev = AtspiEvent::try_from(message)?;
-            return Ok(Event::Atspi(ev));
-        }
-        if signature == connection::CACHE_ADD {
-            let ev = CacheEvent::try_from(message)?;
-            return Ok(Event::Cache(ev));
-        }
-        if signature == connection::CACHE_REM {
-            let ev = CacheEvent::try_from(message)?;
-            return Ok(Event::Cache(ev));
-        }
-        if signature == connection::AVAILABLE {
-            todo!()
-        }
-        if signature == connection::DEVICE_EVENT {
-            todo!()
-        }
-        if signature == connection::EVENT_LISTENER {
-            todo!()
-        }
-
-        let signature = signature.to_string();
-        let s = format!("invalid body signature: {signature}");
-        Err(AtspiError::Owned(s))
     }
 }
 

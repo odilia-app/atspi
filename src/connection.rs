@@ -18,8 +18,8 @@ use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
 //  DEVICE_EVENT marks a type for both registerering and deregistering device events (? citation needed)
 pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
 pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const AVAILABLE: Signature<'_> = Signature::from_static_str_unchecked("so");
-pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("ss");
+pub const AVAILABLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD: Signature<'_> =
     Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 pub const CACHE_REM: Signature<'_> = Signature::from_static_str_unchecked("(so)");
