@@ -8,21 +8,19 @@ use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
 // ----
 // The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
 // -  Cache : RemoveAccessible
-// -  Socket: Available
+// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
 //
 // ATSPI- and QSPI both describe the generic events. These can be converted into
 // specific signal types with TryFrom implementations. See crate::[`identify`]
-//  AVAILABLE signals the availability of the `Registry` daeomon.
 //  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
 //  CACHE_ADD and *_REMOVE have very different types
 //  DEVICE_EVENT marks a type for both registerering and deregistering device events (? citation needed)
 pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
 pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const AVAILABLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD: Signature<'_> =
     Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
-pub const CACHE_REM: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const DEVICE_EVENT: Signature<'_> = Signature::from_static_str_unchecked("(souua(iisi)u(bbb))");
 
 /// A connection to the at-spi bus

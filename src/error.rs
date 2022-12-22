@@ -6,6 +6,9 @@ pub enum AtspiError {
     /// Converting one type into another failure
     Conversion(&'static str),
 
+    /// On specific types, if the event / message member does not match the Event's name.
+    MemberMatchError(String), //TODO try specified lifetime parameter &'a str, with AtspiError<'a>
+
     /// Add Atspi Errors as we identify them, rather than (ab)using 'Other'.
 
     /// Other errors.
@@ -34,6 +37,9 @@ impl std::fmt::Display for AtspiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AtspiError::Conversion(e) => f.write_str(&format!("atspi: conversion failure: {e}")),
+            AtspiError::MemberMatchError(e) => {
+                f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
+            }
             AtspiError::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
             AtspiError::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
             AtspiError::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),

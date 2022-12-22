@@ -156,8 +156,30 @@ pub trait Focus {}
 /// | Keyboard | Modifiers>  |   |  |   |   |
 pub trait Kbd {}
 
-#[derive(Debug, TrySignify, Obj)]
-pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
+#[derive(Debug, Obj)]
+pub struct PropertyChangeEvent(AtspiEvent);
+
+impl TryFrom<AtspiEvent> for PropertyChangeEvent {
+    type Error = crate::AtspiError;
+
+    fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
+        let msg_member = msg.member();
+        if msg_member == Some(MemberName::from_static_str(r#"PropertyChange"#)?) {
+            return Ok(Self(msg));
+        };
+
+        let tname = std::any::type_name::<Self>().to_string();
+        let member = tname.strip_suffix("Event").unwrap();
+        let error = format!("specific type's member: {member} != msg type member: {msg_member:?}");
+        Err(crate::AtspiError::MemberMatchError(error))
+    }
+}
+
+impl<'a> PropertyChangeEvent {
+    fn inner(&'a self) -> &'a AtspiEvent {
+        &self.0
+    }
+}
 
 impl PropertyChangeEvent {
     pub fn property(&self) -> &str {

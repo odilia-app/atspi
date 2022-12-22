@@ -21,14 +21,25 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
     // Generate the expanded code
     let expanded = quote! {
         impl TryFrom<AtspiEvent> for #name {
-            type Error = Box<dyn std::error::Error>;
+            type Error = crate::AtspiError;
 
-            fn try_from(value: AtspiEvent) -> Result<Self, Self::Error> {
-                if value.member() == Some(MemberName::from_static_str(#member)?) {
-                    Ok(Self(value))
-                } else {
-                    Err("error signifying event signal type".into())
-                }
+            fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
+                let msg_member = msg.member();
+                if msg_member == Some(MemberName::from_static_str(#member)?) {
+                    return Ok(Self(msg));
+                };
+
+                let tname = std::any::type_name::<Self>().to_string();
+                let member = tname.strip_suffix("Event").unwrap();
+                let error = format!("specific type's member: {} != msg type member: {:?}", member, msg_member);
+                Err(crate::AtspiError::MemberMatchError(error))
+            }
+        }
+
+
+        impl<'a> #name {
+            fn inner(&'a self) -> &'a AtspiEvent {
+                &self.0
             }
         }
 
