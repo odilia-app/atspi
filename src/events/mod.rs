@@ -106,31 +106,52 @@ pub enum CacheEvent {
     Remove(CacheRemoveEvent),
 }
 
-impl TryFrom<Arc<Message>> for CacheEvent {
-    type Error = AtspiError;
+/// Type that contains the `zbus::Message` for meta information and
+/// the [`crate::cache::CacheItem`]
+#[derive(Debug, Clone)]
+pub struct CacheAddEvent {
+    pub(crate) message: Arc<Message>,
+    pub(crate) body: CacheItem,
+}
 
-    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        if let Ok(rem) = CacheRemoveEvent::try_from(message.clone()) {
-            return Ok(CacheEvent::Remove(rem));
-        }
-        if let Ok(add) = CacheAddEvent::try_from(message.clone()) {
-            return Ok(CacheEvent::Add(add));
-        }
+impl CacheAddEvent {
+    /// When an object in an application is added, this may evoke a `CacheAdd` event,
+    /// this yields an [`crate::cache::CacheItem`]
+    #[must_use]
+    pub fn item(&self) -> &CacheItem {
+        &self.body
+    }
 
-        Err(AtspiError::Conversion("Conversion to cache variant failed"))
+    /// When an object in an application is added, this may evoke a `CacheAdd` event,
+    /// this yields an [`crate::cache::CacheItem`]
+    /// Consumes the `CacheAdd` event.
+    #[must_use]
+    pub fn into_item(self) -> CacheItem {
+        self.body
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct CacheAddEvent {
-    pub message: Arc<Message>,
-    pub body: CacheItem,
+pub struct CacheRemoveEvent {
+    pub(crate) message: Arc<Message>,
+    pub(crate) body: Accessible,
 }
 
-#[derive(Debug, Clone)]
-pub struct CacheRemoveEvent {
-    pub message: Arc<Message>,
-    pub body: Accessible,
+impl CacheRemoveEvent {
+    /// What `Accessible` is removed from the application state.
+    /// A reference to the `Accessible`
+    #[must_use]
+    pub fn accessible(&self) -> &Accessible {
+        &self.body
+    }
+
+    /// What `Accessible` is removed from the application state.
+    /// Converts the event to an Accessible
+    /// Consumes the cache remove event.
+    #[must_use]
+    pub fn into_accessible(self) -> Accessible {
+        self.body
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -142,6 +163,84 @@ pub struct Accessible {
 #[test]
 fn test_accessible_signature() {
     assert_eq!(Accessible::signature(), "(so)");
+}
+
+impl GenericEvent for CacheRemoveEvent {
+    /// Serialized bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &self.message
+    }
+
+    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
+    /// wrong such that the `&str` you can get from a
+    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
+    /// name, not to the lifetime of the message as it should be. In future, this will return only
+    /// the last component of the interface name (I.E. "Object" from
+    /// "org.a11y.atspi.Event.Object").
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        self.message.interface()
+    }
+
+    /// Identifies this event's interface member name.
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        self.message.member()
+    }
+
+    /// The object path to the object where the signal is emitted from.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        Some(OwnedObjectPath::from(self.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the event.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(self.message.header()?.sender()?.cloned())
+    }
+}
+
+impl GenericEvent for CacheAddEvent {
+    /// Serialized bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &self.message
+    }
+
+    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
+    /// wrong such that the `&str` you can get from a
+    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
+    /// name, not to the lifetime of the message as it should be. In future, this will return only
+    /// the last component of the interface name (I.E. "Object" from
+    /// "org.a11y.atspi.Event.Object").
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        self.message.interface()
+    }
+
+    /// Identifies this event's interface member name.
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        self.message.member()
+    }
+
+    /// The object path to the object where the signal is emitted from.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        Some(OwnedObjectPath::from(self.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the event.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(self.message.header()?.sender()?.cloned())
+    }
 }
 
 impl TryFrom<Arc<Message>> for CacheRemoveEvent {
@@ -182,8 +281,8 @@ impl TryFrom<Arc<Message>> for CacheAddEvent {
 
 #[derive(Debug, Clone)]
 pub struct AtspiEvent {
-    message: Arc<Message>,
-    body: EventBodyOwned,
+    pub(crate) message: Arc<Message>,
+    pub(crate) body: EventBodyOwned,
 }
 
 impl TryFrom<Arc<Message>> for AtspiEvent {
@@ -222,8 +321,8 @@ impl TryFrom<Arc<Message>> for Event {
                     todo!();
                 }
                 if acc_member == cache_rem {
-                    let ev = CacheEvent::try_from(msg)?;
-                    return Ok(Event::Cache(ev));
+                    let ev = CacheRemoveEvent::try_from(msg)?;
+                    return Ok(Event::Cache(CacheEvent::Remove(ev)));
                 }
                 Err(AtspiError::Owned("`Accessible signal with unknown member`".to_string()))
             }
@@ -237,8 +336,8 @@ impl TryFrom<Arc<Message>> for Event {
             }
             _ if EVENT_LISTENER.as_bytes() == sig => todo!(),
             _ if CACHE_ADD.as_bytes() == sig => {
-                let ev = CacheEvent::try_from(msg)?;
-                Ok(Event::Cache(ev))
+                let ev = CacheAddEvent::try_from(msg)?;
+                Ok(Event::Cache(CacheEvent::Add(ev)))
             }
             _ if DEVICE_EVENT.as_bytes() == sig => todo!(),
             _ => {
@@ -249,20 +348,29 @@ impl TryFrom<Arc<Message>> for Event {
     }
 }
 
-// TODO: extract methods that apply to all Event types and create a trait for all Events.
-impl AtspiEvent {
-    /// Identifies the `sender` of the `Event`.
+/// Shared behavior of bus `Signal` events.
+pub trait GenericEvent {
+    /// Returns the `Message` of the event type.
+    fn message(&self) -> &Arc<Message>;
+    /// Interface that has the signal member implemented.
+    fn interface(&self) -> Option<InterfaceName<'_>>;
+    /// Interface member that sent the signal.
+    fn member(&self) -> Option<MemberName<'_>>;
+    /// Path of the signal.
     /// # Errors
-    /// - when deserializeing the header failed, or
-    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-    pub fn sender(&self) -> zbus::Result<Option<UniqueName>> {
-        Ok(self.message.header()?.sender()?.cloned())
-    }
+    /// TODO Describe error conditions
+    fn path(&self) -> Option<zvariant::OwnedObjectPath>;
+    /// Sender of the signal.
+    /// # Errors
+    /// TODO Describe error conditions
+    fn sender(&self) -> Result<Option<UniqueName>, AtspiError>;
+}
 
-    /// The object path to the object where the signal is emitted from.
+impl AtspiEvent {
+    /// Deserialized signal body type.
     #[must_use]
-    pub fn path(&self) -> Option<zvariant::ObjectPath> {
-        self.message.path()
+    pub fn body(&self) -> &EventBodyOwned {
+        &self.body
     }
 
     /// Returns the atspi event string for this event type (E.G. "Object:StateChanged:Focused").
@@ -271,30 +379,11 @@ impl AtspiEvent {
     /// components of the event type. It is meant for logging, etc.
     #[must_use]
     pub fn event_string(&self) -> String {
-        let interface = self.interface().expect("Event should have an interface");
+        let interface = self.message.interface().expect("Event should have an interface");
         let interface = interface.rsplit('.').next().expect("Interface should contain a '.'");
-        let member = self.member().expect("Event should have a member");
+        let member = self.message.member().expect("Event should have a member");
         let kind = self.kind();
         format!("{interface}:{member}:{kind}")
-    }
-
-    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
-    /// wrong such that the `&str` you can get from a
-    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
-    /// name, not to the lifetime of the message as it should be. In future, this will return only
-    /// the last component of the interface name (I.E. "Object" from
-    /// "org.a11y.atspi.Event.Object").
-    #[must_use]
-    pub fn interface(&self) -> Option<InterfaceName<'_>> {
-        self.message.interface()
-    }
-
-    /// Identifies this `Event`'s interface member name on the bus.
-    /// Members of the interface are either signals, methods or properties.
-    /// eg. `PropertyChanged` or `TextChanged`
-    #[must_use]
-    pub fn member(&self) -> Option<MemberName<'_>> {
-        self.message.member()
     }
 
     #[must_use]
@@ -323,17 +412,5 @@ impl AtspiEvent {
     #[must_use]
     pub fn properties(&self) -> &HashMap<String, zvariant::OwnedValue> {
         &self.body.properties
-    }
-
-    /// Serialized bus message.
-    #[must_use]
-    pub fn message(&self) -> &Arc<Message> {
-        &self.message
-    }
-
-    /// Deserialized body type.
-    #[must_use]
-    pub fn body(&self) -> &EventBodyOwned {
-        &self.body
     }
 }

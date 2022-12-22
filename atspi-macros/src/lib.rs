@@ -24,7 +24,7 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
             type Error = crate::AtspiError;
 
             fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
-                let msg_member = msg.member();
+                let msg_member = msg.message.member();
                 if msg_member == Some(MemberName::from_static_str(#member)?) {
                     return Ok(Self(msg));
                 };
@@ -37,13 +37,13 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
         }
 
 
-        impl<'a> #name {
-            fn inner(&'a self) -> &'a AtspiEvent {
+
+        impl<'a> Signified for #name {
+            type Inner = AtspiEvent;
+            fn inner(&self) -> &Self::Inner {
                 &self.0
             }
-        }
 
-        impl Signified for #name {
             fn properties(&self) -> &HashMap<String, OwnedValue> {
                 self.inner().properties()
             }

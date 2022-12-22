@@ -8,8 +8,12 @@
 
 use atspi_macros::{Doc, Focus, Kbd, Mse, Obj, Term, TrySignify, Win};
 use std::collections::HashMap;
+use std::sync::Arc;
+use zbus::names::InterfaceName;
 use zbus::names::MemberName;
 use zbus::zvariant;
+use zbus::zvariant::OwnedObjectPath;
+use zbus::Message;
 use zvariant::OwnedValue;
 
 use crate::events::AtspiEvent;
@@ -17,19 +21,59 @@ use crate::events::AtspiEvent;
 /// Exposes shared functionality over all Atspi / Qspi Signal events
 /// on the non-generic / signified types.
 pub trait Signified {
+    type Inner;
+
+    fn inner(&self) -> &AtspiEvent;
     fn properties(&self) -> &HashMap<String, OwnedValue>;
 }
 
+use crate::events::EventBodyOwned;
 /// Shared functionality of Events, through its `Message` header
-pub trait GenericEvent {
-    //   fn properties(&self) -> &HashMap<String, OwnedValue>;
-}
+use crate::events::GenericEvent;
 
 impl<T> GenericEvent for T
 where
-    T: Signified,
+    T: Signified + ?Sized,
 {
-    // TODO: The Event impl from mod goes partly here
+    /// Serialized bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &Signified::inner(self).message
+    }
+
+    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
+    /// wrong such that the `&str` you can get from a
+    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
+    /// name, not to the lifetime of the message as it should be. In future, this will return only
+    /// the last component of the interface name (I.E. "Object" from
+    /// "org.a11y.atspi.Event.Object").
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        Signified::inner(self).message.interface()
+    }
+
+    /// Identifies this `Event`'s interface member name on the bus.
+    /// Members of the interface are either signals, methods or properties.
+    /// eg. `PropertyChanged` or `TextChanged`
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        Signified::inner(self).message.member()
+    }
+
+    /// The object path to the object where the signal is emitted from.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        let ev = Signified::inner(self);
+        Some(OwnedObjectPath::from(ev.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the `Event`.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(Signified::inner(self).message.header()?.sender()?.cloned())
+    }
 }
 
 /// Trait to allow grouping of `Document` signals
@@ -148,7 +192,7 @@ pub trait Focus {}
 /// | Keyboard | Modifiers>  |   |  |   |   |
 pub trait Kbd {}
 
-#[derive(Debug, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify, Obj)]
 pub struct PropertyChangeEvent(AtspiEvent);
 
 impl PropertyChangeEvent {
@@ -235,7 +279,7 @@ impl TryFrom<AtspiEvent> for ObjectAttributesChangedEvent {
     type Error = crate::AtspiError;
 
     fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
-        let msg_member = msg.member();
+        let msg_member = msg.message.member();
         if msg_member == Some(MemberName::from_static_str("AttributesChanged")?) {
             return Ok(Self(msg));
         };
@@ -246,13 +290,18 @@ impl TryFrom<AtspiEvent> for ObjectAttributesChangedEvent {
     }
 }
 
-impl<'a> ObjectAttributesChangedEvent {
-    fn inner(&'a self) -> &'a AtspiEvent {
-        &self.0
-    }
-}
+// impl<'a> ObjectAttributesChangedEvent {
+//     fn inner(&'a self) -> &'a AtspiEvent {
+//         &self.0
+//     }
+// }
 
 impl Signified for ObjectAttributesChangedEvent {
+    type Inner = AtspiEvent;
+    fn inner(&self) -> &Self::Inner {
+        &self.0
+    }
+
     fn properties(&self) -> &HashMap<String, OwnedValue> {
         self.inner().properties()
     }
@@ -331,7 +380,7 @@ impl TryFrom<AtspiEvent> for WindowPropertyChangeEvent {
     type Error = crate::AtspiError;
 
     fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
-        let msg_member = msg.member();
+        let msg_member = msg.message.member();
         if msg_member == Some(MemberName::from_static_str("PropertyChange")?) {
             return Ok(Self(msg));
         };
@@ -349,6 +398,11 @@ impl<'a> WindowPropertyChangeEvent {
 }
 
 impl Signified for WindowPropertyChangeEvent {
+    type Inner = AtspiEvent;
+    fn inner(&self) -> &Self::Inner {
+        &self.0
+    }
+
     fn properties(&self) -> &HashMap<String, OwnedValue> {
         self.inner().properties()
     }
@@ -419,13 +473,13 @@ impl AbsEvent {
     ///  Coordinates are absolute, with the origin in the top-left of the 'root window'
     #[must_use]
     pub fn x(&self) -> i32 {
-        self.0.body().detail1
+        self.inner().detail1()
     }
     /// Y-coordinate of mouse button event
     /// Coordinates are absolute, with the origin in the top-left of the 'root window'
     #[must_use]
     pub fn y(&self) -> i32 {
-        self.0.body().detail2
+        self.inner().detail2()
     }
 }
 
@@ -434,11 +488,11 @@ pub struct RelEvent(AtspiEvent);
 impl RelEvent {
     #[must_use]
     pub fn dx(&self) -> i32 {
-        self.0.body().detail1
+        self.inner().detail1()
     }
     #[must_use]
     pub fn dy(&self) -> i32 {
-        self.0.body().detail2
+        self.inner().detail2()
     }
 }
 
@@ -449,17 +503,17 @@ impl ButtonEvent {
     /// The suffix may either be 'p', for pressed, or 'r' for rekeased.
     #[must_use]
     pub fn button(&self) -> &str {
-        self.0.kind()
+        self.inner().kind()
     }
     /// X-coordinate of mouse button event
     #[must_use]
     pub fn x(&self) -> i32 {
-        self.0.body().detail1
+        self.inner().detail1()
     }
     /// Y-coordinate of mouse button event
     #[must_use]
     pub fn y(&self) -> i32 {
-        self.0.body().detail2
+        self.inner().detail2()
     }
 }
 
@@ -471,11 +525,11 @@ pub struct ModifiersEvent(AtspiEvent);
 impl ModifiersEvent {
     #[must_use]
     pub fn previous_modifiers(&self) -> i32 {
-        self.0.body().detail1
+        self.inner().detail1()
     }
     #[must_use]
     pub fn current_modifiers(&self) -> i32 {
-        self.0.body().detail2
+        self.inner().detail2()
     }
 }
 
