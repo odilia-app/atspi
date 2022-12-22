@@ -43,7 +43,11 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl Signified for #name {}
+        impl Signified for #name {
+            fn properties(&self) -> &HashMap<String, OwnedValue> {
+                self.inner().properties()
+            }
+        }
     };
 
     // Return the expanded code as a token stream

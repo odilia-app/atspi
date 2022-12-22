@@ -8,38 +8,28 @@
 
 use atspi_macros::{Doc, Focus, Kbd, Mse, Obj, Term, TrySignify, Win};
 use std::collections::HashMap;
-use std::ops::Deref;
 use zbus::names::MemberName;
 use zbus::zvariant;
 use zvariant::OwnedValue;
 
 use crate::events::AtspiEvent;
 
-pub trait Signified {}
-
-/// Shared functionality
-pub trait GenericEvent {
+/// Exposes shared functionality over all Atspi / Qspi Signal events
+/// on the non-generic / signified types.
+pub trait Signified {
     fn properties(&self) -> &HashMap<String, OwnedValue>;
+}
+
+/// Shared functionality of Events, through its `Message` header
+pub trait GenericEvent {
+    //   fn properties(&self) -> &HashMap<String, OwnedValue>;
 }
 
 impl<T> GenericEvent for T
 where
     T: Signified,
 {
-    fn properties(&self) -> &HashMap<String, OwnedValue> {
-        (*self).properties()
-    }
-}
-
-// CONSIDERED BAD PRACTICE!
-// All types T : AtspiEvent should deref to [`crate::Event`]
-//  This ensures all methods on Event are available for all.
-impl Deref for dyn GenericEvent {
-    type Target = crate::events::AtspiEvent;
-
-    fn deref(&self) -> &Self::Target {
-        &**self
-    }
+    // TODO: The Event impl from mod goes partly here
 }
 
 /// Trait to allow grouping of `Document` signals
@@ -262,7 +252,11 @@ impl<'a> ObjectAttributesChangedEvent {
     }
 }
 
-impl Signified for ObjectAttributesChangedEvent {}
+impl Signified for ObjectAttributesChangedEvent {
+    fn properties(&self) -> &HashMap<String, OwnedValue> {
+        self.inner().properties()
+    }
+}
 
 #[derive(Debug, Clone, TrySignify, Obj)]
 pub struct RowInsertedEvent(AtspiEvent);
@@ -354,7 +348,11 @@ impl<'a> WindowPropertyChangeEvent {
     }
 }
 
-impl Signified for WindowPropertyChangeEvent {}
+impl Signified for WindowPropertyChangeEvent {
+    fn properties(&self) -> &HashMap<String, OwnedValue> {
+        self.inner().properties()
+    }
+}
 
 #[derive(Debug, TrySignify, Win)]
 pub struct MinimizeEvent(AtspiEvent);
