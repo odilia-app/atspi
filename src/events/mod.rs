@@ -22,7 +22,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use zbus::{
-    names::{InterfaceName, MemberName, UniqueName},
+    names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
     zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
     Message,
 };
@@ -91,6 +91,7 @@ impl From<EventBodyQT> for EventBodyOwned {
 
 /// Encapsulates the different bus signal types
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum Event {
     /// Includes Atspi and Qspi events
     Atspi(AtspiEvent),
@@ -141,7 +142,7 @@ impl CacheRemoveEvent {
     /// What `Accessible` is removed from the application state.
     /// A reference to the `Accessible`
     #[must_use]
-    pub fn accessible(&self) -> &Accessible {
+    pub fn as_accessible(&self) -> &Accessible {
         &self.body
     }
 
@@ -152,11 +153,21 @@ impl CacheRemoveEvent {
     pub fn into_accessible(self) -> Accessible {
         self.body
     }
+
+    // pub fn as_iface_reusing_connection(&self, conn: &Connection) -> AccessibleProxy {
+    //     let Accessible { name, path } = self.as_accessible();
+    //     crate::accessible::new(&**conn, sender, path.into())
+    // }
+
+    // pub fn as_new_proxy() -> AccessibleProxy {}
 }
 
+// TODO: Try to make borrowed versions work,
+// check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
+// in `DefaultEvent` impl
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Accessible {
-    name: String,
+    name: OwnedUniqueName,
     path: OwnedObjectPath,
 }
 
@@ -166,7 +177,7 @@ fn test_accessible_signature() {
 }
 
 impl GenericEvent for CacheRemoveEvent {
-    /// Serialized bus message.
+    /// Bus message.
     #[must_use]
     fn message(&self) -> &Arc<Message> {
         &self.message
@@ -247,7 +258,6 @@ impl TryFrom<Arc<Message>> for CacheRemoveEvent {
     type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
         let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
         if message.interface() != Some(iface) {
             return Err(AtspiError::Conversion("incorrect interface, not Cache"));
@@ -265,7 +275,6 @@ impl TryFrom<Arc<Message>> for CacheAddEvent {
     type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        // TODO: iface static string should be from the enum elsewhere. (Or, perhapps const interface names..)
         let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
         if message.interface() != Some(iface) {
             return Err(AtspiError::Conversion("incorrect interface, not Cache"));

@@ -358,6 +358,15 @@ trait Accessible {
     fn parent(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
 }
 
+/// Creates an `AccessibleProxy`;
+/// a handle to an Accessob;e pbkect wothin an application on the bus.
+///
+/// Sender: the emitter of a signal is also known as the sender.
+/// A path is a string that uniquely refers to an object in an application.
+///
+/// # Errors
+/// If `destination` on the `ProxyBuilder` fails to parse its argument, or
+/// if `path` on the `ProxyBuilder` fails to parse its argument.
 pub async fn new<'a>(
     conn: &Connection,
     sender: UniqueName<'_>,
