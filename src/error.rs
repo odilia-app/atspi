@@ -6,8 +6,17 @@ pub enum AtspiError {
     /// Converting one type into another failure
     Conversion(&'static str),
 
+    /// When testing on either variant, we might find the we are not interested in.
+    CacheVariantMismatch,
+
     /// On specific types, if the event / message member does not match the Event's name.
-    MemberMatchError(String), //TODO try specified lifetime parameter &'a str, with AtspiError<'a>
+    MemberMatch(String),
+
+    ///
+    UnknownBusSignature,
+
+    ///
+    UnknownSignal,
 
     /// Add Atspi Errors as we identify them, rather than (ab)using 'Other'.
 
@@ -37,9 +46,13 @@ impl std::fmt::Display for AtspiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AtspiError::Conversion(e) => f.write_str(&format!("atspi: conversion failure: {e}")),
-            AtspiError::MemberMatchError(e) => {
+
+            Self::MemberMatch(e) => {
                 f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
             }
+            UnknownBusSignature => f.write_str(&format!("atspi: Unknown bus body signature.")),
+            Self::UnknownSignal => f.write_str(&format!("atspi: Unknown signal")),
+            CacheVariantMismatch => f.write_str(&format!("atspi: Cache variant mismatch")),
             AtspiError::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
             AtspiError::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
             AtspiError::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),

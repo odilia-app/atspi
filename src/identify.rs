@@ -286,7 +286,7 @@ impl TryFrom<AtspiEvent> for ObjectAttributesChangedEvent {
 
         let error =
             format!("specific type's member: AttributesChanged != msg type member: {msg_member:?}");
-        Err(crate::AtspiError::MemberMatchError(error))
+        Err(crate::AtspiError::MemberMatch(error))
     }
 }
 
@@ -387,7 +387,7 @@ impl TryFrom<AtspiEvent> for WindowPropertyChangeEvent {
 
         let error =
             format!("specific type's member: PropertyChange != msg type member: {msg_member:?}");
-        Err(crate::AtspiError::MemberMatchError(error))
+        Err(crate::AtspiError::MemberMatch(error))
     }
 }
 

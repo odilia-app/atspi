@@ -27,9 +27,6 @@ use zbus::{
     Message,
 };
 
-use crate::connection::{
-    ACCESSIBLE, ATSPI_EVENT, CACHE_ADD, DEVICE_EVENT, EVENT_LISTENER, QSPI_EVENT,
-};
 use crate::{cache::CacheItem, connection, AtspiError};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -89,16 +86,27 @@ impl From<EventBodyQT> for EventBodyOwned {
     }
 }
 
-/// Encapsulates the different bus signal types
+/// Encapsulates the various different accessibility bus signal types.
+///
+/// Assumes being non exhaustive to allow for future- or custom signals.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum Event {
     /// Includes Atspi and Qspi events
     Atspi(AtspiEvent),
+    /// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
+    Available(AvailableEvent),
     /// Both `CacheAdd` and `CacheRemove` signals
     Cache(CacheEvent),
-    //  Device(DeviceEvent),
-    //  Listener(EventListener),
+
+    /// Emitted on `KeystrokeListenerRegistered` and `KeystrokeListenerDeragistered
+    /// `(souua(iisi)u(bbb)
+    //  Device(DeviceEvent)
+
+    /// Emitted on registry or deregristry of event listeners.,
+    ///
+    /// (eg. "Cache:AddAccessible:")
+    Listener(EventListenerEvent),
 }
 
 #[derive(Debug, Clone)]
@@ -158,13 +166,14 @@ impl CacheRemoveEvent {
     //     let Accessible { name, path } = self.as_accessible();
     //     crate::accessible::new(&**conn, sender, path.into())
     // }
-
-    // pub fn as_new_proxy() -> AccessibleProxy {}
 }
 
 // TODO: Try to make borrowed versions work,
 // check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
 // in `DefaultEvent` impl
+// then rename into Owned for this one.
+/// Owned Accessible type
+/// Emitted by `CacheRemove` and `Available`
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Accessible {
     name: OwnedUniqueName,
@@ -258,16 +267,11 @@ impl TryFrom<Arc<Message>> for CacheRemoveEvent {
     type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
-        if message.interface() != Some(iface) {
-            return Err(AtspiError::Conversion("incorrect interface, not Cache"));
-        }
-        if message.member() == Some(MemberName::from_static_str("RemoveAccessible")?) {
-            let body = message.body::<Accessible>()?;
-            Ok(Self { message, body })
-        } else {
-            Err(AtspiError::Conversion("convert to CacheRemoveEvent failed"))
-        }
+        if message.member() != Some(MemberName::from_static_str("RemoveAccessible")?) {
+            return Err(AtspiError::CacheVariantMismatch);
+        };
+        let body = message.body::<Accessible>()?;
+        Ok(Self { message, body })
     }
 }
 
@@ -275,16 +279,11 @@ impl TryFrom<Arc<Message>> for CacheAddEvent {
     type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        let iface = InterfaceName::from_static_str("org.a11y.atspi.Cache")?;
-        if message.interface() != Some(iface) {
-            return Err(AtspiError::Conversion("incorrect interface, not Cache"));
-        }
-        if message.member() == Some(MemberName::from_static_str("AddAccessible")?) {
-            let body = message.body::<CacheItem>()?;
-            Ok(Self { message, body })
-        } else {
-            Err(AtspiError::Conversion("conversion to CacheAddEvent failed"))
-        }
+        if message.member() != Some(MemberName::from_static_str("AddAccessible")?) {
+            return Err(AtspiError::CacheVariantMismatch);
+        };
+        let body = message.body::<CacheItem>()?;
+        Ok(Self { message, body })
     }
 }
 
@@ -298,61 +297,249 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
     type Error = AtspiError;
 
     fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        let body: EventBodyOwned = match message.body_signature() {
-            Ok(sig) => {
-                if sig == connection::QSPI_EVENT {
-                    EventBodyOwned::from(message.body::<EventBodyQT>()?)
-                } else {
-                    message.body::<EventBodyOwned>()?
-                }
-            }
-            Err(e) => return Err(AtspiError::from(e)),
+        let signature = message.body_signature()?;
+        let body = if signature == connection::QSPI_EVENT {
+            EventBodyOwned::from(message.body::<EventBodyQT>()?)
+        } else {
+            message.body::<EventBodyOwned>()?
         };
         Ok(Self { message, body })
     }
 }
 
+/// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
+/// which belong to the `Registry` interface, implemented by the registry-daemon.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct EventListener {
+    pub bus_name: OwnedUniqueName,
+    pub path: OwnedObjectPath,
+}
+
+#[test]
+fn test_event_listener_signature() {
+    assert_eq!(EventListener::signature(), "(ss)");
+}
+
+/// Encapsulates both `EventListener` events.
+#[derive(Clone, Debug)]
+pub enum EventListenerEvent {
+    Registered(EventListenerRegisteredEvent),
+    Deregistered(EventListenerDeregisteredEvent),
+}
+
+#[derive(Clone, Debug)]
+pub struct EventListenerDeregisteredEvent {
+    pub(crate) message: Arc<Message>,
+    body: EventListener,
+}
+
+impl GenericEvent for EventListenerDeregisteredEvent {
+    /// Bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &self.message
+    }
+
+    /// The interface that emitted the event.
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        self.message.interface()
+    }
+
+    /// Identifies this event interface's member name.
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        self.message.member()
+    }
+
+    /// The object path to the object where the signal was emitted.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        Some(OwnedObjectPath::from(self.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the event.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(self.message.header()?.sender()?.cloned())
+    }
+}
+
+impl TryFrom<Arc<Message>> for EventListenerDeregisteredEvent {
+    type Error = AtspiError;
+
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+        if message.member() != Some(MemberName::from_static_str("EventListenerDeregistered")?) {
+            return Err(AtspiError::MemberMatch("EventListenerDeregistered".to_string()));
+        };
+        let body = message.body::<EventListener>()?;
+        Ok(Self { message, body })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct EventListenerRegisteredEvent {
+    pub(crate) message: Arc<Message>,
+    body: EventListener,
+}
+
+impl TryFrom<Arc<Message>> for EventListenerRegisteredEvent {
+    type Error = AtspiError;
+
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+        if message.member() != Some(MemberName::from_static_str("EventListenerRegistered")?) {
+            return Err(AtspiError::MemberMatch("EventListenerRegistered".to_string()));
+        };
+        let body = message.body::<EventListener>()?;
+        Ok(Self { message, body })
+    }
+}
+
+impl GenericEvent for EventListenerRegisteredEvent {
+    /// Bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &self.message
+    }
+
+    /// The interface that emitted the event.
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        self.message.interface()
+    }
+
+    /// Identifies this event interface's member name.
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        self.message.member()
+    }
+
+    /// The object path to the object where the signal was emitted.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        Some(OwnedObjectPath::from(self.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the event.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(self.message.header()?.sender()?.cloned())
+    }
+}
+
+/// An event that is emitted when the registry daemon has started.
+#[derive(Clone, Debug)]
+pub struct AvailableEvent {
+    pub(crate) message: Arc<Message>,
+    pub(crate) body: Accessible,
+}
+
+impl AvailableEvent {
+    fn registry(&self) -> &Accessible {
+        &self.body
+    }
+}
+
+impl GenericEvent for AvailableEvent {
+    /// Bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &self.message
+    }
+
+    /// The interface that emitted the event.
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        self.message.interface()
+    }
+
+    /// Identifies this event interface's member name.
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        self.message.member()
+    }
+
+    /// The object path to the object where the signal was emitted.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        Some(OwnedObjectPath::from(self.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the event.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(self.message.header()?.sender()?.cloned())
+    }
+}
+
+impl TryFrom<Arc<Message>> for AvailableEvent {
+    type Error = AtspiError;
+
+    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+        if message.member() != Some(MemberName::from_static_str("Available")?) {
+            return Err(AtspiError::MemberMatch("available".to_string()));
+        };
+        let body = message.body::<Accessible>()?;
+        Ok(Self { message, body })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct Key {}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct KeyStrokeItem {}
+
 impl TryFrom<Arc<Message>> for Event {
     type Error = AtspiError;
 
     fn try_from(msg: Arc<Message>) -> Result<Event, AtspiError> {
-        let sig = msg.body_signature()?;
-        let sig = sig.as_bytes();
-        let available = MemberName::from_static_str("Available")?;
-        let cache_rem = MemberName::from_static_str("RemoveAccessible")?;
+        let body_signature = msg.body_signature()?;
+        let message_signature = body_signature.as_str();
+        let signal_member = msg
+            .member()
+            .ok_or(AtspiError::MemberMatch("signal without message".to_string()))?;
+        let message_member = signal_member.as_str();
 
-        match sig {
-            _ if ACCESSIBLE.as_bytes() == sig => {
-                let acc_member = msg
-                    .member()
-                    .ok_or(AtspiError::Owned("`Accessible` signal without member".to_string()))?;
-                if acc_member == available {
-                    todo!();
-                }
-                if acc_member == cache_rem {
+        match message_signature {
+            // Accessible signature
+            "(so)" => match message_member {
+                "RemoveAccessible" => {
                     let ev = CacheRemoveEvent::try_from(msg)?;
-                    return Ok(Event::Cache(CacheEvent::Remove(ev)));
+                    Ok(Event::Cache(CacheEvent::Remove(ev)))
                 }
-                Err(AtspiError::Owned("`Accessible signal with unknown member`".to_string()))
-            }
-            _ if ATSPI_EVENT.as_bytes() == sig => {
+                "Available" => {
+                    let ev = AvailableEvent::try_from(msg)?;
+                    Ok(Event::Available(ev))
+                }
+                _ => Err(AtspiError::UnknownSignal),
+            },
+            // Atspi / Qspi signature
+            "siiva{sv}" | "siiv(so)" => {
                 let ev = AtspiEvent::try_from(msg)?;
                 Ok(Event::Atspi(ev))
             }
-            _ if QSPI_EVENT.as_bytes() == sig => {
-                let ev = AtspiEvent::try_from(msg)?;
-                Ok(Event::Atspi(ev))
+            "(ss)" => {
+                if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg.clone()) {
+                    return Ok(Event::Listener(EventListenerEvent::Registered(ev)));
+                }
+                if let Ok(ev) = EventListenerDeregisteredEvent::try_from(msg) {
+                    return Ok(Event::Listener(EventListenerEvent::Deregistered(ev)));
+                }
+                Err(AtspiError::UnknownSignal)
             }
-            _ if EVENT_LISTENER.as_bytes() == sig => todo!(),
-            _ if CACHE_ADD.as_bytes() == sig => {
+            // CacheAdd signature
+            "((so)(so)(so)iiassusau)" => {
                 let ev = CacheAddEvent::try_from(msg)?;
                 Ok(Event::Cache(CacheEvent::Add(ev)))
             }
-            _ if DEVICE_EVENT.as_bytes() == sig => todo!(),
-            _ => {
-                let s = format!("invalid body signature: {}", msg.body_signature()?);
-                Err(AtspiError::Owned(s))
-            }
+            _ => Err(AtspiError::UnknownBusSignature),
         }
     }
 }

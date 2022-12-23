@@ -32,7 +32,7 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
                 let tname = std::any::type_name::<Self>().to_string();
                 let member = tname.strip_suffix("Event").unwrap();
                 let error = format!("specific type's member: {} != msg type member: {:?}", member, msg_member);
-                Err(crate::AtspiError::MemberMatchError(error))
+                Err(crate::AtspiError::MemberMatch(error))
             }
         }
 
