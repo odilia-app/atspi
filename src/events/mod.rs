@@ -98,11 +98,6 @@ pub enum Event {
     Available(AvailableEvent),
     /// Both `CacheAdd` and `CacheRemove` signals
     Cache(CacheEvent),
-
-    /// Emitted on `KeystrokeListenerRegistered` and `KeystrokeListenerDeragistered
-    /// `(souua(iisi)u(bbb)
-    //  Device(DeviceEvent)
-
     /// Emitted on registry or deregristry of event listeners.,
     ///
     /// (eg. "Cache:AddAccessible:")
@@ -489,12 +484,6 @@ impl TryFrom<Arc<Message>> for AvailableEvent {
         Ok(Self { message, body })
     }
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct Key {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct KeyStrokeItem {}
 
 impl TryFrom<Arc<Message>> for Event {
     type Error = AtspiError;
