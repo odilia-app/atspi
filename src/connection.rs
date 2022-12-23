@@ -14,14 +14,12 @@ use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
 // specific signal types with TryFrom implementations. See crate::[`identify`]
 //  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
 //  CACHE_ADD and *_REMOVE have very different types
-//  DEVICE_EVENT marks a type for both registerering and deregistering device events (? citation needed)
 pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
 pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
 pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD: Signature<'_> =
     Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
-pub const DEVICE_EVENT: Signature<'_> = Signature::from_static_str_unchecked("(souua(iisi)u(bbb))");
 
 /// A connection to the at-spi bus
 pub struct Connection {
@@ -49,7 +47,7 @@ impl Connection {
         Self::connect(addr).await
     }
 
-    /// Errors
+    /// # Errors
     /// TODO
     pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
         tracing::debug!("Connecting to a11y bus");
