@@ -45,20 +45,19 @@ impl std::error::Error for AtspiError {}
 impl std::fmt::Display for AtspiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AtspiError::Conversion(e) => f.write_str(&format!("atspi: conversion failure: {e}")),
-
+            Self::Conversion(e) => f.write_str(&format!("atspi: conversion failure: {e}")),
             Self::MemberMatch(e) => {
                 f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
             }
-            UnknownBusSignature => f.write_str(&format!("atspi: Unknown bus body signature.")),
-            Self::UnknownSignal => f.write_str(&format!("atspi: Unknown signal")),
-            CacheVariantMismatch => f.write_str(&format!("atspi: Cache variant mismatch")),
-            AtspiError::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
-            AtspiError::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
-            AtspiError::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
-            AtspiError::ZbusFdo(e) => f.write_str(&format!("D-Bus standard interfaces Error: {e}")),
-            AtspiError::ParseError(e) => f.write_str(e),
-            AtspiError::IO(e) => f.write_str(&format!("std IO Error: {e}")),
+            Self::UnknownBusSignature => f.write_str("atspi: Unknown bus body signature."),
+            Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
+            Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
+            Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
+            Self::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
+            Self::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
+            Self::ZbusFdo(e) => f.write_str(&format!("D-Bus standard interfaces Error: {e}")),
+            Self::ParseError(e) => f.write_str(e),
+            Self::IO(e) => f.write_str(&format!("std IO Error: {e}")),
         }
     }
 }

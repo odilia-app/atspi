@@ -312,7 +312,7 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct EventListener {
     pub bus_name: OwnedUniqueName,
-    pub path: OwnedObjectPath,
+    pub path: String,
 }
 
 #[test]
@@ -330,7 +330,7 @@ pub enum EventListenerEvent {
 #[derive(Clone, Debug)]
 pub struct EventListenerDeregisteredEvent {
     pub(crate) message: Arc<Message>,
-    body: EventListener,
+    pub body: EventListener,
 }
 
 impl GenericEvent for EventListenerDeregisteredEvent {
@@ -382,7 +382,7 @@ impl TryFrom<Arc<Message>> for EventListenerDeregisteredEvent {
 #[derive(Clone, Debug)]
 pub struct EventListenerRegisteredEvent {
     pub(crate) message: Arc<Message>,
-    body: EventListener,
+    pub body: EventListener,
 }
 
 impl TryFrom<Arc<Message>> for EventListenerRegisteredEvent {
@@ -439,7 +439,7 @@ pub struct AvailableEvent {
 }
 
 impl AvailableEvent {
-    fn registry(&self) -> &Accessible {
+    pub fn registry(&self) -> &Accessible {
         &self.body
     }
 }

@@ -6,14 +6,13 @@
 //! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
 //!
 
-use atspi_macros::{Doc, Focus, Kbd, Mse, Obj, Term, TrySignify, Win};
-use std::collections::HashMap;
-use std::sync::Arc;
-use zbus::names::InterfaceName;
-use zbus::names::MemberName;
-use zbus::zvariant;
-use zbus::zvariant::OwnedObjectPath;
-use zbus::Message;
+use atspi_macros::TrySignify;
+use std::{collections::HashMap, sync::Arc};
+use zbus::{
+    names::{InterfaceName, MemberName},
+    zvariant::{self, OwnedObjectPath},
+    Message,
+};
 use zvariant::OwnedValue;
 
 use crate::events::AtspiEvent;
@@ -27,7 +26,6 @@ pub trait Signified {
     fn properties(&self) -> &HashMap<String, OwnedValue>;
 }
 
-use crate::events::EventBodyOwned;
 /// Shared functionality of Events, through its `Message` header
 use crate::events::GenericEvent;
 
@@ -98,21 +96,73 @@ where
 ///
 /// | Interface  | Member  |  Kind  | Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|---|
-/// | Document | LoadComplete  |   |   |   |
-/// | Document | Reload |   |   |   |
-/// | Document | LoadStopped |   |   |   |
-/// | Document | ContentChanged  |   |   |   |
-/// | Document | AttributesChanged  |   |   |   |
-/// | Document | PageChanged  |   |   |   |
-pub trait Doc {}
+/// | Document | `LoadComplete`  |   |   |   |
+/// | Document | `Reload` |   |   |   |
+/// | Document | `LoadStopped` |   |   |   |
+/// | Document | `ContentChanged`  |   |   |   |
+/// | Document | `AttributesChanged`  |   |   |   |
+/// | Document | `PageChanged`  |   |   |   |
+#[derive(Debug, Clone)]
+pub enum DocumentEvents {
+    LoadComplete(LoadCompleteEvent),
+    Reload(ReloadEvent),
+    LoadStopped(LoadStoppedEvent),
+    ContentChanged(ContentChangedEvent),
+    AttributesChanged(AttributesChangedEvent),
+    PageChanged(PageChangedEvent),
+}
 
 /// Trait to allow grouping of `Object` signals
-pub trait Obj {}
+#[derive(Debug, Clone)]
+pub enum ObjectEvents {
+    PropertyChange(PropertyChangeEvent),
+    BoundsChanged(BoundsChangedEvent),
+    LinkSelected(LinkSelectedEvent),
+    StateChanged(StateChangedEvent),
+    ChildrenChanged(ChildrenChangedEvent),
+    VisibleDataChanged(VisibleDataChangedEvent),
+    SelectionChanged(SelectionChangedEvent),
+    ModelChanged(ModelChangedEvent),
+    ActiveDescendantChanged(ActiveDescendantChangedEvent),
+    Announcement(AnnouncementEvent),
+    AttributesChanged(ObjectAttributesChangedEvent),
+    RowInserted(RowInsertedEvent),
+    RowReordered(RowReorderedEvent),
+    RowDeleted(RowDeletedEvent),
+    ColumnInserted(ColumnInsertedEvent),
+    ColumnReordered(ColumnReorderedEvent),
+    ColumnDeleted(ColumnDeletedEvent),
+    TextBoundsChanged(TextBoundsChangedEvent),
+    TextSelectionChanged(TextSelectionChangedEvent),
+    TextChanged(TextChangedEvent),
+    TextAttributesChanged(TextAttributesChangedEvent),
+    TextCaretMoved(TextCaretMovedEvent),
+}
 
-/// Trait to allow grouping of `Win` signals
-pub trait Win {}
+/// Window events.
+#[derive(Debug, Clone)]
+pub enum WindowEvents {
+    PropertyChange(WindowPropertyChangeEvent),
+    Minimize(MinimizeEvent),
+    Maximize(MaximizeEvent),
+    Restore(RestoreEvent),
+    Close(CloseEvent),
+    Create(CreateEvent),
+    Reparent(ReparentEvent),
+    DesktopCreate(DesktopCreateEvent),
+    DesktopDestroy(DesktopDestroyEvent),
+    Destroy(DestroyEvent),
+    Activate(ActivateEvent),
+    Deactivate(DeactivateEvent),
+    Raise(RaiseEvent),
+    Lower(LowerEvent),
+    Move(MoveEvent),
+    Resize(ResizeEvent),
+    Shade(ShadeEvent),
+    UUshade(uUshadeEvent),
+    Restyle(RestyleEvent),
+}
 
-/// Trait to allow grouping of `Mse` signals
 /// Contains any variant pertaining `MouseEvent` events.
 ///
 /// Those interested in `Event.Mouse` events, this enum
@@ -130,13 +180,17 @@ pub trait Win {}
 ///
 /// | Interface  | Member  |  kind | Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|---|
-/// | Mouse |Abs |   | x | y |   |
-/// | Mouse | Rel |   | delta_x  | delta_y   |   |
-/// | Mouse | Button | p\[1..=5\] | x  | y  |   |
-/// | Mouse | Button | r\[1..=5\] | x  | y  |   |
-pub trait Mse {}
+/// | Mouse |`Abs` |   | x | y |   |
+/// | Mouse |`Rel` |   | `delta_x` | `delta_y`  |   |
+/// | Mouse | `Button` | p\[1..=5\] | x  | y  |   |
+/// | Mouse | `Button` | r\[1..=5\] | x  | y  |   |
+#[derive(Debug, Clone)]
+pub enum MouseEvents {
+    Abs(AbsEvent),
+    Rel(RelEvent),
+    Button(ButtonEvent),
+}
 
-/// Trait to allow grouping of `Term` signals
 /// May contain any variant pertaining `Terminal` events.
 ///
 /// If you are interested in `Event.Terminal` events, this enum
@@ -153,11 +207,17 @@ pub trait Mse {}
 ///  ```
 /// | Interface  | Member  |  Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|
-/// | Terminal | LineChanged  |   |   |   |
+/// | Terminal | `LineChanged`  |   |   |   |
 /// | Terminal | ColumncountChanged  |   |   |   |
-/// | Terminal |LinecountChanged|   |   |   |
-/// | Terminal | CharwidthChanged  |   |   |   |
-pub trait Term {}
+/// | Terminal |`LinecountChanged`|   |   |   |
+/// | Terminal | `CharwidthChanged`  |   |   |   |
+pub enum TerminalEvents {
+    LineChanged(LineChangedEvent),
+    ColumncountChanged(ColumncountChangedEvent),
+    LinecountChanged(LinecountChangedEvent),
+    ApplicationChanged(ApplicationChangedEvent),
+    CharwidthChanged(CharwidthChangedEvent),
+}
 
 /// Trait to allow grouping of `Focus` signals
 /// ## Deprecation notice!!
@@ -170,7 +230,9 @@ pub trait Term {}
 /// | Interface  | Member  |  Kind | Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|---|
 /// | Focus  | Focus |   |   |   |    |
-pub trait Focus {}
+pub enum FocusEvents {
+    Focus(FocusEvent),
+}
 
 /// Trait to allow grouping of `Kbd` signals
 /// Contain any variant pertaining `Keyboard` events.
@@ -190,9 +252,12 @@ pub trait Focus {}
 /// | Interface  | Member  | Kind |  Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|---|
 /// | Keyboard | Modifiers>  |   |  |   |   |
-pub trait Kbd {}
+#[derive(Debug, Clone)]
+pub enum KeyboardEvents {
+    Modifiers(ModifiersEvent),
+}
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct PropertyChangeEvent(AtspiEvent);
 
 impl PropertyChangeEvent {
@@ -206,13 +271,13 @@ impl PropertyChangeEvent {
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct BoundsChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct LinkSelectedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct StateChangedEvent(AtspiEvent);
 impl StateChangedEvent {
     #[must_use]
@@ -226,7 +291,7 @@ impl StateChangedEvent {
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ChildrenChangedEvent(AtspiEvent);
 impl ChildrenChangedEvent {
     #[must_use]
@@ -243,17 +308,17 @@ impl ChildrenChangedEvent {
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct VisibleDataChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct SelectionChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ModelChangedEvent(AtspiEvent);
 
 // TODO Check my impl please.
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ActiveDescendantChangedEvent(AtspiEvent);
 impl ActiveDescendantChangedEvent {
     pub fn child(&self) -> &zvariant::OwnedValue {
@@ -261,7 +326,7 @@ impl ActiveDescendantChangedEvent {
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct AnnouncementEvent(AtspiEvent);
 impl AnnouncementEvent {
     #[must_use]
@@ -270,7 +335,7 @@ impl AnnouncementEvent {
     }
 }
 
-#[derive(Debug, Clone, Obj)]
+#[derive(Debug, Clone)]
 pub struct ObjectAttributesChangedEvent(AtspiEvent);
 
 // Gets manual impl, because its name is changed,
@@ -290,12 +355,6 @@ impl TryFrom<AtspiEvent> for ObjectAttributesChangedEvent {
     }
 }
 
-// impl<'a> ObjectAttributesChangedEvent {
-//     fn inner(&'a self) -> &'a AtspiEvent {
-//         &self.0
-//     }
-// }
-
 impl Signified for ObjectAttributesChangedEvent {
     type Inner = AtspiEvent;
     fn inner(&self) -> &Self::Inner {
@@ -307,52 +366,56 @@ impl Signified for ObjectAttributesChangedEvent {
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct RowInsertedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct RowReorderedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct RowDeletedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ColumnInsertedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ColumnReorderedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ColumnDeletedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct TextBoundsChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct TextSelectionChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct TextChangedEvent(AtspiEvent);
 impl TextChangedEvent {
+    #[must_use]
     pub fn detail(&self) -> &str {
         self.0.kind()
     }
+    #[must_use]
     pub fn start_pos(&self) -> i32 {
         self.0.detail1()
     }
+    #[must_use]
     pub fn end_pos(&self) -> i32 {
         self.0.detail2()
     }
     // TODO zvariant::Value -> String me please
+    #[must_use]
     pub fn text(&self) -> &OwnedValue {
         self.0.any_data()
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct TextAttributesChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Obj)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct TextCaretMovedEvent(AtspiEvent);
 
 impl TextCaretMovedEvent {
@@ -365,7 +428,7 @@ impl TextCaretMovedEvent {
 // ----------> Start of Win
 
 //TODO Check my impl with bus signal
-#[derive(Debug, Win)]
+#[derive(Debug, Clone)]
 pub struct WindowPropertyChangeEvent(AtspiEvent);
 impl WindowPropertyChangeEvent {
     #[must_use]
@@ -408,65 +471,65 @@ impl Signified for WindowPropertyChangeEvent {
     }
 }
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct MinimizeEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct MaximizeEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct RestoreEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct CloseEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct CreateEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ReparentEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct DesktopCreateEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct DesktopDestroyEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct DestroyEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ActivateEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct DeactivateEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct RaiseEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct LowerEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct MoveEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ResizeEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ShadeEvent(AtspiEvent);
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct uUshadeEvent(AtspiEvent);
 
-#[derive(Debug, TrySignify, Win)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct RestyleEvent(AtspiEvent);
 
 // ----------<- end of Win signals
 // ----------> Start of Mse
 
-#[derive(Debug, Clone, TrySignify, Mse)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct AbsEvent(AtspiEvent);
 impl AbsEvent {
     /// X-coordinate of mouse button event
@@ -483,7 +546,7 @@ impl AbsEvent {
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Mse)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct RelEvent(AtspiEvent);
 impl RelEvent {
     #[must_use]
@@ -496,7 +559,7 @@ impl RelEvent {
     }
 }
 
-#[derive(Debug, Clone, TrySignify, Mse)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ButtonEvent(AtspiEvent);
 impl ButtonEvent {
     /// Button being used 1..X
@@ -520,7 +583,7 @@ impl ButtonEvent {
 // ----------<- end of Mse signals
 // ----------> Start of Kbd
 
-#[derive(Debug, Clone, TrySignify, Kbd)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ModifiersEvent(AtspiEvent);
 impl ModifiersEvent {
     #[must_use]
@@ -536,41 +599,41 @@ impl ModifiersEvent {
 // ----------<- end of Kbd signals
 // ----------> Start of Term
 
-#[derive(Debug, Clone, TrySignify, Term)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct LineChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Term)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ColumncountChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Term)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct LinecountChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Term)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ApplicationChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Term)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct CharwidthChangedEvent(AtspiEvent);
 
 // ----------<- end of Term signals
 // ----------> Start of Doc
 
-#[derive(Debug, Clone, TrySignify, Doc)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct LoadCompleteEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Doc)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ReloadEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Doc)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct LoadStoppedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Doc)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct ContentChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Doc)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct AttributesChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Doc)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct PageChangedEvent(AtspiEvent);
 
-#[derive(Debug, Clone, TrySignify, Focus)]
+#[derive(Debug, Clone, TrySignify)]
 pub struct FocusEvent(AtspiEvent);
