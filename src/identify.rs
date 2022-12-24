@@ -26,54 +26,6 @@ pub trait Signified {
     fn properties(&self) -> &HashMap<String, OwnedValue>;
 }
 
-/// Shared functionality of Events, through its `Message` header
-use crate::events::GenericEvent;
-
-impl<T> GenericEvent for T
-where
-    T: Signified + ?Sized,
-{
-    /// Serialized bus message.
-    #[must_use]
-    fn message(&self) -> &Arc<Message> {
-        &self.inner().message
-    }
-
-    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
-    /// wrong such that the `&str` you can get from a
-    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
-    /// name, not to the lifetime of the message as it should be. In future, this will return only
-    /// the last component of the interface name (I.E. "Object" from
-    /// "org.a11y.atspi.Event.Object").
-    #[must_use]
-    fn interface(&self) -> Option<InterfaceName<'_>> {
-        self.inner().message.interface()
-    }
-
-    /// Identifies this `Event`'s interface member name on the bus.
-    /// Members of the interface are either signals, methods or properties.
-    /// eg. `PropertyChanged` or `TextChanged`
-    #[must_use]
-    fn member(&self) -> Option<MemberName<'_>> {
-        self.inner().message.member()
-    }
-
-    /// The object path to the object where the signal is emitted from.
-    #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        let ev = self.inner();
-        Some(OwnedObjectPath::from(ev.message.path().unwrap()))
-    }
-
-    /// Identifies the `sender` of the `Event`.
-    /// # Errors
-    /// - when deserializeing the header failed, or
-    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
-        Ok(self.inner().message.header()?.sender()?.cloned())
-    }
-}
-
 /// Any variant pertaining `Document` events.
 ///
 /// If you are interested in `Event.Document` events, this enum
