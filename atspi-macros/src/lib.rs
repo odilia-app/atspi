@@ -51,3 +51,57 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
     // Return the expanded code as a token stream
     TokenStream::from(expanded)
 }
+
+#[proc_macro_derive(GenericEvent)]
+pub fn generic_event(input: TokenStream) -> TokenStream {
+    // Parse the input token stream into a syntax tree
+    let DeriveInput { ident, .. } = parse_macro_input!(input);
+
+    // Extract the name of the struct
+    let name = &ident;
+
+    // Generate the expanded code
+    let expanded = quote! {
+			impl GenericEvent for #name {
+					/// Bus message.
+					#[must_use]
+					fn message(&self) -> &Arc<Message> {
+							&self.message
+					}
+
+					/// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
+					/// wrong such that the `&str` you can get from a
+					/// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
+					/// name, not to the lifetime of the message as it should be. In future, this will return only
+					/// the last component of the interface name (I.E. "Object" from
+					/// "org.a11y.atspi.Event.Object").
+					#[must_use]
+					fn interface(&self) -> Option<InterfaceName<'_>> {
+							self.message.interface()
+					}
+
+					/// Identifies this event's interface member name.
+					#[must_use]
+					fn member(&self) -> Option<MemberName<'_>> {
+							self.message.member()
+					}
+
+					/// The object path to the object where the signal is emitted from.
+					#[must_use]
+					fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+							Some(OwnedObjectPath::from(self.message.path().unwrap()))
+					}
+
+					/// Identifies the `sender` of the event.
+					/// # Errors
+					/// - when deserializeing the header failed, or
+					/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+					fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+							Ok(self.message.header()?.sender()?.cloned())
+					}
+				}
+    };
+
+    // Return the expanded code as a token stream
+    TokenStream::from(expanded)
+}
