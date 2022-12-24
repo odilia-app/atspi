@@ -1,6 +1,20 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, DeriveInput, Type, AttributeArgs, MetaNameValue, NestedMeta, Meta, Lit, ItemStruct};
+
+enum FromZbusMessageParam {
+	Invalid,
+	Body(Type),
+}
+
+impl FromZbusMessageParam {
+  fn from(key: String, val: String) -> Self {
+    match (key.as_str(), val.as_str()) {
+      ("body", tp) => Self::Body(syn::parse_str(tp).expect("The value given to the 'body' parameter must be a valid type.")),
+      _ => Self::Invalid
+    }     
+  }
+}
 
 //
 // Derive macro for that implements TryFrom<Event> on a per name / member basis.
@@ -44,6 +58,62 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
 
             fn properties(&self) -> &HashMap<String, OwnedValue> {
                 self.inner().properties()
+            }
+        }
+    };
+
+    // Return the expanded code as a token stream
+    TokenStream::from(expanded)
+}
+
+//#[proc_macro_derive(TryFromMessage)]
+#[proc_macro_attribute]
+pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStream {
+		let item_struct = parse_macro_input!(input as ItemStruct);
+    // Parse the input token stream into a syntax tree
+    let name = item_struct.ident.clone();
+
+    // Remove the suffix "Event" from the name of the struct
+    let name_string = name.to_string();
+    let member = name_string.strip_suffix("Event").unwrap();
+
+    let args_parsed: Vec<FromZbusMessageParam> = parse_macro_input!(attr as AttributeArgs)
+      .into_iter()
+      .filter_map(|nm| match nm {
+        // Only select certain tokens
+        NestedMeta::Meta(Meta::NameValue(MetaNameValue { path, eq_token: _, lit: Lit::Str(lstr) })) => Some(
+          // Convert the sigment of the path to a string
+          (path.segments
+              .into_iter()
+              .map(|seg| seg.ident.to_string())
+              .collect::<Vec<String>>()
+              .swap_remove(0),
+          // get the raw value of the LitStr
+           lstr.value())
+        ),
+        _ => None
+      })
+      // convert the (String, LitStr) tuple to a custom type which only accepts certain key/value pairs
+      .map(|(k,v)| FromZbusMessageParam::from(k, v))
+      .collect();
+
+		let body_type = match args_parsed.get(0).expect("There must be exactly one argument to the macro.") {
+			FromZbusMessageParam::Body(body_type) => body_type,
+			_ => panic!("The body parameter must be a type."),
+		};
+
+    // Generate the expanded code
+    let expanded = quote! {
+				#item_struct
+        impl TryFrom<Arc<Message>> for #name {
+            type Error = AtspiError;
+
+            fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+								if message.member() != Some(MemberName::from_static_str(#member)?) {
+									return Err(AtspiError::CacheVariantMismatch);
+								};
+								let body = message.body::<#body_type>()?;
+                Ok(Self { message, body })
             }
         }
     };
