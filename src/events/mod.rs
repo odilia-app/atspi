@@ -27,6 +27,7 @@ use zbus::{
     Message,
 };
 
+use atspi_macros::GenericEvent;
 use crate::{cache::CacheItem, connection, AtspiError};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -112,7 +113,7 @@ pub enum CacheEvent {
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, GenericEvent)]
 pub struct CacheAddEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: CacheItem,
@@ -135,7 +136,7 @@ impl CacheAddEvent {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, GenericEvent)]
 pub struct CacheRemoveEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
@@ -178,84 +179,6 @@ pub struct Accessible {
 #[test]
 fn test_accessible_signature() {
     assert_eq!(Accessible::signature(), "(so)");
-}
-
-impl GenericEvent for CacheRemoveEvent {
-    /// Bus message.
-    #[must_use]
-    fn message(&self) -> &Arc<Message> {
-        &self.message
-    }
-
-    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
-    /// wrong such that the `&str` you can get from a
-    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
-    /// name, not to the lifetime of the message as it should be. In future, this will return only
-    /// the last component of the interface name (I.E. "Object" from
-    /// "org.a11y.atspi.Event.Object").
-    #[must_use]
-    fn interface(&self) -> Option<InterfaceName<'_>> {
-        self.message.interface()
-    }
-
-    /// Identifies this event's interface member name.
-    #[must_use]
-    fn member(&self) -> Option<MemberName<'_>> {
-        self.message.member()
-    }
-
-    /// The object path to the object where the signal is emitted from.
-    #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        Some(OwnedObjectPath::from(self.message.path().unwrap()))
-    }
-
-    /// Identifies the `sender` of the event.
-    /// # Errors
-    /// - when deserializeing the header failed, or
-    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
-        Ok(self.message.header()?.sender()?.cloned())
-    }
-}
-
-impl GenericEvent for CacheAddEvent {
-    /// Serialized bus message.
-    #[must_use]
-    fn message(&self) -> &Arc<Message> {
-        &self.message
-    }
-
-    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
-    /// wrong such that the `&str` you can get from a
-    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
-    /// name, not to the lifetime of the message as it should be. In future, this will return only
-    /// the last component of the interface name (I.E. "Object" from
-    /// "org.a11y.atspi.Event.Object").
-    #[must_use]
-    fn interface(&self) -> Option<InterfaceName<'_>> {
-        self.message.interface()
-    }
-
-    /// Identifies this event's interface member name.
-    #[must_use]
-    fn member(&self) -> Option<MemberName<'_>> {
-        self.message.member()
-    }
-
-    /// The object path to the object where the signal is emitted from.
-    #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        Some(OwnedObjectPath::from(self.message.path().unwrap()))
-    }
-
-    /// Identifies the `sender` of the event.
-    /// # Errors
-    /// - when deserializeing the header failed, or
-    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
-        Ok(self.message.header()?.sender()?.cloned())
-    }
 }
 
 impl TryFrom<Arc<Message>> for CacheRemoveEvent {
@@ -322,44 +245,10 @@ pub enum EventListenerEvent {
     Deregistered(EventListenerDeregisteredEvent),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, GenericEvent)]
 pub struct EventListenerDeregisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
-}
-
-impl GenericEvent for EventListenerDeregisteredEvent {
-    /// Bus message.
-    #[must_use]
-    fn message(&self) -> &Arc<Message> {
-        &self.message
-    }
-
-    /// The interface that emitted the event.
-    #[must_use]
-    fn interface(&self) -> Option<InterfaceName<'_>> {
-        self.message.interface()
-    }
-
-    /// Identifies this event interface's member name.
-    #[must_use]
-    fn member(&self) -> Option<MemberName<'_>> {
-        self.message.member()
-    }
-
-    /// The object path to the object where the signal was emitted.
-    #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        Some(OwnedObjectPath::from(self.message.path().unwrap()))
-    }
-
-    /// Identifies the `sender` of the event.
-    /// # Errors
-    /// - when deserializeing the header failed, or
-    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
-        Ok(self.message.header()?.sender()?.cloned())
-    }
 }
 
 impl TryFrom<Arc<Message>> for EventListenerDeregisteredEvent {
@@ -374,7 +263,7 @@ impl TryFrom<Arc<Message>> for EventListenerDeregisteredEvent {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, GenericEvent)]
 pub struct EventListenerRegisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
@@ -392,42 +281,8 @@ impl TryFrom<Arc<Message>> for EventListenerRegisteredEvent {
     }
 }
 
-impl GenericEvent for EventListenerRegisteredEvent {
-    /// Bus message.
-    #[must_use]
-    fn message(&self) -> &Arc<Message> {
-        &self.message
-    }
-
-    /// The interface that emitted the event.
-    #[must_use]
-    fn interface(&self) -> Option<InterfaceName<'_>> {
-        self.message.interface()
-    }
-
-    /// Identifies this event interface's member name.
-    #[must_use]
-    fn member(&self) -> Option<MemberName<'_>> {
-        self.message.member()
-    }
-
-    /// The object path to the object where the signal was emitted.
-    #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        Some(OwnedObjectPath::from(self.message.path().unwrap()))
-    }
-
-    /// Identifies the `sender` of the event.
-    /// # Errors
-    /// - when deserializeing the header failed, or
-    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
-        Ok(self.message.header()?.sender()?.cloned())
-    }
-}
-
 /// An event that is emitted when the registry daemon has started.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, GenericEvent)]
 pub struct AvailableEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
@@ -436,40 +291,6 @@ pub struct AvailableEvent {
 impl AvailableEvent {
     pub fn registry(&self) -> &Accessible {
         &self.body
-    }
-}
-
-impl GenericEvent for AvailableEvent {
-    /// Bus message.
-    #[must_use]
-    fn message(&self) -> &Arc<Message> {
-        &self.message
-    }
-
-    /// The interface that emitted the event.
-    #[must_use]
-    fn interface(&self) -> Option<InterfaceName<'_>> {
-        self.message.interface()
-    }
-
-    /// Identifies this event interface's member name.
-    #[must_use]
-    fn member(&self) -> Option<MemberName<'_>> {
-        self.message.member()
-    }
-
-    /// The object path to the object where the signal was emitted.
-    #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        Some(OwnedObjectPath::from(self.message.path().unwrap()))
-    }
-
-    /// Identifies the `sender` of the event.
-    /// # Errors
-    /// - when deserializeing the header failed, or
-    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
-        Ok(self.message.header()?.sender()?.cloned())
     }
 }
 
