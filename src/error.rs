@@ -31,7 +31,7 @@ pub enum AtspiError {
 
     /// The `D-Bus` standard interfaces `zbus` error variant.
     /// as defined in ` zbus::fdo`.
-    ZbusFdo(Box<dyn std::error::Error>),
+    ZbusFdo(Box<zbus::fdo::Error>),
 
     /// Failed to parse a string into an enum variant
     ParseError(&'static str),
