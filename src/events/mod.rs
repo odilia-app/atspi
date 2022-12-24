@@ -288,6 +288,14 @@ pub struct AtspiEvent {
     pub(crate) body: EventBodyOwned,
 }
 
+impl PartialEq for AtspiEvent {
+    fn eq(&self, other: &Self) -> bool {
+        self.message.as_bytes() == other.message.as_bytes()
+    }
+}
+
+impl Eq for AtspiEvent {}
+
 impl TryFrom<Arc<Message>> for AtspiEvent {
     type Error = AtspiError;
 
@@ -597,5 +605,39 @@ impl AtspiEvent {
     #[must_use]
     pub fn properties(&self) -> &HashMap<String, zvariant::OwnedValue> {
         &self.body.properties
+    }
+}
+
+impl GenericEvent for AtspiEvent {
+    /// Bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &self.message
+    }
+
+    /// The interface that emitted the event.
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        self.message.interface()
+    }
+
+    /// Identifies this event interface's member name.
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        self.message.member()
+    }
+
+    /// The object path to the object where the signal was emitted.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        Some(OwnedObjectPath::from(self.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the event.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(self.message.header()?.sender()?.cloned())
     }
 }
