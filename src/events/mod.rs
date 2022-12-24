@@ -27,7 +27,10 @@ use zbus::{
     Message,
 };
 
-use atspi_macros::GenericEvent;
+use atspi_macros::{
+	GenericEvent,
+	try_from_zbus_message,
+};
 use crate::{cache::CacheItem, connection, AtspiError};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -114,6 +117,7 @@ pub enum CacheEvent {
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, GenericEvent)]
+#[try_from_zbus_message(body="CacheItem")]
 pub struct CacheAddEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: CacheItem,
@@ -137,6 +141,7 @@ impl CacheAddEvent {
 }
 
 #[derive(Debug, Clone, GenericEvent)]
+#[try_from_zbus_message(body="Accessible")]
 pub struct CacheRemoveEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
@@ -181,30 +186,6 @@ fn test_accessible_signature() {
     assert_eq!(Accessible::signature(), "(so)");
 }
 
-impl TryFrom<Arc<Message>> for CacheRemoveEvent {
-    type Error = AtspiError;
-
-    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        if message.member() != Some(MemberName::from_static_str("RemoveAccessible")?) {
-            return Err(AtspiError::CacheVariantMismatch);
-        };
-        let body = message.body::<Accessible>()?;
-        Ok(Self { message, body })
-    }
-}
-
-impl TryFrom<Arc<Message>> for CacheAddEvent {
-    type Error = AtspiError;
-
-    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        if message.member() != Some(MemberName::from_static_str("AddAccessible")?) {
-            return Err(AtspiError::CacheVariantMismatch);
-        };
-        let body = message.body::<CacheItem>()?;
-        Ok(Self { message, body })
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct AtspiEvent {
     pub(crate) message: Arc<Message>,
@@ -246,43 +227,22 @@ pub enum EventListenerEvent {
 }
 
 #[derive(Clone, Debug, GenericEvent)]
+#[try_from_zbus_message(body="EventListener")]
 pub struct EventListenerDeregisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
 }
 
-impl TryFrom<Arc<Message>> for EventListenerDeregisteredEvent {
-    type Error = AtspiError;
-
-    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        if message.member() != Some(MemberName::from_static_str("EventListenerDeregistered")?) {
-            return Err(AtspiError::MemberMatch("EventListenerDeregistered".to_string()));
-        };
-        let body = message.body::<EventListener>()?;
-        Ok(Self { message, body })
-    }
-}
-
 #[derive(Clone, Debug, GenericEvent)]
+#[try_from_zbus_message(body="EventListener")]
 pub struct EventListenerRegisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
 }
 
-impl TryFrom<Arc<Message>> for EventListenerRegisteredEvent {
-    type Error = AtspiError;
-
-    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        if message.member() != Some(MemberName::from_static_str("EventListenerRegistered")?) {
-            return Err(AtspiError::MemberMatch("EventListenerRegistered".to_string()));
-        };
-        let body = message.body::<EventListener>()?;
-        Ok(Self { message, body })
-    }
-}
-
 /// An event that is emitted when the registry daemon has started.
 #[derive(Clone, Debug, GenericEvent)]
+#[try_from_zbus_message(body="Accessible")]
 pub struct AvailableEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
@@ -291,18 +251,6 @@ pub struct AvailableEvent {
 impl AvailableEvent {
     pub fn registry(&self) -> &Accessible {
         &self.body
-    }
-}
-
-impl TryFrom<Arc<Message>> for AvailableEvent {
-    type Error = AtspiError;
-
-    fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-        if message.member() != Some(MemberName::from_static_str("Available")?) {
-            return Err(AtspiError::MemberMatch("available".to_string()));
-        };
-        let body = message.body::<Accessible>()?;
-        Ok(Self { message, body })
     }
 }
 
