@@ -17,6 +17,7 @@ ARG_IDENT_FROM_NUMBER = [
   "any_data",
   "properties"
 ]
+
 # will store lists of members with their various details. Will output a markdown table.
 interfaces = []
 
@@ -27,17 +28,30 @@ def print_interface_table(signals):
   for signal in signals:
     interface = signal["interface"].replace("Event", "")
     member = signal["member"]
-    kind = signal["kind"] or "\t"
-    detail1 = signal["detail1"] or "\t"
-    detail2 = signal["detail2"] or "\t"
-    data = signal["any_data"] or "\t"
-    properties = signal["properties"]
+    kind = signal["kind"]["name"] or "\t"
+    detail1 = signal["detail1"]["name"] or "\t"
+    detail2 = signal["detail2"]["name"] or "\t"
+    data = signal["any_data"]["name"] or "\t"
+    properties = signal["properties"]["name"]
     print(f"/// {interface}|{member}|{kind}|{detail1}|{detail2}|{data}|{properties}")
+
+def impl_functions(signal):
+  impl_member = signal["member"]
+  print(f"impl {impl_member}Event {{")
+  for (zbus_name, struct_name) in signal.items():
+    if zbus_name in ARG_IDENT_FROM_NUMBER and struct_name["name"]:
+      rust_type = RUST_TYPE_FROM_DBUS_TYPE[struct_name["type"]]
+      print(f"\t#[must_use]")
+      print(f"\tpub fn {struct_name['name']}() -> zbus::Result<{rust_type}> {{")
+      print(f"\t\tself.0.{zbus_name}()")
+      print(f"\t}}")
+  print(f"}}")
 
 for interface in root:
   enum_name = interface.attrib["name"].split(".")[-1] + "Event"
   enum = f"pub enum {enum_name}s {{\n"
 # will contain all the attributes to use for markdown table
+
   signals = []
   structs = []
   for signal in interface:
@@ -52,22 +66,23 @@ for interface in root:
 # ignore <annotation> tags for QSPI
       if arg.tag != "arg":
         continue
-      signal_identities[ARG_IDENT_FROM_NUMBER[argi]] = None
+      signal_identities[ARG_IDENT_FROM_NUMBER[argi]] = {"name":None,"type":None}
 # skip getting additional info if the name of the arg is not specified (trhis means it is not used)
       if "name" not in arg.attrib:
         continue
       field_name = arg.attrib["name"]
       field_type = arg.attrib["type"]
       rust_type = RUST_TYPE_FROM_DBUS_TYPE[field_type]
-      signal_identities[ARG_IDENT_FROM_NUMBER[argi]] = field_name
+      signal_identities[ARG_IDENT_FROM_NUMBER[argi]] = arg.attrib
       struct += f"\t{field_name}: {rust_type},\n"
     signals.append(signal_identities)
     struct += "}"
     structs.append(struct)
   enum += "}"
   interfaces.append(signals)
-  for struct in structs:
+  for (struct, signal) in zip(structs, signals):
     print(struct)
+    impl_functions(signal)
   print_interface_table(signals)
   print(enum)
 
