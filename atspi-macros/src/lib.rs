@@ -57,7 +57,7 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
             }
 
             fn properties(&self) -> &HashMap<String, OwnedValue> {
-                self.inner().properties()
+                self.0.properties()
             }
         }
     };
