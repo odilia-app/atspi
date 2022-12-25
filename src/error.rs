@@ -1,7 +1,7 @@
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[non_exhaustive]
-/// The aggregate error type for atspi and `std` and different `zbus` errors.
+/// An error type that can describe atspi and `std` and different `zbus` errors.
 pub enum AtspiError {
     /// Converting one type into another failure
     Conversion(&'static str),
@@ -12,13 +12,11 @@ pub enum AtspiError {
     /// On specific types, if the event / message member does not match the Event's name.
     MemberMatch(String),
 
-    ///
+    /// To indicate a match or equality test on a signa body signature failed.
     UnknownBusSignature,
 
-    ///
+    /// The signal that was encountered is unknown.
     UnknownSignal,
-
-    /// Add Atspi Errors as we identify them, rather than (ab)using 'Other'.
 
     /// Other errors.
     Owned(String),

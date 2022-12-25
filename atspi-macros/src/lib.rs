@@ -1,19 +1,25 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Type, AttributeArgs, MetaNameValue, NestedMeta, Meta, Lit, ItemStruct};
+use syn::{
+    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta, MetaNameValue,
+    NestedMeta, Type,
+};
 
 enum FromZbusMessageParam {
-	Invalid,
-	Body(Type),
+    Invalid,
+    Body(Type),
 }
 
 impl FromZbusMessageParam {
-  fn from(key: String, val: String) -> Self {
-    match (key.as_str(), val.as_str()) {
-      ("body", tp) => Self::Body(syn::parse_str(tp).expect("The value given to the 'body' parameter must be a valid type.")),
-      _ => Self::Invalid
-    }     
-  }
+    fn from(key: String, val: String) -> Self {
+        match (key.as_str(), val.as_str()) {
+            ("body", tp) => Self::Body(
+                syn::parse_str(tp)
+                    .expect("The value given to the 'body' parameter must be a valid type."),
+            ),
+            _ => Self::Invalid,
+        }
+    }
 }
 
 //
@@ -69,7 +75,7 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
 //#[proc_macro_derive(TryFromMessage)]
 #[proc_macro_attribute]
 pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStream {
-		let item_struct = parse_macro_input!(input as ItemStruct);
+    let item_struct = parse_macro_input!(input as ItemStruct);
     // Parse the input token stream into a syntax tree
     let name = item_struct.ident.clone();
 
@@ -78,41 +84,50 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
     let member = name_string.strip_suffix("Event").unwrap();
 
     let args_parsed: Vec<FromZbusMessageParam> = parse_macro_input!(attr as AttributeArgs)
-      .into_iter()
-      .filter_map(|nm| match nm {
-        // Only select certain tokens
-        NestedMeta::Meta(Meta::NameValue(MetaNameValue { path, eq_token: _, lit: Lit::Str(lstr) })) => Some(
-          // Convert the sigment of the path to a string
-          (path.segments
-              .into_iter()
-              .map(|seg| seg.ident.to_string())
-              .collect::<Vec<String>>()
-              .swap_remove(0),
-          // get the raw value of the LitStr
-           lstr.value())
-        ),
-        _ => None
-      })
-      // convert the (String, LitStr) tuple to a custom type which only accepts certain key/value pairs
-      .map(|(k,v)| FromZbusMessageParam::from(k, v))
-      .collect();
+        .into_iter()
+        .filter_map(|nm| match nm {
+            // Only select certain tokens
+            NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+                path,
+                eq_token: _,
+                lit: Lit::Str(lstr),
+            })) => Some(
+                // Convert the sigment of the path to a string
+                (
+                    path.segments
+                        .into_iter()
+                        .map(|seg| seg.ident.to_string())
+                        .collect::<Vec<String>>()
+                        .swap_remove(0),
+                    // get the raw value of the LitStr
+                    lstr.value(),
+                ),
+            ),
+            _ => None,
+        })
+        // convert the (String, LitStr) tuple to a custom type which only accepts certain key/value pairs
+        .map(|(k, v)| FromZbusMessageParam::from(k, v))
+        .collect();
 
-		let body_type = match args_parsed.get(0).expect("There must be exactly one argument to the macro.") {
-			FromZbusMessageParam::Body(body_type) => body_type,
-			_ => panic!("The body parameter must be a type."),
-		};
+    let body_type = match args_parsed
+        .get(0)
+        .expect("There must be exactly one argument to the macro.")
+    {
+        FromZbusMessageParam::Body(body_type) => body_type,
+        _ => panic!("The body parameter must be a type."),
+    };
 
     // Generate the expanded code
     let expanded = quote! {
-				#item_struct
+                #item_struct
         impl TryFrom<Arc<Message>> for #name {
             type Error = AtspiError;
 
             fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-								if message.member() != Some(MemberName::from_static_str(#member)?) {
-									return Err(AtspiError::CacheVariantMismatch);
-								};
-								let body = message.body::<#body_type>()?;
+                                if message.member() != Some(MemberName::from_static_str(#member)?) {
+                                    return Err(AtspiError::CacheVariantMismatch);
+                                };
+                                let body = message.body::<#body_type>()?;
                 Ok(Self { message, body })
             }
         }
@@ -132,44 +147,44 @@ pub fn generic_event(input: TokenStream) -> TokenStream {
 
     // Generate the expanded code
     let expanded = quote! {
-			impl GenericEvent for #name {
-					/// Bus message.
-					#[must_use]
-					fn message(&self) -> &Arc<Message> {
-							&self.message
-					}
+            impl GenericEvent for #name {
+                    /// Bus message.
+                    #[must_use]
+                    fn message(&self) -> &Arc<Message> {
+                            &self.message
+                    }
 
-					/// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
-					/// wrong such that the `&str` you can get from a
-					/// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
-					/// name, not to the lifetime of the message as it should be. In future, this will return only
-					/// the last component of the interface name (I.E. "Object" from
-					/// "org.a11y.atspi.Event.Object").
-					#[must_use]
-					fn interface(&self) -> Option<InterfaceName<'_>> {
-							self.message.interface()
-					}
+                    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
+                    /// wrong such that the `&str` you can get from a
+                    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
+                    /// name, not to the lifetime of the message as it should be. In future, this will return only
+                    /// the last component of the interface name (I.E. "Object" from
+                    /// "org.a11y.atspi.Event.Object").
+                    #[must_use]
+                    fn interface(&self) -> Option<InterfaceName<'_>> {
+                            self.message.interface()
+                    }
 
-					/// Identifies this event's interface member name.
-					#[must_use]
-					fn member(&self) -> Option<MemberName<'_>> {
-							self.message.member()
-					}
+                    /// Identifies this event's interface member name.
+                    #[must_use]
+                    fn member(&self) -> Option<MemberName<'_>> {
+                            self.message.member()
+                    }
 
-					/// The object path to the object where the signal is emitted from.
-					#[must_use]
-					fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-							Some(OwnedObjectPath::from(self.message.path().unwrap()))
-					}
+                    /// The object path to the object where the signal is emitted from.
+                    #[must_use]
+                    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+                            Some(OwnedObjectPath::from(self.message.path().unwrap()))
+                    }
 
-					/// Identifies the `sender` of the event.
-					/// # Errors
-					/// - when deserializeing the header failed, or
-					/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-					fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
-							Ok(self.message.header()?.sender()?.cloned())
-					}
-				}
+                    /// Identifies the `sender` of the event.
+                    /// # Errors
+                    /// - when deserializeing the header failed, or
+                    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+                    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+                            Ok(self.message.header()?.sender()?.cloned())
+                    }
+                }
     };
 
     // Return the expanded code as a token stream

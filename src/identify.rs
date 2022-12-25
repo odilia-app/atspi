@@ -7,17 +7,13 @@
 //!
 
 use atspi_macros::TrySignify;
-use std::{collections::HashMap, sync::Arc};
-use zbus::{
-    names::{InterfaceName, MemberName},
-    zvariant::{self, OwnedObjectPath},
-    Message,
-};
+use std::collections::HashMap;
+use zbus::{names::MemberName, zvariant};
 use zvariant::OwnedValue;
 
 use crate::events::AtspiEvent;
 
-/// All Atspi / Qspi event types encapsulate AtspiEvent.
+/// All Atspi / Qspi event types encapsulate `AtspiEvent`.
 /// This trait allows access to the underlying item.
 pub trait Signified {
     type Inner;
@@ -26,7 +22,7 @@ pub trait Signified {
     fn properties(&self) -> &HashMap<String, OwnedValue>;
 }
 
-/// Any variant pertaining `Document` events.
+/// Any of the `Document` events.
 ///
 /// If you are interested in `Event.Document` events, this enum
 /// may help you select for these:
@@ -63,6 +59,7 @@ pub enum DocumentEvents {
     PageChanged(PageChangedEvent),
 }
 
+/// Any of the `Object` events.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ObjectEvents {
     PropertyChange(PropertyChangeEvent),
@@ -89,6 +86,7 @@ pub enum ObjectEvents {
     TextCaretMoved(TextCaretMovedEvent),
 }
 
+/// Any of the `Window` events.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum WindowEvents {
     PropertyChange(WindowPropertyChangeEvent),
@@ -112,7 +110,7 @@ pub enum WindowEvents {
     Restyle(RestyleEvent),
 }
 
-/// Contains any variant pertaining `MouseEvent` events.
+/// Any of the `Mouse` events.
 ///
 /// Those interested in `Event.Mouse` events, this enum
 /// may help select and specify for those on a stream:
@@ -140,7 +138,7 @@ pub enum MouseEvents {
     Button(ButtonEvent),
 }
 
-/// May contain any variant pertaining `Terminal` events.
+/// Any of the `Terminal` events.
 ///
 /// If you are interested in `Event.Terminal` events, this enum
 /// may, for instance, help you select for those on a stream:
@@ -157,7 +155,7 @@ pub enum MouseEvents {
 /// | Interface  | Member  |  Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|
 /// | Terminal | `LineChanged`  |   |   |   |
-/// | Terminal | ColumncountChanged  |   |   |   |
+/// | Terminal | `ColumncountChanged`  |   |   |   |
 /// | Terminal |`LinecountChanged`|   |   |   |
 /// | Terminal | `CharwidthChanged`  |   |   |   |
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -169,7 +167,7 @@ pub enum TerminalEvents {
     CharwidthChanged(CharwidthChangedEvent),
 }
 
-/// Trait to allow grouping of `Focus` signals
+/// The `Focus` event.
 /// ## Deprecation notice!!
 /// since: AT-SPI 2.9.4
 /// This signal is deprecated and may be removed in the near future.
@@ -185,8 +183,11 @@ pub enum FocusEvents {
     Focus(FocusEvent),
 }
 
-/// Trait to allow grouping of `Kbd` signals
-/// Contain any variant pertaining `Keyboard` events.
+/// The `Keyboard` events.
+///
+/// Contains the variant of the `Keyboard` event.
+/// While this enum has only one item, it is defined nevertheless
+/// to keep conversion requirements congruent over all types.
 ///
 /// If you are interested in `Event.Keyboard` events, this enum
 /// may, for instance, help you select for those on a stream:
@@ -276,6 +277,7 @@ pub struct ModelChangedEvent(AtspiEvent);
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 pub struct ActiveDescendantChangedEvent(AtspiEvent);
 impl ActiveDescendantChangedEvent {
+    #[must_use]
     pub fn child(&self) -> &zvariant::OwnedValue {
         self.0.any_data() // TODO Make me a beter returner!
     }
@@ -376,6 +378,7 @@ pub struct TextAttributesChangedEvent(AtspiEvent);
 pub struct TextCaretMovedEvent(AtspiEvent);
 
 impl TextCaretMovedEvent {
+    #[must_use]
     pub fn position(&self) -> i32 {
         self.0.detail1()
     }

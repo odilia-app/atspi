@@ -18,7 +18,7 @@ use zbus::{
     ProxyDefault,
 };
 
-/// Indicates AT-SPI interfaces an [`crate::accessible::AccessibleProxy`] can implement.
+/// AT-SPI interfaces an [`crate::accessible::AccessibleProxy`] can implement.
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -123,6 +123,7 @@ impl Serialize for Interface {
     }
 }
 
+/// A collection type which encodes the  AT-SPI interfaces an [`crate::accessible::AccessibleProxy`] has implemented.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct InterfaceSet(BitFlags<Interface>);
 
@@ -131,10 +132,12 @@ impl InterfaceSet {
         Self(value.into())
     }
 
+    #[must_use]
     pub fn empty() -> InterfaceSet {
         InterfaceSet(Interface::empty())
     }
 
+    #[must_use]
     pub fn bits(&self) -> u32 {
         self.0.bits()
     }
