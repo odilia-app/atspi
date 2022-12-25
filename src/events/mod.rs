@@ -27,11 +27,8 @@ use zbus::{
     Message,
 };
 
-use atspi_macros::{
-	GenericEvent,
-	try_from_zbus_message,
-};
 use crate::{cache::CacheItem, connection, AtspiError};
+use atspi_macros::{try_from_zbus_message, GenericEvent};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
@@ -117,7 +114,7 @@ pub enum CacheEvent {
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, GenericEvent)]
-#[try_from_zbus_message(body="CacheItem")]
+#[try_from_zbus_message(body = "CacheItem")]
 pub struct CacheAddEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: CacheItem,
@@ -141,7 +138,7 @@ impl CacheAddEvent {
 }
 
 #[derive(Debug, Clone, GenericEvent)]
-#[try_from_zbus_message(body="Accessible")]
+#[try_from_zbus_message(body = "Accessible")]
 pub struct CacheRemoveEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
@@ -235,14 +232,14 @@ pub enum EventListenerEvent {
 }
 
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body="EventListener")]
+#[try_from_zbus_message(body = "EventListener")]
 pub struct EventListenerDeregisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
 }
 
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body="EventListener")]
+#[try_from_zbus_message(body = "EventListener")]
 pub struct EventListenerRegisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
@@ -250,7 +247,7 @@ pub struct EventListenerRegisteredEvent {
 
 /// An event that is emitted when the registry daemon has started.
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body="Accessible")]
+#[try_from_zbus_message(body = "Accessible")]
 pub struct AvailableEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
