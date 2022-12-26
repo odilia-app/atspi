@@ -1,5 +1,5 @@
-mod xml_types;
 mod serde_signature;
+mod xml_types;
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -122,18 +122,26 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
 
     // Generate the expanded code
     let expanded = quote! {
-                #item_struct
-        impl TryFrom<Arc<Message>> for #name {
+        #item_struct
+        impl TryFrom<Arc<Message>> for  #name {
             type Error = AtspiError;
 
             fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-                                if message.member() != Some(MemberName::from_static_str(#member)?) {
-                                    return Err(AtspiError::CacheVariantMismatch);
-                                };
-                                let body = message.body::<#body_type>()?;
+                let message_member: MemberName = message
+                    .member()
+                    .ok_or(AtspiError::MemberMatch("message w/o member".to_string()))?;
+
+                let member = MemberName::from_static_str(#member)?;
+
+                if message_member != member {
+                    let error = format!("message member: {:?} != member: {:?}", message_member, member);
+                    return Err(AtspiError::MemberMatch(error));
+                };
+                let body: #body_type = message.body()?;
                 Ok(Self { message, body })
             }
         }
+
     };
 
     // Return the expanded code as a token stream

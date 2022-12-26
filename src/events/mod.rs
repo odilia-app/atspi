@@ -264,7 +264,6 @@ pub struct AvailableEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
 }
-
 impl AvailableEvent {
     #[must_use]
     pub fn registry(&self) -> &Accessible {
