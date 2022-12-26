@@ -177,9 +177,30 @@ pub struct AtspiEvent {
     pub(crate) body: EventBodyOwned,
 }
 
+impl<'name> PartialEq<AtspiEvent> for MemberName<'name> {
+    fn eq(&self, other: &AtspiEvent) -> bool {
+        let other_member = other.member().expect("AtspiEvent without member?");
+        *self == other_member
+    }
+}
+
+impl<'name> PartialEq<MemberName<'name>> for AtspiEvent {
+    fn eq(&self, other: &MemberName) -> bool {
+        let self_member = self.member().expect("AtspiEvent w/o member?");
+        self_member == *other
+    }
+}
+
+//  Equality on `AtspiEvent` may be considered ambiguous.
+//
+// Because `AtspiEvent`'s message has eg. a `SerialNumber` in the primary header,
+// only exacly same instances would be equal, _if_ `PartialEq` were derivable.
+//
+// This PartialEq implements the strictest kind where only same instances are considered the same.
+// Other equalities should be made with PartailEq<T> for AtspiEvent and PartialEq<AtspiEvent> for T
 impl PartialEq for AtspiEvent {
-    fn eq(&self, other: &Self) -> bool {
-        self.message.as_bytes() == other.message.as_bytes()
+    fn eq(&self, other: &AtspiEvent) -> bool {
+        self.message.as_bytes() == other.message().as_bytes()
     }
 }
 
@@ -212,7 +233,7 @@ fn test_event_listener_signature() {
     assert_eq!(EventListener::signature(), "(ss)");
 }
 
-/// Encapsulates both `EventListener` events.
+/// Covers both `EventListener` events.
 #[derive(Clone, Debug)]
 pub enum EventListenerEvent {
     Registered(EventListenerRegisteredEvent),

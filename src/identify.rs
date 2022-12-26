@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use zbus::{names::MemberName, zvariant};
 use zvariant::OwnedValue;
 
-use crate::events::AtspiEvent;
+use crate::events::{AtspiEvent, GenericEvent};
 
 /// All Atspi / Qspi event types encapsulate `AtspiEvent`.
 /// This trait allows access to the underlying item.
@@ -59,6 +59,21 @@ pub enum DocumentEvents {
     PageChanged(PageChangedEvent),
 }
 
+impl From<AtspiEvent> for DocumentEvents {
+    fn from(ev: AtspiEvent) -> Self {
+        let member = ev.member().expect("signal w/o member");
+        match member.as_str() {
+            "LoadComplete" => Self::LoadComplete(LoadCompleteEvent(ev)),
+            "Reload" => Self::Reload(ReloadEvent(ev)),
+            "LoadStoppedEvent" => Self::LoadStopped(LoadStoppedEvent(ev)),
+            "ContentChanged" => Self::ContentChanged(ContentChangedEvent(ev)),
+            "AttributesChangedEvent" => Self::AttributesChanged(AttributesChangedEvent(ev)),
+            "PageChanged" => Self::PageChanged(PageChangedEvent(ev)),
+            _ => panic!("Not a document event"),
+        }
+    }
+}
+
 /// Any of the `Object` events.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ObjectEvents {
@@ -86,6 +101,39 @@ pub enum ObjectEvents {
     TextCaretMoved(TextCaretMovedEvent),
 }
 
+impl From<AtspiEvent> for ObjectEvents {
+    fn from(ev: AtspiEvent) -> Self {
+        let member = ev.member().expect("signal w/o member");
+        match member.as_str() {
+            "PropertyChange" => Self::PropertyChange(PropertyChangeEvent(ev)),
+            "BoundsChanged" => Self::BoundsChanged(BoundsChangedEvent(ev)),
+            "LinkSelected" => Self::LinkSelected(LinkSelectedEvent(ev)),
+            "StateChanged" => Self::StateChanged(StateChangedEvent(ev)),
+            "ChildrenChanged" => Self::ChildrenChanged(ChildrenChangedEvent(ev)),
+            "VisibleDataChanged" => Self::VisibleDataChanged(VisibleDataChangedEvent(ev)),
+            "SelectionChanged" => Self::SelectionChanged(SelectionChangedEvent(ev)),
+            "ModelChanged" => Self::ModelChanged(ModelChangedEvent(ev)),
+            "ActiveDescendantChanged" => {
+                Self::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev))
+            }
+            "Announcement" => Self::Announcement(AnnouncementEvent(ev)),
+            "AttributesChanged" => Self::AttributesChanged(ObjectAttributesChangedEvent(ev)),
+            "RowInserted" => Self::RowInserted(RowInsertedEvent(ev)),
+            "RowReordered" => Self::RowReordered(RowReorderedEvent(ev)),
+            "RowDeleted" => Self::RowDeleted(RowDeletedEvent(ev)),
+            "ColumnInserted" => Self::ColumnInserted(ColumnInsertedEvent(ev)),
+            "ColumnReordered" => Self::ColumnReordered(ColumnReorderedEvent(ev)),
+            "ColumnDeleted" => Self::ColumnDeleted(ColumnDeletedEvent(ev)),
+            "TextBoundsChanged" => Self::TextBoundsChanged(TextBoundsChangedEvent(ev)),
+            "TextSelectionChanged" => Self::TextSelectionChanged(TextSelectionChangedEvent(ev)),
+            "TextChanged" => Self::TextChanged(TextChangedEvent(ev)),
+            "TextAttributesChanged" => Self::TextAttributesChanged(TextAttributesChangedEvent(ev)),
+            "TextCaretMoved" => Self::TextCaretMoved(TextCaretMovedEvent(ev)),
+            _ => panic!("Not an object event"),
+        }
+    }
+}
+
 /// Any of the `Window` events.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum WindowEvents {
@@ -108,6 +156,34 @@ pub enum WindowEvents {
     Shade(ShadeEvent),
     UUshade(uUshadeEvent),
     Restyle(RestyleEvent),
+}
+
+impl From<AtspiEvent> for WindowEvents {
+    fn from(ev: AtspiEvent) -> Self {
+        let member = ev.member().expect("signal w/o member");
+        match member.as_str() {
+            "PropertyChange" => Self::PropertyChange(WindowPropertyChangeEvent(ev)),
+            "Minimize" => Self::Minimize(MinimizeEvent(ev)),
+            "Maximize" => Self::Maximize(MaximizeEvent(ev)),
+            "Restore" => Self::Restore(RestoreEvent(ev)),
+            "Close" => Self::Close(CloseEvent(ev)),
+            "Create" => Self::Create(CreateEvent(ev)),
+            "Reparent" => Self::Reparent(ReparentEvent(ev)),
+            "DesktopCreate" => Self::DesktopCreate(DesktopCreateEvent(ev)),
+            "DesktopDestroy" => Self::DesktopDestroy(DesktopDestroyEvent(ev)),
+            "Destroy" => Self::Destroy(DestroyEvent(ev)),
+            "Activate" => Self::Activate(ActivateEvent(ev)),
+            "Deactivate" => Self::Deactivate(DeactivateEvent(ev)),
+            "Raise" => Self::Raise(RaiseEvent(ev)),
+            "Lower" => Self::Lower(LowerEvent(ev)),
+            "Move" => Self::Move(MoveEvent(ev)),
+            "Resize" => Self::Resize(ResizeEvent(ev)),
+            "Shade" => Self::Shade(ShadeEvent(ev)),
+            "uUshade" => Self::UUshade(uUshadeEvent(ev)),
+            "Restyle" => Self::Restyle(RestyleEvent(ev)),
+            _ => panic!("Not a window event"),
+        }
+    }
 }
 
 /// Any of the `Mouse` events.
@@ -136,6 +212,18 @@ pub enum MouseEvents {
     Abs(AbsEvent),
     Rel(RelEvent),
     Button(ButtonEvent),
+}
+
+impl From<AtspiEvent> for MouseEvents {
+    fn from(ev: AtspiEvent) -> Self {
+        let member = ev.member().expect("signal w/o member");
+        match member.as_str() {
+            "Abs" => Self::Abs(AbsEvent(ev)),
+            "Rel" => Self::Rel(RelEvent(ev)),
+            "Button" => Self::Button(ButtonEvent(ev)),
+            _ => panic!("Not a mouse event"),
+        }
+    }
 }
 
 /// Any of the `Terminal` events.
@@ -167,6 +255,20 @@ pub enum TerminalEvents {
     CharwidthChanged(CharwidthChangedEvent),
 }
 
+impl From<AtspiEvent> for TerminalEvents {
+    fn from(ev: AtspiEvent) -> Self {
+        let member = ev.member().expect("signal w/o member");
+        match member.as_str() {
+            "LineChanged" => Self::LineChanged(LineChangedEvent(ev)),
+            "ColumncountChanged" => Self::ColumncountChanged(ColumncountChangedEvent(ev)),
+            "LinecountChanged" => Self::LinecountChanged(LinecountChangedEvent(ev)),
+            "ApplicationChanged" => Self::ApplicationChanged(ApplicationChangedEvent(ev)),
+            "CharwidthChanged" => Self::CharwidthChanged(CharwidthChangedEvent(ev)),
+            _ => panic!("Not a terminal event"),
+        }
+    }
+}
+
 /// The `Focus` event.
 /// ## Deprecation notice!!
 /// since: AT-SPI 2.9.4
@@ -181,6 +283,16 @@ pub enum TerminalEvents {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FocusEvents {
     Focus(FocusEvent),
+}
+
+impl From<AtspiEvent> for FocusEvents {
+    fn from(ev: AtspiEvent) -> Self {
+        let member = ev.member().expect("signal w/o member");
+        match member.as_str() {
+            "Focus" => Self::Focus(FocusEvent(ev)),
+            _ => panic!("Not a focus event"),
+        }
+    }
 }
 
 /// The `Keyboard` events.
@@ -203,10 +315,20 @@ pub enum FocusEvents {
 ///  ```
 /// | Interface  | Member  | Kind |  Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|---|
-/// | Keyboard | Modifiers>  |   |  |   |   |
+/// | Keyboard | Modifiers |   |   |   |   |
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum KeyboardEvents {
     Modifiers(ModifiersEvent),
+}
+
+impl From<AtspiEvent> for KeyboardEvents {
+    fn from(ev: AtspiEvent) -> Self {
+        let member = ev.member().expect("signal w/o member");
+        match member.as_str() {
+            "Modifiers" => Self::Modifiers(ModifiersEvent(ev)),
+            _ => panic!("Not a keyboad event"),
+        }
+    }
 }
 
 // ---------------> Object types:
