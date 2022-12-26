@@ -46,17 +46,20 @@ pub fn try_signify(input: TokenStream) -> TokenStream {
         impl TryFrom<AtspiEvent> for #name {
             type Error = crate::AtspiError;
 
-            fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
-                let msg_member = msg.message.member();
-                if msg_member == Some(MemberName::from_static_str(#member)?) {
-                    return Ok(Self(msg));
+            fn try_from(event: AtspiEvent) -> Result<Self, Self::Error> {
+                let event_member: MemberName = event
+                    .member()
+                    .ok_or(AtspiError::MemberMatch("event w/o member".to_string()))?;
+
+                let member = MemberName::from_static_str(#member)?;
+
+                if event_member != member {
+                    let error = format!("message member: {:?} != member: {:?}", event_member, member);
+                    return Err(AtspiError::MemberMatch(error));
                 };
 
-                let tname = std::any::type_name::<Self>().to_string();
-                let member = tname.strip_suffix("Event").unwrap();
-                let error = format!("specific type's member: {} != msg type member: {:?}", member, msg_member);
-                Err(crate::AtspiError::MemberMatch(error))
-            }
+                Ok( Self( event ) )
+           }
         }
 
         impl<'a> Signified for #name {

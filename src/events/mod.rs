@@ -279,7 +279,7 @@ impl TryFrom<Arc<Message>> for Event {
         let message_signature = body_signature.as_str();
         let signal_member = msg
             .member()
-            .ok_or(AtspiError::MemberMatch("signal without message".to_string()))?;
+            .ok_or(AtspiError::MemberMatch("signal w/o member".to_string()))?;
         let message_member = signal_member.as_str();
 
         match message_signature {

@@ -6,12 +6,12 @@
 //! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
 //!
 
+use crate::error::AtspiError;
+use crate::events::{AtspiEvent, GenericEvent};
 use atspi_macros::TrySignify;
 use std::collections::HashMap;
 use zbus::{names::MemberName, zvariant};
 use zvariant::OwnedValue;
-
-use crate::events::{AtspiEvent, GenericEvent};
 
 /// All Atspi / Qspi event types encapsulate `AtspiEvent`.
 /// This trait allows access to the underlying item.
@@ -65,9 +65,9 @@ impl From<AtspiEvent> for DocumentEvents {
         match member.as_str() {
             "LoadComplete" => Self::LoadComplete(LoadCompleteEvent(ev)),
             "Reload" => Self::Reload(ReloadEvent(ev)),
-            "LoadStoppedEvent" => Self::LoadStopped(LoadStoppedEvent(ev)),
+            "LoadStopped" => Self::LoadStopped(LoadStoppedEvent(ev)),
             "ContentChanged" => Self::ContentChanged(ContentChangedEvent(ev)),
-            "AttributesChangedEvent" => Self::AttributesChanged(AttributesChangedEvent(ev)),
+            "AttributesChanged" => Self::AttributesChanged(AttributesChangedEvent(ev)),
             "PageChanged" => Self::PageChanged(PageChangedEvent(ev)),
             _ => panic!("Not a document event"),
         }
