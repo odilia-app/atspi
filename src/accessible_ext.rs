@@ -90,7 +90,7 @@ impl AccessibleProxy<'_> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Hash, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum AccessibleId {
 	Null,
 	Root,
