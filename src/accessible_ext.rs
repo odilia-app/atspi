@@ -94,7 +94,7 @@ impl AccessibleProxy<'_> {
 pub enum AccessibleId {
 	Null,
 	Root,
-	Number(i32),
+	Number(i64),
 }
 
 #[async_trait]
@@ -109,7 +109,7 @@ impl AccessibleExt for AccessibleProxy<'_> {
         match path.split('/').next_back() {
 						Some("null") => Some(AccessibleId::Null),
 						Some("root") => Some(AccessibleId::Root),
-						Some(id) => match id.parse::<i32>() {
+						Some(id) => match id.parse::<i64>() {
 							Ok(uid) => Some(AccessibleId::Number(uid)),
 							_ => None,
 						},
