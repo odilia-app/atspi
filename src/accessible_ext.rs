@@ -8,6 +8,9 @@ use async_recursion::async_recursion;
 use async_trait::async_trait;
 use std::{collections::HashMap, error::Error};
 use zbus::CacheProperties;
+use serde::{
+	Serialize, Deserialize,
+};
 
 pub type MatcherArgs =
     (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
@@ -15,7 +18,7 @@ pub type MatcherArgs =
 #[async_trait]
 pub trait AccessibleExt {
     // Assumes that an accessible can be made from the component parts
-    async fn get_id(&self) -> Option<u32>;
+    async fn get_id(&self) -> Option<AccessibleId>;
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>>;
     async fn get_children_ext<'a>(&self) -> zbus::Result<Vec<AccessibleProxy<'a>>>;
     async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
@@ -87,17 +90,31 @@ impl AccessibleProxy<'_> {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum AccessibleId {
+	Null,
+	Root,
+	Number(i32),
+}
+
 #[async_trait]
 impl AccessibleExt for AccessibleProxy<'_> {
-    async fn get_id(&self) -> Option<u32> {
+		/// get_id gets the id (if available) for any accessible.
+		/// This *should* always return a Some(i32) and never None, but you never know.
+		/// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
+		/// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
+		/// It *should* be safe to `.expect()` the return type.
+    async fn get_id(&self) -> Option<AccessibleId> {
         let path = self.path();
-        if let Some(id) = path.split('/').next_back() {
-            if let Ok(uid) = id.parse::<u32>() {
-                tracing::debug!("ID: {:?}", uid);
-                return Some(uid);
-            }
+        match path.split('/').next_back() {
+						Some("null") => Some(AccessibleId::Null),
+						Some("root") => Some(AccessibleId::Root),
+						Some(id) => match id.parse::<i32>() {
+							Ok(uid) => Some(AccessibleId::Number(uid)),
+							_ => None,
+						},
+						_ => None,
         }
-        None
     }
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>> {
         let parent_parts = self.parent().await?;
