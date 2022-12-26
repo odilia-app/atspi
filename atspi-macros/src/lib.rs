@@ -1,3 +1,6 @@
+mod xml_types;
+mod serde_signature;
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
