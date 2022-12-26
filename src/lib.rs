@@ -29,6 +29,7 @@ pub mod text;
 pub mod value;
 
 pub mod accessible_ext;
+pub mod text_ext;
 
 // Hand-written connection module
 mod connection;
