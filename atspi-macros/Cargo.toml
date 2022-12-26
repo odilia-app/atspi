@@ -16,3 +16,7 @@ proc-macro2 = "1.0"
 syn = { version = "1.0", features = ["full"] }
 quote = "1.0"
 zbus_names = "2.4.0"
+serde = "1.0"
+serde_with = "2.1.0"
+serde-xml-rs = "0.6.0"
+zvariant = "3.9.0"
