@@ -196,13 +196,13 @@ impl From<AtspiEvent> for Option<EventInterfaces> {
     fn from(ev: AtspiEvent) -> Self {
         let Some(interface) = ev.interface() else {  return None;  };
         match interface.as_str() {
-            "Document" => Some(EventInterfaces::Document(ev.into())),
-            "Focus" => Some(EventInterfaces::Focus(ev.into())),
-            "Keyboard" => Some(EventInterfaces::Keyboard(ev.into())),
-            "Mouse" => Some(EventInterfaces::Mouse(ev.into())),
-            "Object" => Some(EventInterfaces::Object(ev.into())),
-            "Terminal" => Some(EventInterfaces::Terminal(ev.into())),
-            "Window" => Some(EventInterfaces::Window(ev.into())),
+            "org.a11y.atspi.Event.Document" => Some(EventInterfaces::Document(ev.into())),
+            "org.a11y.atspi.Event.Focus" => Some(EventInterfaces::Focus(ev.into())),
+            "org.a11y.atspi.Event.Keyboard" => Some(EventInterfaces::Keyboard(ev.into())),
+            "org.a11y.atspi.Event.Mouse" => Some(EventInterfaces::Mouse(ev.into())),
+            "org.a11y.atspi.Event.Object" => Some(EventInterfaces::Object(ev.into())),
+            "org.a11y.atspi.Event.Terminal" => Some(EventInterfaces::Terminal(ev.into())),
+            "org.a11y.atspi.Event.Window" => Some(EventInterfaces::Window(ev.into())),
             _ => None,
         }
     }
