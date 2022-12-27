@@ -95,20 +95,20 @@ pub enum Event {
 
 #[derive(Debug, Clone)]
 pub enum CacheEvent {
-    Add(CacheAddEvent),
-    Remove(CacheRemoveEvent),
+    Add(AddAccessibleEvent),
+    Remove(RemoveAccessibleEvent),
 }
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, GenericEvent)]
 #[try_from_zbus_message(body = "CacheItem")]
-pub struct CacheAddEvent {
+pub struct AddAccessibleEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: CacheItem,
 }
 
-impl CacheAddEvent {
+impl AddAccessibleEvent {
     /// When an object in an application is added, this may evoke a `CacheAdd` event,
     /// this yields an [`crate::cache::CacheItem`]
     #[must_use]
@@ -127,12 +127,12 @@ impl CacheAddEvent {
 
 #[derive(Debug, Clone, GenericEvent)]
 #[try_from_zbus_message(body = "Accessible")]
-pub struct CacheRemoveEvent {
+pub struct RemoveAccessibleEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
 }
 
-impl CacheRemoveEvent {
+impl RemoveAccessibleEvent {
     /// What `Accessible` is removed from the application state.
     /// A reference to the `Accessible`
     #[must_use]
@@ -286,7 +286,7 @@ impl TryFrom<Arc<Message>> for Event {
             // Accessible signature
             "(so)" => match message_member {
                 "RemoveAccessible" => {
-                    let ev = CacheRemoveEvent::try_from(msg)?;
+                    let ev = RemoveAccessibleEvent::try_from(msg)?;
                     Ok(Event::Cache(CacheEvent::Remove(ev)))
                 }
                 "Available" => {
@@ -311,7 +311,7 @@ impl TryFrom<Arc<Message>> for Event {
             }
             // CacheAdd signature
             "((so)(so)(so)iiassusau)" => {
-                let ev = CacheAddEvent::try_from(msg)?;
+                let ev = AddAccessibleEvent::try_from(msg)?;
                 Ok(Event::Cache(CacheEvent::Add(ev)))
             }
             _ => Err(AtspiError::UnknownBusSignature),
