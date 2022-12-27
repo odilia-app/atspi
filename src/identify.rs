@@ -61,17 +61,19 @@ pub enum DocumentEvents {
     PageChanged(PageChangedEvent),
 }
 
-impl From<AtspiEvent> for DocumentEvents {
+impl From<AtspiEvent> for Option<DocumentEvents> {
     fn from(ev: AtspiEvent) -> Self {
-        let member = ev.member().expect("signal w/o member");
+        let Some(member) = ev.member() else {return None; };
         match member.as_str() {
-            "LoadComplete" => Self::LoadComplete(LoadCompleteEvent(ev)),
-            "Reload" => Self::Reload(ReloadEvent(ev)),
-            "LoadStopped" => Self::LoadStopped(LoadStoppedEvent(ev)),
-            "ContentChanged" => Self::ContentChanged(ContentChangedEvent(ev)),
-            "AttributesChanged" => Self::AttributesChanged(AttributesChangedEvent(ev)),
-            "PageChanged" => Self::PageChanged(PageChangedEvent(ev)),
-            _ => panic!("Not a document event"),
+            "LoadComplete" => Some(DocumentEvents::LoadComplete(LoadCompleteEvent(ev))),
+            "Reload" => Some(DocumentEvents::Reload(ReloadEvent(ev))),
+            "LoadStopped" => Some(DocumentEvents::LoadStopped(LoadStoppedEvent(ev))),
+            "ContentChanged" => Some(DocumentEvents::ContentChanged(ContentChangedEvent(ev))),
+            "AttributesChanged" => {
+                Some(DocumentEvents::AttributesChanged(AttributesChangedEvent(ev)))
+            }
+            "PageChanged" => Some(DocumentEvents::PageChanged(PageChangedEvent(ev))),
+            _ => None,
         }
     }
 }
@@ -103,35 +105,45 @@ pub enum ObjectEvents {
     TextCaretMoved(TextCaretMovedEvent),
 }
 
-impl From<AtspiEvent> for ObjectEvents {
+impl From<AtspiEvent> for Option<ObjectEvents> {
     fn from(ev: AtspiEvent) -> Self {
-        let member = ev.member().expect("signal w/o member");
+        let Some(member) = ev.member() else { return None; };
         match member.as_str() {
-            "PropertyChange" => Self::PropertyChange(PropertyChangeEvent(ev)),
-            "BoundsChanged" => Self::BoundsChanged(BoundsChangedEvent(ev)),
-            "LinkSelected" => Self::LinkSelected(LinkSelectedEvent(ev)),
-            "StateChanged" => Self::StateChanged(StateChangedEvent(ev)),
-            "ChildrenChanged" => Self::ChildrenChanged(ChildrenChangedEvent(ev)),
-            "VisibleDataChanged" => Self::VisibleDataChanged(VisibleDataChangedEvent(ev)),
-            "SelectionChanged" => Self::SelectionChanged(SelectionChangedEvent(ev)),
-            "ModelChanged" => Self::ModelChanged(ModelChangedEvent(ev)),
-            "ActiveDescendantChanged" => {
-                Self::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev))
+            "PropertyChange" => Some(ObjectEvents::PropertyChange(PropertyChangeEvent(ev))),
+            "BoundsChanged" => Some(ObjectEvents::BoundsChanged(BoundsChangedEvent(ev))),
+            "LinkSelected" => Some(ObjectEvents::LinkSelected(LinkSelectedEvent(ev))),
+            "StateChanged" => Some(ObjectEvents::StateChanged(StateChangedEvent(ev))),
+            "ChildrenChanged" => Some(ObjectEvents::ChildrenChanged(ChildrenChangedEvent(ev))),
+            "VisibleDataChanged" => {
+                Some(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev)))
             }
-            "Announcement" => Self::Announcement(AnnouncementEvent(ev)),
-            "AttributesChanged" => Self::AttributesChanged(ObjectAttributesChangedEvent(ev)),
-            "RowInserted" => Self::RowInserted(RowInsertedEvent(ev)),
-            "RowReordered" => Self::RowReordered(RowReorderedEvent(ev)),
-            "RowDeleted" => Self::RowDeleted(RowDeletedEvent(ev)),
-            "ColumnInserted" => Self::ColumnInserted(ColumnInsertedEvent(ev)),
-            "ColumnReordered" => Self::ColumnReordered(ColumnReorderedEvent(ev)),
-            "ColumnDeleted" => Self::ColumnDeleted(ColumnDeletedEvent(ev)),
-            "TextBoundsChanged" => Self::TextBoundsChanged(TextBoundsChangedEvent(ev)),
-            "TextSelectionChanged" => Self::TextSelectionChanged(TextSelectionChangedEvent(ev)),
-            "TextChanged" => Self::TextChanged(TextChangedEvent(ev)),
-            "TextAttributesChanged" => Self::TextAttributesChanged(TextAttributesChangedEvent(ev)),
-            "TextCaretMoved" => Self::TextCaretMoved(TextCaretMovedEvent(ev)),
-            _ => panic!("Not an object event"),
+            "SelectionChanged" => Some(ObjectEvents::SelectionChanged(SelectionChangedEvent(ev))),
+            "ModelChanged" => Some(ObjectEvents::ModelChanged(ModelChangedEvent(ev))),
+            "ActiveDescendantChanged" => {
+                Some(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev)))
+            }
+            "Announcement" => Some(ObjectEvents::Announcement(AnnouncementEvent(ev))),
+            "AttributesChanged" => {
+                Some(ObjectEvents::AttributesChanged(ObjectAttributesChangedEvent(ev)))
+            }
+            "RowInserted" => Some(ObjectEvents::RowInserted(RowInsertedEvent(ev))),
+            "RowReordered" => Some(ObjectEvents::RowReordered(RowReorderedEvent(ev))),
+            "RowDeleted" => Some(ObjectEvents::RowDeleted(RowDeletedEvent(ev))),
+            "ColumnInserted" => Some(ObjectEvents::ColumnInserted(ColumnInsertedEvent(ev))),
+            "ColumnReordered" => Some(ObjectEvents::ColumnReordered(ColumnReorderedEvent(ev))),
+            "ColumnDeleted" => Some(ObjectEvents::ColumnDeleted(ColumnDeletedEvent(ev))),
+            "TextBoundsChanged" => {
+                Some(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev)))
+            }
+            "TextSelectionChanged" => {
+                Some(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev)))
+            }
+            "TextChanged" => Some(ObjectEvents::TextChanged(TextChangedEvent(ev))),
+            "TextAttributesChanged" => {
+                Some(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev)))
+            }
+            "TextCaretMoved" => Some(ObjectEvents::TextCaretMoved(TextCaretMovedEvent(ev))),
+            _ => None,
         }
     }
 }
@@ -160,30 +172,30 @@ pub enum WindowEvents {
     Restyle(RestyleEvent),
 }
 
-impl From<AtspiEvent> for WindowEvents {
+impl From<AtspiEvent> for Option<WindowEvents> {
     fn from(ev: AtspiEvent) -> Self {
-        let member = ev.member().expect("signal w/o member");
+        let Some(member) = ev.member() else {return None; };
         match member.as_str() {
-            "PropertyChange" => Self::PropertyChange(WindowPropertyChangeEvent(ev)),
-            "Minimize" => Self::Minimize(MinimizeEvent(ev)),
-            "Maximize" => Self::Maximize(MaximizeEvent(ev)),
-            "Restore" => Self::Restore(RestoreEvent(ev)),
-            "Close" => Self::Close(CloseEvent(ev)),
-            "Create" => Self::Create(CreateEvent(ev)),
-            "Reparent" => Self::Reparent(ReparentEvent(ev)),
-            "DesktopCreate" => Self::DesktopCreate(DesktopCreateEvent(ev)),
-            "DesktopDestroy" => Self::DesktopDestroy(DesktopDestroyEvent(ev)),
-            "Destroy" => Self::Destroy(DestroyEvent(ev)),
-            "Activate" => Self::Activate(ActivateEvent(ev)),
-            "Deactivate" => Self::Deactivate(DeactivateEvent(ev)),
-            "Raise" => Self::Raise(RaiseEvent(ev)),
-            "Lower" => Self::Lower(LowerEvent(ev)),
-            "Move" => Self::Move(MoveEvent(ev)),
-            "Resize" => Self::Resize(ResizeEvent(ev)),
-            "Shade" => Self::Shade(ShadeEvent(ev)),
-            "uUshade" => Self::UUshade(uUshadeEvent(ev)),
-            "Restyle" => Self::Restyle(RestyleEvent(ev)),
-            _ => panic!("Not a window event"),
+            "PropertyChange" => Some(WindowEvents::PropertyChange(WindowPropertyChangeEvent(ev))),
+            "Minimize" => Some(WindowEvents::Minimize(MinimizeEvent(ev))),
+            "Maximize" => Some(WindowEvents::Maximize(MaximizeEvent(ev))),
+            "Restore" => Some(WindowEvents::Restore(RestoreEvent(ev))),
+            "Close" => Some(WindowEvents::Close(CloseEvent(ev))),
+            "Create" => Some(WindowEvents::Create(CreateEvent(ev))),
+            "Reparent" => Some(WindowEvents::Reparent(ReparentEvent(ev))),
+            "DesktopCreate" => Some(WindowEvents::DesktopCreate(DesktopCreateEvent(ev))),
+            "DesktopDestroy" => Some(WindowEvents::DesktopDestroy(DesktopDestroyEvent(ev))),
+            "Destroy" => Some(WindowEvents::Destroy(DestroyEvent(ev))),
+            "Activate" => Some(WindowEvents::Activate(ActivateEvent(ev))),
+            "Deactivate" => Some(WindowEvents::Deactivate(DeactivateEvent(ev))),
+            "Raise" => Some(WindowEvents::Raise(RaiseEvent(ev))),
+            "Lower" => Some(WindowEvents::Lower(LowerEvent(ev))),
+            "Move" => Some(WindowEvents::Move(MoveEvent(ev))),
+            "Resize" => Some(WindowEvents::Resize(ResizeEvent(ev))),
+            "Shade" => Some(WindowEvents::Shade(ShadeEvent(ev))),
+            "uUshade" => Some(WindowEvents::UUshade(uUshadeEvent(ev))),
+            "Restyle" => Some(WindowEvents::Restyle(RestyleEvent(ev))),
+            _ => None,
         }
     }
 }
@@ -216,14 +228,14 @@ pub enum MouseEvents {
     Button(ButtonEvent),
 }
 
-impl From<AtspiEvent> for MouseEvents {
+impl From<AtspiEvent> for Option<MouseEvents> {
     fn from(ev: AtspiEvent) -> Self {
-        let member = ev.member().expect("signal w/o member");
+        let Some(member) = ev.member() else {return None; };
         match member.as_str() {
-            "Abs" => Self::Abs(AbsEvent(ev)),
-            "Rel" => Self::Rel(RelEvent(ev)),
-            "Button" => Self::Button(ButtonEvent(ev)),
-            _ => panic!("Not a mouse event"),
+            "Abs" => Some(MouseEvents::Abs(AbsEvent(ev))),
+            "Rel" => Some(MouseEvents::Rel(RelEvent(ev))),
+            "Button" => Some(MouseEvents::Button(ButtonEvent(ev))),
+            _ => None,
         }
     }
 }
@@ -257,16 +269,20 @@ pub enum TerminalEvents {
     CharwidthChanged(CharwidthChangedEvent),
 }
 
-impl From<AtspiEvent> for TerminalEvents {
+impl From<AtspiEvent> for Option<TerminalEvents> {
     fn from(ev: AtspiEvent) -> Self {
-        let member = ev.member().expect("signal w/o member");
+        let Some(member) = ev.member() else {return None; };
         match member.as_str() {
-            "LineChanged" => Self::LineChanged(LineChangedEvent(ev)),
-            "ColumncountChanged" => Self::ColumncountChanged(ColumncountChangedEvent(ev)),
-            "LinecountChanged" => Self::LinecountChanged(LinecountChangedEvent(ev)),
-            "ApplicationChanged" => Self::ApplicationChanged(ApplicationChangedEvent(ev)),
-            "CharwidthChanged" => Self::CharwidthChanged(CharwidthChangedEvent(ev)),
-            _ => panic!("Not a terminal event"),
+            "LineChanged" => Some(TerminalEvents::LineChanged(LineChangedEvent(ev))),
+            "ColumncountChanged" => {
+                Some(TerminalEvents::ColumncountChanged(ColumncountChangedEvent(ev)))
+            }
+            "LinecountChanged" => Some(TerminalEvents::LinecountChanged(LinecountChangedEvent(ev))),
+            "ApplicationChanged" => {
+                Some(TerminalEvents::ApplicationChanged(ApplicationChangedEvent(ev)))
+            }
+            "CharwidthChanged" => Some(TerminalEvents::CharwidthChanged(CharwidthChangedEvent(ev))),
+            _ => None,
         }
     }
 }
@@ -287,12 +303,12 @@ pub enum FocusEvents {
     Focus(FocusEvent),
 }
 
-impl From<AtspiEvent> for FocusEvents {
+impl From<AtspiEvent> for Option<FocusEvents> {
     fn from(ev: AtspiEvent) -> Self {
-        let member = ev.member().expect("signal w/o member");
+        let Some(member) = ev.member() else {return None; };
         match member.as_str() {
-            "Focus" => Self::Focus(FocusEvent(ev)),
-            _ => panic!("Not a focus event"),
+            "Focus" => Some(FocusEvents::Focus(FocusEvent(ev))),
+            _ => None,
         }
     }
 }
@@ -323,12 +339,12 @@ pub enum KeyboardEvents {
     Modifiers(ModifiersEvent),
 }
 
-impl From<AtspiEvent> for KeyboardEvents {
+impl From<AtspiEvent> for Option<KeyboardEvents> {
     fn from(ev: AtspiEvent) -> Self {
-        let member = ev.member().expect("signal w/o member");
+        let Some(member) = ev.member() else {return None; };
         match member.as_str() {
-            "Modifiers" => Self::Modifiers(ModifiersEvent(ev)),
-            _ => panic!("Not a keyboad event"),
+            "Modifiers" => Some(KeyboardEvents::Modifiers(ModifiersEvent(ev))),
+            _ => None,
         }
     }
 }

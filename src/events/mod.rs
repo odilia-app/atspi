@@ -183,13 +183,13 @@ fn test_accessible_signature() {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum EventInterfaces {
-    Document(DocumentEvents),
-    Focus(FocusEvents),
-    Keyboard(KeyboardEvents),
-    Mouse(MouseEvents),
-    Object(ObjectEvents),
-    Terminal(TerminalEvents),
-    Window(WindowEvents),
+    Document(Option<DocumentEvents>),
+    Focus(Option<FocusEvents>),
+    Keyboard(Option<KeyboardEvents>),
+    Mouse(Option<MouseEvents>),
+    Object(Option<ObjectEvents>),
+    Terminal(Option<TerminalEvents>),
+    Window(Option<WindowEvents>),
 }
 
 impl From<AtspiEvent> for Option<EventInterfaces> {
