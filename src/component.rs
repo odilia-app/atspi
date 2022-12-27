@@ -103,7 +103,7 @@ trait Component {
     fn scroll_to(&self, type_: ScrollType) -> zbus::Result<bool>;
 
     /// ScrollToPoint method
-    fn scroll_to_point(&self, type_: ScrollType, x: i32, y: i32) -> zbus::Result<bool>;
+    fn scroll_to_point(&self, coord_type: CoordType, x: i32, y: i32) -> zbus::Result<bool>;
 
     /// SetExtents method
     fn set_extents(
