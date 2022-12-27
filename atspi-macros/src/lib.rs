@@ -30,7 +30,7 @@ impl FromZbusMessageParam {
 //
 
 #[proc_macro_derive(TrySignify)]
-pub fn try_signify(input: TokenStream) -> TokenStream {
+pub fn try_from_atspi_event_to_signified_type(input: TokenStream) -> TokenStream {
     // Parse the input token stream into a syntax tree
     let DeriveInput { ident, .. } = parse_macro_input!(input);
 
@@ -98,7 +98,7 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
                 eq_token: _,
                 lit: Lit::Str(lstr),
             })) => Some(
-                // Convert the sigment of the path to a string
+                // Convert the segment of the path to a string
                 (
                     path.segments
                         .into_iter()
