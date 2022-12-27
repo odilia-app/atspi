@@ -15,6 +15,9 @@ pub enum AtspiError {
     /// To indicate a match or equality test on a signa body signature failed.
     UnknownBusSignature,
 
+    /// When matching on an unknown interface
+    UnknownInterface,
+
     /// The signal that was encountered is unknown.
     UnknownSignal,
 
@@ -48,6 +51,7 @@ impl std::fmt::Display for AtspiError {
                 f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
             }
             Self::UnknownBusSignature => f.write_str("atspi: Unknown bus body signature."),
+            Self::UnknownInterface => f.write_str("Unknown interface."),
             Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
             Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
             Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),

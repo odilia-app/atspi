@@ -41,15 +41,17 @@ pub trait Signified {
 ///
 /// TODO Catch signals and repair table below please!
 ///
-/// | Interface  | Member  |  Kind  | Detail1   | Detail2  | Any_data |
-/// |:-:|---|---|---|---|---|
-/// | Document | `LoadComplete`  |   |   |   |
-/// | Document | `Reload` |   |   |   |
-/// | Document | `LoadStopped` |   |   |   |
-/// | Document | `ContentChanged`  |   |   |   |
-/// | Document | `AttributesChanged`  |   |   |   |
-/// | Document | `PageChanged`  |   |   |   |
-#[derive(Debug, PartialEq, Eq, Clone)]
+/// Event table for the contained types:
+///
+/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
+/// |---|---|---|---|---|---|---
+/// Document|LoadComplete|      |       |       |       |properties
+/// Document|Reload|    |       |       |       |properties
+/// Document|LoadStopped|       |       |       |       |properties
+/// Document|ContentChanged|    |       |       |       |properties
+/// Document|AttributesChanged| |       |       |       |properties
+/// Document|PageChanged|       |       |       |       |properties
+#[derive(Debug, Clone)]
 pub enum DocumentEvents {
     LoadComplete(LoadCompleteEvent),
     Reload(ReloadEvent),
@@ -275,12 +277,12 @@ impl From<AtspiEvent> for TerminalEvents {
 /// This signal is deprecated and may be removed in the near future.
 /// Monitor `StateChanged::Focused` signals instead.
 ///
-/// TODO: Catch an event, check table below.
+/// Event table for the contained types:
 ///
-/// | Interface  | Member  |  Kind | Detail1   | Detail2  | Any_data |
-/// |:-:|---|---|---|---|---|
-/// | Focus  | Focus |   |   |   |    |
-#[derive(Debug, PartialEq, Eq, Clone)]
+/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
+/// ---|---|---|---|---|---|---
+/// Focus|Focus|        |       |       |       |properties
+#[derive(Debug, Clone)]
 pub enum FocusEvents {
     Focus(FocusEvent),
 }
@@ -316,7 +318,7 @@ impl From<AtspiEvent> for FocusEvents {
 /// | Interface  | Member  | Kind |  Detail1   | Detail2  | Any_data |
 /// |:-:|---|---|---|---|---|
 /// | Keyboard | Modifiers |   |   |   |   |
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, Clone)]
 pub enum KeyboardEvents {
     Modifiers(ModifiersEvent),
 }

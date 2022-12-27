@@ -15,7 +15,15 @@ use zbus::{
     Message,
 };
 
-use crate::{cache::CacheItem, connection, AtspiError};
+use crate::{
+    cache::CacheItem,
+    connection,
+    identify::{
+        DocumentEvents, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents, TerminalEvents,
+        WindowEvents,
+    },
+    AtspiError,
+};
 use atspi_macros::{try_from_zbus_message, GenericEvent};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -81,8 +89,8 @@ impl From<EventBodyQT> for EventBodyOwned {
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum Event {
-    /// Includes Atspi and Qspi events
-    Atspi(AtspiEvent),
+    // Exploring if having a fully destructable hierarchical  works as we'd like..
+    Interfaces(EventInterfaces),
     /// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
     Available(AvailableEvent),
     /// Both `CacheAdd` and `CacheRemove` signals
@@ -169,6 +177,35 @@ pub struct Accessible {
 #[test]
 fn test_accessible_signature() {
     assert_eq!(Accessible::signature(), "(so)");
+}
+
+/// Offers events, grouped-by Interface.
+#[derive(Clone, Debug)]
+#[non_exhaustive]
+pub enum EventInterfaces {
+    Document(DocumentEvents),
+    Focus(FocusEvents),
+    Keyboard(KeyboardEvents),
+    Mouse(MouseEvents),
+    Object(ObjectEvents),
+    Terminal(TerminalEvents),
+    Window(WindowEvents),
+}
+
+impl From<AtspiEvent> for Option<EventInterfaces> {
+    fn from(ev: AtspiEvent) -> Self {
+        let Some(interface) = ev.interface() else {  return None;  };
+        match interface.as_str() {
+            "Document" => Some(EventInterfaces::Document(ev.into())),
+            "Focus" => Some(EventInterfaces::Focus(ev.into())),
+            "Keyboard" => Some(EventInterfaces::Keyboard(ev.into())),
+            "Mouse" => Some(EventInterfaces::Mouse(ev.into())),
+            "Object" => Some(EventInterfaces::Object(ev.into())),
+            "Terminal" => Some(EventInterfaces::Terminal(ev.into())),
+            "Window" => Some(EventInterfaces::Window(ev.into())),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -298,7 +335,10 @@ impl TryFrom<Arc<Message>> for Event {
             // Atspi / Qspi signature
             "siiva{sv}" | "siiv(so)" => {
                 let ev = AtspiEvent::try_from(msg)?;
-                Ok(Event::Atspi(ev))
+                match ev.into() {
+                    Some(interface_ev) => Ok(Event::Interfaces(interface_ev)),
+                    _ => return Err(AtspiError::UnknownInterface),
+                }
             }
             "(ss)" => {
                 if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg.clone()) {
