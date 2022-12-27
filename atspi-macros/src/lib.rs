@@ -11,6 +11,7 @@ use syn::{
 enum FromZbusMessageParam {
     Invalid,
     Body(Type),
+		Member(String),
 }
 
 impl FromZbusMessageParam {
@@ -20,6 +21,7 @@ impl FromZbusMessageParam {
                 syn::parse_str(tp)
                     .expect("The value given to the 'body' parameter must be a valid type."),
             ),
+						("member", mem) => Self::Member(mem.to_string()),
             _ => Self::Invalid,
         }
     }
@@ -87,7 +89,6 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
 
     // Remove the suffix "Event" from the name of the struct
     let name_string = name.to_string();
-    let member = name_string.strip_suffix("Event").unwrap();
 
     let args_parsed: Vec<FromZbusMessageParam> = parse_macro_input!(attr as AttributeArgs)
         .into_iter()
@@ -117,10 +118,17 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
 
     let body_type = match args_parsed
         .get(0)
-        .expect("There must be exactly one argument to the macro.")
+        .expect("There must be at least one argument to the macro.")
     {
         FromZbusMessageParam::Body(body_type) => body_type,
-        _ => panic!("The body parameter must be a type."),
+        _ => panic!("The body parameter must be set first, and must be a type."),
+    };
+		// if the member is set explicitly, use it, otherwise, use the struct name.
+    let member = match args_parsed
+        .get(1)
+    {
+        Some(FromZbusMessageParam::Member(member_str)) => member_str,
+				_ => name_string.strip_suffix("Event").unwrap(),
     };
 
     // Generate the expanded code
