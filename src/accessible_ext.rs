@@ -8,7 +8,13 @@ use async_recursion::async_recursion;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error::Error};
-use zbus::CacheProperties;
+use zbus::{
+  CacheProperties,
+  zvariant::ObjectPath,
+};
+use serde::{
+	Serialize, Deserialize,
+};
 
 pub type MatcherArgs =
     (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
@@ -16,7 +22,7 @@ pub type MatcherArgs =
 #[async_trait]
 pub trait AccessibleExt {
     // Assumes that an accessible can be made from the component parts
-    async fn get_id(&self) -> Option<AccessibleId>;
+    fn get_id(&self) -> Option<AccessibleId>;
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>>;
     async fn get_children_ext<'a>(&self) -> zbus::Result<Vec<AccessibleProxy<'a>>>;
     async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
@@ -94,15 +100,32 @@ pub enum AccessibleId {
     Root,
     Number(i64),
 }
+impl ToString for AccessibleId {
+  fn to_string(&self) -> String {
+    let ending = match self {
+      Self::Null => "null".to_string(),
+      Self::Root => "root".to_string(),
+      Self::Number(int) => int.to_string(),
+    };
+    format!("/org/a11y/atspi/{ending}")
+  }
+}
+impl<'a> TryInto<ObjectPath<'a>> for AccessibleId {
+  type Error = zbus::zvariant::Error;
+
+  fn try_into(self) -> Result<ObjectPath<'a>, Self::Error> {
+    ObjectPath::try_from(self.to_string())
+  }
+}
 
 #[async_trait]
 impl AccessibleExt for AccessibleProxy<'_> {
-    /// get_id gets the id (if available) for any accessible.
-    /// This *should* always return a Some(i32) and never None, but you never know.
-    /// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
-    /// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
-    /// It *should* be safe to `.expect()` the return type.
-    async fn get_id(&self) -> Option<AccessibleId> {
+		/// get_id gets the id (if available) for any accessible.
+		/// This *should* always return a Some(i32) and never None, but you never know.
+		/// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
+		/// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
+		/// It *should* be safe to `.expect()` the return type.
+    fn get_id(&self) -> Option<AccessibleId> {
         let path = self.path();
         match path.split('/').next_back() {
             Some("null") => Some(AccessibleId::Null),
