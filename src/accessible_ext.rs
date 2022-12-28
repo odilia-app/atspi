@@ -6,7 +6,6 @@ use crate::{
 };
 use async_recursion::async_recursion;
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error::Error};
 use zbus::{
   CacheProperties,
