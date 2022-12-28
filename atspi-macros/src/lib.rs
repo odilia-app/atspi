@@ -74,6 +74,49 @@ pub fn try_from_atspi_event_to_signified_type(input: TokenStream) -> TokenStream
                 self.0.properties()
             }
         }
+						impl #name {
+							pub fn kind(&self) -> &str {
+								self.inner().kind()
+							}
+						}
+            impl GenericEvent for #name {
+                    /// Bus message.
+                    #[must_use]
+                    fn message(&self) -> &Arc<Message> {
+                            &self.inner().message()
+                    }
+
+                    /// For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
+                    /// wrong such that the `&str` you can get from a
+                    /// [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
+                    /// name, not to the lifetime of the message as it should be. In future, this will return only
+                    /// the last component of the interface name (I.E. "Object" from
+                    /// "org.a11y.atspi.Event.Object").
+                    #[must_use]
+                    fn interface(&self) -> Option<zbus_names::InterfaceName<'_>> {
+                            self.inner().interface()
+                    }
+
+                    /// Identifies this event's interface member name.
+                    #[must_use]
+                    fn member(&self) -> Option<MemberName<'_>> {
+                            self.inner().member()
+                    }
+
+                    /// The object path to the object where the signal is emitted from.
+                    #[must_use]
+                    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+                            self.inner().path()
+                    }
+
+                    /// Identifies the `sender` of the event.
+                    /// # Errors
+                    /// - when deserializeing the header failed, or
+                    /// - When `zbus::get_field!` finds that 'sender' is an invalid field.
+                    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+                            self.inner().sender()
+                    }
+                }
     };
 
     // Return the expanded code as a token stream
