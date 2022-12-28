@@ -2,8 +2,8 @@
 name = "atspi-macros"
 version = "0.1.0"
 edition = "2021"
-authors = ["Luuk van der Duim <luukvanderduim@gmail.com>"]
-description = "Macros to assist in creation of the lunanode crate."
+authors = ["Luuk van der Duim <luukvanderduim@gmail.com>", "Tait Hoyem <tait@tait.tech>"]
+description = "Macros to assist in various impl blocks for the `atspi` crate."
 license = "MIT"
 readme = "README.md"
 keywords = ["macros", "helper"]
