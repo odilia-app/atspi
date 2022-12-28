@@ -348,7 +348,7 @@ impl TryFrom<Arc<Message>> for Event {
             "siiva{sv}" | "siiv(so)" => {
                 let ev = AtspiEvent::try_from(msg)?;
                 let event_interfaces: EventInterfaces = ev.try_into()?;
-                return Ok(Event::Interfaces(event_interfaces));
+                Ok(Event::Interfaces(event_interfaces))
             }
             "(ss)" => {
                 if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg.clone()) {

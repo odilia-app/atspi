@@ -292,6 +292,7 @@ pub enum RelationType {
     ErrorMessage,
     ErrorFor,
 }
+pub type RelationSet = Vec<(RelationType, Vec<(String, zbus::zvariant::OwnedObjectPath)>)>;
 
 #[dbus_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
@@ -322,7 +323,7 @@ trait Accessible {
     /// GetRelationSet method
     fn get_relation_set(
         &self,
-    ) -> zbus::Result<Vec<(RelationType, Vec<(String, zbus::zvariant::OwnedObjectPath)>)>>;
+    ) -> zbus::Result<RelationSet>;
 
     /// GetRole method
     fn get_role(&self) -> zbus::Result<Role>;
