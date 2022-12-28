@@ -61,19 +61,21 @@ pub enum DocumentEvents {
     PageChanged(PageChangedEvent),
 }
 
-impl From<AtspiEvent> for Option<DocumentEvents> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(member) = ev.member() else {return None; };
+impl TryFrom<AtspiEvent> for DocumentEvents {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "LoadComplete" => Some(DocumentEvents::LoadComplete(LoadCompleteEvent(ev))),
-            "Reload" => Some(DocumentEvents::Reload(ReloadEvent(ev))),
-            "LoadStopped" => Some(DocumentEvents::LoadStopped(LoadStoppedEvent(ev))),
-            "ContentChanged" => Some(DocumentEvents::ContentChanged(ContentChangedEvent(ev))),
+            "LoadComplete" => Ok(DocumentEvents::LoadComplete(LoadCompleteEvent(ev))),
+            "Reload" => Ok(DocumentEvents::Reload(ReloadEvent(ev))),
+            "LoadStopped" => Ok(DocumentEvents::LoadStopped(LoadStoppedEvent(ev))),
+            "ContentChanged" => Ok(DocumentEvents::ContentChanged(ContentChangedEvent(ev))),
             "AttributesChanged" => {
-                Some(DocumentEvents::AttributesChanged(AttributesChangedEvent(ev)))
+                Ok(DocumentEvents::AttributesChanged(AttributesChangedEvent(ev)))
             }
-            "PageChanged" => Some(DocumentEvents::PageChanged(PageChangedEvent(ev))),
-            _ => None,
+            "PageChanged" => Ok(DocumentEvents::PageChanged(PageChangedEvent(ev))),
+            _ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
         }
     }
 }
@@ -105,45 +107,45 @@ pub enum ObjectEvents {
     TextCaretMoved(TextCaretMovedEvent),
 }
 
-impl From<AtspiEvent> for Option<ObjectEvents> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(member) = ev.member() else { return None; };
+impl TryFrom<AtspiEvent> for ObjectEvents {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "PropertyChange" => Some(ObjectEvents::PropertyChange(PropertyChangeEvent(ev))),
-            "BoundsChanged" => Some(ObjectEvents::BoundsChanged(BoundsChangedEvent(ev))),
-            "LinkSelected" => Some(ObjectEvents::LinkSelected(LinkSelectedEvent(ev))),
-            "StateChanged" => Some(ObjectEvents::StateChanged(StateChangedEvent(ev))),
-            "ChildrenChanged" => Some(ObjectEvents::ChildrenChanged(ChildrenChangedEvent(ev))),
+            "PropertyChange" => Ok(ObjectEvents::PropertyChange(PropertyChangeEvent(ev))),
+            "BoundsChanged" => Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent(ev))),
+            "LinkSelected" => Ok(ObjectEvents::LinkSelected(LinkSelectedEvent(ev))),
+            "StateChanged" => Ok(ObjectEvents::StateChanged(StateChangedEvent(ev))),
+            "ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ChildrenChangedEvent(ev))),
             "VisibleDataChanged" => {
-                Some(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev)))
+                Ok(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev)))
             }
-            "SelectionChanged" => Some(ObjectEvents::SelectionChanged(SelectionChangedEvent(ev))),
-            "ModelChanged" => Some(ObjectEvents::ModelChanged(ModelChangedEvent(ev))),
+            "SelectionChanged" => Ok(ObjectEvents::SelectionChanged(SelectionChangedEvent(ev))),
+            "ModelChanged" => Ok(ObjectEvents::ModelChanged(ModelChangedEvent(ev))),
             "ActiveDescendantChanged" => {
-                Some(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev)))
+                Ok(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev)))
             }
-            "Announcement" => Some(ObjectEvents::Announcement(AnnouncementEvent(ev))),
+            "Announcement" => Ok(ObjectEvents::Announcement(AnnouncementEvent(ev))),
             "AttributesChanged" => {
-                Some(ObjectEvents::AttributesChanged(ObjectAttributesChangedEvent(ev)))
+                Ok(ObjectEvents::AttributesChanged(ObjectAttributesChangedEvent(ev)))
             }
-            "RowInserted" => Some(ObjectEvents::RowInserted(RowInsertedEvent(ev))),
-            "RowReordered" => Some(ObjectEvents::RowReordered(RowReorderedEvent(ev))),
-            "RowDeleted" => Some(ObjectEvents::RowDeleted(RowDeletedEvent(ev))),
-            "ColumnInserted" => Some(ObjectEvents::ColumnInserted(ColumnInsertedEvent(ev))),
-            "ColumnReordered" => Some(ObjectEvents::ColumnReordered(ColumnReorderedEvent(ev))),
-            "ColumnDeleted" => Some(ObjectEvents::ColumnDeleted(ColumnDeletedEvent(ev))),
-            "TextBoundsChanged" => {
-                Some(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev)))
-            }
+            "RowInserted" => Ok(ObjectEvents::RowInserted(RowInsertedEvent(ev))),
+            "RowReordered" => Ok(ObjectEvents::RowReordered(RowReorderedEvent(ev))),
+            "RowDeleted" => Ok(ObjectEvents::RowDeleted(RowDeletedEvent(ev))),
+            "ColumnInserted" => Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent(ev))),
+            "ColumnReordered" => Ok(ObjectEvents::ColumnReordered(ColumnReorderedEvent(ev))),
+            "ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent(ev))),
+            "TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev))),
             "TextSelectionChanged" => {
-                Some(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev)))
+                Ok(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev)))
             }
-            "TextChanged" => Some(ObjectEvents::TextChanged(TextChangedEvent(ev))),
+            "TextChanged" => Ok(ObjectEvents::TextChanged(TextChangedEvent(ev))),
             "TextAttributesChanged" => {
-                Some(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev)))
+                Ok(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev)))
             }
-            "TextCaretMoved" => Some(ObjectEvents::TextCaretMoved(TextCaretMovedEvent(ev))),
-            _ => None,
+            "TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent(ev))),
+            _ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
         }
     }
 }
@@ -172,30 +174,32 @@ pub enum WindowEvents {
     Restyle(RestyleEvent),
 }
 
-impl From<AtspiEvent> for Option<WindowEvents> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(member) = ev.member() else {return None; };
+impl TryFrom<AtspiEvent> for WindowEvents {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "PropertyChange" => Some(WindowEvents::PropertyChange(WindowPropertyChangeEvent(ev))),
-            "Minimize" => Some(WindowEvents::Minimize(MinimizeEvent(ev))),
-            "Maximize" => Some(WindowEvents::Maximize(MaximizeEvent(ev))),
-            "Restore" => Some(WindowEvents::Restore(RestoreEvent(ev))),
-            "Close" => Some(WindowEvents::Close(CloseEvent(ev))),
-            "Create" => Some(WindowEvents::Create(CreateEvent(ev))),
-            "Reparent" => Some(WindowEvents::Reparent(ReparentEvent(ev))),
-            "DesktopCreate" => Some(WindowEvents::DesktopCreate(DesktopCreateEvent(ev))),
-            "DesktopDestroy" => Some(WindowEvents::DesktopDestroy(DesktopDestroyEvent(ev))),
-            "Destroy" => Some(WindowEvents::Destroy(DestroyEvent(ev))),
-            "Activate" => Some(WindowEvents::Activate(ActivateEvent(ev))),
-            "Deactivate" => Some(WindowEvents::Deactivate(DeactivateEvent(ev))),
-            "Raise" => Some(WindowEvents::Raise(RaiseEvent(ev))),
-            "Lower" => Some(WindowEvents::Lower(LowerEvent(ev))),
-            "Move" => Some(WindowEvents::Move(MoveEvent(ev))),
-            "Resize" => Some(WindowEvents::Resize(ResizeEvent(ev))),
-            "Shade" => Some(WindowEvents::Shade(ShadeEvent(ev))),
-            "uUshade" => Some(WindowEvents::UUshade(uUshadeEvent(ev))),
-            "Restyle" => Some(WindowEvents::Restyle(RestyleEvent(ev))),
-            _ => None,
+            "PropertyChange" => Ok(WindowEvents::PropertyChange(WindowPropertyChangeEvent(ev))),
+            "Minimize" => Ok(WindowEvents::Minimize(MinimizeEvent(ev))),
+            "Maximize" => Ok(WindowEvents::Maximize(MaximizeEvent(ev))),
+            "Restore" => Ok(WindowEvents::Restore(RestoreEvent(ev))),
+            "Close" => Ok(WindowEvents::Close(CloseEvent(ev))),
+            "Create" => Ok(WindowEvents::Create(CreateEvent(ev))),
+            "Reparent" => Ok(WindowEvents::Reparent(ReparentEvent(ev))),
+            "DesktopCreate" => Ok(WindowEvents::DesktopCreate(DesktopCreateEvent(ev))),
+            "DesktopDestroy" => Ok(WindowEvents::DesktopDestroy(DesktopDestroyEvent(ev))),
+            "Destroy" => Ok(WindowEvents::Destroy(DestroyEvent(ev))),
+            "Activate" => Ok(WindowEvents::Activate(ActivateEvent(ev))),
+            "Deactivate" => Ok(WindowEvents::Deactivate(DeactivateEvent(ev))),
+            "Raise" => Ok(WindowEvents::Raise(RaiseEvent(ev))),
+            "Lower" => Ok(WindowEvents::Lower(LowerEvent(ev))),
+            "Move" => Ok(WindowEvents::Move(MoveEvent(ev))),
+            "Resize" => Ok(WindowEvents::Resize(ResizeEvent(ev))),
+            "Shade" => Ok(WindowEvents::Shade(ShadeEvent(ev))),
+            "uUshade" => Ok(WindowEvents::UUshade(uUshadeEvent(ev))),
+            "Restyle" => Ok(WindowEvents::Restyle(RestyleEvent(ev))),
+            _ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
         }
     }
 }
@@ -228,14 +232,16 @@ pub enum MouseEvents {
     Button(ButtonEvent),
 }
 
-impl From<AtspiEvent> for Option<MouseEvents> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(member) = ev.member() else {return None; };
+impl TryFrom<AtspiEvent> for MouseEvents {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "Abs" => Some(MouseEvents::Abs(AbsEvent(ev))),
-            "Rel" => Some(MouseEvents::Rel(RelEvent(ev))),
-            "Button" => Some(MouseEvents::Button(ButtonEvent(ev))),
-            _ => None,
+            "Abs" => Ok(MouseEvents::Abs(AbsEvent(ev))),
+            "Rel" => Ok(MouseEvents::Rel(RelEvent(ev))),
+            "Button" => Ok(MouseEvents::Button(ButtonEvent(ev))),
+            _ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
         }
     }
 }
@@ -269,20 +275,22 @@ pub enum TerminalEvents {
     CharwidthChanged(CharwidthChangedEvent),
 }
 
-impl From<AtspiEvent> for Option<TerminalEvents> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(member) = ev.member() else {return None; };
+impl TryFrom<AtspiEvent> for TerminalEvents {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "LineChanged" => Some(TerminalEvents::LineChanged(LineChangedEvent(ev))),
+            "LineChanged" => Ok(TerminalEvents::LineChanged(LineChangedEvent(ev))),
             "ColumncountChanged" => {
-                Some(TerminalEvents::ColumncountChanged(ColumncountChangedEvent(ev)))
+                Ok(TerminalEvents::ColumncountChanged(ColumncountChangedEvent(ev)))
             }
-            "LinecountChanged" => Some(TerminalEvents::LinecountChanged(LinecountChangedEvent(ev))),
+            "LinecountChanged" => Ok(TerminalEvents::LinecountChanged(LinecountChangedEvent(ev))),
             "ApplicationChanged" => {
-                Some(TerminalEvents::ApplicationChanged(ApplicationChangedEvent(ev)))
+                Ok(TerminalEvents::ApplicationChanged(ApplicationChangedEvent(ev)))
             }
-            "CharwidthChanged" => Some(TerminalEvents::CharwidthChanged(CharwidthChangedEvent(ev))),
-            _ => None,
+            "CharwidthChanged" => Ok(TerminalEvents::CharwidthChanged(CharwidthChangedEvent(ev))),
+            _ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
         }
     }
 }
@@ -303,12 +311,14 @@ pub enum FocusEvents {
     Focus(FocusEvent),
 }
 
-impl From<AtspiEvent> for Option<FocusEvents> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(member) = ev.member() else {return None; };
+impl TryFrom<AtspiEvent> for FocusEvents {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "Focus" => Some(FocusEvents::Focus(FocusEvent(ev))),
-            _ => None,
+            "Focus" => Ok(FocusEvents::Focus(FocusEvent(ev))),
+            _ => Err(AtspiError::MemberMatch("No matching member for Focus".into())),
         }
     }
 }
@@ -339,12 +349,14 @@ pub enum KeyboardEvents {
     Modifiers(ModifiersEvent),
 }
 
-impl From<AtspiEvent> for Option<KeyboardEvents> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(member) = ev.member() else {return None; };
+impl TryFrom<AtspiEvent> for KeyboardEvents {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "Modifiers" => Some(KeyboardEvents::Modifiers(ModifiersEvent(ev))),
-            _ => None,
+            "Modifiers" => Ok(KeyboardEvents::Modifiers(ModifiersEvent(ev))),
+            _ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
         }
     }
 }

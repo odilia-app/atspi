@@ -18,6 +18,9 @@ pub enum AtspiError {
     /// When matching on an unknown interface
     UnknownInterface,
 
+    /// No interface on event.
+    MissingInterface,
+
     /// The signal that was encountered is unknown.
     UnknownSignal,
 
@@ -52,6 +55,7 @@ impl std::fmt::Display for AtspiError {
             }
             Self::UnknownBusSignature => f.write_str("atspi: Unknown bus body signature."),
             Self::UnknownInterface => f.write_str("Unknown interface."),
+            Self::MissingInterface => f.write_str("Missing> interface."),
             Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
             Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
             Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),

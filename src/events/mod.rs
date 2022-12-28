@@ -183,27 +183,39 @@ fn test_accessible_signature() {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum EventInterfaces {
-    Document(Option<DocumentEvents>),
-    Focus(Option<FocusEvents>),
-    Keyboard(Option<KeyboardEvents>),
-    Mouse(Option<MouseEvents>),
-    Object(Option<ObjectEvents>),
-    Terminal(Option<TerminalEvents>),
-    Window(Option<WindowEvents>),
+    Document(DocumentEvents),
+    Focus(FocusEvents),
+    Keyboard(KeyboardEvents),
+    Mouse(MouseEvents),
+    Object(ObjectEvents),
+    Terminal(TerminalEvents),
+    Window(WindowEvents),
 }
 
-impl From<AtspiEvent> for Option<EventInterfaces> {
-    fn from(ev: AtspiEvent) -> Self {
-        let Some(interface) = ev.interface() else {  return None;  };
+impl TryFrom<AtspiEvent> for EventInterfaces {
+    type Error = AtspiError;
+
+    fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+        let Some(interface) = ev.interface() else {  return Err(AtspiError::MissingInterface);  };
         match interface.as_str() {
-            "org.a11y.atspi.Event.Document" => Some(EventInterfaces::Document(ev.into())),
-            "org.a11y.atspi.Event.Focus" => Some(EventInterfaces::Focus(ev.into())),
-            "org.a11y.atspi.Event.Keyboard" => Some(EventInterfaces::Keyboard(ev.into())),
-            "org.a11y.atspi.Event.Mouse" => Some(EventInterfaces::Mouse(ev.into())),
-            "org.a11y.atspi.Event.Object" => Some(EventInterfaces::Object(ev.into())),
-            "org.a11y.atspi.Event.Terminal" => Some(EventInterfaces::Terminal(ev.into())),
-            "org.a11y.atspi.Event.Window" => Some(EventInterfaces::Window(ev.into())),
-            _ => None,
+            "org.a11y.atspi.Event.Document" => {
+                Ok(EventInterfaces::Document(DocumentEvents::try_from(ev)?))
+            }
+            "org.a11y.atspi.Event.Focus" => Ok(EventInterfaces::Focus(FocusEvents::try_from(ev)?)),
+            "org.a11y.atspi.Event.Keyboard" => {
+                Ok(EventInterfaces::Keyboard(KeyboardEvents::try_from(ev)?))
+            }
+            "org.a11y.atspi.Event.Mouse" => Ok(EventInterfaces::Mouse(MouseEvents::try_from(ev)?)),
+            "org.a11y.atspi.Event.Object" => {
+                Ok(EventInterfaces::Object(ObjectEvents::try_from(ev)?))
+            }
+            "org.a11y.atspi.Event.Terminal" => {
+                Ok(EventInterfaces::Terminal(TerminalEvents::try_from(ev)?))
+            }
+            "org.a11y.atspi.Event.Window" => {
+                Ok(EventInterfaces::Window(WindowEvents::try_from(ev)?))
+            }
+            _ => Err(AtspiError::UnknownInterface),
         }
     }
 }
@@ -335,10 +347,8 @@ impl TryFrom<Arc<Message>> for Event {
             // Atspi / Qspi signature
             "siiva{sv}" | "siiv(so)" => {
                 let ev = AtspiEvent::try_from(msg)?;
-                match ev.into() {
-                    Some(interface_ev) => Ok(Event::Interfaces(interface_ev)),
-                    _ => return Err(AtspiError::UnknownInterface),
-                }
+                let event_interfaces: EventInterfaces = ev.try_into()?;
+                return Ok(Event::Interfaces(event_interfaces));
             }
             "(ss)" => {
                 if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg.clone()) {
