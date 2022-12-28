@@ -9,7 +9,10 @@ use async_trait::async_trait;
 use std::{collections::HashMap, error::Error};
 use zbus::{
   CacheProperties,
-  zvariant::ObjectPath,
+  zvariant::{
+    ObjectPath,
+    OwnedObjectPath,
+  },
 };
 use serde::{
 	Serialize, Deserialize,
@@ -118,11 +121,27 @@ impl<'a> TryInto<ObjectPath<'a>> for AccessibleId {
   }
 }
 
+#[derive(Clone, Debug)]
 pub enum ObjectPathConversionError {
   NoIdAvailable,
   ParseError(<i64 as FromStr>::Err),
 }
 
+impl TryFrom<OwnedObjectPath> for AccessibleId {
+  type Error = ObjectPathConversionError;
+
+  fn try_from(path: OwnedObjectPath) -> Result<Self, Self::Error> {
+      match path.split('/').next_back() {
+          Some("null") => Ok(AccessibleId::Null),
+          Some("root") => Ok(AccessibleId::Root),
+          Some(id) => match id.parse::<i64>() {
+            Ok(uid) => Ok(AccessibleId::Number(uid)),
+            Err(e) => Err(Self::Error::ParseError(e)),
+          },
+          None => Err(Self::Error::NoIdAvailable),
+      }
+  }
+}
 impl<'a> TryFrom<ObjectPath<'a>> for AccessibleId {
   type Error = ObjectPathConversionError;
 
