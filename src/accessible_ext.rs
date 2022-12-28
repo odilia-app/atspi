@@ -18,7 +18,7 @@ pub type MatcherArgs =
 #[async_trait]
 pub trait AccessibleExt {
     // Assumes that an accessible can be made from the component parts
-    async fn get_id(&self) -> Option<AccessibleId>;
+    fn get_id(&self) -> Option<AccessibleId>;
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>>;
     async fn get_children_ext<'a>(&self) -> zbus::Result<Vec<AccessibleProxy<'a>>>;
     async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
@@ -104,7 +104,7 @@ impl AccessibleExt for AccessibleProxy<'_> {
 		/// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
 		/// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
 		/// It *should* be safe to `.expect()` the return type.
-    async fn get_id(&self) -> Option<AccessibleId> {
+    fn get_id(&self) -> Option<AccessibleId> {
         let path = self.path();
         match path.split('/').next_back() {
 						Some("null") => Some(AccessibleId::Null),
