@@ -39,18 +39,17 @@ pub trait Signified {
 /// The event details encoded in the de-generalized types.
 ///
 ///
-/// TODO Catch signals and repair table below please!
 ///
 /// Event table for the contained types:
 ///
-/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
-/// |---|---|---|---|---|---|---
-/// Document|LoadComplete|      |       |       |       |properties
-/// Document|Reload|    |       |       |       |properties
-/// Document|LoadStopped|       |       |       |       |properties
-/// Document|ContentChanged|    |       |       |       |properties
-/// Document|AttributesChanged| |       |       |       |properties
-/// Document|PageChanged|       |       |       |       |properties
+/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+/// |:--|---|---|---|---|---|---|
+/// |Document|LoadComplete|    |    |    |    |properties|
+/// |Document|Reload|    |    |    |    |properties|
+/// |Document|LoadStopped|    |    |    |    |properties|
+/// |Document|ContentChanged|    |    |    |    |properties|
+/// |Document|AttributesChanged|    |    |    |    |properties|
+/// |Document|PageChanged|    |    |    |    |properties|
 #[derive(Debug, Clone)]
 pub enum DocumentEvents {
     LoadComplete(LoadCompleteEvent),
@@ -81,6 +80,33 @@ impl TryFrom<AtspiEvent> for DocumentEvents {
 }
 
 /// Any of the `Object` events.
+///
+/// Event table for the contained types:
+///
+/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+/// |:--|---|---|---|---|---|---|
+/// |Object|PropertyChange|property|    |    |value|properties|
+/// |Object|BoundsChanged|    |    |    |    |properties|
+/// |Object|LinkSelected|    |    |    |    |properties|
+/// |Object|StateChanged|state|enabled|    |    |properties|
+/// |`Object|ChildrenChanged|operation|index_in_parent`|    |child|properties|
+/// |Object|VisibleDataChanged|    |    |    |    |properties|
+/// |Object|SelectionChanged|    |    |    |    |properties|
+/// |Object|ModelChanged|    |    |    |    |properties|
+/// |Object|ActiveDescendantChanged|    |    |    |child|properties|
+/// |Object|Announcement|text|    |    |    |properties|
+/// |Object|AttributesChanged|    |    |    |    |properties|
+/// |Object|RowInserted|    |    |    |    |properties|
+/// |Object|RowReordered|    |    |    |    |properties|
+/// |Object|RowDeleted|    |    |    |    |properties|
+/// |Object|ColumnInserted|    |    |    |    |properties|
+/// |Object|ColumnReordered|    |    |    |    |properties|
+/// |Object|ColumnDeleted|    |    |    |    |properties|
+/// |Object|TextBoundsChanged|    |    |    |    |properties|
+/// |Object|TextSelectionChanged|    |    |    |    |properties|
+/// |`Object|TextChanged|detail|start_pos|end_pos|text|properties`|
+/// |Object|TextAttributesChanged|    |    |    |    |properties|
+/// |Object|TextCaretMoved|    |position|    |    |properties|
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ObjectEvents {
     PropertyChange(PropertyChangeEvent),
@@ -151,6 +177,30 @@ impl TryFrom<AtspiEvent> for ObjectEvents {
 }
 
 /// Any of the `Window` events.
+///
+/// Event table for the contained types:
+///
+/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+/// |:--|---|---|---|---|---|---|
+/// |Window|PropertyChange|property|    |    |    |properties|
+/// |Window|Minimize|    |    |    |    |properties|
+/// |Window|Maximize|    |    |    |    |properties|
+/// |Window|Restore|    |    |    |    |properties|
+/// |Window|Close|    |    |    |    |properties|
+/// |Window|Create|    |    |    |    |properties|
+/// |Window|Reparent|    |    |    |    |properties|
+/// |Window|DesktopCreate|    |    |    |    |properties|
+/// |Window|DesktopDestroy|    |    |    |    |properties|
+/// |Window|Destroy|    |    |    |    |properties|
+/// |Window|Activate|    |    |    |    |properties|
+/// |Window|Deactivate|    |    |    |    |properties|
+/// |Window|Raise|    |    |    |    |properties|
+/// |Window|Lower|    |    |    |    |properties|
+/// |Window|Move|    |    |    |    |properties|
+/// |Window|Resize|    |    |    |    |properties|
+/// |Window|Shade|    |    |    |    |properties|
+/// |Window|uUshade|    |    |    |    |properties|
+/// |Window|Restyle|    |    |    |    |properties|
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum WindowEvents {
     PropertyChange(WindowPropertyChangeEvent),
@@ -218,13 +268,13 @@ impl TryFrom<AtspiEvent> for WindowEvents {
 ///   let mse_ev: MouseEvent = ev.try_into()?;
 /// }
 ///  ```
+/// Event table for the contained types:
 ///
-/// | Interface  | Member  |  kind | Detail1   | Detail2  | Any_data |
-/// |:-:|---|---|---|---|---|
-/// | Mouse |`Abs` |   | x | y |   |
-/// | Mouse |`Rel` |   | `delta_x` | `delta_y`  |   |
-/// | Mouse | `Button` | p\[1..=5\] | x  | y  |   |
-/// | Mouse | `Button` | r\[1..=5\] | x  | y  |   |
+/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+/// |:--|---|---|---|---|---|---|
+/// |Mouse|Abs|    |x|y|    |properties|
+/// |Mouse|Rel|    |x|y|    |properties|
+/// |`Mouse|Button|detail|mouse_x|mouse_y`|    |properties|
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum MouseEvents {
     Abs(AbsEvent),
@@ -260,12 +310,15 @@ impl TryFrom<AtspiEvent> for MouseEvents {
 ///   let term_ev: TerminalEvent = ev.try_into()?;
 /// }
 ///  ```
-/// | Interface  | Member  |  Detail1   | Detail2  | Any_data |
-/// |:-:|---|---|---|---|
-/// | Terminal | `LineChanged`  |   |   |   |
-/// | Terminal | `ColumncountChanged`  |   |   |   |
-/// | Terminal |`LinecountChanged`|   |   |   |
-/// | Terminal | `CharwidthChanged`  |   |   |   |
+/// Event table for the contained types:
+///
+/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+/// |:--|---|---|---|---|---|---|
+/// |Terminal|LineChanged|    |    |    |    |properties|
+/// |Terminal|ColumncountChanged|    |    |    |    |properties|
+/// |Terminal|LinecountChanged|    |    |    |    |properties|
+/// |Terminal|ApplicationChanged|    |    |    |    |properties|
+/// |Terminal|CharwidthChanged|    |    |    |    |properties|
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TerminalEvents {
     LineChanged(LineChangedEvent),
@@ -303,9 +356,9 @@ impl TryFrom<AtspiEvent> for TerminalEvents {
 ///
 /// Event table for the contained types:
 ///
-/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
-/// ---|---|---|---|---|---|---
-/// Focus|Focus|        |       |       |       |properties
+/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+/// |:--|---|---|---|---|---|---|
+/// |Focus|Focus|    |    |    |    |properties|
 #[derive(Debug, Clone)]
 pub enum FocusEvents {
     Focus(FocusEvent),
@@ -341,9 +394,11 @@ impl TryFrom<AtspiEvent> for FocusEvents {
 ///   let kb_ev: KeyboardEvent = ev.try_into()?;
 /// }
 ///  ```
-/// | Interface  | Member  | Kind |  Detail1   | Detail2  | Any_data |
-/// |:-:|---|---|---|---|---|
-/// | Keyboard | Modifiers |   |   |   |   |
+/// Event table for the contained types:
+///
+/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
+/// |:--|---|---|---|---|---|---|
+/// |Keyboard|Modifiers|    |previous_modifiers|current_modifiers|    |properties|
 #[derive(Debug, Clone)]
 pub enum KeyboardEvents {
     Modifiers(ModifiersEvent),

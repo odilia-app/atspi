@@ -50,8 +50,10 @@ impl Connection {
     /// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
     /// on the accessibility bus.
     ///
-    /// You may want to call this if you have the accessibility bus address and want a connection.
-    /// Otherwise, you may want to call  `open`, which tries to obtain the accessibility bus' address
+    /// You may want to call this if you have the accessibility bus address and want a connection with
+    /// a convenient async event stream provisioning.
+    ///
+    /// Without address, you will want to call  `open`, which tries to obtain the accessibility bus' address
     /// on your behalf.
     ///
     /// ## Errors

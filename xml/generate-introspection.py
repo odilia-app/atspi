@@ -24,16 +24,16 @@ interfaces = []
 def print_interface_table(signals):
   print(f"/// Event table for the contained types:\n///")
   print(f"/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties")
-  print(f"/// ---|---|---|---|---|---|---")
+  print(f"/// |:--|---|---|---|---|---|---|")
   for signal in signals:
     interface = signal["interface"].replace("Event", "")
     member = signal["member"]
-    kind = signal["kind"]["name"] or "\t"
-    detail1 = signal["detail1"]["name"] or "\t"
-    detail2 = signal["detail2"]["name"] or "\t"
-    data = signal["any_data"]["name"] or "\t"
+    kind = signal["kind"]["name"] or "    "
+    detail1 = signal["detail1"]["name"] or "    "
+    detail2 = signal["detail2"]["name"] or "    "
+    data = signal["any_data"]["name"] or "    "
     properties = signal["properties"]["name"]
-    print(f"/// {interface}|{member}|{kind}|{detail1}|{detail2}|{data}|{properties}")
+    print(f"/// |{interface}|{member}|{kind}|{detail1}|{detail2}|{data}|{properties}|")
 
 def impl_functions(signal):
   iface = signal["interface"].replace("Event", "")
@@ -48,7 +48,7 @@ def impl_functions(signal):
         print(f"\t\tself.0.{zbus_name}().to_string()")
       else:
         print(f"\t\tself.0.{zbus_name}()")
-      print(f"\t}}")
+      print(f"}}")
   print(f"}}")
 
 for interface in root:

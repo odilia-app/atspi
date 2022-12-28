@@ -6,11 +6,9 @@ use crate::{
 };
 use async_recursion::async_recursion;
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error::Error};
 use zbus::CacheProperties;
-use serde::{
-	Serialize, Deserialize,
-};
 
 pub type MatcherArgs =
     (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
@@ -92,28 +90,28 @@ impl AccessibleProxy<'_> {
 
 #[derive(Clone, Copy, Hash, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum AccessibleId {
-	Null,
-	Root,
-	Number(i64),
+    Null,
+    Root,
+    Number(i64),
 }
 
 #[async_trait]
 impl AccessibleExt for AccessibleProxy<'_> {
-		/// get_id gets the id (if available) for any accessible.
-		/// This *should* always return a Some(i32) and never None, but you never know.
-		/// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
-		/// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
-		/// It *should* be safe to `.expect()` the return type.
+    /// get_id gets the id (if available) for any accessible.
+    /// This *should* always return a Some(i32) and never None, but you never know.
+    /// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
+    /// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
+    /// It *should* be safe to `.expect()` the return type.
     async fn get_id(&self) -> Option<AccessibleId> {
         let path = self.path();
         match path.split('/').next_back() {
-						Some("null") => Some(AccessibleId::Null),
-						Some("root") => Some(AccessibleId::Root),
-						Some(id) => match id.parse::<i64>() {
-							Ok(uid) => Some(AccessibleId::Number(uid)),
-							_ => None,
-						},
-						_ => None,
+            Some("null") => Some(AccessibleId::Null),
+            Some("root") => Some(AccessibleId::Root),
+            Some(id) => match id.parse::<i64>() {
+                Ok(uid) => Some(AccessibleId::Number(uid)),
+                _ => None,
+            },
+            _ => None,
         }
     }
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>> {
