@@ -7,7 +7,10 @@ use crate::{
 use async_recursion::async_recursion;
 use async_trait::async_trait;
 use std::{collections::HashMap, error::Error};
-use zbus::CacheProperties;
+use zbus::{
+  CacheProperties,
+  zvariant::ObjectPath,
+};
 use serde::{
 	Serialize, Deserialize,
 };
@@ -95,6 +98,23 @@ pub enum AccessibleId {
 	Null,
 	Root,
 	Number(i64),
+}
+impl ToString for AccessibleId {
+  fn to_string(&self) -> String {
+    let ending = match self {
+      Self::Null => "null".to_string(),
+      Self::Root => "root".to_string(),
+      Self::Number(int) => int.to_string(),
+    };
+    format!("/org/a11y/atspi/{ending}")
+  }
+}
+impl<'a> TryInto<ObjectPath<'a>> for AccessibleId {
+  type Error = zbus::zvariant::Error;
+
+  fn try_into(self) -> Result<ObjectPath<'a>, Self::Error> {
+    ObjectPath::try_from(self.to_string())
+  }
 }
 
 #[async_trait]
