@@ -47,8 +47,15 @@ impl Connection {
         Self::connect(addr).await
     }
 
-    /// # Errors
-    /// TODO
+    /// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
+    /// on the accessibility bus.
+    ///
+    /// You may want to call this if you have the accessibility bus address and want a connection.
+    /// Otherwise, you may want to call  `open`, which tries to obtain the accessibility bus' address
+    /// on your behalf.
+    ///
+    /// ## Errors
+    /// * `RegistryProxy` is configured with invalid path, interface or destination defaults.
     pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
         tracing::debug!("Connecting to a11y bus");
         let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
