@@ -10,8 +10,10 @@ use crate::error::AtspiError;
 use crate::events::{AtspiEvent, GenericEvent};
 use atspi_macros::TrySignify;
 use std::collections::HashMap;
-use zbus::{names::MemberName, zvariant};
+use zbus::{names::MemberName, zvariant, Message};
+use zbus_names;
 use zvariant::OwnedValue;
+use std::sync::Arc;
 
 /// All Atspi / Qspi event types encapsulate `AtspiEvent`.
 /// This trait allows access to the underlying item.
