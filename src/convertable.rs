@@ -113,30 +113,43 @@ pub trait Convertable {
 
 /* REST OF FILE IS ALL GENERATED (kinda) */
 
+use std::ops::Deref;
+use zbus::{ProxyBuilder, ProxyDefault, Proxy};
+
+#[inline]
+async fn convert_to_new_type
+	<'a,
+	T: From<Proxy<'a>>,
+	U: Deref<Target=Proxy<'a>> + ProxyDefault>
+	(from: &'a U, interface: Interface) -> zbus::Result<T> {
+	// first thing is first, we need to creat an accessible to query the interfaces.
+	let accessible = AccessibleProxy::builder(from.connection())
+			.destination(from.destination())?
+			.cache_properties(CacheProperties::No)
+			.path(from.path())?
+			.build()
+			.await?;
+	// if the interface we're trying to convert to is not available as an interface; this can be problematic because the interface we're passing in could potentially be different from what we're converting to.
+	if !accessible.get_interfaces().await?.contains(interface) {
+		return Err(Error::InterfaceNotFound);
+	}
+	// otherwise, make a new Proxy with the related type.
+	ProxyBuilder::<'_, T>::new_bare(from.connection())
+			.destination(from.destination())?
+			.cache_properties(CacheProperties::No)
+			.path(from.path())?
+			.build()
+			.await
+}
+
 #[async_trait]
 impl Convertable for AccessibleProxy<'_> {
     /* no guard due to assumption it is always possible */
     async fn to_accessible<'a>(&'a self) -> zbus::Result<AccessibleProxy<'a>> {
-        AccessibleProxy::builder(self.connection())
-            .destination(self.destination())?
-            .cache_properties(CacheProperties::No)
-            .path(self.path())?
-            .build()
-            .await
+				convert_to_new_type(self, Interface::Accessible).await
     }
     async fn to_action<'a>(&'a self) -> zbus::Result<ActionProxy<'a>> {
-        let acc = self.to_accessible().await?;
-        if acc.get_interfaces().await?.contains(Interface::Action) {
-            // you can use self here since converting to accessible does not change the internal
-            // variables
-            return ActionProxy::builder(self.connection())
-                .destination(self.destination())?
-                .cache_properties(CacheProperties::No)
-                .path(self.path())?
-                .build()
-                .await;
-        }
-        Err(Error::InterfaceNotFound)
+				convert_to_new_type(self, Interface::Action).await
     }
     async fn to_application<'a>(&'a self) -> zbus::Result<ApplicationProxy<'a>> {
         let acc = self.to_accessible().await?;
