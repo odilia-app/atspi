@@ -60,3 +60,7 @@ pub enum CoordType {
     /// In relation to the parent of the element being checked.
     Parent,
 }
+
+pub trait AtspiProxy {
+	const INTERFACE: Interface;
+}
