@@ -159,21 +159,6 @@ trait Text {
     fn character_count(&self) -> zbus::Result<i32>;
 }
 
-/*
-#[async_trait]
-trait TextPlus {
-    async fn get_children_caret<'a>(&self, after: bool) -> zbus::Result<TextProxy<'a>>;
-}
-
-#[async_trait]
-impl TextPlus for TextProxy {
-    async fn get_children_caret<'a>(&self, after: bool) -> zbus::Result<TextProxy<'a>> {
-        let caret_pos = self.caret_offset()?;
-
-    }
-}
-*/
-
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for TextProxy<'a>{
 	const INTERFACE: Interface = Interface::Text;
