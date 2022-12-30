@@ -37,10 +37,10 @@ pub enum KeySynthType {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct DeviceEvent<'a> {
     pub event_type: EventType,
-    pub id: u32,
-    pub hw_code: u32,
-    pub modifiers: u32,
-    pub timestamp: u32,
+    pub id: i32,
+    pub hw_code: i32,
+    pub modifiers: i32,
+    pub timestamp: i32,
     pub event_string: &'a str,
     pub is_text: bool,
 }
@@ -68,7 +68,11 @@ pub struct KeyDefinition<'a> {
     pub unused: i32,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.DeviceEventController", assume_defaults = true)]
+#[dbus_proxy(
+    interface = "org.a11y.atspi.DeviceEventController",
+    default_path = "/org/a11y/atspi/registry/deviceeventcontroller",
+    default_service = "org.a11y.atspi.Registry"
+)]
 trait DeviceEventController {
     /// DeregisterDeviceEventListener method
     fn deregister_device_event_listener(
