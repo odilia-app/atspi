@@ -12,9 +12,7 @@
 use serde::{Deserialize, Serialize};
 use zbus::{
     dbus_proxy,
-    names::UniqueName,
-    zvariant::{ObjectPath, Type},
-    CacheProperties, Connection,
+    zvariant::Type,
 };
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
