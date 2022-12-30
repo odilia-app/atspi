@@ -10,10 +10,11 @@ use crate::error::AtspiError;
 use crate::events::{AtspiEvent, GenericEvent};
 use atspi_macros::TrySignify;
 use std::collections::HashMap;
-use zbus::{names::MemberName, zvariant, Message};
-use zbus_names;
-use zvariant::OwnedValue;
 use std::sync::Arc;
+use zbus::zvariant::OwnedObjectPath;
+use zbus::{names::MemberName, zvariant, Message};
+use zbus_names::{self, InterfaceName};
+use zvariant::OwnedValue;
 
 /// All Atspi / Qspi event types encapsulate `AtspiEvent`.
 /// This trait allows access to the underlying item.
@@ -22,6 +23,56 @@ pub trait Signified {
 
     fn inner(&self) -> &AtspiEvent;
     fn properties(&self) -> &HashMap<String, OwnedValue>;
+    fn kind(&self) -> &str;
+}
+
+/// Shared functionality of Events, through its `Message` header
+impl<T> GenericEvent for T
+where
+    T: Signified,
+{
+    /// Serialized bus message.
+    #[must_use]
+    fn message(&self) -> &Arc<Message> {
+        &self.inner().message
+    }
+
+    // For now this returns the full interface name because the lifetimes in [`zbus_names`][zbus::names] are
+    // wrong such that the `&str` you can get from a
+    // [`zbus_names::InterfaceName`][zbus::names::InterfaceName] is tied to the lifetime of that
+    // name, not to the lifetime of the message as it should be. In future, this will return only
+    // the last component of the interface name (I.E. "Object" from
+    // "org.a11y.atspi.Event.Object").
+
+    /// The emitting interface.
+    #[must_use]
+    fn interface(&self) -> Option<InterfaceName<'_>> {
+        self.inner().message.interface()
+    }
+
+    /// The interface member that dispatched this event / signal.
+    ///
+    /// Members of the interface are either signals, methods or properties.
+    /// eg. `PropertyChanged` or `TextChanged`
+    #[must_use]
+    fn member(&self) -> Option<MemberName<'_>> {
+        self.inner().message.member()
+    }
+
+    /// The object path to the object where the signal is emitted from.
+    #[must_use]
+    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
+        let ev = self.inner();
+        Some(OwnedObjectPath::from(ev.message.path().unwrap()))
+    }
+
+    /// Identifies the `sender` of the `Event`.
+    /// # Errors
+    /// - when deserializeing the header failed, or
+    /// * When `zbus::get_field!` finds that 'sender' is an invalid field.
+    fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
+        Ok(self.inner().message.header()?.sender()?.cloned())
+    }
 }
 
 /// Any of the `Document` events.
@@ -111,28 +162,28 @@ impl TryFrom<AtspiEvent> for DocumentEvents {
 /// |Object|TextCaretMoved|    |position|    |    |properties|
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ObjectEvents {
-    PropertyChange(PropertyChangeEvent),
-    BoundsChanged(BoundsChangedEvent),
-    LinkSelected(LinkSelectedEvent),
-    StateChanged(StateChangedEvent),
-    ChildrenChanged(ChildrenChangedEvent),
-    VisibleDataChanged(VisibleDataChangedEvent),
-    SelectionChanged(SelectionChangedEvent),
-    ModelChanged(ModelChangedEvent),
-    ActiveDescendantChanged(ActiveDescendantChangedEvent),
-    Announcement(AnnouncementEvent),
-    AttributesChanged(ObjectAttributesChangedEvent),
-    RowInserted(RowInsertedEvent),
-    RowReordered(RowReorderedEvent),
-    RowDeleted(RowDeletedEvent),
-    ColumnInserted(ColumnInsertedEvent),
-    ColumnReordered(ColumnReorderedEvent),
-    ColumnDeleted(ColumnDeletedEvent),
-    TextBoundsChanged(TextBoundsChangedEvent),
-    TextSelectionChanged(TextSelectionChangedEvent),
-    TextChanged(TextChangedEvent),
-    TextAttributesChanged(TextAttributesChangedEvent),
-    TextCaretMoved(TextCaretMovedEvent),
+    PropertyChange(object::PropertyChangeEvent),
+    BoundsChanged(object::BoundsChangedEvent),
+    LinkSelected(object::LinkSelectedEvent),
+    StateChanged(object::StateChangedEvent),
+    ChildrenChanged(object::ChildrenChangedEvent),
+    VisibleDataChanged(object::VisibleDataChangedEvent),
+    SelectionChanged(object::SelectionChangedEvent),
+    ModelChanged(object::ModelChangedEvent),
+    ActiveDescendantChanged(object::ActiveDescendantChangedEvent),
+    Announcement(object::AnnouncementEvent),
+    AttributesChanged(object::AttributesChangedEvent),
+    RowInserted(object::RowInsertedEvent),
+    RowReordered(object::RowReorderedEvent),
+    RowDeleted(object::RowDeletedEvent),
+    ColumnInserted(object::ColumnInsertedEvent),
+    ColumnReordered(object::ColumnReorderedEvent),
+    ColumnDeleted(object::ColumnDeletedEvent),
+    TextBoundsChanged(object::TextBoundsChangedEvent),
+    TextSelectionChanged(object::TextSelectionChangedEvent),
+    TextChanged(object::TextChangedEvent),
+    TextAttributesChanged(object::TextAttributesChangedEvent),
+    TextCaretMoved(object::TextCaretMovedEvent),
 }
 
 impl TryFrom<AtspiEvent> for ObjectEvents {
@@ -141,38 +192,46 @@ impl TryFrom<AtspiEvent> for ObjectEvents {
     fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
         let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "PropertyChange" => Ok(ObjectEvents::PropertyChange(PropertyChangeEvent(ev))),
-            "BoundsChanged" => Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent(ev))),
-            "LinkSelected" => Ok(ObjectEvents::LinkSelected(LinkSelectedEvent(ev))),
-            "StateChanged" => Ok(ObjectEvents::StateChanged(StateChangedEvent(ev))),
-            "ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ChildrenChangedEvent(ev))),
+            "PropertyChange" => Ok(ObjectEvents::PropertyChange(object::PropertyChangeEvent(ev))),
+            "BoundsChanged" => Ok(ObjectEvents::BoundsChanged(object::BoundsChangedEvent(ev))),
+            "LinkSelected" => Ok(ObjectEvents::LinkSelected(object::LinkSelectedEvent(ev))),
+            "StateChanged" => Ok(ObjectEvents::StateChanged(object::StateChangedEvent(ev))),
+            "ChildrenChanged" => {
+                Ok(ObjectEvents::ChildrenChanged(object::ChildrenChangedEvent(ev)))
+            }
             "VisibleDataChanged" => {
-                Ok(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev)))
+                Ok(ObjectEvents::VisibleDataChanged(object::VisibleDataChangedEvent(ev)))
             }
-            "SelectionChanged" => Ok(ObjectEvents::SelectionChanged(SelectionChangedEvent(ev))),
-            "ModelChanged" => Ok(ObjectEvents::ModelChanged(ModelChangedEvent(ev))),
+            "SelectionChanged" => {
+                Ok(ObjectEvents::SelectionChanged(object::SelectionChangedEvent(ev)))
+            }
+            "ModelChanged" => Ok(ObjectEvents::ModelChanged(object::ModelChangedEvent(ev))),
             "ActiveDescendantChanged" => {
-                Ok(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev)))
+                Ok(ObjectEvents::ActiveDescendantChanged(object::ActiveDescendantChangedEvent(ev)))
             }
-            "Announcement" => Ok(ObjectEvents::Announcement(AnnouncementEvent(ev))),
+            "Announcement" => Ok(ObjectEvents::Announcement(object::AnnouncementEvent(ev))),
             "AttributesChanged" => {
-                Ok(ObjectEvents::AttributesChanged(ObjectAttributesChangedEvent(ev)))
+                Ok(ObjectEvents::AttributesChanged(object::AttributesChangedEvent(ev)))
             }
-            "RowInserted" => Ok(ObjectEvents::RowInserted(RowInsertedEvent(ev))),
-            "RowReordered" => Ok(ObjectEvents::RowReordered(RowReorderedEvent(ev))),
-            "RowDeleted" => Ok(ObjectEvents::RowDeleted(RowDeletedEvent(ev))),
-            "ColumnInserted" => Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent(ev))),
-            "ColumnReordered" => Ok(ObjectEvents::ColumnReordered(ColumnReorderedEvent(ev))),
-            "ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent(ev))),
-            "TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev))),
+            "RowInserted" => Ok(ObjectEvents::RowInserted(object::RowInsertedEvent(ev))),
+            "RowReordered" => Ok(ObjectEvents::RowReordered(object::RowReorderedEvent(ev))),
+            "RowDeleted" => Ok(ObjectEvents::RowDeleted(object::RowDeletedEvent(ev))),
+            "ColumnInserted" => Ok(ObjectEvents::ColumnInserted(object::ColumnInsertedEvent(ev))),
+            "ColumnReordered" => {
+                Ok(ObjectEvents::ColumnReordered(object::ColumnReorderedEvent(ev)))
+            }
+            "ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(object::ColumnDeletedEvent(ev))),
+            "TextBoundsChanged" => {
+                Ok(ObjectEvents::TextBoundsChanged(object::TextBoundsChangedEvent(ev)))
+            }
             "TextSelectionChanged" => {
-                Ok(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev)))
+                Ok(ObjectEvents::TextSelectionChanged(object::TextSelectionChangedEvent(ev)))
             }
-            "TextChanged" => Ok(ObjectEvents::TextChanged(TextChangedEvent(ev))),
+            "TextChanged" => Ok(ObjectEvents::TextChanged(object::TextChangedEvent(ev))),
             "TextAttributesChanged" => {
-                Ok(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev)))
+                Ok(ObjectEvents::TextAttributesChanged(object::TextAttributesChangedEvent(ev)))
             }
-            "TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent(ev))),
+            "TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(object::TextCaretMovedEvent(ev))),
             _ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
         }
     }
@@ -205,7 +264,7 @@ impl TryFrom<AtspiEvent> for ObjectEvents {
 /// |Window|Restyle|    |    |    |    |properties|
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum WindowEvents {
-    PropertyChange(WindowPropertyChangeEvent),
+    PropertyChange(PropertyChangeEvent),
     Minimize(MinimizeEvent),
     Maximize(MaximizeEvent),
     Restore(RestoreEvent),
@@ -232,7 +291,7 @@ impl TryFrom<AtspiEvent> for WindowEvents {
     fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
         let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
         match member.as_str() {
-            "PropertyChange" => Ok(WindowEvents::PropertyChange(WindowPropertyChangeEvent(ev))),
+            "PropertyChange" => Ok(WindowEvents::PropertyChange(PropertyChangeEvent(ev))),
             "Minimize" => Ok(WindowEvents::Minimize(MinimizeEvent(ev))),
             "Maximize" => Ok(WindowEvents::Maximize(MaximizeEvent(ev))),
             "Restore" => Ok(WindowEvents::Restore(RestoreEvent(ev))),
@@ -361,6 +420,7 @@ impl TryFrom<AtspiEvent> for TerminalEvents {
 /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
 /// |:--|---|---|---|---|---|---|
 /// |Focus|Focus|    |    |    |    |properties|
+#[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
 #[derive(Debug, Clone)]
 pub enum FocusEvents {
     Focus(FocusEvent),
@@ -400,7 +460,7 @@ impl TryFrom<AtspiEvent> for FocusEvents {
 ///
 /// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
 /// |:--|---|---|---|---|---|---|
-/// |Keyboard|Modifiers|    |previous_modifiers|current_modifiers|    |properties|
+/// |Keyboard|Modifiers|    |`previous_modifiers`|`current_modifiers`|    |properties|
 #[derive(Debug, Clone)]
 pub enum KeyboardEvents {
     Modifiers(ModifiersEvent),
@@ -420,282 +480,230 @@ impl TryFrom<AtspiEvent> for KeyboardEvents {
 
 // ---------------> Object types:
 
-#[derive(Debug, Eq, PartialEq, Clone, TrySignify)]
-pub struct PropertyChangeEvent(AtspiEvent);
+pub mod object {
+    use crate::identify::Signified;
+    use crate::{
+        error::AtspiError,
+        events::{AtspiEvent, GenericEvent},
+    };
+    use atspi_macros::TrySignify;
+    use zbus::names::MemberName;
+    use zbus::zvariant::OwnedValue;
 
-impl PropertyChangeEvent {
-    #[must_use]
-    pub fn property(&self) -> &str {
-        self.0.kind()
-    }
-    #[must_use]
-    pub fn value(&self) -> &OwnedValue {
-        self.0.any_data()
-    }
-}
+    #[derive(Debug, Eq, PartialEq, Clone, TrySignify)]
+    pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
 
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct BoundsChangedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct LinkSelectedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Clone, TrySignify)]
-pub struct StateChangedEvent(AtspiEvent);
-impl StateChangedEvent {
-    #[must_use]
-    pub fn state(&self) -> &str {
-        self.0.kind()
-    }
-    //TODO checkme please!!
-    #[must_use]
-    pub fn enabled(&self) -> bool {
-        self.0.detail1() == 0
-    }
-}
-
-impl Eq for StateChangedEvent {}
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ChildrenChangedEvent(AtspiEvent);
-impl ChildrenChangedEvent {
-    #[must_use]
-    pub fn operation(&self) -> &str {
-        self.0.kind()
-    }
-    #[must_use]
-    pub fn index_in_parent(&self) -> i32 {
-        self.0.detail1()
-    } // usizes ?
-    #[must_use]
-    pub fn child(&self) -> &OwnedValue {
-        self.0.any_data()
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct VisibleDataChangedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct SelectionChangedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ModelChangedEvent(AtspiEvent);
-
-// TODO Check my impl please.
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ActiveDescendantChangedEvent(AtspiEvent);
-impl ActiveDescendantChangedEvent {
-    #[must_use]
-    pub fn child(&self) -> &zvariant::OwnedValue {
-        self.0.any_data() // TODO Make me a beter returner!
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct AnnouncementEvent(AtspiEvent);
-impl AnnouncementEvent {
-    #[must_use]
-    pub fn text(&self) -> &str {
-        self.0.kind()
-    }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct ObjectAttributesChangedEvent(AtspiEvent);
-
-// Gets manual impl, because its name is changed,
-// the proc-macro does not handle changed names that well
-impl TryFrom<AtspiEvent> for ObjectAttributesChangedEvent {
-    type Error = crate::AtspiError;
-
-    fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
-        let msg_member = msg.message.member();
-        if msg_member == Some(MemberName::from_static_str("AttributesChanged")?) {
-            return Ok(Self(msg));
-        };
-
-        let error =
-            format!("specific type's member: AttributesChanged != msg type member: {msg_member:?}");
-        Err(crate::AtspiError::MemberMatch(error))
-    }
-}
-
-impl Eq for ObjectAttributesChangedEvent {}
-
-impl Signified for ObjectAttributesChangedEvent {
-    type Inner = AtspiEvent;
-    fn inner(&self) -> &Self::Inner {
-        &self.0
+    impl PropertyChangeEvent {
+        #[must_use]
+        pub fn property(&self) -> &str {
+            self.0.kind()
+        }
+        #[must_use]
+        pub fn value(&self) -> &OwnedValue {
+            self.0.any_data()
+        }
     }
 
-    fn properties(&self) -> &HashMap<String, OwnedValue> {
-        self.0.properties()
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct BoundsChangedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct LinkSelectedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct StateChangedEvent(pub(crate) AtspiEvent);
+    impl StateChangedEvent {
+        #[must_use]
+        pub fn state(&self) -> &str {
+            self.0.kind()
+        }
+        //TODO checkme please!!
+        #[must_use]
+        pub fn enabled(&self) -> bool {
+            self.0.detail1() == 0
+        }
     }
-}
 
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct RowInsertedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct RowReorderedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct RowDeletedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ColumnInsertedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ColumnReorderedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ColumnDeletedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct TextBoundsChangedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct TextSelectionChangedEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct TextChangedEvent(AtspiEvent);
-impl TextChangedEvent {
-    #[must_use]
-    pub fn detail(&self) -> &str {
-        self.0.kind()
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct ChildrenChangedEvent(pub(crate) AtspiEvent);
+    impl ChildrenChangedEvent {
+        #[must_use]
+        pub fn operation(&self) -> &str {
+            self.0.kind()
+        }
+        #[must_use]
+        pub fn index_in_parent(&self) -> i32 {
+            self.0.detail1()
+        } // usizes ?
+        #[must_use]
+        pub fn child(&self) -> &OwnedValue {
+            self.0.any_data()
+        }
     }
-    #[must_use]
-    pub fn start_pos(&self) -> i32 {
-        self.0.detail1()
-    }
-    #[must_use]
-    pub fn end_pos(&self) -> i32 {
-        self.0.detail2()
-    }
-    // TODO zvariant::Value -> String me please
-    #[must_use]
-    pub fn text(&self) -> &OwnedValue {
-        self.0.any_data()
-    }
-}
 
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct TextAttributesChangedEvent(AtspiEvent);
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct VisibleDataChangedEvent(pub(crate) AtspiEvent);
 
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct TextCaretMovedEvent(AtspiEvent);
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct SelectionChangedEvent(pub(crate) AtspiEvent);
 
-impl TextCaretMovedEvent {
-    #[must_use]
-    pub fn position(&self) -> i32 {
-        self.0.detail1()
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct ModelChangedEvent(pub(crate) AtspiEvent);
+
+    // TODO Check my impl please.
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct ActiveDescendantChangedEvent(pub(crate) AtspiEvent);
+    impl ActiveDescendantChangedEvent {
+        #[must_use]
+        pub fn child(&self) -> &OwnedValue {
+            self.0.any_data() // TODO Make me a beter returner!
+        }
+    }
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct AnnouncementEvent(pub(crate) AtspiEvent);
+    impl AnnouncementEvent {
+        #[must_use]
+        pub fn text(&self) -> &str {
+            self.0.kind()
+        }
+    }
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct RowInsertedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct RowReorderedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct RowDeletedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct ColumnInsertedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct ColumnReorderedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct ColumnDeletedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct TextBoundsChangedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct TextSelectionChangedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct TextChangedEvent(pub(crate) AtspiEvent);
+    impl TextChangedEvent {
+        #[must_use]
+        pub fn detail(&self) -> &str {
+            self.0.kind()
+        }
+        #[must_use]
+        pub fn start_pos(&self) -> i32 {
+            self.0.detail1()
+        }
+        #[must_use]
+        pub fn end_pos(&self) -> i32 {
+            self.0.detail2()
+        }
+        // TODO zvariant::Value -> String me please
+        #[must_use]
+        pub fn text(&self) -> &OwnedValue {
+            self.0.any_data()
+        }
+    }
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct TextAttributesChangedEvent(pub(crate) AtspiEvent);
+
+    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+    pub struct TextCaretMovedEvent(pub(crate) AtspiEvent);
+
+    impl TextCaretMovedEvent {
+        #[must_use]
+        pub fn position(&self) -> i32 {
+            self.0.detail1()
+        }
     }
 }
 
 // ------<- end of Obj signals
 // ----------> Start of Win
 
-//TODO Check my impl with bus signal
-#[derive(Debug, PartialEq, Clone)]
-pub struct WindowPropertyChangeEvent(AtspiEvent);
-impl WindowPropertyChangeEvent {
+#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
+impl PropertyChangeEvent {
     #[must_use]
     pub fn property(&self) -> &str {
         self.0.kind()
     }
 }
 
-impl Eq for WindowPropertyChangeEvent {}
-
-// Gets manual impl, because its name is changed,
-// the proc-macro does not handle changed names that well
-impl TryFrom<AtspiEvent> for WindowPropertyChangeEvent {
-    type Error = crate::AtspiError;
-
-    fn try_from(msg: AtspiEvent) -> Result<Self, Self::Error> {
-        let msg_member = msg.message.member();
-        if msg_member == Some(MemberName::from_static_str("PropertyChange")?) {
-            return Ok(Self(msg));
-        };
-
-        let error =
-            format!("specific type's member: PropertyChange != msg type member: {msg_member:?}");
-        Err(crate::AtspiError::MemberMatch(error))
-    }
-}
-
-impl Signified for WindowPropertyChangeEvent {
-    type Inner = AtspiEvent;
-    fn inner(&self) -> &Self::Inner {
-        &self.0
-    }
-
-    fn properties(&self) -> &HashMap<String, OwnedValue> {
-        self.inner().properties()
-    }
-}
+#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+pub struct MinimizeEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct MinimizeEvent(AtspiEvent);
+pub struct MaximizeEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct MaximizeEvent(AtspiEvent);
+pub struct RestoreEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct RestoreEvent(AtspiEvent);
+pub struct CloseEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct CloseEvent(AtspiEvent);
+pub struct CreateEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct CreateEvent(AtspiEvent);
+pub struct ReparentEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ReparentEvent(AtspiEvent);
+pub struct DesktopCreateEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct DesktopCreateEvent(AtspiEvent);
+pub struct DesktopDestroyEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct DesktopDestroyEvent(AtspiEvent);
+pub struct DestroyEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct DestroyEvent(AtspiEvent);
+pub struct ActivateEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ActivateEvent(AtspiEvent);
+pub struct DeactivateEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct DeactivateEvent(AtspiEvent);
+pub struct RaiseEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct RaiseEvent(AtspiEvent);
+pub struct LowerEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct LowerEvent(AtspiEvent);
+pub struct MoveEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct MoveEvent(AtspiEvent);
+pub struct ResizeEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ResizeEvent(AtspiEvent);
-
-#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ShadeEvent(AtspiEvent);
+pub struct ShadeEvent(pub(crate) AtspiEvent);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct uUshadeEvent(AtspiEvent);
+pub struct uUshadeEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct RestyleEvent(AtspiEvent);
+pub struct RestyleEvent(pub(crate) AtspiEvent);
 
 // ----------<- end of Win signals
 // ----------> Start of Mse
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct AbsEvent(AtspiEvent);
+pub struct AbsEvent(pub(crate) AtspiEvent);
 impl AbsEvent {
     /// X-coordinate of mouse button event
     ///  Coordinates are absolute, with the origin in the top-left of the 'root window'
@@ -712,7 +720,7 @@ impl AbsEvent {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct RelEvent(AtspiEvent);
+pub struct RelEvent(pub(crate) AtspiEvent);
 impl RelEvent {
     #[must_use]
     pub fn dx(&self) -> i32 {
@@ -725,7 +733,7 @@ impl RelEvent {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ButtonEvent(AtspiEvent);
+pub struct ButtonEvent(pub(crate) AtspiEvent);
 impl ButtonEvent {
     /// Button being used 1..X
     /// The suffix may either be 'p', for pressed, or 'r' for rekeased.
@@ -749,7 +757,7 @@ impl ButtonEvent {
 // ----------> Start of Kbd
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ModifiersEvent(AtspiEvent);
+pub struct ModifiersEvent(pub(crate) AtspiEvent);
 impl ModifiersEvent {
     #[must_use]
     pub fn previous_modifiers(&self) -> i32 {
@@ -765,43 +773,44 @@ impl ModifiersEvent {
 // ----------> Start of Term
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct LineChangedEvent(AtspiEvent);
+pub struct LineChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ColumncountChangedEvent(AtspiEvent);
+pub struct ColumncountChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct LinecountChangedEvent(AtspiEvent);
+pub struct LinecountChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ApplicationChangedEvent(AtspiEvent);
+pub struct ApplicationChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct CharwidthChangedEvent(AtspiEvent);
+pub struct CharwidthChangedEvent(pub(crate) AtspiEvent);
 
 // -------<- end of Term signals
 // ----------> Start of Doc
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct LoadCompleteEvent(AtspiEvent);
+pub struct LoadCompleteEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ReloadEvent(AtspiEvent);
+pub struct ReloadEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct LoadStoppedEvent(AtspiEvent);
+pub struct LoadStoppedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct ContentChangedEvent(AtspiEvent);
+pub struct ContentChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct AttributesChangedEvent(AtspiEvent);
+pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
 
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct PageChangedEvent(AtspiEvent);
+pub struct PageChangedEvent(pub(crate) AtspiEvent);
 
 // ---------- End of Doc
 // ----------> Start of Focus
 
+#[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-pub struct FocusEvent(AtspiEvent);
+pub struct FocusEvent(pub(crate) AtspiEvent);
