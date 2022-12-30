@@ -39,7 +39,7 @@ pub trait Convertable {
 #[inline]
 async fn convert_to_new_type
 	<'a, 'b,
-	T: From<Proxy<'b>>,
+	T: From<Proxy<'b>> + ProxyDefault,
 	U: Deref<Target=Proxy<'a>> + ProxyDefault + AtspiProxy>
 	(from: &U) -> zbus::Result<T> {
 	// first thing is first, we need to creat an accessible to query the interfaces.
@@ -57,6 +57,7 @@ async fn convert_to_new_type
 	let path = from.path().to_owned();
 	let dest = from.destination().to_owned();
 	ProxyBuilder::<'b, T>::new_bare(from.connection())
+			.interface(<T as ProxyDefault>::INTERFACE)?
 			.destination(dest)?
 			.cache_properties(CacheProperties::No)
 			.path(path)?
