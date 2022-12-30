@@ -279,3 +279,59 @@ mod tests {
         assert!(object == decoded);
     }
 }
+impl TryFrom<&str> for Interface {
+    type Error = &'static str;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        match s {
+            "org.a11y.atspi.Accessible" => Ok(Interface::Accessible),
+            "org.a11y.atspi.Action" => Ok(Interface::Action),
+            "org.a11y.atspi.Application" => Ok(Interface::Application),
+            "org.a11y.atspi.Collection" => Ok(Interface::Collection),
+            "org.a11y.atspi.Component" => Ok(Interface::Component),
+            "org.a11y.atspi.Document" => Ok(Interface::Document),
+            "org.a11y.atspi.Hypertext" => Ok(Interface::Hypertext),
+            "org.a11y.atspi.Hyperlink" => Ok(Interface::Hyperlink),
+            "org.a11y.atspi.Image" => Ok(Interface::Image),
+            "org.a11y.atspi.Selection" => Ok(Interface::Selection),
+						"org.a11y.atspi.Socket" => Ok(Interface::Socket),
+            "org.a11y.atspi.Table" => Ok(Interface::Table),
+            "org.a11y.atspi.TableCell" => Ok(Interface::TableCell),
+            "org.a11y.atspi.Text" => Ok(Interface::Text),
+            "org.a11y.atspi.EditableText" => Ok(Interface::EditableText),
+            "org.a11y.atspi.Cache" => Ok(Interface::Cache),
+            "org.a11y.atspi.Value" => Ok(Interface::Value),
+            "org.a11y.atspi.Registry" => Ok(Interface::Registry),
+            "org.a11y.atspi.DeviceEventController" => Ok(Interface::DeviceEventController),
+            "org.a11y.atspi.DeviceEventListener" => Ok(Interface::DeviceEventListener),
+            _ => Err("No interface found for conversion."),
+        }
+    }
+}
+impl ToString for Interface {
+    fn to_string(&self) -> String {
+        match self {
+            Interface::Accessible => "org.a11y.atspi.Accessible",
+            Interface::Action => "org.a11y.atspi.Action",
+            Interface::Application => "org.a11y.atspi.Application",
+            Interface::Collection => "org.a11y.atspi.Collection",
+            Interface::Component => "org.a11y.atspi.Component",
+            Interface::Document => "org.a11y.atspi.Document",
+            Interface::Hypertext => "org.a11y.atspi.Hypertext",
+            Interface::Hyperlink => "org.a11y.atspi.Hyperlink",
+            Interface::Image => "org.a11y.atspi.Image",
+						Interface::Socket => "org.a11y.atspi.Socket",
+            Interface::Selection => "org.a11y.atspi.Selection",
+            Interface::Table => "org.a11y.atspi.Table",
+            Interface::TableCell => "org.a11y.atspi.TableCell",
+            Interface::Text => "org.a11y.atspi.Text",
+            Interface::EditableText => "org.a11y.atspi.EditableText",
+            Interface::Cache => "org.a11y.atspi.Cache",
+            Interface::Value => "org.a11y.atspi.Value",
+            Interface::Registry => "org.a11y.atspi.Registry",
+            Interface::DeviceEventController => "org.a11y.atspi.DeviceEventController",
+            Interface::DeviceEventListener => "org.a11y.atspi.DeviceEventListener",
+        }
+        .to_string()
+    }
+}
