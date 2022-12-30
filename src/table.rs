@@ -108,3 +108,7 @@ trait Table {
     #[dbus_proxy(property)]
     fn summary(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
 }
+use crate::{AtspiProxy, Interface};
+impl<'a> AtspiProxy for TableProxy<'a>{
+	const INTERFACE: Interface = Interface::Table;
+}

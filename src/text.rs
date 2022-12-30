@@ -186,3 +186,7 @@ pub async fn new<'a>(
         .build()
         .await
 }
+use crate::{AtspiProxy, Interface};
+impl<'a> AtspiProxy for TextProxy<'a>{
+	const INTERFACE: Interface = Interface::Text;
+}

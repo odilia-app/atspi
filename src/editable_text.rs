@@ -32,3 +32,7 @@ trait EditableText {
     /// SetTextContents method
     fn set_text_contents(&self, new_contents: &str) -> zbus::Result<bool>;
 }
+use crate::{AtspiProxy, Interface};
+impl<'a> AtspiProxy for EditableTextProxy<'a>{
+	const INTERFACE: Interface = Interface::EditableText;
+}

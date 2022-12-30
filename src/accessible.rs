@@ -387,3 +387,7 @@ impl PartialEq for AccessibleProxy<'_> {
     }
 }
 impl Eq for AccessibleProxy<'_> {}
+use crate::{AtspiProxy, Interface};
+impl<'a> AtspiProxy for AccessibleProxy<'a>{
+	const INTERFACE: Interface = Interface::Accessible;
+}

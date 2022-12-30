@@ -121,3 +121,7 @@ trait Component {
     /// SetSize method
     fn set_size(&self, width: i32, height: i32) -> zbus::Result<bool>;
 }
+use crate::{AtspiProxy, Interface};
+impl<'a> AtspiProxy for ComponentProxy<'a>{
+	const INTERFACE: Interface = Interface::Component;
+}
