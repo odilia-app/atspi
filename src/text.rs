@@ -174,18 +174,6 @@ impl TextPlus for TextProxy {
 }
 */
 
-pub async fn new<'a>(
-    conn: &Connection,
-    sender: UniqueName<'_>,
-    path: ObjectPath<'_>,
-) -> zbus::Result<TextProxy<'a>> {
-    TextProxy::builder(conn)
-        .destination(sender.to_owned())?
-        .cache_properties(CacheProperties::No)
-        .path(path.to_owned())?
-        .build()
-        .await
-}
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for TextProxy<'a>{
 	const INTERFACE: Interface = Interface::Text;

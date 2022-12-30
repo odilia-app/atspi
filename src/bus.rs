@@ -11,7 +11,7 @@
 //!
 //! This `DBus` object implements
 //! [standard `DBus` interfaces](https://dbus.freedesktop.org/doc/dbus-specification.html),
-//! (`org.freedesktop.`DBus`.*`) for which the following zbus proxies can be used:
+//! (`org.freedesktop.DBus.*`) for which the following zbus proxies can be used:
 //!
 //! * [`zbus::fdo::PropertiesProxy`]
 //! * [`zbus::fdo::IntrospectableProxy`]

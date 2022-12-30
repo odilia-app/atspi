@@ -482,12 +482,8 @@ impl TryFrom<AtspiEvent> for KeyboardEvents {
 
 pub mod object {
     use crate::identify::Signified;
-    use crate::{
-        error::AtspiError,
-        events::{AtspiEvent, GenericEvent},
-    };
+    use crate::events::AtspiEvent;
     use atspi_macros::TrySignify;
-    use zbus::names::MemberName;
     use zbus::zvariant::OwnedValue;
 
     #[derive(Debug, Eq, PartialEq, Clone, TrySignify)]
