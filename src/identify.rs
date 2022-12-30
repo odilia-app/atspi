@@ -420,7 +420,6 @@ impl TryFrom<AtspiEvent> for TerminalEvents {
 /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
 /// |:--|---|---|---|---|---|---|
 /// |Focus|Focus|    |    |    |    |properties|
-#[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
 #[derive(Debug, Clone)]
 pub enum FocusEvents {
     Focus(FocusEvent),
@@ -807,6 +806,6 @@ pub struct PageChangedEvent(pub(crate) AtspiEvent);
 // ---------- End of Doc
 // ----------> Start of Focus
 
-#[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
+// #[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 pub struct FocusEvent(pub(crate) AtspiEvent);
