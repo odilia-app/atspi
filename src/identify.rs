@@ -480,8 +480,10 @@ impl TryFrom<AtspiEvent> for KeyboardEvents {
 // ---------------> Object types:
 
 pub mod object {
-    use crate::identify::Signified;
-    use crate::events::AtspiEvent;
+		use crate::{
+			identify::Signified,
+			events::AtspiEvent,
+		};
     use atspi_macros::TrySignify;
     use zbus::zvariant::OwnedValue;
 
