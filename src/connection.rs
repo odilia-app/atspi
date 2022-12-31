@@ -1,5 +1,5 @@
 use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
-use futures::stream::{Stream, StreamExt};
+use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
 
@@ -77,7 +77,7 @@ impl Connection {
     /// todo!()
     /// ```
     pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
-        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+        MessageStream::from(self.registry.connection()).filter_map(|res| {
             let msg = match res {
                 Ok(m) => m,
                 Err(e) => return Some(Err(e.into())),
