@@ -47,17 +47,17 @@ pub trait AccessibleExt {
     ) -> zbus::Result<HashMap<RelationType, Vec<AccessibleProxy<'a>>>>;
 }
 
-// TODO: make match more broad, allow use of other parameters
+// TODO: make match more broad, allow use of other parameters; also, support multiple roles, since right now, multiple will just exit immediately with false
 async fn match_(
     accessible: &AccessibleProxy<'_>,
     matcher_args: &MatcherArgs,
 ) -> zbus::Result<bool> {
     let roles = &matcher_args.0;
-    if roles.len() == 1 {
-        Ok(accessible.get_role().await? == *roles.get(0).unwrap())
-    } else {
-        Ok(false)
-    }
+		if roles.len != 1 {
+			return Ok(false);
+		}
+		// our unwrap is protected from panicing with the above check
+		Ok(accessible.get_role().await? == *roles.get(0).unwrap())
 }
 
 impl AccessibleProxy<'_> {
