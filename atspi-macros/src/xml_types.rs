@@ -14,11 +14,11 @@ pub enum Access {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct Property {
-	name: String,
+	pub name: String,
 	#[serde(rename="type", with="serde_signature")]
-	dbus_type: Signature<'static>,
+	pub dbus_type: Signature<'static>,
 	/// the level of access a client has to this property, it may be read or write
-	access: Access,
+	pub access: Access,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -31,24 +31,24 @@ pub enum Direction {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct SignalArg {
-	name: Option<String>,
+	pub name: Option<String>,
 	#[serde(rename="type", with="serde_signature")]
-	dbus_type: Signature<'static>,
+	pub dbus_type: Signature<'static>,
 }
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct MethodArg {
-	direction: Direction,
-	name: Option<String>,
+	pub direction: Direction,
+	pub name: Option<String>,
 	#[serde(rename="type", with="serde_signature")]
-	dbus_type: Signature<'static>,
+	pub dbus_type: Signature<'static>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct Annotation {
-	name: String,
-	value: String,
+	pub name: String,
+	pub value: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -67,16 +67,16 @@ pub enum SignalItem {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct Method {
-	name: String,
+	pub name: String,
 	#[serde(rename = "$value")]
-	items: Vec<MethodItem>
+	pub items: Vec<MethodItem>
 }
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct Signal {
-	name: String,
+	pub name: String,
 	#[serde(rename = "$value")]
-	items: Vec<SignalItem>
+	pub items: Vec<SignalItem>
 }
 
 
@@ -91,14 +91,14 @@ pub enum Item {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct Interface {
-	name: String,
+	pub name: String,
 	#[serde(rename = "$value")]
-	properties: Vec<Item>
+	pub properties: Vec<Item>
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all="lowercase")]
 pub struct Node {
 	#[serde(rename = "$value")]
-	interfaces: Vec<Interface>
+	pub interfaces: Vec<Interface>
 }
