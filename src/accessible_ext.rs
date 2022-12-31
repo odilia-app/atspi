@@ -53,7 +53,7 @@ async fn match_(
     matcher_args: &MatcherArgs,
 ) -> zbus::Result<bool> {
     let roles = &matcher_args.0;
-		if roles.len != 1 {
+		if roles.len() != 1 {
 			return Ok(false);
 		}
 		// our unwrap is protected from panicing with the above check
