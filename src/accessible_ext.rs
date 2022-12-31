@@ -151,6 +151,21 @@ impl<'a> TryFrom<ObjectPath<'a>> for AccessibleId {
       }
   }
 }
+impl<'a> TryFrom<&ObjectPath<'a>> for AccessibleId {
+  type Error = ObjectPathConversionError;
+
+  fn try_from(path: &ObjectPath<'a>) -> Result<Self, Self::Error> {
+      match path.split('/').next_back() {
+          Some("null") => Ok(AccessibleId::Null),
+          Some("root") => Ok(AccessibleId::Root),
+          Some(id) => match id.parse::<i64>() {
+            Ok(uid) => Ok(AccessibleId::Number(uid)),
+            Err(e) => Err(Self::Error::ParseError(e)),
+          },
+          None => Err(Self::Error::NoIdAvailable),
+      }
+  }
+}
 
 #[async_trait]
 impl AccessibleExt for AccessibleProxy<'_> {
