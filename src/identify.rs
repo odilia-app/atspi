@@ -11,7 +11,6 @@ use crate::events::{AtspiEvent, GenericEvent};
 use atspi_macros::TrySignify;
 use std::collections::HashMap;
 use std::sync::Arc;
-use zbus::zvariant::OwnedObjectPath;
 use zbus::{names::MemberName, zvariant, Message};
 use zbus_names::{self, InterfaceName};
 use zvariant::OwnedValue;
@@ -61,9 +60,8 @@ where
 
     /// The object path to the object where the signal is emitted from.
     #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        let ev = self.inner();
-        Some(OwnedObjectPath::from(ev.message.path().unwrap()))
+    fn path(&self) -> std::option::Option<zbus::zvariant::ObjectPath<'_>> {
+        self.inner().message.path()
     }
 
     /// Identifies the `sender` of the `Event`.

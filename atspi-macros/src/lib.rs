@@ -176,8 +176,8 @@ pub fn generic_event(input: TokenStream) -> TokenStream {
 
                     /// The object path to the object where the signal is emitted from.
                     #[must_use]
-                    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-                            Some(OwnedObjectPath::from(self.message.path().unwrap()))
+                    fn path(&self) -> std::option::Option<zbus::zvariant::ObjectPath<'_>> {
+                            self.message.path()
                     }
 
                     /// Identifies the `sender` of the event.

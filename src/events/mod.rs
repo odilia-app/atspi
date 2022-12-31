@@ -381,7 +381,7 @@ pub trait GenericEvent {
     fn member(&self) -> Option<MemberName<'_>>;
 
     /// Path of the signalling object.
-    fn path(&self) -> Option<zvariant::OwnedObjectPath>;
+    fn path(&self) -> Option<zvariant::ObjectPath<'_>>;
 
     /// Sender of the signal.
     ///
@@ -461,8 +461,8 @@ impl GenericEvent for AtspiEvent {
 
     /// The object path to the object where the signal was emitted.
     #[must_use]
-    fn path(&self) -> std::option::Option<zbus::zvariant::OwnedObjectPath> {
-        Some(OwnedObjectPath::from(self.message.path().unwrap()))
+    fn path(&self) -> std::option::Option<zbus::zvariant::ObjectPath<'_>> {
+        self.message.path()
     }
 
     /// Identifies the `sender` of the event.
