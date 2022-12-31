@@ -2,6 +2,7 @@ use crate::{
     accessible::{AccessibleProxy, RelationType, Role},
     collection::MatchType,
     convertable::Convertable,
+		error::ObjectPathConversionError,
     InterfaceSet,
 };
 use async_recursion::async_recursion;
@@ -17,7 +18,6 @@ use zbus::{
 use serde::{
 	Serialize, Deserialize,
 };
-use std::str::FromStr;
 
 pub type MatcherArgs =
     (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
@@ -119,12 +119,6 @@ impl<'a> TryInto<ObjectPath<'a>> for AccessibleId {
   fn try_into(self) -> Result<ObjectPath<'a>, Self::Error> {
     ObjectPath::try_from(self.to_string())
   }
-}
-
-#[derive(Clone, Debug)]
-pub enum ObjectPathConversionError {
-  NoIdAvailable,
-  ParseError(<i64 as FromStr>::Err),
 }
 
 impl TryFrom<OwnedObjectPath> for AccessibleId {

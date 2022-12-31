@@ -40,6 +40,9 @@ pub enum AtspiError {
     /// Failed to parse a string into an enum variant
     ParseError(&'static str),
 
+		/// Failed to get the ID of a path.
+		PathConversionError(ObjectPathConversionError),
+
     /// Std i/o error variant.
     IO(std::io::Error),
 }
@@ -63,6 +66,7 @@ impl std::fmt::Display for AtspiError {
             Self::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
             Self::ZbusFdo(e) => f.write_str(&format!("D-Bus standard interfaces Error: {e}")),
             Self::ParseError(e) => f.write_str(e),
+						Self::PathConversionError(e) => f.write_str(&format!("ID cannot be extracted from the path: {e}")),
             Self::IO(e) => f.write_str(&format!("std IO Error: {e}")),
         }
     }
@@ -97,3 +101,24 @@ impl From<std::io::Error> for AtspiError {
         Self::IO(e)
     }
 }
+
+impl From<ObjectPathConversionError> for AtspiError {
+	fn from(e: ObjectPathConversionError) -> AtspiError {
+		Self::PathConversionError(e)
+	}
+}
+
+#[derive(Clone, Debug)]
+pub enum ObjectPathConversionError {
+  NoIdAvailable,
+  ParseError(<i64 as std::str::FromStr>::Err),
+}
+impl std::fmt::Display for ObjectPathConversionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+			match self {
+				Self::NoIdAvailable => f.write_str(&format!("No ID available in the path.")),
+				Self::ParseError(e) => f.write_str(&format!("Failure to parse: {e}")),
+			}
+		}
+}
+impl std::error::Error for ObjectPathConversionError {}
