@@ -14,9 +14,9 @@ enum FromZbusMessageParam {
     Member(String),
 }
 
-impl FromZbusMessageParam {
-    fn from(key: String, val: String) -> Self {
-        match (key.as_str(), val.as_str()) {
+impl From<(String, String)> for FromZbusMessageParam {
+    fn from(items: (String, String)) -> Self {
+        match (items.0.as_str(), items.1.as_str()) {
             ("body", tp) => Self::Body(
                 syn::parse_str(tp)
                     .expect("The value given to the 'body' parameter must be a valid type."),
@@ -63,17 +63,9 @@ pub fn implement_signified(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-//#[proc_macro_derive(TryFromMessage)]
-#[proc_macro_attribute]
-pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStream {
-    let item_struct = parse_macro_input!(input as ItemStruct);
-    // Parse the input token stream into a syntax tree
-    let name = item_struct.ident.clone();
-
-    // Remove the suffix "Event" from the name of the struct
-    let name_string = name.to_string();
-
-    let args_parsed: Vec<FromZbusMessageParam> = parse_macro_input!(attr as AttributeArgs)
+fn make_into_params<T>(items: AttributeArgs) -> Vec<T> 
+	where T: From<(String, String)> {
+    items
         .into_iter()
         .filter_map(|nm| match nm {
             // Only select certain tokens
@@ -96,9 +88,22 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
             _ => None,
         })
         // convert the (String, LitStr) tuple to a custom type which only accepts certain key/value pairs
-        .map(|(k, v)| FromZbusMessageParam::from(k, v))
-        .collect();
+        .map(|(k, v)| T::from((k, v)))
+        .collect()
+}
 
+//#[proc_macro_derive(TryFromMessage)]
+#[proc_macro_attribute]
+pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStream {
+    let item_struct = parse_macro_input!(input as ItemStruct);
+    // Parse the input token stream into a syntax tree
+    let name = item_struct.ident.clone();
+
+    // Remove the suffix "Event" from the name of the struct
+    let name_string = name.to_string();
+
+    let args = parse_macro_input!(attr as AttributeArgs);
+		let args_parsed = make_into_params(args);
     let body_type = match args_parsed
         .get(0)
         .expect("There must be at least one argument to the macro.")
