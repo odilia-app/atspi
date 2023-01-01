@@ -15,6 +15,7 @@ pub mod document;
 pub mod editable_text;
 pub mod events;
 pub mod identify;
+pub mod signify;
 pub use events::{Event, EventBody};
 pub mod hyperlink;
 pub mod hypertext;
