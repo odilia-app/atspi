@@ -302,7 +302,5 @@ pub fn create_events_from_xml(file_name: &str) -> String {
 }
 
 pub fn main() {
-	let args: Vec<String> = env::args().collect();
-	let file_name = &args.get(1).expect("A file must be the first arguemnt to the program");
-	println!("{}", create_events_from_xml(file_name));
+	println!("{}", create_events_from_xml("xml/Event.xml"));
 }
