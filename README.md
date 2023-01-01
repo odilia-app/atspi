@@ -42,6 +42,13 @@ git tag -a vMAJ.MIN.PATCH -m "New feature in tag"
 git push origin --tags
 ```
 
+## Code Generation
+
+Some files are auto-generated, and these will be noted with documentation.
+If you want to change those files, you will need to make changes in the `atspi-codegen` binaries, since any changes in the files will be overwritten when the XML is updates and the .rs files are re-generated.
+
+Currently, only one file is 100% auto-generated: `identify.rs`; and it was generated with the `atspi-codegen/target/debug/identify` file.
+
 ## License
 
 The `atspi` library is licensed as [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) or [MIT](https://mit-license.org/).
