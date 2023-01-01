@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 zbus = { version = "3.0.0", default-features = false, features = ["xml", "tokio"] }
+serde = "1.0.0"
+serde-xml-rs = "0.6.0"
+

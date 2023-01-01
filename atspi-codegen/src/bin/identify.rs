@@ -1,11 +1,10 @@
-use std::env;
 use zbus::{
 	zvariant::{
 	    Basic, ObjectPath, Signature, ARRAY_SIGNATURE_CHAR, DICT_ENTRY_SIG_END_CHAR,
 			    DICT_ENTRY_SIG_START_CHAR, STRUCT_SIG_END_CHAR, STRUCT_SIG_START_CHAR, VARIANT_SIGNATURE_CHAR,
 	},
-	xml::*,
 };
+use atspi_codegen::*;
 
 enum AtspiEventInnerName {
 	Detail1,
@@ -293,12 +292,14 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 
 pub fn create_events_from_xml(file_name: &str) -> String {
 	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
-	let data: zbus::xml::Node = zbus::xml::Node::from_reader(&xml_file).expect("Cannot deserialize file");
-	data.interfaces()
+	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
+	let doc_comment = data.doc().expect("You need documentation in the node element.").data;
+	let iface_data = data.interfaces()
 		.iter()
 		.map(|iface| generate_mod_from_iface(iface))
 		.collect::<Vec<String>>()
-		.join("\n")
+		.join("\n");
+	format!("{}{}", doc_comment, iface_data)
 }
 
 pub fn main() {
