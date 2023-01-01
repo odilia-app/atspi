@@ -7,7 +7,7 @@ pub mod object {
 		signify::Signified,
 	};
 	use zbus;
-	use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+	use zbus::zvariant::OwnedValue;
 	
 	#[derive(Clone, Debug)]
 	pub enum ObjectEvents {
@@ -326,7 +326,7 @@ pub mod window {
 		signify::Signified,
 	};
 	use zbus;
-	use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+	use zbus::zvariant::OwnedValue;
 	
 	#[derive(Clone, Debug)]
 	pub enum WindowEvents {
@@ -564,7 +564,7 @@ pub mod mouse {
 		signify::Signified,
 	};
 	use zbus;
-	use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+	use zbus::zvariant::OwnedValue;
 	
 	#[derive(Clone, Debug)]
 	pub enum MouseEvents {
@@ -659,7 +659,7 @@ pub mod keyboard {
 		signify::Signified,
 	};
 	use zbus;
-	use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+	use zbus::zvariant::OwnedValue;
 	
 	#[derive(Clone, Debug)]
 	pub enum KeyboardEvents {
@@ -710,7 +710,7 @@ pub mod terminal {
 		signify::Signified,
 	};
 	use zbus;
-	use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+	use zbus::zvariant::OwnedValue;
 	
 	#[derive(Clone, Debug)]
 	pub enum TerminalEvents {
@@ -794,7 +794,7 @@ pub mod document {
 		signify::Signified,
 	};
 	use zbus;
-	use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+	use zbus::zvariant::OwnedValue;
 	
 	#[derive(Clone, Debug)]
 	pub enum DocumentEvents {
@@ -889,7 +889,7 @@ pub mod focus {
 		signify::Signified,
 	};
 	use zbus;
-	use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+	use zbus::zvariant::OwnedValue;
 	
 	#[derive(Clone, Debug)]
 	pub enum FocusEvents {

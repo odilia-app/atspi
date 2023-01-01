@@ -266,7 +266,7 @@ pub mod {mod_name} {{
 		signify::Signified,
 	}};
 	use zbus;
-	use zbus::zvariant::{{OwnedObjectPath, OwnedValue}};
+	use zbus::zvariant::OwnedValue;
 	{enums}
 	{structs}
 	{impls}
