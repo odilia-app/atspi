@@ -1,12 +1,19 @@
-mod serde_signature;
-mod xml_types;
-
-use proc_macro::TokenStream;
-use quote::quote;
+use proc_macro::{
+	TokenStream,
+};
+use proc_macro2::{
+	Span,
+	TokenStream as TokenStream2,
+};
+use quote::{
+	quote,
+};
 use syn::{
     parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta, MetaNameValue,
+		Ident,
     NestedMeta, Type,
 };
+use zbus::xml::*;
 
 enum FromZbusMessageParam {
     Invalid,
@@ -22,6 +29,19 @@ impl From<(String, String)> for FromZbusMessageParam {
                     .expect("The value given to the 'body' parameter must be a valid type."),
             ),
             ("member", mem) => Self::Member(mem.to_string()),
+            _ => Self::Invalid,
+        }
+    }
+}
+
+enum XmlGenParams {
+	Invalid,
+	FileName(String),
+}
+impl From<(String, String)> for XmlGenParams {
+    fn from(items: (String, String)) -> Self {
+        match (items.0.as_str(), items.1.as_str()) {
+            ("filename", name) => Self::FileName(name.to_string()),
             _ => Self::Invalid,
         }
     }
@@ -90,6 +110,110 @@ fn make_into_params<T>(items: AttributeArgs) -> Vec<T>
         // convert the (String, LitStr) tuple to a custom type which only accepts certain key/value pairs
         .map(|(k, v)| T::from((k, v)))
         .collect()
+}
+
+enum AtspiEventInnerName {
+	Kind,
+	Detail1,
+	Detail2,
+	AnyData,
+	Properties,
+}
+impl ToString for AtspiEventInnerName {
+	fn to_string(&self) -> String {
+		match self {
+			Self::Kind => "kind",
+			Self::Detail1 => "detail1",
+			Self::Detail2 => "detail2",
+			Self::AnyData => "any_data",
+			Self::Properties => "properties",
+		}.to_string()
+	}
+}
+impl From<usize> for AtspiEventInnerName {
+	fn from(from: usize) -> AtspiEventInnerName {
+		match from {
+			0 => Self::Kind,
+			1 => Self::Detail1,
+			2 => Self::Detail2,
+			3 => Self::AnyData,
+			4 => Self::Properties,
+			_ => panic!("Invalid AtspiEventInnerName usize value"),
+		}
+	}
+}
+
+fn generate_fn_handle_for_signal_item(signal_item: Arg, inner_event_name: AtspiEventInnerName) -> TokenStream2 {
+	if signal_item.name().is_none() {
+		return quote!{};
+	}
+	// unwrap is safe due to check
+	let function_name = Ident::new(&signal_item.name().unwrap(), Span::call_site());
+	let inner_name = Ident::new(&inner_event_name.to_string(), Span::call_site());
+	
+	quote!{}
+}
+
+fn generate_impl_from_signal(signal: Signal) -> TokenStream2 {
+	let mut sig_name_event_str = String::from(signal.name());
+	sig_name_event_str.push_str("Event");
+	let sig_name_event = Ident::new(&sig_name_event_str, Span::call_site());
+	quote!{}
+}
+
+fn generate_struct_from_signal(signal: Signal) -> TokenStream2 {
+	let mut sig_name_event_str = String::from(signal.name());
+	sig_name_event_str.push_str("Event");
+	let sig_name_event = Ident::new(&sig_name_event_str, Span::call_site());
+	quote! {
+		#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+		pub struct #sig_name_event(pub(crate) AtspiEvent);
+	}
+}
+
+fn generate_variant_from_signal(signal: &Signal) -> TokenStream2 {
+	let sig_name = Ident::new(&signal.name(), Span::call_site());
+	let mut sig_name_event_str = String::from(signal.name());
+	sig_name_event_str.push_str("Event");
+	let sig_name_event = Ident::new(&sig_name_event_str, Span::call_site());
+	quote!{
+		#sig_name(#sig_name_event),
+	}
+}
+
+fn generate_enum_from_iface(iface: Interface) -> TokenStream2 {
+	let mut name = iface.name().split('.').next_back().expect("Interface must contain a period").to_string();
+	name.push_str("Events");
+	let name_ident = Ident::new(&name, Span::call_site());
+	let signal_quotes: Vec<TokenStream2> = iface.signals()
+		.into_iter()
+		.map(|signal| generate_variant_from_signal(signal))
+		.collect();
+	let signal_quote = TokenStream2::from_iter(signal_quotes.into_iter());
+	quote! {
+		pub enum #name_ident {
+#signal_quote
+		}
+	}
+}
+
+//#[proc_macro_derive(TryFromMessage)]
+#[proc_macro_attribute]
+pub fn create_from_xml(attr: TokenStream, input: TokenStream) -> TokenStream {
+	let args = parse_macro_input!(attr as AttributeArgs);
+	let args_parsed: Vec<XmlGenParams> = make_into_params(args);
+	let file_name = match args_parsed
+			.get(0)
+			.expect("There must be at least one argument to the macro.")
+	{
+			XmlGenParams::FileName(name) => name,
+			_ => panic!("The file parameter must be set first, and must be a string."),
+	};
+	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
+	let data: zbus::xml::Node = zbus::xml::Node::from_reader(&xml_file).expect("Cannot deserialize file");
+	let mut mods_so_far = quote! {
+	};
+	mods_so_far.into()
 }
 
 //#[proc_macro_derive(TryFromMessage)]
