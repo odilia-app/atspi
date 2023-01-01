@@ -19,8 +19,8 @@ use crate::{
     cache::CacheItem,
     connection,
     identify::{
-        DocumentEvents, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents, TerminalEvents,
-        WindowEvents,
+        document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents, object::ObjectEvents, terminal::TerminalEvents,
+        window::WindowEvents,
     },
     AtspiError,
 };

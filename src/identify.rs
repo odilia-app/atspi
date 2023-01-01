@@ -6,9 +6,8 @@
 //! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
 //!
 
-use crate::error::AtspiError;
 use crate::events::{AtspiEvent, GenericEvent};
-use atspi_macros::TrySignify;
+use atspi_macros::create_from_xml;
 use std::collections::HashMap;
 use std::sync::Arc;
 use zbus::{names::MemberName, zvariant, Message};
@@ -72,6 +71,11 @@ where
         Ok(self.inner().message.header()?.sender()?.cloned())
     }
 }
+
+#[create_from_xml(filename="xml/Event.xml")]
+struct Test{}
+
+/*
 
 /// Any of the `Document` events.
 ///
@@ -809,3 +813,4 @@ pub struct PageChangedEvent(pub(crate) AtspiEvent);
 // #[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
 #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 pub struct FocusEvent(pub(crate) AtspiEvent);
+*/
