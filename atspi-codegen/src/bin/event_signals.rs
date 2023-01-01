@@ -263,7 +263,7 @@ pub mod {mod_name} {{
 	use crate::{{
 		error::AtspiError,
 		events::{{AtspiEvent, GenericEvent}},
-		identify::Signified,
+		signify::Signified,
 	}};
 	use zbus;
 	use zbus::zvariant::{{OwnedObjectPath, OwnedValue}};
