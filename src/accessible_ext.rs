@@ -110,7 +110,7 @@ impl ToString for AccessibleId {
       Self::Root => "root".to_string(),
       Self::Number(int) => int.to_string(),
     };
-    format!("/org/a11y/atspi/{ending}")
+    format!("/org/a11y/atspi/accessible/{ending}")
   }
 }
 impl<'a> TryInto<ObjectPath<'a>> for AccessibleId {
