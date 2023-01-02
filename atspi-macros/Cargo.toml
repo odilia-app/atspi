@@ -16,11 +16,7 @@ proc_macro = true
 proc-macro2 = "1.0"
 syn = { version = "1.0", features = ["full"] }
 quote = "1.0"
-zbus = { version = "3.0.0", default-features = false, features = ["xml"] }
+zbus = { version = "3.0.0", default-features = false, features = ["tokio", "xml"] }
 zbus_names = "2.4.0"
-zbus_xmlgen = "3.1.0"
-prettyplease = "0.1.22"
 serde = "1.0"
-serde_with = "2.1.0"
-serde-xml-rs = "0.6.0"
 zvariant = "3.9.0"
