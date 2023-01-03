@@ -12,11 +12,16 @@ keywords = ["macros", "helper"]
 [lib]
 proc_macro = true
 
+[features]
+default = ["async-io"]
+async-io = ["zbus/async-io"]
+tokio = ["zbus/tokio"]
+
 [dependencies]
 proc-macro2 = "1.0"
 syn = { version = "1.0", features = ["full"] }
 quote = "1.0"
-zbus = { version = "3.0.0", default-features = false, features = ["tokio", "xml"] }
+zbus = { version = "3.0.0", default-features = false, features = ["xml"] }
 zbus_names = "2.4.0"
 serde = "1.0"
 zvariant = "3.9.0"
