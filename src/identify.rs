@@ -724,7 +724,7 @@ pub mod terminal {
 		ColumnCountChanged(ColumnCountChangedEvent),
 		LineCountChanged(LineCountChangedEvent),
 		ApplicationChanged(ApplicationChangedEvent),
-		CharwidthChanged(CharwidthChangedEvent),
+		CharWidthChanged(CharWidthChangedEvent),
 	}
 	
 	
@@ -745,7 +745,7 @@ pub mod terminal {
 	
 
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-	pub struct CharwidthChangedEvent(pub(crate) AtspiEvent);
+	pub struct CharWidthChangedEvent(pub(crate) AtspiEvent);
 	
 	
 	impl LineChangedEvent {
@@ -768,7 +768,7 @@ pub mod terminal {
 	}
 	
 
-	impl CharwidthChangedEvent {
+	impl CharWidthChangedEvent {
 		
 	}
 	
@@ -783,7 +783,7 @@ pub mod terminal {
 				"ColumncountChanged" => Ok(TerminalEvents::ColumnCountChanged(ColumnCountChangedEvent(ev))),
 				"LinecountChanged" => Ok(TerminalEvents::LineCountChanged(LineCountChangedEvent(ev))),
 				"ApplicationChanged" => Ok(TerminalEvents::ApplicationChanged(ApplicationChangedEvent(ev))),
-				"CharwidthChanged" => Ok(TerminalEvents::CharwidthChanged(CharwidthChangedEvent(ev))),
+				"CharwidthChanged" => Ok(TerminalEvents::CharWidthChanged(CharWidthChangedEvent(ev))),
 				_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
 			}
 		}
