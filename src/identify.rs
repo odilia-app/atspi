@@ -1,4 +1,10 @@
-
+//! ## Signified signal types
+//!
+//! The generic `AtspiEvent` has a specific meaning depending on its origin.
+//! This module offers the signified types and their conversions from a generic `AtpiEvent`.
+//!
+//! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
+//!
 pub mod object {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -347,7 +353,7 @@ pub mod window {
 		Move(MoveEvent),
 		Resize(ResizeEvent),
 		Shade(ShadeEvent),
-		uUshade(uUshadeEvent),
+		UUshade(UUshadeEvent),
 		Restyle(RestyleEvent),
 	}
 	
@@ -421,7 +427,7 @@ pub mod window {
 	
 
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-	pub struct uUshadeEvent(pub(crate) AtspiEvent);
+	pub struct UUshadeEvent(pub(crate) AtspiEvent);
 	
 
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
@@ -513,7 +519,7 @@ pub mod window {
 	}
 	
 
-	impl uUshadeEvent {
+	impl UUshadeEvent {
 		
 	}
 	
@@ -546,7 +552,7 @@ pub mod window {
 				"Move" => Ok(WindowEvents::Move(MoveEvent(ev))),
 				"Resize" => Ok(WindowEvents::Resize(ResizeEvent(ev))),
 				"Shade" => Ok(WindowEvents::Shade(ShadeEvent(ev))),
-				"uUshade" => Ok(WindowEvents::uUshade(uUshadeEvent(ev))),
+				"UUshade" => Ok(WindowEvents::UUshade(UUshadeEvent(ev))),
 				"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent(ev))),
 				_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 			}
