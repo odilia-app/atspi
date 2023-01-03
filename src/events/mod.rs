@@ -170,8 +170,8 @@ impl RemoveAccessibleEvent {
 /// Emitted by `CacheRemove` and `Available`
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Accessible {
-    name: OwnedUniqueName,
-    path: OwnedObjectPath,
+    pub name: OwnedUniqueName,
+    pub path: OwnedObjectPath,
 }
 
 #[test]
