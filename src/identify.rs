@@ -552,7 +552,7 @@ pub mod window {
 				"Move" => Ok(WindowEvents::Move(MoveEvent(ev))),
 				"Resize" => Ok(WindowEvents::Resize(ResizeEvent(ev))),
 				"Shade" => Ok(WindowEvents::Shade(ShadeEvent(ev))),
-				"UUshade" => Ok(WindowEvents::UUshade(UUshadeEvent(ev))),
+				"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent(ev))),
 				"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent(ev))),
 				_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 			}
@@ -721,8 +721,8 @@ pub mod terminal {
 	#[derive(Clone, Debug)]
 	pub enum TerminalEvents {
 		LineChanged(LineChangedEvent),
-		ColumncountChanged(ColumncountChangedEvent),
-		LinecountChanged(LinecountChangedEvent),
+		ColumnCountChanged(ColumnCountChangedEvent),
+		LineCountChanged(LineCountChangedEvent),
 		ApplicationChanged(ApplicationChangedEvent),
 		CharwidthChanged(CharwidthChangedEvent),
 	}
@@ -733,11 +733,11 @@ pub mod terminal {
 	
 
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-	pub struct ColumncountChangedEvent(pub(crate) AtspiEvent);
+	pub struct ColumnCountChangedEvent(pub(crate) AtspiEvent);
 	
 
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-	pub struct LinecountChangedEvent(pub(crate) AtspiEvent);
+	pub struct LineCountChangedEvent(pub(crate) AtspiEvent);
 	
 
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
@@ -753,12 +753,12 @@ pub mod terminal {
 	}
 	
 
-	impl ColumncountChangedEvent {
+	impl ColumnCountChangedEvent {
 		
 	}
 	
 
-	impl LinecountChangedEvent {
+	impl LineCountChangedEvent {
 		
 	}
 	
@@ -780,8 +780,8 @@ pub mod terminal {
 			let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
 			match member.as_str() {
 				"LineChanged" => Ok(TerminalEvents::LineChanged(LineChangedEvent(ev))),
-				"ColumncountChanged" => Ok(TerminalEvents::ColumncountChanged(ColumncountChangedEvent(ev))),
-				"LinecountChanged" => Ok(TerminalEvents::LinecountChanged(LinecountChangedEvent(ev))),
+				"ColumncountChanged" => Ok(TerminalEvents::ColumnCountChanged(ColumnCountChangedEvent(ev))),
+				"LinecountChanged" => Ok(TerminalEvents::LineCountChanged(LineCountChangedEvent(ev))),
 				"ApplicationChanged" => Ok(TerminalEvents::ApplicationChanged(ApplicationChangedEvent(ev))),
 				"CharwidthChanged" => Ok(TerminalEvents::CharwidthChanged(CharwidthChangedEvent(ev))),
 				_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
