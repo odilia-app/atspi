@@ -116,7 +116,7 @@ pub enum ObjectPathConversionError {
 impl std::fmt::Display for ObjectPathConversionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 			match self {
-				Self::NoIdAvailable => f.write_str(&format!("No ID available in the path.")),
+				Self::NoIdAvailable => f.write_str("No ID available in the path."),
 				Self::ParseError(e) => f.write_str(&format!("Failure to parse: {e}")),
 			}
 		}
