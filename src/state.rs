@@ -218,6 +218,121 @@ pub enum State {
     /// user.
     ReadOnly,
 }
+#[derive(Serialize, Deserialize, Debug, Clone, Hash, Eq, PartialEq)]
+pub enum InvalidStateError {
+	InvalidString(String),
+}
+impl std::fmt::Display for InvalidStateError {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+		match self {
+			Self::InvalidString(s) => write!(f, "Invlaid state string: {s}")
+		}
+	}
+}
+impl std::error::Error for InvalidStateError {}
+impl TryFrom<&str> for State {
+	type Error = InvalidStateError;
+
+	fn try_from(state_str: &str) -> Result<State, Self::Error>  {
+		match state_str {
+			"invalid" => Ok(State::Invalid),
+			"active" => Ok(State::Active),
+			"armed" => Ok(State::Armed),
+			"busy" => Ok(State::Busy),
+			"checked" => Ok(State::Checked),
+			"collapsed" => Ok(State::Collapsed),
+			"defunct" => Ok(State::Defunct),
+			"editable" => Ok(State::Editable),
+			"enabled" => Ok(State::Enabled),
+			"expandable" => Ok(State::Expandable),
+			"expanded" => Ok(State::Expanded),
+			"focusable" => Ok(State::Focusable),
+			"focused" => Ok(State::Focused),
+			"has-tooltip" => Ok(State::HasTooltip),
+			"horizontal" => Ok(State::Horizontal),
+			"iconified" => Ok(State::Iconified),
+			"modal" => Ok(State::Modal),
+			"multiLine" => Ok(State::MultiLine),
+			"multiselectable" => Ok(State::Multiselectable),
+			"opaque" => Ok(State::Opaque),
+			"pressed" => Ok(State::Pressed),
+			"resizable" => Ok(State::Resizable),
+			"selectable" => Ok(State::Selectable),
+			"selected" => Ok(State::Selected),
+			"sensitive" => Ok(State::Sensitive),
+			"showing" => Ok(State::Showing),
+			"single-line" => Ok(State::SingleLine),
+			"stale" => Ok(State::Stale),
+			"transient" => Ok(State::Transient),
+			"vertical" => Ok(State::Vertical),
+			"visible" => Ok(State::Visible),
+			"manages-descendants" => Ok(State::ManagesDescendants),
+			"indeterminate" => Ok(State::Indeterminate),
+			"required" => Ok(State::Required),
+			"truncated" => Ok(State::Truncated),
+			"animated" => Ok(State::Animated),
+			"invalid-entry" => Ok(State::InvalidEntry),
+			"supports-autocompletion" => Ok(State::SupportsAutocompletion),
+			"selectable-text" => Ok(State::SelectableText),
+			"is-default" => Ok(State::IsDefault),
+			"visited" => Ok(State::Visited),
+			"checkable" => Ok(State::Checkable),
+			"has-popup" => Ok(State::HasPopup),
+			"read-only" => Ok(State::ReadOnly),
+			_ => Err(Self::Error::InvalidString(state_str.to_string())),
+		}
+	}
+}
+impl From<State> for &str {
+	fn from(state: State) -> &'static str {
+		match state {
+			State::Invalid => "invalid",
+			State::Active => "active",
+			State::Armed => "armed",
+			State::Busy => "busy",
+			State::Checked => "checked",
+			State::Collapsed => "collapsed",
+			State::Defunct => "defunct",
+			State::Editable => "editable",
+			State::Enabled => "enabled",
+			State::Expandable => "expandable",
+			State::Expanded => "expanded",
+			State::Focusable => "focusable",
+			State::Focused => "focused",
+			State::HasTooltip => "has-tooltip",
+			State::Horizontal => "horizontal",
+			State::Iconified => "iconified",
+			State::Modal => "modal",
+			State::MultiLine => "multiLine",
+			State::Multiselectable => "multiselectable",
+			State::Opaque => "opaque",
+			State::Pressed => "pressed",
+			State::Resizable => "resizable",
+			State::Selectable => "selectable",
+			State::Selected => "selected",
+			State::Sensitive => "sensitive",
+			State::Showing => "showing",
+			State::SingleLine => "single-line",
+			State::Stale => "stale",
+			State::Transient => "transient",
+			State::Vertical => "vertical",
+			State::Visible => "visible",
+			State::ManagesDescendants => "manages-descendants",
+			State::Indeterminate => "indeterminate",
+			State::Required => "required",
+			State::Truncated => "truncated",
+			State::Animated => "animated",
+			State::InvalidEntry => "invalid-entry",
+			State::SupportsAutocompletion => "supports-autocompletion",
+			State::SelectableText => "selectable-text",
+			State::IsDefault => "is-default",
+			State::Visited => "visited",
+			State::Checkable => "checkable",
+			State::HasPopup => "has-popup",
+			State::ReadOnly => "read-only",
+		}
+	}
+}
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
