@@ -55,14 +55,3 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-      - name: Deploy Documentation
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          deploy_key: ${{ secrets.PAGES_DEPLOY_KEY }}
-          external_repository: odilia-app/odilia-app.github.io
-          publish_dir: ./target/doc
-          destination_dir: doc/devel
-          keep_files: true
-          user_name: github-actions
-          user_email: actions@github.com
-          publish_branch: main
