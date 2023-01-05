@@ -45,6 +45,9 @@ pub enum AtspiError {
 
     /// Std i/o error variant.
     IO(std::io::Error),
+
+		/// A string conversion could not successfully be performed for [`crate::State`].
+		InvalidState(InvalidStateError),
 }
 
 impl std::error::Error for AtspiError {}
@@ -68,6 +71,7 @@ impl std::fmt::Display for AtspiError {
             Self::ParseError(e) => f.write_str(e),
 						Self::PathConversionError(e) => f.write_str(&format!("ID cannot be extracted from the path: {e}")),
             Self::IO(e) => f.write_str(&format!("std IO Error: {e}")),
+						Self::InvalidState(is) => f.write_str(&format!("Invalid state conversion: {is}")),
         }
     }
 }
@@ -77,7 +81,7 @@ impl From<zbus::fdo::Error> for AtspiError {
         Self::ZbusFdo(Box::new(e))
     }
 }
-
+ 
 impl From<zbus::Error> for AtspiError {
     fn from(e: zbus::Error) -> Self {
         Self::Zbus(e)
@@ -100,6 +104,25 @@ impl From<std::io::Error> for AtspiError {
     fn from(e: std::io::Error) -> Self {
         Self::IO(e)
     }
+}
+
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+pub enum InvalidStateError {
+	InvalidString(String),
+}
+impl std::fmt::Display for InvalidStateError {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+		match self {
+			Self::InvalidString(s) => write!(f, "Invlaid state string: {s}")
+		}
+	}
+}
+impl std::error::Error for InvalidStateError {}
+
+impl From<InvalidStateError> for AtspiError {
+	fn from(e: InvalidStateError) -> AtspiError {
+		Self::InvalidState(e)
+	}
 }
 
 impl From<ObjectPathConversionError> for AtspiError {

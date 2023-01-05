@@ -6,6 +6,7 @@ use serde::{
 };
 use std::fmt;
 use zbus::zvariant::{Signature, Type};
+use crate::error::InvalidStateError;
 
 /// Used by various interfaces indicating every possible state
 /// an [`crate::accessible::AccessibleProxy`] object can assume.
@@ -218,18 +219,6 @@ pub enum State {
     /// user.
     ReadOnly,
 }
-#[derive(Serialize, Deserialize, Debug, Clone, Hash, Eq, PartialEq)]
-pub enum InvalidStateError {
-	InvalidString(String),
-}
-impl std::fmt::Display for InvalidStateError {
-	fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-		match self {
-			Self::InvalidString(s) => write!(f, "Invlaid state string: {s}")
-		}
-	}
-}
-impl std::error::Error for InvalidStateError {}
 impl TryFrom<&str> for State {
 	type Error = InvalidStateError;
 
