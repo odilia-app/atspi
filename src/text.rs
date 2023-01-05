@@ -9,6 +9,9 @@
 //! [Writing a client proxy](https://dbus.pages.freedesktop.org/zbus/client.html)
 //! section of the zbus documentation.
 //!
+#![allow(clippy::too_many_arguments)]
+// this is to silience clippy due to zbus expanding parameter expressions
+
 use serde::{Deserialize, Serialize};
 use zbus::{
     dbus_proxy,

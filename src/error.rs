@@ -108,6 +108,7 @@ impl From<ObjectPathConversionError> for AtspiError {
 	}
 }
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
 pub enum ObjectPathConversionError {
   NoIdAvailable,

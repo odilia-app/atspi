@@ -5,6 +5,8 @@
 //!
 //! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
 //!
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod object {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -324,6 +326,8 @@ pub mod object {
 }
 	
 
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod window {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -562,6 +566,8 @@ pub mod window {
 }
 	
 
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod mouse {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -657,6 +663,8 @@ pub mod mouse {
 }
 	
 
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod keyboard {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -708,6 +716,8 @@ pub mod keyboard {
 }
 	
 
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod terminal {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -792,6 +802,8 @@ pub mod terminal {
 }
 	
 
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod document {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -887,6 +899,8 @@ pub mod document {
 }
 	
 
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod focus {
 	use atspi_macros::TrySignify;
 	use crate::{

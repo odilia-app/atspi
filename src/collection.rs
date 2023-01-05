@@ -9,6 +9,8 @@
 //! [Writing a client proxy](https://dbus.pages.freedesktop.org/zbus/client.html)
 //! section of the zbus documentation.
 //!
+#![allow(clippy::too_many_arguments)]
+// this allow zbus to change the number of parameters in a function without setting off clippy
 
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
