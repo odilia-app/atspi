@@ -18,7 +18,7 @@ use zbus::{
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 /// Level of granularity to get text of, in relation to a cursor position.
-pub enum TextGranularity {
+pub enum Granularity {
     /// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the chracter that appears after the cursor.
     Char,
     /// Gives the entire word in front of or which contains the cursor. TODO: confirm that it always chooses the word in front of the cursor.
@@ -101,7 +101,7 @@ trait Text {
     fn get_string_at_offset(
         &self,
         offset: i32,
-        granularity: TextGranularity,
+        granularity: Granularity,
     ) -> zbus::Result<(String, i32, i32)>;
 
     /// GetText method
