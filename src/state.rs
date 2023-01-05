@@ -276,6 +276,31 @@ impl StateSet {
     pub fn iter(self) -> impl Iterator<Item = State> {
         self.0.iter()
     }
+
+		/// Create a StateSet, with all states active.
+		pub fn all() -> Self {
+			StateSet(State::all())
+		}
+
+		/// Checks if all states are set.
+		pub fn is_all(self) -> bool {
+			self.0.is_all()
+		}
+
+		/// Checks if all states are unset.
+		pub fn is_empty(self) -> bool {
+			self.0.is_empty()
+		}
+
+		/// Returns true if at least one flag is shared.
+		pub fn intersects<B: Into<BitFlags<State>>>(self, other: B) -> bool {
+			self.0.intersects(other)
+		}
+
+		/// Toggles the matching bits.
+		pub fn toggle<B: Into<BitFlags<State>>>(&mut self, other: B) {
+			self.0.toggle(other)
+		}
 }
 
 impl<'de> Deserialize<'de> for StateSet {
