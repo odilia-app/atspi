@@ -1,5 +1,4 @@
-#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
-// #![deny(clippy::missing_docs)]
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, missing_docs)]
 
 pub mod accessible;
 pub mod action;
