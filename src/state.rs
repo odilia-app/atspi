@@ -262,6 +262,11 @@ impl StateSet {
         self.0.contains(other)
     }
 
+		/// Removes a [`State`] (optionally) previously contained in the [`StateSet`].
+		pub fn remove<B: Into<BitFlags<State>>>(&mut self, other: B) {
+			self.0.remove(other);
+		}
+
     ///  Inserts a [`State`] in the [`StateSet`].
     pub fn insert<B: Into<BitFlags<State>>>(&mut self, other: B) {
         self.0.insert(other);
