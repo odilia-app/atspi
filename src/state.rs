@@ -375,24 +375,20 @@ impl std::ops::BitXor for StateSet {
     }
 }
 impl std::ops::BitXorAssign for StateSet {
-    type Output = StateSet;
-
-    fn bitxor(self, other: Self) -> Self::Output {
-        StateSet(self.0 ^= other.0)
+    fn bitxor_assign(&mut self, other: Self) {
+        self.0 = self.0 ^ other.0
     }
 }
 impl std::ops::BitOr for StateSet {
 	type Output = StateSet;
 
-	fn bitand(self, other: Self) -> Self::Output {
+	fn bitor(self, other: Self) -> Self::Output {
 		StateSet(self.0 | other.0)
 	}
 }
 impl std::ops::BitOrAssign for StateSet {
-	type Output = StateSet;
-
-	fn bitand(self, other: Self) -> Self::Output {
-		StateSet(self.0 |= other.0)
+	fn bitor_assign(&mut self, other: Self) {
+		self.0 = self.0 | other.0
 	}
 }
 impl std::ops::BitAnd for StateSet {
@@ -403,10 +399,8 @@ impl std::ops::BitAnd for StateSet {
 	}
 }
 impl std::ops::BitAndAssign for StateSet {
-	type Output = StateSet;
-
-	fn bitand(self, other: Self) -> Self::Output {
-		StateSet(self.0 &= other.0)
+	fn bitand_assign(&mut self, other: Self) {
+		self.0 = self.0 & other.0
 	}
 }
 
