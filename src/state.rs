@@ -277,16 +277,6 @@ impl StateSet {
         self.0.iter()
     }
 
-		/// Create a StateSet, with all states active.
-		pub fn all() -> Self {
-			StateSet(State::all())
-		}
-
-		/// Checks if all states are set.
-		pub fn is_all(self) -> bool {
-			self.0.is_all()
-		}
-
 		/// Checks if all states are unset.
 		pub fn is_empty(self) -> bool {
 			self.0.is_empty()
