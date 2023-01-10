@@ -74,24 +74,36 @@ impl Connection {
     ///
     /// # Example
     /// ```
-    ///		use futures_lite::future::{block_on, race};
+    ///		use zbus::{fdo::DBusProxy, MessageType, MatchRule};
+    ///		use futures_lite::future::{block_on, race, yield_now};
     ///		use futures_lite::pin;
     ///		use futures_lite::StreamExt;
     ///		let receive_good_event = async {
     ///		let connection = atspi::Connection::open().await.expect("Could not open a11y bus.");
+    ///		let object_match_rule = MatchRule::builder()
+    ///			.msg_type(MessageType::Signal)
+    ///			.interface("org.a11y.atspi.Event.Object").expect("Can not build MatchRule with interface org.a11y.atspi.Event.Object")
+    ///			.build();
+    ///		// crates a DBus proxy object using the same connection as the AT-SPI proxy.
+    ///		let dbus_connection = DBusProxy::new(connection.connection()).await.expect("Could not create DBus proxy!");
+    ///		dbus_connection.add_match_rule(object_match_rule).await.expect("Could not create match rule of org.a11y.atspi.Event.Object interface");
     ///		let a11y_event_stream = connection.event_stream();
     ///		pin!(a11y_event_stream);
     ///		while let Some(Ok(event)) = a11y_event_stream.next().await {
     ///			// put your code to handle events here
-    ///			println!("We got 'em!");
     ///			return 0;
     ///		}
     ///		return 1;
     ///	};
     /// let timeout = async {
-    ///		std::thread::sleep(std::time::Duration::from_millis(10000));
+    ///		let start = std::time::Instant::now();
+    ///		let mut now = std::time::Instant::now();
+    ///		while now - start < std::time::Duration::from_secs(10) {
+    ///			yield_now().await;
+    ///			now = std::time::Instant::now();
+    ///		}
     ///		return -1;
-    /// };
+    ///	};
     /// block_on(async {
     ///		assert_eq!(race(receive_good_event, timeout).await, 0);
     ///	});
