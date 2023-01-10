@@ -225,7 +225,7 @@ pub enum State {
 pub struct StateSet(BitFlags<State>);
 
 impl StateSet {
-    /// Create a new [`StateSet`].
+    /// Create a new `StateSet`.
     ///
     ///## Example
     ///```Rust
@@ -239,7 +239,7 @@ impl StateSet {
         Self(value.into())
     }
 
-    /// Returns the [`StateSet`] that corresponds to the provided `u64`s bit pattern.
+    /// Returns the `StateSet` that corresponds to the provided `u64`s bit pattern.
     ///# Errors
     /// When the argument encodes an undefined [`State`].
     pub fn from_bits(bits: u64) -> Result<StateSet, FromBitsError<State>> {
@@ -247,27 +247,28 @@ impl StateSet {
     }
 
     #[must_use]
-    /// Create an empty [`StateSet`]
+    /// Create an empty `StateSet`
     pub fn empty() -> StateSet {
         StateSet(State::empty())
     }
+
     #[must_use]
     /// Returns the state as represented by a u64.
     pub fn bits(&self) -> u64 {
         self.0.bits()
     }
 
-    /// Whether the [`StateSet`] contains a [`State`].
+    /// Whether the `StateSet` contains a [`State`].
     pub fn contains<B: Into<BitFlags<State>>>(self, other: B) -> bool {
         self.0.contains(other)
     }
 
-		/// Removes a [`State`] (optionally) previously contained in the [`StateSet`].
+		/// Removes a [`State`] (optionally) previously contained in the `StateSet`.
 		pub fn remove<B: Into<BitFlags<State>>>(&mut self, other: B) {
 			self.0.remove(other);
 		}
 
-    ///  Inserts a [`State`] in the [`StateSet`].
+    ///  Inserts a [`State`] in the `StateSet`.
     pub fn insert<B: Into<BitFlags<State>>>(&mut self, other: B) {
         self.0.insert(other);
     }
