@@ -125,6 +125,6 @@ trait Collection {
     ) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for CollectionProxy<'a>{
-	const INTERFACE: Interface = Interface::Collection;
+impl<'a> AtspiProxy for CollectionProxy<'a> {
+    const INTERFACE: Interface = Interface::Collection;
 }

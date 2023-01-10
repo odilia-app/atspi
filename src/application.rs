@@ -42,6 +42,6 @@ trait Application {
     fn version(&self) -> zbus::Result<String>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ApplicationProxy<'a>{
-	const INTERFACE: Interface = Interface::Application;
+impl<'a> AtspiProxy for ApplicationProxy<'a> {
+    const INTERFACE: Interface = Interface::Application;
 }
