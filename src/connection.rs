@@ -74,7 +74,27 @@ impl Connection {
     ///
     /// # Example
     /// ```
-    /// todo!()
+		///		use futures_lite::future::{block_on, race};
+		///		use futures_lite::pin;
+		///		use futures_lite::StreamExt;
+		///		let receive_good_event = async {
+		///		let connection = atspi::Connection::open().await.expect("Could not open a11y bus.");
+		///		let a11y_event_stream = connection.event_stream();
+		///		pin!(a11y_event_stream);
+		///		while let Some(Ok(event)) = a11y_event_stream.next().await {
+		///			// put your code to handle events here
+		///			println!("We got 'em!");
+		///			return 0;
+		///		}
+		///		return 1;
+		///	};
+		/// let timeout = async {
+		///		std::thread::sleep(std::time::Duration::from_millis(10000));
+		///		return -1;
+		/// };
+		/// block_on(async {
+		///		assert_eq!(race(receive_good_event, timeout).await, 0);
+		///	});
     /// ```
     pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
         MessageStream::from(self.registry.connection()).filter_map(|res| {
