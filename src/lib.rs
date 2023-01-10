@@ -63,5 +63,5 @@ pub enum CoordType {
 }
 
 pub trait AtspiProxy {
-	const INTERFACE: Interface;
+    const INTERFACE: Interface;
 }

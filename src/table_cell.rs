@@ -34,6 +34,6 @@ trait TableCell {
     fn table(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for TableCellProxy<'a>{
-	const INTERFACE: Interface = Interface::TableCell;
+impl<'a> AtspiProxy for TableCellProxy<'a> {
+    const INTERFACE: Interface = Interface::TableCell;
 }

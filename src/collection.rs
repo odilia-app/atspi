@@ -16,15 +16,15 @@ use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
 
 pub type MatchArgs<'a> = (
-	&'a [i32],
-	MatchType,
-	std::collections::HashMap<&'a str, &'a str>,
-	MatchType,
-	&'a [i32],
-	MatchType,
-	&'a [&'a str],
-	MatchType,
-	bool,
+    &'a [i32],
+    MatchType,
+    std::collections::HashMap<&'a str, &'a str>,
+    MatchType,
+    &'a [i32],
+    MatchType,
+    &'a [&'a str],
+    MatchType,
+    bool,
 );
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -109,6 +109,6 @@ trait Collection {
     ) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for CollectionProxy<'a>{
-	const INTERFACE: Interface = Interface::Collection;
+impl<'a> AtspiProxy for CollectionProxy<'a> {
+    const INTERFACE: Interface = Interface::Collection;
 }
