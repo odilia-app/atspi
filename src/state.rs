@@ -263,10 +263,10 @@ impl StateSet {
         self.0.contains(other)
     }
 
-		/// Removes a [`State`] (optionally) previously contained in the `StateSet`.
-		pub fn remove<B: Into<BitFlags<State>>>(&mut self, other: B) {
-			self.0.remove(other);
-		}
+    /// Removes a [`State`] (optionally) previously contained in the `StateSet`.
+    pub fn remove<B: Into<BitFlags<State>>>(&mut self, other: B) {
+        self.0.remove(other);
+    }
 
     ///  Inserts a [`State`] in the `StateSet`.
     pub fn insert<B: Into<BitFlags<State>>>(&mut self, other: B) {
@@ -278,20 +278,20 @@ impl StateSet {
         self.0.iter()
     }
 
-		/// Checks if all states are unset.
-		pub fn is_empty(self) -> bool {
-			self.0.is_empty()
-		}
+    /// Checks if all states are unset.
+    pub fn is_empty(self) -> bool {
+        self.0.is_empty()
+    }
 
-		/// Returns true if at least one flag is shared.
-		pub fn intersects<B: Into<BitFlags<State>>>(self, other: B) -> bool {
-			self.0.intersects(other)
-		}
+    /// Returns true if at least one flag is shared.
+    pub fn intersects<B: Into<BitFlags<State>>>(self, other: B) -> bool {
+        self.0.intersects(other)
+    }
 
-		/// Toggles the matching bits.
-		pub fn toggle<B: Into<BitFlags<State>>>(&mut self, other: B) {
-			self.0.toggle(other)
-		}
+    /// Toggles the matching bits.
+    pub fn toggle<B: Into<BitFlags<State>>>(&mut self, other: B) {
+        self.0.toggle(other)
+    }
 }
 
 impl<'de> Deserialize<'de> for StateSet {
@@ -371,28 +371,28 @@ impl std::ops::BitXorAssign for StateSet {
     }
 }
 impl std::ops::BitOr for StateSet {
-	type Output = StateSet;
+    type Output = StateSet;
 
-	fn bitor(self, other: Self) -> Self::Output {
-		StateSet(self.0 | other.0)
-	}
+    fn bitor(self, other: Self) -> Self::Output {
+        StateSet(self.0 | other.0)
+    }
 }
 impl std::ops::BitOrAssign for StateSet {
-	fn bitor_assign(&mut self, other: Self) {
-		self.0 = self.0 | other.0
-	}
+    fn bitor_assign(&mut self, other: Self) {
+        self.0 = self.0 | other.0
+    }
 }
 impl std::ops::BitAnd for StateSet {
-	type Output = StateSet;
+    type Output = StateSet;
 
-	fn bitand(self, other: Self) -> Self::Output {
-		StateSet(self.0 & other.0)
-	}
+    fn bitand(self, other: Self) -> Self::Output {
+        StateSet(self.0 & other.0)
+    }
 }
 impl std::ops::BitAndAssign for StateSet {
-	fn bitand_assign(&mut self, other: Self) {
-		self.0 = self.0 & other.0
-	}
+    fn bitand_assign(&mut self, other: Self) {
+        self.0 = self.0 & other.0
+    }
 }
 
 #[cfg(test)]

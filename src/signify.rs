@@ -70,4 +70,3 @@ where
         Ok(self.inner().message.header()?.sender()?.cloned())
     }
 }
-

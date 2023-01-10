@@ -102,16 +102,10 @@ trait DeviceEventController {
     fn generate_mouse_event(&self, x: i32, y: i32, event_name: &str) -> zbus::Result<()>;
 
     /// NotifyListenersAsync method
-    fn notify_listeners_async(
-        &self,
-        event: &DeviceEvent<'_>,
-    ) -> zbus::Result<()>;
+    fn notify_listeners_async(&self, event: &DeviceEvent<'_>) -> zbus::Result<()>;
 
     /// NotifyListenersSync method
-    fn notify_listeners_sync(
-        &self,
-        event: &DeviceEvent<'_>,
-    ) -> zbus::Result<bool>;
+    fn notify_listeners_sync(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;
 
     /// RegisterDeviceEventListener method
     fn register_device_event_listener(
@@ -131,6 +125,6 @@ trait DeviceEventController {
     ) -> zbus::Result<bool>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for DeviceEventControllerProxy<'a>{
-	const INTERFACE: Interface = Interface::DeviceEventController;
+impl<'a> AtspiProxy for DeviceEventControllerProxy<'a> {
+    const INTERFACE: Interface = Interface::DeviceEventController;
 }

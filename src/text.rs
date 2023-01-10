@@ -10,10 +10,7 @@
 //! section of the zbus documentation.
 //!
 use serde::{Deserialize, Serialize};
-use zbus::{
-    dbus_proxy,
-    zvariant::Type,
-};
+use zbus::{dbus_proxy, zvariant::Type};
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -158,6 +155,6 @@ trait Text {
 }
 
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for TextProxy<'a>{
-	const INTERFACE: Interface = Interface::Text;
+impl<'a> AtspiProxy for TextProxy<'a> {
+    const INTERFACE: Interface = Interface::Text;
 }
