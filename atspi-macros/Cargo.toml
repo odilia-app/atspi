@@ -1,6 +1,6 @@
 [package]
 name = "atspi-macros"
-version = "0.1.2"
+version = "0.1.4"
 edition = "2021"
 authors = ["Luuk van der Duim <luukvanderduim@gmail.com>", "Tait Hoyem <tait@tait.tech>"]
 description = "Macros to assist in various impl blocks for the `atspi` crate."
@@ -12,15 +12,16 @@ keywords = ["macros", "helper"]
 [lib]
 proc_macro = true
 
+[features]
+default = ["async-io"]
+async-io = ["zbus/async-io"]
+tokio = ["zbus/tokio"]
+
 [dependencies]
 proc-macro2 = "1.0"
 syn = { version = "1.0", features = ["full"] }
 quote = "1.0"
 zbus = { version = "3.0.0", default-features = false, features = ["xml"] }
 zbus_names = "2.4.0"
-zbus_xmlgen = "3.1.0"
-prettyplease = "0.1.22"
 serde = "1.0"
-serde_with = "2.1.0"
-serde-xml-rs = "0.6.0"
 zvariant = "3.9.0"

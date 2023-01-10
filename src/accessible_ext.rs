@@ -2,21 +2,16 @@ use crate::{
     accessible::{AccessibleProxy, RelationType, Role},
     collection::MatchType,
     convertable::Convertable,
-		error::ObjectPathConversionError,
+    error::ObjectPathConversionError,
     InterfaceSet,
 };
 use async_recursion::async_recursion;
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error::Error};
 use zbus::{
-  CacheProperties,
-  zvariant::{
-    ObjectPath,
-    OwnedObjectPath,
-  },
-};
-use serde::{
-	Serialize, Deserialize,
+    zvariant::{ObjectPath, OwnedObjectPath},
+    CacheProperties,
 };
 
 pub type MatcherArgs =
@@ -53,11 +48,11 @@ async fn match_(
     matcher_args: &MatcherArgs,
 ) -> zbus::Result<bool> {
     let roles = &matcher_args.0;
-		if roles.len() != 1 {
-			return Ok(false);
-		}
-		// our unwrap is protected from panicing with the above check
-		Ok(accessible.get_role().await? == *roles.get(0).unwrap())
+    if roles.len() != 1 {
+        return Ok(false);
+    }
+    // our unwrap is protected from panicing with the above check
+    Ok(accessible.get_role().await? == *roles.get(0).unwrap())
 }
 
 impl AccessibleProxy<'_> {
@@ -104,76 +99,76 @@ pub enum AccessibleId {
     Number(i64),
 }
 impl ToString for AccessibleId {
-  fn to_string(&self) -> String {
-    let ending = match self {
-      Self::Null => "null".to_string(),
-      Self::Root => "root".to_string(),
-      Self::Number(int) => int.to_string(),
-    };
-    format!("/org/a11y/atspi/{ending}")
-  }
+    fn to_string(&self) -> String {
+        let ending = match self {
+            Self::Null => "null".to_string(),
+            Self::Root => "root".to_string(),
+            Self::Number(int) => int.to_string(),
+        };
+        format!("/org/a11y/atspi/accessible/{ending}")
+    }
 }
 impl<'a> TryInto<ObjectPath<'a>> for AccessibleId {
-  type Error = zbus::zvariant::Error;
+    type Error = zbus::zvariant::Error;
 
-  fn try_into(self) -> Result<ObjectPath<'a>, Self::Error> {
-    ObjectPath::try_from(self.to_string())
-  }
+    fn try_into(self) -> Result<ObjectPath<'a>, Self::Error> {
+        ObjectPath::try_from(self.to_string())
+    }
 }
 
 impl TryFrom<OwnedObjectPath> for AccessibleId {
-  type Error = ObjectPathConversionError;
+    type Error = ObjectPathConversionError;
 
-  fn try_from(path: OwnedObjectPath) -> Result<Self, Self::Error> {
-      match path.split('/').next_back() {
-          Some("null") => Ok(AccessibleId::Null),
-          Some("root") => Ok(AccessibleId::Root),
-          Some(id) => match id.parse::<i64>() {
-            Ok(uid) => Ok(AccessibleId::Number(uid)),
-            Err(e) => Err(Self::Error::ParseError(e)),
-          },
-          None => Err(Self::Error::NoIdAvailable),
-      }
-  }
+    fn try_from(path: OwnedObjectPath) -> Result<Self, Self::Error> {
+        match path.split('/').next_back() {
+            Some("null") => Ok(AccessibleId::Null),
+            Some("root") => Ok(AccessibleId::Root),
+            Some(id) => match id.parse::<i64>() {
+                Ok(uid) => Ok(AccessibleId::Number(uid)),
+                Err(e) => Err(Self::Error::ParseError(e)),
+            },
+            None => Err(Self::Error::NoIdAvailable),
+        }
+    }
 }
 impl<'a> TryFrom<ObjectPath<'a>> for AccessibleId {
-  type Error = ObjectPathConversionError;
+    type Error = ObjectPathConversionError;
 
-  fn try_from(path: ObjectPath<'a>) -> Result<Self, Self::Error> {
-      match path.split('/').next_back() {
-          Some("null") => Ok(AccessibleId::Null),
-          Some("root") => Ok(AccessibleId::Root),
-          Some(id) => match id.parse::<i64>() {
-            Ok(uid) => Ok(AccessibleId::Number(uid)),
-            Err(e) => Err(Self::Error::ParseError(e)),
-          },
-          None => Err(Self::Error::NoIdAvailable),
-      }
-  }
+    fn try_from(path: ObjectPath<'a>) -> Result<Self, Self::Error> {
+        match path.split('/').next_back() {
+            Some("null") => Ok(AccessibleId::Null),
+            Some("root") => Ok(AccessibleId::Root),
+            Some(id) => match id.parse::<i64>() {
+                Ok(uid) => Ok(AccessibleId::Number(uid)),
+                Err(e) => Err(Self::Error::ParseError(e)),
+            },
+            None => Err(Self::Error::NoIdAvailable),
+        }
+    }
 }
 impl<'a> TryFrom<&ObjectPath<'a>> for AccessibleId {
-  type Error = ObjectPathConversionError;
+    type Error = ObjectPathConversionError;
 
-  fn try_from(path: &ObjectPath<'a>) -> Result<Self, Self::Error> {
-      match path.split('/').next_back() {
-          Some("null") => Ok(AccessibleId::Null),
-          Some("root") => Ok(AccessibleId::Root),
-          Some(id) => match id.parse::<i64>() {
-            Ok(uid) => Ok(AccessibleId::Number(uid)),
-            Err(e) => Err(Self::Error::ParseError(e)),
-          },
-          None => Err(Self::Error::NoIdAvailable),
-      }
-  }
+    fn try_from(path: &ObjectPath<'a>) -> Result<Self, Self::Error> {
+        match path.split('/').next_back() {
+            Some("null") => Ok(AccessibleId::Null),
+            Some("root") => Ok(AccessibleId::Root),
+            Some(id) => match id.parse::<i64>() {
+                Ok(uid) => Ok(AccessibleId::Number(uid)),
+                Err(e) => Err(Self::Error::ParseError(e)),
+            },
+            None => Err(Self::Error::NoIdAvailable),
+        }
+    }
 }
 
 #[async_trait]
 impl AccessibleExt for AccessibleProxy<'_> {
-		/// get_id gets the id (if available) for any accessible.
-		/// This *should* always return a Some(i32) and never None, but you never know.
-		/// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
-		/// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
-		/// It *should* be safe to `.expect()` the return type.
+    /// get_id gets the id (if available) for any accessible.
+    /// This *should* always return a Some(i32) and never None, but you never know.
+    /// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
+    /// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
+    /// It *should* be safe to `.expect()` the return type.
     fn get_id(&self) -> Option<AccessibleId> {
         let path = self.path();
         match path.split('/').next_back() {

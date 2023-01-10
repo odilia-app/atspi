@@ -19,8 +19,8 @@ use crate::{
     cache::CacheItem,
     connection,
     identify::{
-        document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents, object::ObjectEvents, terminal::TerminalEvents,
-        window::WindowEvents,
+        document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
+        object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
     },
     AtspiError,
 };
@@ -170,8 +170,8 @@ impl RemoveAccessibleEvent {
 /// Emitted by `CacheRemove` and `Available`
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Accessible {
-    name: OwnedUniqueName,
-    path: OwnedObjectPath,
+    pub name: OwnedUniqueName,
+    pub path: OwnedObjectPath,
 }
 
 #[test]

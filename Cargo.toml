@@ -1,6 +1,6 @@
 [package]
 name = "atspi"
-version = "0.8.0"
+version = "0.8.7"
 authors = ["Michael Connor Buchan <mikey@blindcomputing.org>", "Tait Hoyem <tait@tait.tech>", "Alberto Tirla <albertotirla@gmail.com>", "DataTriny <datatriny@gmail.com>", "Luuk Duim <luukvanderduim@gmail.com>"]
 description = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
 license = "Apache-2.0 OR MIT" # For ease of integration in the Rust ecosystem.
@@ -18,19 +18,19 @@ publish = true
 
 [features]
 default = ["async-io"]
-async-io = ["zbus/async-io"]
+async-io = ["atspi-macros/async-io", "zbus/async-io"]
 gvariant = ["zbus/gvariant"]
-tokio = ["zbus/tokio"]
+tokio = ["atspi-macros/tokio", "zbus/tokio"]
 
 [dependencies]
-atspi-macros = { version = "0.1.2", path = "atspi-macros" }
+atspi-macros = { version = "0.1.4", path = "atspi-macros" }
 async-recursion = "^1.0.0"
 async-trait = "^0.1.59"
 enumflags2 = "^0.7.5"
 futures-lite = { version = "1.12", default-features = false }
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
 tracing = "^0.1.37"
-zbus = { version = "^3.6.0", default-features = false }
+zbus = { version = "^3.6.2", default-features = false }
 zbus_names = "2.4.0"
 
 [dev-dependencies]

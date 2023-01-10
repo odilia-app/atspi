@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node>
-	<doc><![CDATA[
-//! ## Signified signal types
-//!
-//! The generic `AtspiEvent` has a specific meaning depending on its origin.
-//! This module offers the signified types and their conversions from a generic `AtpiEvent`.
-//!
-//! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
-//!
-	]]></doc>
-
   <!-- FIXME: all the following signatures are incorrect and need to be synched
        with the C code and the actual implementations in toolkits.
 

@@ -225,7 +225,7 @@ pub enum State {
 pub struct StateSet(BitFlags<State>);
 
 impl StateSet {
-    /// Create a new [`StateSet`].
+    /// Create a new `StateSet`.
     ///
     ///## Example
     ///```Rust
@@ -239,7 +239,7 @@ impl StateSet {
         Self(value.into())
     }
 
-    /// Returns the [`StateSet`] that corresponds to the provided `u64`s bit pattern.
+    /// Returns the `StateSet` that corresponds to the provided `u64`s bit pattern.
     ///# Errors
     /// When the argument encodes an undefined [`State`].
     pub fn from_bits(bits: u64) -> Result<StateSet, FromBitsError<State>> {
@@ -247,22 +247,28 @@ impl StateSet {
     }
 
     #[must_use]
-    /// Create an empty [`StateSet`]
+    /// Create an empty `StateSet`
     pub fn empty() -> StateSet {
         StateSet(State::empty())
     }
+
     #[must_use]
     /// Returns the state as represented by a u64.
     pub fn bits(&self) -> u64 {
         self.0.bits()
     }
 
-    /// Whether the [`StateSet`] contains a [`State`].
+    /// Whether the `StateSet` contains a [`State`].
     pub fn contains<B: Into<BitFlags<State>>>(self, other: B) -> bool {
         self.0.contains(other)
     }
 
-    ///  Inserts a [`State`] in the [`StateSet`].
+    /// Removes a [`State`] (optionally) previously contained in the `StateSet`.
+    pub fn remove<B: Into<BitFlags<State>>>(&mut self, other: B) {
+        self.0.remove(other);
+    }
+
+    ///  Inserts a [`State`] in the `StateSet`.
     pub fn insert<B: Into<BitFlags<State>>>(&mut self, other: B) {
         self.0.insert(other);
     }
@@ -270,6 +276,21 @@ impl StateSet {
     /// Returns an iterator that yields each set [`State`].
     pub fn iter(self) -> impl Iterator<Item = State> {
         self.0.iter()
+    }
+
+    /// Checks if all states are unset.
+    pub fn is_empty(self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns true if at least one flag is shared.
+    pub fn intersects<B: Into<BitFlags<State>>>(self, other: B) -> bool {
+        self.0.intersects(other)
+    }
+
+    /// Toggles the matching bits.
+    pub fn toggle<B: Into<BitFlags<State>>>(&mut self, other: B) {
+        self.0.toggle(other)
     }
 }
 
@@ -342,6 +363,35 @@ impl std::ops::BitXor for StateSet {
 
     fn bitxor(self, other: Self) -> Self::Output {
         StateSet(self.0 ^ other.0)
+    }
+}
+impl std::ops::BitXorAssign for StateSet {
+    fn bitxor_assign(&mut self, other: Self) {
+        self.0 = self.0 ^ other.0
+    }
+}
+impl std::ops::BitOr for StateSet {
+    type Output = StateSet;
+
+    fn bitor(self, other: Self) -> Self::Output {
+        StateSet(self.0 | other.0)
+    }
+}
+impl std::ops::BitOrAssign for StateSet {
+    fn bitor_assign(&mut self, other: Self) {
+        self.0 = self.0 | other.0
+    }
+}
+impl std::ops::BitAnd for StateSet {
+    type Output = StateSet;
+
+    fn bitand(self, other: Self) -> Self::Output {
+        StateSet(self.0 & other.0)
+    }
+}
+impl std::ops::BitAndAssign for StateSet {
+    fn bitand_assign(&mut self, other: Self) {
+        self.0 = self.0 & other.0
     }
 }
 

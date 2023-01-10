@@ -12,10 +12,7 @@
 
 use crate::{InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
-use zbus::{
-    dbus_proxy,
-    zvariant::Type,
-};
+use zbus::{dbus_proxy, zvariant::Type};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 /// An accessible object role.
@@ -319,9 +316,7 @@ trait Accessible {
     fn get_localized_role_name(&self) -> zbus::Result<String>;
 
     /// GetRelationSet method
-    fn get_relation_set(
-        &self,
-    ) -> zbus::Result<RelationSet>;
+    fn get_relation_set(&self) -> zbus::Result<RelationSet>;
 
     /// GetRole method
     fn get_role(&self) -> zbus::Result<Role>;
@@ -364,6 +359,6 @@ impl PartialEq for AccessibleProxy<'_> {
 }
 impl Eq for AccessibleProxy<'_> {}
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for AccessibleProxy<'a>{
-	const INTERFACE: Interface = Interface::Accessible;
+impl<'a> AtspiProxy for AccessibleProxy<'a> {
+    const INTERFACE: Interface = Interface::Accessible;
 }

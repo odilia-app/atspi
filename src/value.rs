@@ -33,6 +33,6 @@ trait Value {
     fn minimum_value(&self) -> zbus::Result<f64>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ValueProxy<'a>{
-	const INTERFACE: Interface = Interface::Value;
+impl<'a> AtspiProxy for ValueProxy<'a> {
+    const INTERFACE: Interface = Interface::Value;
 }

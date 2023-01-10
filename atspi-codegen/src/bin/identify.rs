@@ -158,13 +158,27 @@ fn iface_name(iface: &Interface) -> String {
         .to_string()
 }
 
+fn into_rust_enum_str<S>(string: S) -> String
+where
+    S: Into<String>,
+{
+    // needed to escape the uUShadeEvent
+    // make sure Count is its own word
+    // make sure Width is its own word
+    string
+        .into()
+        .replace("uU", "UU")
+        .replace("count", "Count")
+        .replace("width", "Width")
+}
+
 fn events_ident<S>(string: S) -> String
 where
     S: Into<String>,
 {
     let mut sig_name_event_str = string.into();
     sig_name_event_str.push_str("Events");
-    sig_name_event_str.to_string()
+    into_rust_enum_str(sig_name_event_str)
 }
 fn event_ident<S>(string: S) -> String
 where
@@ -172,7 +186,7 @@ where
 {
     let mut sig_name_event_str = string.into();
     sig_name_event_str.push_str("Event");
-    sig_name_event_str.to_string()
+    into_rust_enum_str(sig_name_event_str)
 }
 
 fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName) -> String {
@@ -231,16 +245,19 @@ fn generate_struct_from_signal(signal: &Signal) -> String {
 }
 
 fn generate_variant_from_signal(signal: &Signal) -> String {
-    let sig_name = signal.name();
+    let sig_name = into_rust_enum_str(signal.name());
     let sig_name_event = event_ident(signal.name());
     format!("		{sig_name}({sig_name_event}),")
 }
 
 fn match_arm_for_signal(iface_name: &str, signal: &Signal) -> String {
-    let signal_name = signal.name();
+    let raw_signal_name = signal.name();
+    let enum_signal_name = into_rust_enum_str(raw_signal_name);
     let enum_name = events_ident(iface_name);
-    let signal_struct_name = event_ident(signal_name);
-    format!("				\"{signal_name}\" => Ok({enum_name}::{signal_name}({signal_struct_name}(ev))),")
+    let signal_struct_name = event_ident(raw_signal_name);
+    format!(
+        "				\"{raw_signal_name}\" => Ok({enum_name}::{enum_signal_name}({signal_struct_name}(ev))),"
+    )
 }
 
 fn generate_try_from_atspi_event(iface: &Interface) -> String {
