@@ -23,6 +23,9 @@ use zbus::{
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Interface {
+		/// All objects of an accessibility hirearchy as reported by at-spi2-core must implement this interface.
+		/// You may hear of accessible objects being referred to by the name "accessible".
+		/// This is because they implement the Accessible interface.
     Accessible,
     Action,
     Application,
@@ -32,6 +35,7 @@ pub enum Interface {
     Document,
     DeviceEventController,
     DeviceEventListener,
+		/// Allows access to methods for cut, copy, paste, etc.
     EditableText,
     Hyperlink,
     Hypertext,
@@ -39,8 +43,12 @@ pub enum Interface {
     Registry,
     Selection,
     Socket,
+		/// Allows you to get the number of columns/rows, selected rows and/or columns, etc.
     Table,
+		/// Allows you to get the position within a table, the row, column, if there's a row-span, etc.
     TableCell,
+		/// An interfaces related to text manipulation.
+		/// This interface allows you to get information about the text, select a section of text within the element, etc.
     Text,
     Value,
 }
@@ -128,28 +136,35 @@ impl Serialize for Interface {
 pub struct InterfaceSet(BitFlags<Interface>);
 
 impl InterfaceSet {
+		/// Create a new InterfaceSet based on any value which can become an interface set.
     pub fn new<B: Into<BitFlags<Interface>>>(value: B) -> Self {
         Self(value.into())
     }
 
+		/// Create an empty set of interfaces.
     #[must_use]
     pub fn empty() -> InterfaceSet {
         InterfaceSet(Interface::empty())
     }
 
+		/// Return raw bits of an interface set.
     #[must_use]
     pub fn bits(&self) -> u32 {
         self.0.bits()
     }
 
+		/// Check if the interface set contains another Interface or InterfaceSet.
     pub fn contains<B: Into<BitFlags<Interface>>>(self, other: B) -> bool {
         self.0.contains(other)
     }
 
+		/// Insert an interface into the set.
     pub fn insert<B: Into<BitFlags<Interface>>>(&mut self, other: B) {
         self.0.insert(other);
     }
 
+		/// An iterator of all Interfaces.
+		/// This is usually a debugging feature.
     pub fn iter(self) -> impl Iterator<Item = Interface> {
         self.0.iter()
     }
