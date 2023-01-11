@@ -61,6 +61,8 @@ pub enum CoordType {
     Parent,
 }
 
+/// The AtspiProxy trait identifies that a proxy is directly related to the AT-SPI set of interfaces. It must implement a constant: `INTERFACE` which is a [`crate::Interface`] for compatibility with the [`crate::convertable::Convertable`] trait.
 pub trait AtspiProxy {
+	/// The interface implemented by the proxy. Note that this is not a [`zbus::Interface`], but an internal type.
 	const INTERFACE: Interface;
 }

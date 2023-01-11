@@ -109,8 +109,11 @@ impl From<ObjectPathConversionError> for AtspiError {
 }
 
 #[derive(Clone, Debug)]
+/// Errors which are possible to receive when converting from a string like "/org/a11y/atspi/accessible/XYZ", where XYZ should be some kind of Object id like "253", "0", "null", or "root".
 pub enum ObjectPathConversionError {
+	/// "/org/a11y/atspi/accessible/XYZ" where XYZ is a blank string. All Accessibles must have some kind of ID.
   NoIdAvailable,
+	/// "/org/a11y/atspi/accessible/XYZ" where XYZ is not "null", "root", or a number that can be parsed into an i64.
   ParseError(<i64 as std::str::FromStr>::Err),
 }
 impl std::fmt::Display for ObjectPathConversionError {
