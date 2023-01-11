@@ -74,7 +74,7 @@ impl Connection {
     ///
     /// # Example
     /// ```
-    /// use zbus::{fdo::DBusProxy, MessageType, MatchRule};
+    /// use zbus::{fdo::DBusProxy, MessageType, MatchRule, Address};
     /// use futures_lite::future::{block_on, race, yield_now};
     /// use futures_lite::pin;
     /// use futures_lite::StreamExt;
@@ -89,6 +89,30 @@ impl Connection {
     ///    dbus_connection.add_match_rule(object_match_rule).await.expect("Could not create match rule of org.a11y.atspi.Event.Object interface");
     ///    let a11y_event_stream = connection.event_stream();
     ///    pin!(a11y_event_stream);
+		///#   let addr_parts = std::process::Command::new("busctl").arg("--user").arg("call").arg("org.a11y.Bus").arg("/org/a11y/bus").arg("org.a11y.Bus").arg("GetAddress").output().expect("Could not get a11y bus address");
+		///#   assert_eq!(addr_parts.status.code().expect("No status code for `busctl` command"), 0, "Status code for first `busctl` command is not 0.");
+		///#   let addr_parts_string = String::from_utf8(addr_parts.stdout).expect("Output of `busctl` command is not in UTF-8 format");
+		///#   let mut addr_iter = addr_parts_string.split_whitespace();
+		///#   addr_iter.next(); // this is to remove the first "s" in the output.
+		///#   let mut addr_str = addr_iter.next().expect("Unable to get a11y bus address from output of `busctl` command").replace("\"", "");
+		///#   let mut create_event_base_cmd = std::process::Command::new("busctl");
+		///#   let mut create_event_cmd = create_event_base_cmd
+		///#       .arg("--address")
+		///#       .arg(addr_str)
+		///#       .arg("emit")
+		///#       .arg("/org/a11y/atspi/accessible/null")
+		///#       .arg("org.a11y.atspi.Event.Object")
+		///#       .arg("StateChanged")
+		///#       .arg("siiva{sv}")
+		///#       .arg("active")
+		///#       .arg("0")
+		///#       .arg("0")
+		///#       .arg("i")
+		///#       .arg("0")
+		///#       .arg("0");
+		///#   println!("COMMAND: {:?}", create_event_cmd);
+		///#   let create_event = create_event_cmd.output().expect("Could not create an a11y event with `busctl`");
+		///#   assert_eq!(create_event.status.code().expect("No status code for `busctl` command"), 0, "Second `busctl` command's status code is not 0.");
     ///    while let Some(Ok(event)) = a11y_event_stream.next().await {
     ///        // put your code to handle events here
     ///        return 0;
