@@ -37,6 +37,6 @@ trait Action {
     fn nactions(&self) -> zbus::Result<i32>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ActionProxy<'a>{
-	const INTERFACE: Interface = Interface::Action;
+impl<'a> AtspiProxy for ActionProxy<'a> {
+    const INTERFACE: Interface = Interface::Action;
 }

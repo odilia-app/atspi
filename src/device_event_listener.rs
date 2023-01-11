@@ -19,6 +19,6 @@ trait DeviceEventListener {
     fn notify_event(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;
 }
 use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for DeviceEventListenerProxy<'a>{
-	const INTERFACE: Interface = Interface::DeviceEventListener;
+impl<'a> AtspiProxy for DeviceEventListenerProxy<'a> {
+    const INTERFACE: Interface = Interface::DeviceEventListener;
 }
