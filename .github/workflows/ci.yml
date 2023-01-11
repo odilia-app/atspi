@@ -51,10 +51,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-			- name: Install Dependencies
-# systemd provides the `busctl` command, `at-spi2-core` provides the a11y interfaces
-				run: |
-					sudo apt -y install at-spi2-core systemd
+      - name: Install Dependencies
+        run: |
+          sudo apt -y install at-spi2-core systemd
       - name: Run Tests
         uses: actions-rs/cargo@v1
         with:
