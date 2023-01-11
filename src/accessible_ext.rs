@@ -17,26 +17,37 @@ use zbus::{
 pub type MatcherArgs =
     (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
 
+/// Extentions to the AccessibleProxy struct.
+/// These functions are implemented manually, unlike most AccessibleProxy methods, which are implemented by [`zbus::dbus_proxy`].
 #[async_trait]
 pub trait AccessibleExt {
     // Assumes that an accessible can be made from the component parts
+		/// Get the path (`/org/a11y/atspi/accessible/XYZ`), then extract XYZ, whatever it may be.
     fn get_id(&self) -> Option<AccessibleId>;
+		/// Get the parent information over DBus, then convert it to an AccessibleProxy that can be directly queried.
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>>;
+		/// Get the children information over DBus, then convert it to an AccessibleProxy that can be directly queried.
     async fn get_children_ext<'a>(&self) -> zbus::Result<Vec<AccessibleProxy<'a>>>;
+		/// Get the sibling information over DBus, then convert it to an AccessibleProxy that can be directly queried.
     async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
     async fn get_children_indexes<'a>(&self) -> zbus::Result<Vec<i32>>;
+		/// Get the siblings before the current accessible object, then convert them to usable AccessibleProxys.
     async fn get_siblings_before<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
+		/// Get the siblings after the current accessible object, then convert them to usable AccessibleProxys.
     async fn get_siblings_after<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
+		/// Get all ansectors from most direct parent to the root accessible object.
     async fn get_ancestors<'a>(&self) -> zbus::Result<Vec<AccessibleProxy<'a>>>;
+		/// Get the closest anscestor with a specified role.
     async fn get_ancestor_with_role<'a>(&self, role: Role) -> zbus::Result<AccessibleProxy<'a>>;
-    /* TODO: not sure where these should go since it requires both Text as a self interface and
-     * Hyperlink as children interfaces. */
+		/// Using the current caret position, get the children before or after based on the parameter.
     async fn get_children_caret<'a>(&self, after: bool) -> zbus::Result<Vec<AccessibleProxy<'a>>>;
+		/// Get the next element in the tree which matches the MatcherArgs parameter.
     async fn get_next<'a>(
         &self,
         matcher_args: &MatcherArgs,
         backward: bool,
     ) -> zbus::Result<Option<AccessibleProxy<'a>>>;
+		/// Get the relation set, then convert it into a HashMap where the value is a usable AccessibleProxy.
     async fn get_relation_set_ext<'a>(
         &self,
     ) -> zbus::Result<HashMap<RelationType, Vec<AccessibleProxy<'a>>>>;
@@ -55,6 +66,7 @@ async fn match_(
     Ok(accessible.get_role().await? == *roles.get(0).unwrap())
 }
 
+/// Additional methods for AccessibleProxy which allows structural navigation calls.
 impl AccessibleProxy<'_> {
     #[async_recursion]
     async fn find_inner<'a>(
@@ -92,10 +104,14 @@ impl AccessibleProxy<'_> {
     }
 }
 
+/// A representation of an Accessible id. Over DBus, accessible objects are sent using the following format: "/org/a11y/atspi/accessible/XYZ", where XYZ is is the ID.
 #[derive(Clone, Copy, Hash, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum AccessibleId {
+		/// `/org/a11y/atspi/accessible/null`
     Null,
+		/// `/org/a11y/atspi/accessible/root`
     Root,
+		/// `/org/a11y/atspi/accessible/<i64>`
     Number(i64),
 }
 impl ToString for AccessibleId {

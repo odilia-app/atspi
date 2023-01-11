@@ -1,3 +1,5 @@
+///! Errors for `atspi`.
+
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[non_exhaustive]
