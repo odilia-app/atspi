@@ -74,7 +74,64 @@ impl Connection {
     ///
     /// # Example
     /// ```
-    /// todo!()
+    /// use zbus::{fdo::DBusProxy, MessageType, MatchRule, Address};
+    /// use futures_lite::future::{block_on, race, yield_now};
+    /// use futures_lite::pin;
+    /// use futures_lite::StreamExt;
+    /// let receive_good_event = async {
+    ///    let connection = atspi::Connection::open().await.unwrap();
+    ///    let object_match_rule = MatchRule::builder()
+    ///        .msg_type(MessageType::Signal)
+    ///        .interface("org.a11y.atspi.Event.Object")
+		///        .unwrap()
+    ///        .build();
+    ///    // crates a DBus proxy object using the same connection as the AT-SPI proxy.
+    ///    let dbus_connection = DBusProxy::new(connection.connection()).await.unwrap();
+    ///    dbus_connection.add_match_rule(object_match_rule).await.unwrap();
+    ///    let a11y_event_stream = connection.event_stream();
+    ///    pin!(a11y_event_stream);
+		///#   let addr_parts = std::process::Command::new("busctl").arg("--user").arg("call").arg("org.a11y.Bus").arg("/org/a11y/bus").arg("org.a11y.Bus").arg("GetAddress").output().unwrap();
+		///#   assert_eq!(addr_parts.status.code().unwrap(), 0, "Status code for first `busctl` command is not 0.");
+		///#   let addr_parts_string = String::from_utf8(addr_parts.stdout).unwrap();
+		///#   let mut addr_iter = addr_parts_string.split_whitespace();
+		///#   addr_iter.next(); // this is to remove the first "s" in the output.
+		///#   let mut addr_str = addr_iter.next().unwrap().replace("\"", "");
+		///#   let mut create_event_base_cmd = std::process::Command::new("busctl");
+		///#   let mut create_event_cmd = create_event_base_cmd
+		///#       .arg("--address")
+		///#       .arg(addr_str)
+		///#       .arg("emit")
+		///#       .arg("/org/a11y/atspi/accessible/null")
+		///#       .arg("org.a11y.atspi.Event.Object")
+		///#       .arg("StateChanged")
+		///#       .arg("siiva{sv}")
+		///#       .arg("active")
+		///#       .arg("0")
+		///#       .arg("0")
+		///#       .arg("i")
+		///#       .arg("0")
+		///#       .arg("0");
+		///#   println!("COMMAND: {:?}", create_event_cmd);
+		///#   let create_event = create_event_cmd.output().unwrap();
+		///#   assert_eq!(create_event.status.code().unwrap(), 0, "Second `busctl` command existed with an failed status code.");
+    ///    while let Some(Ok(event)) = a11y_event_stream.next().await {
+    ///        // put your code to handle events here
+    ///        return 0;
+    ///    }
+    ///    return 1;
+    /// };
+    /// let timeout = async {
+    ///    let start = std::time::Instant::now();
+    ///    let mut now = std::time::Instant::now();
+    ///    while now - start < std::time::Duration::from_secs(10) {
+    ///        yield_now().await;
+    ///        now = std::time::Instant::now();
+    ///    }
+    ///    return -1;
+    /// };
+    /// block_on(async {
+    ///    assert_eq!(race(receive_good_event, timeout).await, 0);
+    /// });
     /// ```
     pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
         MessageStream::from(self.registry.connection()).filter_map(|res| {
