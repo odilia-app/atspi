@@ -79,22 +79,23 @@ impl Connection {
     /// use futures_lite::pin;
     /// use futures_lite::StreamExt;
     /// let receive_good_event = async {
-    ///    let connection = atspi::Connection::open().await.expect("Could not open a11y bus.");
+    ///    let connection = atspi::Connection::open().await.unwrap();
     ///    let object_match_rule = MatchRule::builder()
     ///        .msg_type(MessageType::Signal)
-    ///        .interface("org.a11y.atspi.Event.Object").expect("Can not build MatchRule with interface org.a11y.atspi.Event.Object")
+    ///        .interface("org.a11y.atspi.Event.Object")
+		///        .unwrap()
     ///        .build();
     ///    // crates a DBus proxy object using the same connection as the AT-SPI proxy.
-    ///    let dbus_connection = DBusProxy::new(connection.connection()).await.expect("Could not create DBus proxy!");
-    ///    dbus_connection.add_match_rule(object_match_rule).await.expect("Could not create match rule of org.a11y.atspi.Event.Object interface");
+    ///    let dbus_connection = DBusProxy::new(connection.connection()).await.unwrap();
+    ///    dbus_connection.add_match_rule(object_match_rule).await.unwrap();
     ///    let a11y_event_stream = connection.event_stream();
     ///    pin!(a11y_event_stream);
-		///#   let addr_parts = std::process::Command::new("busctl").arg("--user").arg("call").arg("org.a11y.Bus").arg("/org/a11y/bus").arg("org.a11y.Bus").arg("GetAddress").output().expect("Could not get a11y bus address");
-		///#   assert_eq!(addr_parts.status.code().expect("No status code for `busctl` command"), 0, "Status code for first `busctl` command is not 0.");
-		///#   let addr_parts_string = String::from_utf8(addr_parts.stdout).expect("Output of `busctl` command is not in UTF-8 format");
+		///#   let addr_parts = std::process::Command::new("busctl").arg("--user").arg("call").arg("org.a11y.Bus").arg("/org/a11y/bus").arg("org.a11y.Bus").arg("GetAddress").output().unwrap();
+		///#   assert_eq!(addr_parts.status.code().unwrap(), 0, "Status code for first `busctl` command is not 0.");
+		///#   let addr_parts_string = String::from_utf8(addr_parts.stdout).unwrap();
 		///#   let mut addr_iter = addr_parts_string.split_whitespace();
 		///#   addr_iter.next(); // this is to remove the first "s" in the output.
-		///#   let mut addr_str = addr_iter.next().expect("Unable to get a11y bus address from output of `busctl` command").replace("\"", "");
+		///#   let mut addr_str = addr_iter.next().unwrap().replace("\"", "");
 		///#   let mut create_event_base_cmd = std::process::Command::new("busctl");
 		///#   let mut create_event_cmd = create_event_base_cmd
 		///#       .arg("--address")
@@ -111,8 +112,8 @@ impl Connection {
 		///#       .arg("0")
 		///#       .arg("0");
 		///#   println!("COMMAND: {:?}", create_event_cmd);
-		///#   let create_event = create_event_cmd.output().expect("Could not create an a11y event with `busctl`");
-		///#   assert_eq!(create_event.status.code().expect("No status code for `busctl` command"), 0, "Second `busctl` command's status code is not 0.");
+		///#   let create_event = create_event_cmd.output().unwrap();
+		///#   assert_eq!(create_event.status.code().unwrap(), 0, "Second `busctl` command existed with an failed status code.");
     ///    while let Some(Ok(event)) = a11y_event_stream.next().await {
     ///        // put your code to handle events here
     ///        return 0;
