@@ -350,7 +350,7 @@ pub fn create_events_from_xml(file_name: &str) -> String {
     let module_level_doc = {
         if let Some(doc) = data.doc() {
             let docdata = doc.data;
-            format!("{STRIPPER_IGNORE_START}\n{docdata}\n{STRIPPER_IGNORE_STOP}\n")
+            format!("{STRIPPER_IGNORE_START}\n{docdata}\n{STRIPPER_IGNORE_STOP}")
         } else {
             String::new()
         }
@@ -536,7 +536,7 @@ fn read_file_to_vec(path: &Path) -> Vec<(Option<String>, DocType)> {
 // If this does not work, we might want to use `syn`.
 fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
     let mut source_string = String::new();
-    let mut docvec_remains = docvec.clone();
+    let mut remains = docvec.clone();
 
     {
         let mut source = OpenOptions::new()
@@ -550,18 +550,16 @@ fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
     }
 
     // Make Vec<String>s from whole String.
-    let vec_of_strings: Vec<String> = source_string.lines().map(|s| s.to_string()).collect();
-    let mut new_vec_of_strings: Vec<String> = vec_of_strings.clone();
+    let source_lines: Vec<String> = source_string.lines().map(|s| s.to_string()).collect();
+    let mut source_and_doc_lines: Vec<String> = source_lines.clone();
 
     // For each key in map, look for lines in Vec that contain that key.
     // if so, insert docs that point, honoring distance and taking in account offset,
-    let mut prev_inserted_lines: usize = 0;
     for (k, v) in docvec {
         if k.is_none() {
             if let DocType::Module(ModuleLevel { ref doc }) = v {
-                new_vec_of_strings.splice(0..0, doc.iter().cloned());
-                prev_inserted_lines += doc.len();
-                docvec_remains.retain(|tup| *tup != (k.clone(), v.clone()));
+                source_and_doc_lines.splice(0..0, doc.iter().cloned());
+                remains.retain(|tup| *tup != (k.clone(), v.clone()));
                 continue;
             } else {
                 unreachable!("k == None implies ModuleLevel docs.");
@@ -569,20 +567,22 @@ fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
         }
 
         let pat = k.clone().unwrap();
-        for (idx, s) in vec_of_strings.iter().enumerate() {
+        for s in source_lines.iter() {
             if s.contains(&pat) {
+                let idx = source_and_doc_lines
+                    .iter()
+                    .position(|line| (*line).contains(&pat))
+                    .expect("source_lines contains pat, therefore source_and_doc_lines does too");
                 match v {
                     DocType::Item(ItemLevel { dist, ref doc }) => {
-                        let i = idx + prev_inserted_lines - dist as usize;
-                        new_vec_of_strings.splice(i..i, doc.iter().cloned());
-                        prev_inserted_lines += doc.len();
-                        docvec_remains.retain(|tup| *tup != (k.clone(), v.clone()));
+                        let i = idx - dist as usize;
+                        source_and_doc_lines.splice(i..i, doc.iter().cloned());
+                        remains.retain(|tup| *tup != (k.clone(), v.clone()));
                     }
                     DocType::Comment(Comment { dist, ref doc }) => {
-                        let i = idx + prev_inserted_lines - dist as usize;
-                        new_vec_of_strings.splice(i..i, doc.iter().cloned());
-                        prev_inserted_lines += doc.len();
-                        docvec_remains.retain(|tup| *tup != (k.clone(), v.clone()));
+                        let i = idx - dist as usize;
+                        source_and_doc_lines.splice(i..i, doc.iter().cloned());
+                        remains.retain(|tup| *tup != (k.clone(), v.clone()));
                     }
                     _ => {
                         unreachable!("k == None implies ModuleLevel docs.");
@@ -594,7 +594,7 @@ fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
     }
 
     // collect all strings in vec
-    let new_source: String = new_vec_of_strings
+    let new_source: String = source_and_doc_lines
         .into_iter()
         .map(|line| if !line.ends_with("\n") { line + "\n" } else { line })
         .collect();
@@ -602,10 +602,12 @@ fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
     // write string to source
     std::fs::write(path, new_source).expect("Unable to write file");
 
-    if !docvec_remains.is_empty() {
-        println!("The following items could not be reinstated:");
-        println!("{docvec_remains:#?}");
+    if remains.is_empty() {
+        return;
     }
+    println!("The following items could not be reinstated:");
+    println!("{remains:#?}");
+    println!("Number of items not reinstated: {}", remains.len());
 }
 
 /// Writes the map to the path

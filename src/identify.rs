@@ -5,6 +5,9 @@
 //!
 //! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
 //!
+
+// ---------------> Object types:
+
 pub mod object {
     use crate::{
         error::AtspiError,
@@ -15,6 +18,34 @@ pub mod object {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    /// Any of the `Object` events.
+    ///
+    /// Event table for the contained types:
+    ///
+    /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+    /// |:--|---|---|---|---|---|---|
+    /// |Object|PropertyChange|property|    |    |value|properties|
+    /// |Object|BoundsChanged|    |    |    |    |properties|
+    /// |Object|LinkSelected|    |    |    |    |properties|
+    /// |Object|StateChanged|state|enabled|    |    |properties|
+    /// |`Object|ChildrenChanged|operation|index_in_parent`|    |child|properties|
+    /// |Object|VisibleDataChanged|    |    |    |    |properties|
+    /// |Object|SelectionChanged|    |    |    |    |properties|
+    /// |Object|ModelChanged|    |    |    |    |properties|
+    /// |Object|ActiveDescendantChanged|    |    |    |child|properties|
+    /// |Object|Announcement|text|    |    |    |properties|
+    /// |Object|AttributesChanged|    |    |    |    |properties|
+    /// |Object|RowInserted|    |    |    |    |properties|
+    /// |Object|RowReordered|    |    |    |    |properties|
+    /// |Object|RowDeleted|    |    |    |    |properties|
+    /// |Object|ColumnInserted|    |    |    |    |properties|
+    /// |Object|ColumnReordered|    |    |    |    |properties|
+    /// |Object|ColumnDeleted|    |    |    |    |properties|
+    /// |Object|TextBoundsChanged|    |    |    |    |properties|
+    /// |Object|TextSelectionChanged|    |    |    |    |properties|
+    /// |`Object|TextChanged|detail|start_pos|end_pos|text|properties`|
+    /// |Object|TextAttributesChanged|    |    |    |    |properties|
+    /// |Object|TextCaretMoved|    |position|    |    |properties|
     #[derive(Clone, Debug)]
     pub enum ObjectEvents {
         PropertyChange(PropertyChangeEvent),
@@ -41,6 +72,9 @@ pub mod object {
         TextCaretMoved(TextCaretMovedEvent),
     }
 
+    // ------<- end of Obj signals
+    // ----------> Start of Win
+
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
 
@@ -65,6 +99,7 @@ pub mod object {
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ModelChangedEvent(pub(crate) AtspiEvent);
 
+    // TODO Check my impl please.
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ActiveDescendantChangedEvent(pub(crate) AtspiEvent);
 
@@ -252,6 +287,31 @@ pub mod window {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    /// Any of the `Window` events.
+    ///
+    /// Event table for the contained types:
+    ///
+    /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+    /// |:--|---|---|---|---|---|---|
+    /// |Window|PropertyChange|property|    |    |    |properties|
+    /// |Window|Minimize|    |    |    |    |properties|
+    /// |Window|Maximize|    |    |    |    |properties|
+    /// |Window|Restore|    |    |    |    |properties|
+    /// |Window|Close|    |    |    |    |properties|
+    /// |Window|Create|    |    |    |    |properties|
+    /// |Window|Reparent|    |    |    |    |properties|
+    /// |Window|DesktopCreate|    |    |    |    |properties|
+    /// |Window|DesktopDestroy|    |    |    |    |properties|
+    /// |Window|Destroy|    |    |    |    |properties|
+    /// |Window|Activate|    |    |    |    |properties|
+    /// |Window|Deactivate|    |    |    |    |properties|
+    /// |Window|Raise|    |    |    |    |properties|
+    /// |Window|Lower|    |    |    |    |properties|
+    /// |Window|Move|    |    |    |    |properties|
+    /// |Window|Resize|    |    |    |    |properties|
+    /// |Window|Shade|    |    |    |    |properties|
+    /// |Window|uUshade|    |    |    |    |properties|
+    /// |Window|Restyle|    |    |    |    |properties|
     #[derive(Clone, Debug)]
     pub enum WindowEvents {
         PropertyChange(PropertyChangeEvent),
@@ -411,12 +471,36 @@ pub mod mouse {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    /// Any of the `Mouse` events.
+    ///
+    /// Those interested in `Event.Mouse` events, this enum
+    /// may help select and specify for those on a stream:
+    ///
+    /// # Example
+    /// ```
+    /// // Boilerplate omitted.
+    /// use crate::identify::MouseEvent;
+    ///
+    /// while let Ok(Some(ev)) = event_stream.next().await? {
+    ///   let mse_ev: MouseEvent = ev.try_into()?;
+    /// }
+    ///  ```
+    /// Event table for the contained types:
+    ///
+    /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+    /// |:--|---|---|---|---|---|---|
+    /// |Mouse|Abs|    |x|y|    |properties|
+    /// |Mouse|Rel|    |x|y|    |properties|
+    /// |`Mouse|Button|detail|mouse_x|mouse_y`|    |properties|
     #[derive(Clone, Debug)]
     pub enum MouseEvents {
         Abs(AbsEvent),
         Rel(RelEvent),
         Button(ButtonEvent),
     }
+
+    // ----------<- end of Win signals
+    // ----------> Start of Mse
 
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct AbsEvent(pub(crate) AtspiEvent);
@@ -428,11 +512,23 @@ pub mod mouse {
     pub struct ButtonEvent(pub(crate) AtspiEvent);
 
     impl AbsEvent {
+        /// X-coordinate of mouse button event
+        ///  Coordinates are absolute, with the origin in the top-left of the 'root window'
+        /// X-coordinate of mouse button event
+        ///  Coordinates are absolute, with the origin in the top-left of the 'root window'
+        /// X-coordinate of mouse button event
+        /// X-coordinate of mouse button event
         #[must_use]
         pub fn x(&self) -> i32 {
             self.0.detail1()
         }
 
+        /// Y-coordinate of mouse button event
+        /// Coordinates are absolute, with the origin in the top-left of the 'root window'
+        /// Y-coordinate of mouse button event
+        /// Coordinates are absolute, with the origin in the top-left of the 'root window'
+        /// Y-coordinate of mouse button event
+        /// Y-coordinate of mouse button event
         #[must_use]
         pub fn y(&self) -> i32 {
             self.0.detail2()
@@ -488,10 +584,36 @@ pub mod keyboard {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    /// The `Keyboard` events.
+    ///
+    /// Contains the variant of the `Keyboard` event.
+    /// While this enum has only one item, it is defined nevertheless
+    /// to keep conversion requirements congruent over all types.
+    ///
+    /// If you are interested in `Event.Keyboard` events, this enum
+    /// may, for instance, help you select for those on a stream:
+    ///
+    /// # Example
+    /// ```
+    /// // Boilerplate omitted.
+    /// use crate::identify::KeyboardEvent;
+    ///
+    /// while let Ok(Some(ev)) = event_stream.next().await? {
+    ///   let kb_ev: KeyboardEvent = ev.try_into()?;
+    /// }
+    ///  ```
+    /// Event table for the contained types:
+    ///
+    /// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
+    /// |:--|---|---|---|---|---|---|
+    /// |Keyboard|Modifiers|    |`previous_modifiers`|`current_modifiers`|    |properties|
     #[derive(Clone, Debug)]
     pub enum KeyboardEvents {
         Modifiers(ModifiersEvent),
     }
+
+    // ----------<- end of Mse signals
+    // ----------> Start of Kbd
 
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ModifiersEvent(pub(crate) AtspiEvent);
@@ -531,6 +653,29 @@ pub mod terminal {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    /// Any of the `Terminal` events.
+    ///
+    /// If you are interested in `Event.Terminal` events, this enum
+    /// may, for instance, help you select for those on a stream:
+    ///
+    /// # Example
+    /// ```
+    /// // Boilerplate omitted.
+    /// use crate::identify::TerminalEvent;
+    ///
+    /// while let Ok(Some(ev)) = event_stream.next().await? {
+    ///   let term_ev: TerminalEvent = ev.try_into()?;
+    /// }
+    ///  ```
+    /// Event table for the contained types:
+    ///
+    /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+    /// |:--|---|---|---|---|---|---|
+    /// |Terminal|LineChanged|    |    |    |    |properties|
+    /// |Terminal|ColumncountChanged|    |    |    |    |properties|
+    /// |Terminal|LinecountChanged|    |    |    |    |properties|
+    /// |Terminal|ApplicationChanged|    |    |    |    |properties|
+    /// |Terminal|CharwidthChanged|    |    |    |    |properties|
     #[derive(Clone, Debug)]
     pub enum TerminalEvents {
         LineChanged(LineChangedEvent),
@@ -539,6 +684,9 @@ pub mod terminal {
         ApplicationChanged(ApplicationChangedEvent),
         CharWidthChanged(CharWidthChangedEvent),
     }
+
+    // ----------<- end of Kbd signals
+    // ----------> Start of Term
 
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LineChangedEvent(pub(crate) AtspiEvent);
@@ -600,6 +748,34 @@ pub mod document {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    /// Any of the `Document` events.
+    ///
+    /// If you are interested in `Event.Document` events, this enum
+    /// may help you select for these:
+    ///
+    /// # Example
+    /// ```
+    /// // Boilerplate omitted.
+    /// use crate::identify::DocumentEvent;
+    ///
+    /// while let Ok(Some(ev)) = event_stream.next().await? {
+    ///     let doc_ev: DocumentEvent = ev.try_into()?;
+    /// }
+    ///  ```
+    /// The event details encoded in the de-generalized types.
+    ///
+    ///
+    ///
+    /// Event table for the contained types:
+    ///
+    /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+    /// |:--|---|---|---|---|---|---|
+    /// |Document|LoadComplete|    |    |    |    |properties|
+    /// |Document|Reload|    |    |    |    |properties|
+    /// |Document|LoadStopped|    |    |    |    |properties|
+    /// |Document|ContentChanged|    |    |    |    |properties|
+    /// |Document|AttributesChanged|    |    |    |    |properties|
+    /// |Document|PageChanged|    |    |    |    |properties|
     #[derive(Clone, Debug)]
     pub enum DocumentEvents {
         LoadComplete(LoadCompleteEvent),
@@ -609,6 +785,9 @@ pub mod document {
         AttributesChanged(AttributesChangedEvent),
         PageChanged(PageChangedEvent),
     }
+
+    // -------<- end of Term signals
+    // ----------> Start of Doc
 
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LoadCompleteEvent(pub(crate) AtspiEvent);
@@ -670,11 +849,26 @@ pub mod focus {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    /// The `Focus` event.
+    /// ## Deprecation notice!!
+    /// since: AT-SPI 2.9.4
+    /// This signal is deprecated and may be removed in the near future.
+    /// Monitor `StateChanged::Focused` signals instead.
+    ///
+    /// Event table for the contained types:
+    ///
+    /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
+    /// |:--|---|---|---|---|---|---|
+    /// |Focus|Focus|    |    |    |    |properties|
     #[derive(Clone, Debug)]
     pub enum FocusEvents {
         Focus(FocusEvent),
     }
 
+    // ---------- End of Doc
+    // ----------> Start of Focus
+
+    // #[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct FocusEvent(pub(crate) AtspiEvent);
 
