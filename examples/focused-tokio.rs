@@ -24,10 +24,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tokio::pin!(events);
 
     while let Some(Ok(ev)) = events.next().await {
-        let Ok(change)  = <StateChangedEvent>::try_from(ev) else { continue; };
+        let Ok(change)  = <StateChangedEvent>::try_from(ev) else { continue };
 
         if change.kind() == "focused" && change.enabled() == 1 {
-            let Some(bus_name) = change.inner().sender()? else { continue; };
+            let Some(bus_name) = change.inner().sender()? else { continue };
             println!("Accessible belonging to {bus_name}  focused!");
         }
     }
