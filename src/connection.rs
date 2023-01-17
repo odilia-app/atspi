@@ -1,9 +1,25 @@
+use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
+use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
+use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
 
-use futures::stream::{Stream, StreamExt};
-use zbus::{Address, MessageStream};
-
-use crate::{bus::BusProxy, events::Event, registry::RegistryProxy};
+// Event body signatures: These outline the event specific deserialized event types.
+// Safety: These are evaluated at compile time.
+// ----
+// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
+// -  Cache : RemoveAccessible
+// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
+//
+// ATSPI- and QSPI both describe the generic events. These can be converted into
+// specific signal types with TryFrom implementations. See crate::[`identify`]
+//  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
+//  CACHE_ADD and *_REMOVE have very different types
+pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
+pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
+pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
+pub const CACHE_ADD: Signature<'_> =
+    Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
 /// A connection to the at-spi bus
 pub struct Connection {
@@ -31,29 +47,44 @@ impl Connection {
         Self::connect(addr).await
     }
 
+    /// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
+    /// on the accessibility bus.
+    ///
+    /// You may want to call this if you have the accessibility bus address and want a connection with
+    /// a convenient async event stream provisioning.
+    ///
+    /// Without address, you will want to call  `open`, which tries to obtain the accessibility bus' address
+    /// on your behalf.
+    ///
+    /// ## Errors
+    /// * `RegistryProxy` is configured with invalid path, interface or destination defaults.
     pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
         tracing::debug!("Connecting to a11y bus");
         let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
-        tracing::debug!(
-            name = bus.unique_name().map(|n| n.as_str()),
-            "Connected to a11y bus"
-        );
+        tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
         // The Proxy holds a strong reference to a Connection, so we only need to store the proxy
         let registry = RegistryProxy::new(&bus).await?;
 
         Ok(Self { registry })
     }
 
-    pub fn event_stream(&self) -> impl Stream<Item = zbus::Result<Event>> {
-        MessageStream::from(self.registry.connection()).filter_map(|res| async move {
+    /// Stream yielding all `Event` types.
+    ///
+    /// Monitor this stream to be notified and receive events on the a11y bus.
+    ///
+    /// # Example
+    /// ```
+    /// todo!()
+    /// ```
+    pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
+        MessageStream::from(self.registry.connection()).filter_map(|res| {
             let msg = match res {
                 Ok(m) => m,
-                Err(e) => return Some(Err(e)),
+                Err(e) => return Some(Err(e.into())),
             };
-            if msg.interface()?.starts_with("org.a11y.atspi.Event.") {
-                Some(Event::try_from(msg))
-            } else {
-                None
+            match msg.message_type() {
+                MessageType::Signal => Some(Event::try_from(msg)),
+                _ => None,
             }
         })
     }
@@ -65,4 +96,37 @@ impl Deref for Connection {
     fn deref(&self) -> &Self::Target {
         &self.registry
     }
+}
+
+/// Set the `IsEnabled` property in the session bus.
+///
+/// Assistive Technology provider applications (ATs) should set the accessibility
+/// `IsEnabled` status on the users session bus on startup as applications may monitor this property
+/// to  enable their accessibility support dynamically.
+///
+/// See: The [freedesktop - AT-SPI2 wiki](https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/)
+///
+///  ## Example
+/// ```rust
+///     use futures_lite::future::block_on;
+///
+///     let result =  block_on( atspi::set_session_accessibility(true) );
+///     assert!(result.is_ok());
+/// ```
+///  ## Errors
+/// * when no connection with the session bus can be established,
+/// * if creation of a [`crate::bus::StatusProxy`] fails
+/// * if the `IsEnabled` property cannot be read
+/// * the `IsEnabled` property cannot be set.
+pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), AtspiError> {
+    // Get a connection to the session bus.
+    let session = zbus::Connection::session().await?;
+
+    // Aqcuire a `StatusProxy` for the session bus.
+    let status_proxy = crate::bus::StatusProxy::new(&session).await?;
+
+    if status_proxy.is_enabled().await? != status {
+        status_proxy.set_is_enabled(status).await?;
+    }
+    Ok(())
 }

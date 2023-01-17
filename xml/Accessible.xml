@@ -990,8 +990,7 @@
     <!--
         GetInterfaces:
 
-        Returns an array of accessible interface names supported by the current object.  Interface names
-        are in shorthand, i.e. "Text", not "org.a11y.atspi.Text".
+        Returns an array of accessible interface names supported by the current object.
     -->
     <method name="GetInterfaces">
       <arg direction="out" type="as"/>

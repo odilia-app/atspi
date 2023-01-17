@@ -1,6 +1,6 @@
 use zbus::dbus_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Event.Document")]
+#[dbus_proxy(interface = "org.a11y.atspi.Event.Document", assume_defaults = true)]
 trait Document {
     /// AttributesChanged signal
     #[dbus_proxy(signal)]

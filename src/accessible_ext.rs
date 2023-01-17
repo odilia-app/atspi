@@ -2,24 +2,28 @@ use crate::{
     accessible::{AccessibleProxy, RelationType, Role},
     collection::MatchType,
     convertable::Convertable,
+		error::ObjectPathConversionError,
     InterfaceSet,
 };
 use async_recursion::async_recursion;
 use std::{collections::HashMap, error::Error};
-use zbus::CacheProperties;
+use zbus::{
+  CacheProperties,
+  zvariant::{
+    ObjectPath,
+    OwnedObjectPath,
+  },
+};
+use serde::{
+	Serialize, Deserialize,
+};
 
-pub type MatcherArgs = (
-    Vec<Role>,
-    MatchType,
-    HashMap<String, String>,
-    MatchType,
-    InterfaceSet,
-    MatchType,
-);
+pub type MatcherArgs =
+    (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
 
 pub trait AccessibleExt {
     // Assumes that an accessible can be made from the component parts
-    async fn get_id(&self) -> Option<u32>;
+    fn get_id(&self) -> Option<AccessibleId>;
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>>;
     async fn get_children_ext<'a>(&self) -> zbus::Result<Vec<AccessibleProxy<'a>>>;
     async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
@@ -41,17 +45,17 @@ pub trait AccessibleExt {
     ) -> zbus::Result<HashMap<RelationType, Vec<AccessibleProxy<'a>>>>;
 }
 
-// TODO: make match more broad, allow use of other parameters
+// TODO: make match more broad, allow use of other parameters; also, support multiple roles, since right now, multiple will just exit immediately with false
 async fn match_(
     accessible: &AccessibleProxy<'_>,
     matcher_args: &MatcherArgs,
 ) -> zbus::Result<bool> {
     let roles = &matcher_args.0;
-    if roles.len() == 1 {
-        Ok(accessible.get_role().await? == *roles.get(0).unwrap())
-    } else {
-        Ok(false)
-    }
+		if roles.len() != 1 {
+			return Ok(false);
+		}
+		// our unwrap is protected from panicing with the above check
+		Ok(accessible.get_role().await? == *roles.get(0).unwrap())
 }
 
 impl AccessibleProxy<'_> {
@@ -82,8 +86,7 @@ impl AccessibleProxy<'_> {
                 return Ok(Some(child));
             }
             /* 0 here is ignored because we are recursive; see the line starting with if !recur */
-            if let Some(found_decendant) =
-                child.find_inner(0, matcher_args, backward, true).await?
+            if let Some(found_decendant) = child.find_inner(0, matcher_args, backward, true).await?
             {
                 return Ok(Some(found_decendant));
             }
@@ -92,16 +95,93 @@ impl AccessibleProxy<'_> {
     }
 }
 
+#[derive(Clone, Copy, Hash, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum AccessibleId {
+    Null,
+    Root,
+    Number(i64),
+}
+impl ToString for AccessibleId {
+  fn to_string(&self) -> String {
+    let ending = match self {
+      Self::Null => "null".to_string(),
+      Self::Root => "root".to_string(),
+      Self::Number(int) => int.to_string(),
+    };
+    format!("/org/a11y/atspi/accessible/{ending}")
+  }
+}
+impl<'a> TryInto<ObjectPath<'a>> for AccessibleId {
+  type Error = zbus::zvariant::Error;
+
+  fn try_into(self) -> Result<ObjectPath<'a>, Self::Error> {
+    ObjectPath::try_from(self.to_string())
+  }
+}
+
+impl TryFrom<OwnedObjectPath> for AccessibleId {
+  type Error = ObjectPathConversionError;
+
+  fn try_from(path: OwnedObjectPath) -> Result<Self, Self::Error> {
+      match path.split('/').next_back() {
+          Some("null") => Ok(AccessibleId::Null),
+          Some("root") => Ok(AccessibleId::Root),
+          Some(id) => match id.parse::<i64>() {
+            Ok(uid) => Ok(AccessibleId::Number(uid)),
+            Err(e) => Err(Self::Error::ParseError(e)),
+          },
+          None => Err(Self::Error::NoIdAvailable),
+      }
+  }
+}
+impl<'a> TryFrom<ObjectPath<'a>> for AccessibleId {
+  type Error = ObjectPathConversionError;
+
+  fn try_from(path: ObjectPath<'a>) -> Result<Self, Self::Error> {
+      match path.split('/').next_back() {
+          Some("null") => Ok(AccessibleId::Null),
+          Some("root") => Ok(AccessibleId::Root),
+          Some(id) => match id.parse::<i64>() {
+            Ok(uid) => Ok(AccessibleId::Number(uid)),
+            Err(e) => Err(Self::Error::ParseError(e)),
+          },
+          None => Err(Self::Error::NoIdAvailable),
+      }
+  }
+}
+impl<'a> TryFrom<&ObjectPath<'a>> for AccessibleId {
+  type Error = ObjectPathConversionError;
+
+  fn try_from(path: &ObjectPath<'a>) -> Result<Self, Self::Error> {
+      match path.split('/').next_back() {
+          Some("null") => Ok(AccessibleId::Null),
+          Some("root") => Ok(AccessibleId::Root),
+          Some(id) => match id.parse::<i64>() {
+            Ok(uid) => Ok(AccessibleId::Number(uid)),
+            Err(e) => Err(Self::Error::ParseError(e)),
+          },
+          None => Err(Self::Error::NoIdAvailable),
+      }
+  }
+}
+
 impl AccessibleExt for AccessibleProxy<'_> {
-    async fn get_id(&self) -> Option<u32> {
+		/// get_id gets the id (if available) for any accessible.
+		/// This *should* always return a Some(i32) and never None, but you never know.
+		/// Sometimes, a path (`/org/a11y/atspi/accessible/XYZ`) may contain a special value for `XYZ`.
+		/// For example: "null" (invalid item), or "root" (the ancestor of all accessibles).
+		/// It *should* be safe to `.expect()` the return type.
+    fn get_id(&self) -> Option<AccessibleId> {
         let path = self.path();
-        if let Some(id) = path.split('/').next_back() {
-            if let Ok(uid) = id.parse::<u32>() {
-                tracing::debug!("ID: {:?}", uid);
-                return Some(uid);
-            }
+        match path.split('/').next_back() {
+            Some("null") => Some(AccessibleId::Null),
+            Some("root") => Some(AccessibleId::Root),
+            Some(id) => match id.parse::<i64>() {
+                Ok(uid) => Some(AccessibleId::Number(uid)),
+                _ => None,
+            },
+            _ => None,
         }
-        None
     }
     async fn get_parent_ext<'a>(&self) -> zbus::Result<AccessibleProxy<'a>> {
         let parent_parts = self.parent().await?;
@@ -133,9 +213,11 @@ impl AccessibleExt for AccessibleProxy<'_> {
         }
         Ok(children)
     }
-    async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>  {
+    async fn get_siblings<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>> {
         let parent = self.get_parent_ext().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
+        // Clippy false positive: Standard pattern for excluding index item from list.
+        #[allow(clippy::if_not_else)]
         let children: Vec<AccessibleProxy<'a>> = parent
             .get_children_ext()
             .await?
