@@ -185,9 +185,13 @@ fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventIn
 	")
 }
 
-fn generate_impl_from_signal(signal: &Signal) -> String {
+fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
+	let mod_name = iface_name(interface);
+	let name_ident = iface_to_enum_name(interface);
+	let name_ident_plural = events_ident(name_ident);
+	let sig_name = into_rust_enum_str(signal.name());
 	let sig_name_event = event_ident(signal.name());
-	let functions =signal.args()
+	let functions = signal.args()
 			.iter()
 			.enumerate()
 			.filter_map(|(i, arg)| {
@@ -205,7 +209,21 @@ fn generate_impl_from_signal(signal: &Signal) -> String {
 	impl {sig_name_event} {{
 		{functions}
 	}}
+	impl TryFrom<Event> for {sig_name_event} {{
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {{
+			if let Event::Interfaces(EventInterfaces::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{
+				Ok(inner_event)
+			}} else {{
+				Err(AtspiError::Conversion(\"Invalid type\"))
+			}}
+		}}
+	}}
 	")
+}
+
+fn iface_to_enum_name(interface: &Interface) -> String {
+	interface.name().split('.').next_back().expect("Interface must contain a period").to_string()
 }
 
 fn generate_struct_from_signal(signal: &Signal) -> String {
@@ -264,7 +282,7 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
 			.join("\n");
 	let impls = iface.signals()
 			.iter()
-			.map(|signal| generate_impl_from_signal(signal))
+			.map(|signal| generate_impl_from_signal(signal, iface))
 			.collect::<Vec<String>>()
 			.join("\n");
 	let try_froms = generate_try_from_atspi_event(iface);
@@ -272,8 +290,9 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
 pub mod {mod_name} {{
 	use atspi_macros::TrySignify;
 	use crate::{{
+		Event,
 		error::AtspiError,
-		events::{{AtspiEvent, GenericEvent}},
+		events::{{AtspiEvent, GenericEvent, EventInterfaces}},
 		signify::Signified,
 	}};
 	use zbus;
@@ -287,7 +306,7 @@ pub mod {mod_name} {{
 }
 
 fn generate_enum_from_iface(iface: &Interface) -> String {
-	let name_ident = iface.name().split('.').next_back().expect("Interface must contain a period");
+	let name_ident = iface_to_enum_name(iface);
 	let name_ident_plural = events_ident(name_ident);
 	let signal_quotes = iface.signals()
 			.into_iter()
@@ -305,13 +324,12 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 pub fn create_events_from_xml(file_name: &str) -> String {
 	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
 	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
-	let doc_comment = data.doc().expect("You need documentation in the node element.").data;
 	let iface_data = data.interfaces()
 		.iter()
 		.map(|iface| generate_mod_from_iface(iface))
 		.collect::<Vec<String>>()
 		.join("\n");
-	format!("{}{}", doc_comment, iface_data)
+	format!("{}", iface_data)
 }
 
 pub fn main() {
