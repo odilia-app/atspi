@@ -228,6 +228,13 @@ fn generate_try_from_event_impl_match_statement(signal: &Signal, interface: &Int
       let sig_name = sig_name.replace("Accessible", "");
       format!("if let Event::{event_variant}({sub_enum}::{sig_name}(inner_event)) = event {{")
     },
+    "Registry" => {
+      // add "Event" to the beginning of the sub_enum, this is beacuase it should be EventListenerEvents::*
+      let event_string = "Event".to_string();
+      let new_sub_enum = event_string + &sub_enum;
+      let sig_name = sig_name.replace("EventListener", "");
+      format!("if let Event::{event_variant}({new_sub_enum}::{sig_name}(inner_event)) = event {{")
+    },
     _ => format!("if let Event::{event_variant}({sub_enum}::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{")
   }
 }
@@ -406,4 +413,5 @@ pub fn create_events_from_xml(file_name: &str) -> String {
 pub fn main() {
 	println!("{}", create_events_from_xml("xml/Event.xml"));
 	println!("{}", create_try_from_event_impl_from_xml("xml/Cache.xml"));
+	println!("{}", create_try_from_event_impl_from_xml("xml/Registry.xml"));
 }
