@@ -308,11 +308,6 @@ impl Node {
         self.name.as_deref()
     }
 
-		/// Return the node documentation, if any.
-		pub fn doc(&self) -> Option<Doc> {
-			get_doc!(self.elems, NodeElement::Doc)
-		}
-
     /// Returns the children nodes.
     pub fn nodes(&self) -> Vec<&Node> {
         get_vec!(self.elems, NodeElement::Node)
