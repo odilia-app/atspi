@@ -133,18 +133,6 @@ impl AddAccessibleEvent {
     }
 }
 
-#[rustfmt::skip]
-impl TryFrom<Event> for AddAccessibleEvent {
-    type Error = AtspiError;
-    fn try_from(ev: Event) -> Result<Self, Self::Error> {
-        if let Event::Cache(CacheEvents::Add(event)) = ev {
-            Ok(event)
-        } else {
-            Err(AtspiError::Conversion("invalid type"))
-        }
-    }
-}
-
 #[derive(Debug, Clone, GenericEvent)]
 #[try_from_zbus_message(body = "Accessible")]
 pub struct RemoveAccessibleEvent {
@@ -172,18 +160,6 @@ impl RemoveAccessibleEvent {
     //     let Accessible { name, path } = self.as_accessible();
     //     crate::accessible::new(&**conn, sender, path.into())
     // }
-}
-
-#[rustfmt::skip]
-impl TryFrom<Event> for RemoveAccessibleEvent {
-    type Error = AtspiError;
-    fn try_from(ev: Event) -> Result<Self, Self::Error> {
-        if let Event::Cache(CacheEvents::Remove(event)) = ev {
-            Ok(event)
-        } else {
-            Err(AtspiError::Conversion("invalid type"))
-        }
-    }
 }
 
 // TODO: Try to make borrowed versions work,
