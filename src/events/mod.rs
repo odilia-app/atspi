@@ -298,36 +298,12 @@ pub struct EventListenerDeregisteredEvent {
     pub body: EventListener,
 }
 
-#[rustfmt::skip]
-impl TryFrom<Event> for EventListenerDeregisteredEvent {
-    type Error = AtspiError;
-    fn try_from(ev: Event) -> Result<Self, Self::Error> {
-        if let Event::Listener(EventListenerEvents::Deregistered(event)) = ev {
-            Ok(event)
-        } else {
-            Err(AtspiError::Conversion("invalid type"))
-        }
-    }
-}
-
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug, GenericEvent)]
 #[try_from_zbus_message(body = "EventListener")]
 pub struct EventListenerRegisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
-}
-
-#[rustfmt::skip]
-impl TryFrom<Event> for EventListenerRegisteredEvent {
-    type Error = AtspiError;
-    fn try_from(ev: Event) -> Result<Self, Self::Error> {
-        if let Event::Listener(EventListenerEvents::Registered(event)) = ev {
-            Ok(event)
-        } else {
-            Err(AtspiError::Conversion("invalid type"))
-        }
-    }
 }
 
 /// An event that is emitted when the registry daemon has started.
