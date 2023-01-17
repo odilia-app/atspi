@@ -278,6 +278,7 @@ impl StateSet {
         self.0.iter()
     }
 
+#[must_use]
     /// Checks if all states are unset.
     pub fn is_empty(self) -> bool {
         self.0.is_empty()
@@ -290,7 +291,7 @@ impl StateSet {
 
     /// Toggles the matching bits.
     pub fn toggle<B: Into<BitFlags<State>>>(&mut self, other: B) {
-        self.0.toggle(other)
+        self.0.toggle(other);
     }
 }
 
@@ -367,7 +368,7 @@ impl std::ops::BitXor for StateSet {
 }
 impl std::ops::BitXorAssign for StateSet {
     fn bitxor_assign(&mut self, other: Self) {
-        self.0 = self.0 ^ other.0
+        self.0 = self.0 ^ other.0;
     }
 }
 impl std::ops::BitOr for StateSet {
@@ -379,7 +380,7 @@ impl std::ops::BitOr for StateSet {
 }
 impl std::ops::BitOrAssign for StateSet {
     fn bitor_assign(&mut self, other: Self) {
-        self.0 = self.0 | other.0
+        self.0 = self.0 | other.0;
     }
 }
 impl std::ops::BitAnd for StateSet {
@@ -391,7 +392,7 @@ impl std::ops::BitAnd for StateSet {
 }
 impl std::ops::BitAndAssign for StateSet {
     fn bitand_assign(&mut self, other: Self) {
-        self.0 = self.0 & other.0
+        self.0 = self.0 & other.0;
     }
 }
 
