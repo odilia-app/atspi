@@ -101,6 +101,40 @@ impl Connection {
     ///
     ///     let events = atspi.event_stream();
     ///     futures_lite::pin!(events);
+		/// #   
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("StateChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
     ///         // Handle Objject events
