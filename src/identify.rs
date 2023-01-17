@@ -143,7 +143,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl BoundsChangedEvent {
 		
@@ -158,7 +157,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl LinkSelectedEvent {
 		
@@ -173,7 +171,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl StateChangedEvent {
 		
@@ -193,7 +190,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl ChildrenChangedEvent {
 		
@@ -219,7 +215,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl VisibleDataChangedEvent {
 		
@@ -234,7 +229,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl SelectionChangedEvent {
 		
@@ -249,7 +243,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl ModelChangedEvent {
 		
@@ -264,7 +257,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl ActiveDescendantChangedEvent {
 		
@@ -284,7 +276,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl AnnouncementEvent {
 		
@@ -299,7 +290,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl AttributesChangedEvent {
 		
@@ -314,7 +304,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl RowInsertedEvent {
 		
@@ -329,7 +318,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl RowReorderedEvent {
 		
@@ -344,7 +332,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl RowDeletedEvent {
 		
@@ -359,7 +346,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl ColumnInsertedEvent {
 		
@@ -374,7 +360,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl ColumnReorderedEvent {
 		
@@ -389,7 +374,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl ColumnDeletedEvent {
 		
@@ -404,7 +388,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl TextBoundsChangedEvent {
 		
@@ -419,7 +402,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl TextSelectionChangedEvent {
 		
@@ -434,7 +416,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl TextChangedEvent {
 		
@@ -466,7 +447,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl TextAttributesChangedEvent {
 		
@@ -481,7 +461,6 @@ pub mod object {
 			}
 		}
 	}
-	
 
 	impl TextCaretMovedEvent {
 		
@@ -501,7 +480,6 @@ pub mod object {
 			}
 		}
 	}
-	
 	
 	impl TryFrom<AtspiEvent> for ObjectEvents {
 		type Error = AtspiError;
@@ -663,7 +641,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl MinimizeEvent {
 		
@@ -678,7 +655,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl MaximizeEvent {
 		
@@ -693,7 +669,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl RestoreEvent {
 		
@@ -708,7 +683,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl CloseEvent {
 		
@@ -723,7 +697,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl CreateEvent {
 		
@@ -738,7 +711,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl ReparentEvent {
 		
@@ -753,7 +725,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl DesktopCreateEvent {
 		
@@ -768,7 +739,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl DesktopDestroyEvent {
 		
@@ -783,7 +753,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl DestroyEvent {
 		
@@ -798,7 +767,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl ActivateEvent {
 		
@@ -813,7 +781,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl DeactivateEvent {
 		
@@ -828,7 +795,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl RaiseEvent {
 		
@@ -843,7 +809,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl LowerEvent {
 		
@@ -858,7 +823,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl MoveEvent {
 		
@@ -873,7 +837,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl ResizeEvent {
 		
@@ -888,7 +851,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl ShadeEvent {
 		
@@ -903,7 +865,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl UUshadeEvent {
 		
@@ -918,7 +879,6 @@ pub mod window {
 			}
 		}
 	}
-	
 
 	impl RestyleEvent {
 		
@@ -933,7 +893,6 @@ pub mod window {
 			}
 		}
 	}
-	
 	
 	impl TryFrom<AtspiEvent> for WindowEvents {
 		type Error = AtspiError;
@@ -1023,7 +982,6 @@ pub mod mouse {
 			}
 		}
 	}
-	
 
 	impl RelEvent {
 		
@@ -1049,7 +1007,6 @@ pub mod mouse {
 			}
 		}
 	}
-	
 
 	impl ButtonEvent {
 		
@@ -1075,7 +1032,6 @@ pub mod mouse {
 			}
 		}
 	}
-	
 	
 	impl TryFrom<AtspiEvent> for MouseEvents {
 		type Error = AtspiError;
@@ -1139,7 +1095,6 @@ pub mod keyboard {
 			}
 		}
 	}
-	
 	
 	impl TryFrom<AtspiEvent> for KeyboardEvents {
 		type Error = AtspiError;
@@ -1210,7 +1165,6 @@ pub mod terminal {
 			}
 		}
 	}
-	
 
 	impl ColumnCountChangedEvent {
 		
@@ -1225,7 +1179,6 @@ pub mod terminal {
 			}
 		}
 	}
-	
 
 	impl LineCountChangedEvent {
 		
@@ -1240,7 +1193,6 @@ pub mod terminal {
 			}
 		}
 	}
-	
 
 	impl ApplicationChangedEvent {
 		
@@ -1255,7 +1207,6 @@ pub mod terminal {
 			}
 		}
 	}
-	
 
 	impl CharWidthChangedEvent {
 		
@@ -1270,7 +1221,6 @@ pub mod terminal {
 			}
 		}
 	}
-	
 	
 	impl TryFrom<AtspiEvent> for TerminalEvents {
 		type Error = AtspiError;
@@ -1350,7 +1300,6 @@ pub mod document {
 			}
 		}
 	}
-	
 
 	impl ReloadEvent {
 		
@@ -1365,7 +1314,6 @@ pub mod document {
 			}
 		}
 	}
-	
 
 	impl LoadStoppedEvent {
 		
@@ -1380,7 +1328,6 @@ pub mod document {
 			}
 		}
 	}
-	
 
 	impl ContentChangedEvent {
 		
@@ -1395,7 +1342,6 @@ pub mod document {
 			}
 		}
 	}
-	
 
 	impl AttributesChangedEvent {
 		
@@ -1410,7 +1356,6 @@ pub mod document {
 			}
 		}
 	}
-	
 
 	impl PageChangedEvent {
 		
@@ -1425,7 +1370,6 @@ pub mod document {
 			}
 		}
 	}
-	
 	
 	impl TryFrom<AtspiEvent> for DocumentEvents {
 		type Error = AtspiError;
@@ -1481,7 +1425,6 @@ pub mod focus {
 			}
 		}
 	}
-	
 	
 	impl TryFrom<AtspiEvent> for FocusEvents {
 		type Error = AtspiError;
