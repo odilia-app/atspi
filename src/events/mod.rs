@@ -133,6 +133,18 @@ impl AddAccessibleEvent {
     }
 }
 
+#[rustfmt::skip]
+impl TryFrom<Event> for AddAccessibleEvent {
+    type Error = AtspiError;
+    fn try_from(ev: Event) -> Result<Self, Self::Error> {
+        if let Event::Cache(CacheEvents::Add(event)) = ev {
+            Ok(event)
+        } else {
+            Err(AtspiError::Conversion("invalid type"))
+        }
+    }
+}
+
 #[derive(Debug, Clone, GenericEvent)]
 #[try_from_zbus_message(body = "Accessible")]
 pub struct RemoveAccessibleEvent {
@@ -160,6 +172,18 @@ impl RemoveAccessibleEvent {
     //     let Accessible { name, path } = self.as_accessible();
     //     crate::accessible::new(&**conn, sender, path.into())
     // }
+}
+
+#[rustfmt::skip]
+impl TryFrom<Event> for RemoveAccessibleEvent {
+    type Error = AtspiError;
+    fn try_from(ev: Event) -> Result<Self, Self::Error> {
+        if let Event::Cache(CacheEvents::Remove(event)) = ev {
+            Ok(event)
+        } else {
+            Err(AtspiError::Conversion("invalid type"))
+        }
+    }
 }
 
 // TODO: Try to make borrowed versions work,
@@ -298,12 +322,36 @@ pub struct EventListenerDeregisteredEvent {
     pub body: EventListener,
 }
 
+#[rustfmt::skip]
+impl TryFrom<Event> for EventListenerDeregisteredEvent {
+    type Error = AtspiError;
+    fn try_from(ev: Event) -> Result<Self, Self::Error> {
+        if let Event::Listener(EventListenerEvents::Deregistered(event)) = ev {
+            Ok(event)
+        } else {
+            Err(AtspiError::Conversion("invalid type"))
+        }
+    }
+}
+
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug, GenericEvent)]
 #[try_from_zbus_message(body = "EventListener")]
 pub struct EventListenerRegisteredEvent {
     pub(crate) message: Arc<Message>,
     pub body: EventListener,
+}
+
+#[rustfmt::skip]
+impl TryFrom<Event> for EventListenerRegisteredEvent {
+    type Error = AtspiError;
+    fn try_from(ev: Event) -> Result<Self, Self::Error> {
+        if let Event::Listener(EventListenerEvents::Registered(event)) = ev {
+            Ok(event)
+        } else {
+            Err(AtspiError::Conversion("invalid type"))
+        }
+    }
 }
 
 /// An event that is emitted when the registry daemon has started.
@@ -313,10 +361,23 @@ pub struct AvailableEvent {
     pub(crate) message: Arc<Message>,
     pub(crate) body: Accessible,
 }
+
 impl AvailableEvent {
     #[must_use]
     pub fn registry(&self) -> &Accessible {
         &self.body
+    }
+}
+
+#[rustfmt::skip]
+impl TryFrom<Event> for AvailableEvent {
+    type Error = AtspiError;
+    fn try_from(ev: Event) -> Result<Self, Self::Error> {
+        if let Event::Available(event) = ev {
+            Ok(event)
+        } else {
+            Err(AtspiError::Conversion("invalid type"))
+        }
     }
 }
 
