@@ -1,4 +1,8 @@
 
+  use crate::AtspiError;
+  use crate::events::*;
+  use crate::Event;
+	
 pub mod object {
 	use atspi_macros::TrySignify;
 	use crate::{
@@ -136,7 +140,7 @@ pub mod object {
 	impl TryFrom<Event> for PropertyChangeEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::PropertyChange(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::PropertyChange(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -150,7 +154,7 @@ pub mod object {
 	impl TryFrom<Event> for BoundsChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::BoundsChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::BoundsChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -164,7 +168,7 @@ pub mod object {
 	impl TryFrom<Event> for LinkSelectedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::LinkSelected(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::LinkSelected(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -183,7 +187,7 @@ pub mod object {
 	impl TryFrom<Event> for StateChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::StateChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::StateChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -208,7 +212,7 @@ pub mod object {
 	impl TryFrom<Event> for ChildrenChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ChildrenChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ChildrenChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -222,7 +226,7 @@ pub mod object {
 	impl TryFrom<Event> for VisibleDataChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::VisibleDataChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::VisibleDataChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -236,7 +240,7 @@ pub mod object {
 	impl TryFrom<Event> for SelectionChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::SelectionChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::SelectionChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -250,7 +254,7 @@ pub mod object {
 	impl TryFrom<Event> for ModelChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ModelChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ModelChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -269,7 +273,7 @@ pub mod object {
 	impl TryFrom<Event> for ActiveDescendantChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ActiveDescendantChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ActiveDescendantChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -283,7 +287,7 @@ pub mod object {
 	impl TryFrom<Event> for AnnouncementEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::Announcement(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::Announcement(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -297,7 +301,7 @@ pub mod object {
 	impl TryFrom<Event> for AttributesChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::AttributesChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::AttributesChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -311,7 +315,7 @@ pub mod object {
 	impl TryFrom<Event> for RowInsertedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowInserted(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowInserted(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -325,7 +329,7 @@ pub mod object {
 	impl TryFrom<Event> for RowReorderedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowReordered(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowReordered(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -339,7 +343,7 @@ pub mod object {
 	impl TryFrom<Event> for RowDeletedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowDeleted(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowDeleted(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -353,7 +357,7 @@ pub mod object {
 	impl TryFrom<Event> for ColumnInsertedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnInserted(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnInserted(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -367,7 +371,7 @@ pub mod object {
 	impl TryFrom<Event> for ColumnReorderedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnReordered(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnReordered(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -381,7 +385,7 @@ pub mod object {
 	impl TryFrom<Event> for ColumnDeletedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnDeleted(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnDeleted(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -395,7 +399,7 @@ pub mod object {
 	impl TryFrom<Event> for TextBoundsChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextBoundsChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextBoundsChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -409,7 +413,7 @@ pub mod object {
 	impl TryFrom<Event> for TextSelectionChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextSelectionChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextSelectionChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -440,7 +444,7 @@ pub mod object {
 	impl TryFrom<Event> for TextChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -454,7 +458,7 @@ pub mod object {
 	impl TryFrom<Event> for TextAttributesChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextAttributesChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextAttributesChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -473,7 +477,7 @@ pub mod object {
 	impl TryFrom<Event> for TextCaretMovedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextCaretMoved(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextCaretMoved(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -634,7 +638,7 @@ pub mod window {
 	impl TryFrom<Event> for PropertyChangeEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::PropertyChange(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::PropertyChange(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -648,7 +652,7 @@ pub mod window {
 	impl TryFrom<Event> for MinimizeEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Minimize(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Minimize(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -662,7 +666,7 @@ pub mod window {
 	impl TryFrom<Event> for MaximizeEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Maximize(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Maximize(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -676,7 +680,7 @@ pub mod window {
 	impl TryFrom<Event> for RestoreEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Restore(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Restore(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -690,7 +694,7 @@ pub mod window {
 	impl TryFrom<Event> for CloseEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Close(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Close(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -704,7 +708,7 @@ pub mod window {
 	impl TryFrom<Event> for CreateEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Create(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Create(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -718,7 +722,7 @@ pub mod window {
 	impl TryFrom<Event> for ReparentEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Reparent(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Reparent(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -732,7 +736,7 @@ pub mod window {
 	impl TryFrom<Event> for DesktopCreateEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::DesktopCreate(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::DesktopCreate(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -746,7 +750,7 @@ pub mod window {
 	impl TryFrom<Event> for DesktopDestroyEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::DesktopDestroy(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::DesktopDestroy(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -760,7 +764,7 @@ pub mod window {
 	impl TryFrom<Event> for DestroyEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Destroy(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Destroy(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -774,7 +778,7 @@ pub mod window {
 	impl TryFrom<Event> for ActivateEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Activate(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Activate(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -788,7 +792,7 @@ pub mod window {
 	impl TryFrom<Event> for DeactivateEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Deactivate(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Deactivate(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -802,7 +806,7 @@ pub mod window {
 	impl TryFrom<Event> for RaiseEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Raise(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Raise(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -816,7 +820,7 @@ pub mod window {
 	impl TryFrom<Event> for LowerEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Lower(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Lower(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -830,7 +834,7 @@ pub mod window {
 	impl TryFrom<Event> for MoveEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Move(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Move(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -844,7 +848,7 @@ pub mod window {
 	impl TryFrom<Event> for ResizeEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Resize(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Resize(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -858,7 +862,7 @@ pub mod window {
 	impl TryFrom<Event> for ShadeEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Shade(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Shade(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -872,7 +876,7 @@ pub mod window {
 	impl TryFrom<Event> for UUshadeEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::UUshade(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::UUshade(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -886,7 +890,7 @@ pub mod window {
 	impl TryFrom<Event> for RestyleEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Restyle(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Window(WindowEvents::Restyle(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -975,7 +979,7 @@ pub mod mouse {
 	impl TryFrom<Event> for AbsEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Mouse(MouseEvents::Abs(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Mouse(MouseEvents::Abs(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1000,7 +1004,7 @@ pub mod mouse {
 	impl TryFrom<Event> for RelEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Mouse(MouseEvents::Rel(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Mouse(MouseEvents::Rel(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1025,7 +1029,7 @@ pub mod mouse {
 	impl TryFrom<Event> for ButtonEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Mouse(MouseEvents::Button(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Mouse(MouseEvents::Button(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1088,7 +1092,7 @@ pub mod keyboard {
 	impl TryFrom<Event> for ModifiersEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Keyboard(KeyboardEvents::Modifiers(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Keyboard(KeyboardEvents::Modifiers(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1158,7 +1162,7 @@ pub mod terminal {
 	impl TryFrom<Event> for LineChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::LineChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::LineChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1172,7 +1176,7 @@ pub mod terminal {
 	impl TryFrom<Event> for ColumnCountChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::ColumnCountChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::ColumnCountChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1186,7 +1190,7 @@ pub mod terminal {
 	impl TryFrom<Event> for LineCountChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::LineCountChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::LineCountChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1200,7 +1204,7 @@ pub mod terminal {
 	impl TryFrom<Event> for ApplicationChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::ApplicationChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::ApplicationChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1214,7 +1218,7 @@ pub mod terminal {
 	impl TryFrom<Event> for CharWidthChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::CharWidthChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Terminal(TerminalEvents::CharWidthChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1293,7 +1297,7 @@ pub mod document {
 	impl TryFrom<Event> for LoadCompleteEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::LoadComplete(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::LoadComplete(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1307,7 +1311,7 @@ pub mod document {
 	impl TryFrom<Event> for ReloadEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::Reload(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::Reload(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1321,7 +1325,7 @@ pub mod document {
 	impl TryFrom<Event> for LoadStoppedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::LoadStopped(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::LoadStopped(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1335,7 +1339,7 @@ pub mod document {
 	impl TryFrom<Event> for ContentChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::ContentChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::ContentChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1349,7 +1353,7 @@ pub mod document {
 	impl TryFrom<Event> for AttributesChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::AttributesChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::AttributesChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1363,7 +1367,7 @@ pub mod document {
 	impl TryFrom<Event> for PageChangedEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::PageChanged(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Document(DocumentEvents::PageChanged(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1418,7 +1422,7 @@ pub mod focus {
 	impl TryFrom<Event> for FocusEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Focus(FocusEvents::Focus(inner_event))) = event {
+       if let Event::Interfaces(EventInterfaces::Focus(FocusEvents::Focus(inner_event))) = event {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
@@ -1440,3 +1444,24 @@ pub mod focus {
 	
 }
 	
+  
+	impl TryFrom<Event> for AddAccessibleEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+       if let Event::Cache(CacheEvents::Add(inner_event)) = event {
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
+	impl TryFrom<Event> for RemoveAccessibleEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+       if let Event::Cache(CacheEvents::Remove(inner_event)) = event {
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
