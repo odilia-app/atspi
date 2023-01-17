@@ -1485,3 +1485,13 @@ pub mod focus {
 			}
 		}
 	}
+	impl TryFrom<Event> for AvailableEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+       if let Event::Available(inner_event) = event {
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
