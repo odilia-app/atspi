@@ -321,18 +321,6 @@ impl AvailableEvent {
     }
 }
 
-#[rustfmt::skip]
-impl TryFrom<Event> for AvailableEvent {
-    type Error = AtspiError;
-    fn try_from(ev: Event) -> Result<Self, Self::Error> {
-        if let Event::Available(event) = ev {
-            Ok(event)
-        } else {
-            Err(AtspiError::Conversion("invalid type"))
-        }
-    }
-}
-
 impl TryFrom<Arc<Message>> for Event {
     type Error = AtspiError;
 
