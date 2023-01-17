@@ -1465,3 +1465,23 @@ pub mod focus {
 			}
 		}
 	}
+	impl TryFrom<Event> for EventListenerRegisteredEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+       if let Event::Listener(EventListenerEvents::Registered(inner_event)) = event {
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
+	impl TryFrom<Event> for EventListenerDeregisteredEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+       if let Event::Listener(EventListenerEvents::Deregistered(inner_event)) = event {
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
