@@ -1,4 +1,4 @@
-use std::process::Output;
+use std::{process::Output, time::Duration};
 
 pub fn a11y_bus_address() -> String {
     let output = std::process::Command::new("busctl")
@@ -54,4 +54,14 @@ pub fn create_command<'a>(
         .arg(props)
         .output()
         .unwrap()
+}
+/// Yields `Err(())` on time-out.
+pub async fn timeout(dur: Duration) -> Result<(), ()> {
+    let start = std::time::Instant::now();
+    let mut now = std::time::Instant::now();
+    while now - start < dur {
+        futures_lite::future::yield_now().await;
+        now = std::time::Instant::now();
+    }
+    Err(())
 }

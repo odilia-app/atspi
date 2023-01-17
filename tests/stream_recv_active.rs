@@ -4,12 +4,12 @@ use atspi::events::EventInterfaces;
 use atspi::identify::object::ObjectEvents;
 use atspi::signify::Signified;
 use atspi::Event;
-use futures_lite::future::{block_on, race, yield_now};
+use futures_lite::future::{block_on, race};
 use futures_lite::pin;
 use futures_lite::StreamExt;
 use zbus::{fdo::DBusProxy, MatchRule, MessageType};
 
-use crate::common::{a11y_bus_address, create_command};
+use crate::common::{a11y_bus_address, create_command, timeout};
 
 #[test]
 fn recv_active_signal() {
@@ -48,17 +48,9 @@ fn recv_active_signal() {
         Ok(())
     };
 
-    let timeout = async {
-        let start = std::time::Instant::now();
-        let mut now = std::time::Instant::now();
-        while now - start < std::time::Duration::from_secs(10) {
-            yield_now().await;
-            now = std::time::Instant::now();
-        }
-        Err(())
-    };
+    let dur = std::time::Duration::from_secs(10);
 
     block_on(async {
-        assert!(race(receive_good_event, timeout).await.is_ok());
+        assert!(race(receive_good_event, timeout(dur)).await.is_ok());
     });
 }
