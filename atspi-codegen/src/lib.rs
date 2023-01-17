@@ -31,15 +31,6 @@ macro_rules! get_vec {
             .collect()
     };
 }
-macro_rules! get_doc {
-    ($vec:expr, $kind:path) => {
-        $vec.iter()
-            .filter_map(|e| if let $kind(m) = e { Some(m.to_owned()) } else { None })
-            .collect::<Vec<Doc>>()
-						.get(0)
-						.cloned()
-    };
-}
 
 /// Annotations are generic key/value pairs of metadata.
 #[derive(Debug, Serialize, Deserialize, Clone)]
