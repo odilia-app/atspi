@@ -153,6 +153,8 @@ fn into_rust_enum_str<S>(string: S) -> String
 		.replace("uU", "UU")
 		.replace("count", "Count")
 		.replace("width", "Width")
+    //.replace("AddAccessible", "Add")
+    //.replace("RemoveAccessible", "Remove")
 }
 
 fn events_ident<S>(string: S) -> String
@@ -185,6 +187,18 @@ fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventIn
 	")
 }
 
+fn generate_sub_enum_from_interface(interface: &Interface) -> String {
+  let last_after_period = iface_name(interface);
+  match last_after_period.as_str() {
+    "Cache" => "CacheEvents",
+    "Socket" => "AvailableEvent",
+    "Registry" => "ListenerEvents",
+    // this covers all other cases like Document, Object, etc.
+    _ => "EventInterfaces",
+  }.to_string()
+  
+}
+
 fn generate_enum_variant_from_interface(interface: &Interface) -> String {
   // this will get "Object" in `org.a11y.atspi.Event.Object`,
   // or "Cache" in `org.a11y.atspi.Cache`.
@@ -198,17 +212,33 @@ fn generate_enum_variant_from_interface(interface: &Interface) -> String {
   }.to_string()
 }
 
-fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> String {
+fn generate_try_from_event_impl_match_statement(signal: &Signal, interface: &Interface) -> String {
 	let mod_name = iface_name(interface);
   let event_variant = generate_enum_variant_from_interface(interface);
+  let sub_enum = generate_sub_enum_from_interface(interface);
 	let name_ident = iface_to_enum_name(interface);
 	let name_ident_plural = events_ident(name_ident);
 	let sig_name = into_rust_enum_str(signal.name());
+  let interface_name = iface_name(interface);
+  match interface_name.as_str() {
+    "Cache" => {
+      // replace AddAccessible with Add.
+      // this is because the struct itself is named AddAccessibleEvent, so there is no need for it to be specified fully in the outer enum.
+      // for example CacheEvents::AddAccessible(AddAccessibleEvent); this is shortened to CacheEvents::Add(_) for convenience.
+      let sig_name = sig_name.replace("Accessible", "");
+      format!("if let Event::{event_variant}({sub_enum}::{sig_name}(inner_event)) = event {{")
+    },
+    _ => format!("if let Event::{event_variant}({sub_enum}::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{")
+  }
+}
+
+fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> String {
 	let sig_name_event = event_ident(signal.name());
+  let matcher = generate_try_from_event_impl_match_statement(signal, interface);
   format!("	impl TryFrom<Event> for {sig_name_event} {{
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {{
-			if let Event::{event_variant}(EventInterfaces::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{
+       {matcher}
 				Ok(inner_event)
 			}} else {{
 				Err(AtspiError::Conversion(\"Invalid type\"))
@@ -340,6 +370,23 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 	")
 }
 
+pub fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
+	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
+	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
+	let iface_data = data.interfaces()
+		.iter()
+		.map(|iface| 
+			iface.signals()
+				.iter()
+				.map(|signal| generate_try_from_event_impl(signal, iface))
+				.collect::<Vec<String>>()
+				.join("\n")
+		)
+		.collect::<Vec<String>>()
+		.join("\n");
+	iface_data
+}
+
 pub fn create_events_from_xml(file_name: &str) -> String {
 	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
 	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
@@ -348,9 +395,15 @@ pub fn create_events_from_xml(file_name: &str) -> String {
 		.map(|iface| generate_mod_from_iface(iface))
 		.collect::<Vec<String>>()
 		.join("\n");
-	format!("{}", iface_data)
+  format!("
+  use crate::AtspiError;
+  use crate::events::*;
+  use crate::Event;
+	{iface_data}
+  ")
 }
 
 pub fn main() {
 	println!("{}", create_events_from_xml("xml/Event.xml"));
+	println!("{}", create_try_from_event_impl_from_xml("xml/Cache.xml"));
 }
