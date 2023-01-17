@@ -185,12 +185,41 @@ fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventIn
 	")
 }
 
-fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
+fn generate_enum_variant_from_interface(interface: &Interface) -> String {
+  // this will get "Object" in `org.a11y.atspi.Event.Object`,
+  // or "Cache" in `org.a11y.atspi.Cache`.
+  let last_after_period = iface_name(interface);
+  match last_after_period.as_str() {
+    "Cache" => "Cache",
+    "Socket" => "Available",
+    "Registry" => "Listener",
+    // this covers all other cases like Document, Object, etc.
+    _ => "Interfaces",
+  }.to_string()
+}
+
+fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> String {
 	let mod_name = iface_name(interface);
+  let event_variant = generate_enum_variant_from_interface(interface);
 	let name_ident = iface_to_enum_name(interface);
 	let name_ident_plural = events_ident(name_ident);
 	let sig_name = into_rust_enum_str(signal.name());
 	let sig_name_event = event_ident(signal.name());
+  format!("	impl TryFrom<Event> for {sig_name_event} {{
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {{
+			if let Event::{event_variant}(EventInterfaces::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{
+				Ok(inner_event)
+			}} else {{
+				Err(AtspiError::Conversion(\"Invalid type\"))
+			}}
+		}}
+	}}")
+}
+
+fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
+	let sig_name_event = event_ident(signal.name());
+  let try_from_event_impl = generate_try_from_event_impl(signal, interface);
 	let functions = signal.args()
 			.iter()
 			.enumerate()
@@ -209,17 +238,7 @@ fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
 	impl {sig_name_event} {{
 		{functions}
 	}}
-	impl TryFrom<Event> for {sig_name_event} {{
-		type Error = AtspiError;
-		fn try_from(event: Event) -> Result<Self, Self::Error> {{
-			if let Event::Interfaces(EventInterfaces::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{
-				Ok(inner_event)
-			}} else {{
-				Err(AtspiError::Conversion(\"Invalid type\"))
-			}}
-		}}
-	}}
-	")
+{try_from_event_impl}")
 }
 
 fn iface_to_enum_name(interface: &Interface) -> String {
