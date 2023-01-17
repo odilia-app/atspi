@@ -38,7 +38,7 @@ pub fn create_command<'a>(
 ) -> Output {
     let mut base_cmd = std::process::Command::new("busctl");
 
-    let thing = base_cmd
+    base_cmd
         .arg("--address")
         .arg(address)
         .arg("emit")
@@ -53,7 +53,5 @@ pub fn create_command<'a>(
         .arg(value)
         .arg(props)
         .output()
-        .unwrap();
-
-    thing
+        .unwrap()
 }
