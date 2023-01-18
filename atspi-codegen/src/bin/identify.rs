@@ -153,6 +153,8 @@ fn into_rust_enum_str<S>(string: S) -> String
 		.replace("uU", "UU")
 		.replace("count", "Count")
 		.replace("width", "Width")
+    //.replace("AddAccessible", "Add")
+    //.replace("RemoveAccessible", "Remove")
 }
 
 fn events_ident<S>(string: S) -> String
@@ -185,9 +187,78 @@ fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventIn
 	")
 }
 
-fn generate_impl_from_signal(signal: &Signal) -> String {
+fn generate_sub_enum_from_interface(interface: &Interface) -> String {
+  let last_after_period = iface_name(interface);
+  match last_after_period.as_str() {
+    "Cache" => "CacheEvents",
+    "Socket" => "AvailableEvent",
+    "Registry" => "EventListenerEvents",
+    // this covers all other cases like Document, Object, etc.
+    _ => "EventInterfaces",
+  }.to_string()
+  
+}
+
+fn generate_enum_variant_from_interface(interface: &Interface) -> String {
+  // this will get "Object" in `org.a11y.atspi.Event.Object`,
+  // or "Cache" in `org.a11y.atspi.Cache`.
+  let last_after_period = iface_name(interface);
+  match last_after_period.as_str() {
+    "Cache" => "Cache",
+    "Socket" => "Available",
+    "Registry" => "Listener",
+    // this covers all other cases like Document, Object, etc.
+    _ => "Interfaces",
+  }.to_string()
+}
+
+fn generate_try_from_event_impl_match_statement(signal: &Signal, interface: &Interface) -> String {
+	let mod_name = iface_name(interface);
+  let event_variant = generate_enum_variant_from_interface(interface);
+  let sub_enum = generate_sub_enum_from_interface(interface);
+	let name_ident = iface_to_enum_name(interface);
+	let name_ident_plural = events_ident(name_ident);
+	let sig_name = into_rust_enum_str(signal.name());
+  let interface_name = iface_name(interface);
+  match interface_name.as_str() {
+    "Cache" => {
+      // replace AddAccessible with Add.
+      // this is because the struct itself is named AddAccessibleEvent, so there is no need for it to be specified fully in the outer enum.
+      // for example CacheEvents::AddAccessible(AddAccessibleEvent); this is shortened to CacheEvents::Add(_) for convenience.
+      let sig_name = sig_name.replace("Accessible", "");
+      format!("if let Event::{event_variant}({sub_enum}::{sig_name}(inner_event)) = event {{")
+    },
+    "Registry" => {
+      // add "Event" to the beginning of the sub_enum, this is beacuase it should be EventListenerEvents::*
+      let sig_name = sig_name.replace("EventListener", "");
+      format!("if let Event::{event_variant}({sub_enum}::{sig_name}(inner_event)) = event {{")
+    },
+    "Socket" => {
+      format!("if let Event::{event_variant}(inner_event) = event {{")
+    },
+    _ => format!("if let Event::{event_variant}({sub_enum}::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{")
+  }
+}
+
+fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> String {
 	let sig_name_event = event_ident(signal.name());
-	let functions =signal.args()
+  let matcher = generate_try_from_event_impl_match_statement(signal, interface);
+  format!("	impl TryFrom<Event> for {sig_name_event} {{
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {{
+       {matcher}
+				Ok(inner_event)
+			}} else {{
+				Err(AtspiError::Conversion(\"Invalid type\"))
+			}}
+		}}
+	}}")
+}
+
+fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
+	let sig_name_event = event_ident(signal.name());
+  let try_from_event_impl = generate_try_from_event_impl(signal, interface);
+	let functions = signal.args()
 			.iter()
 			.enumerate()
 			.filter_map(|(i, arg)| {
@@ -205,7 +276,11 @@ fn generate_impl_from_signal(signal: &Signal) -> String {
 	impl {sig_name_event} {{
 		{functions}
 	}}
-	")
+{try_from_event_impl}")
+}
+
+fn iface_to_enum_name(interface: &Interface) -> String {
+	interface.name().split('.').next_back().expect("Interface must contain a period").to_string()
 }
 
 fn generate_struct_from_signal(signal: &Signal) -> String {
@@ -264,7 +339,7 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
 			.join("\n");
 	let impls = iface.signals()
 			.iter()
-			.map(|signal| generate_impl_from_signal(signal))
+			.map(|signal| generate_impl_from_signal(signal, iface))
 			.collect::<Vec<String>>()
 			.join("\n");
 	let try_froms = generate_try_from_atspi_event(iface);
@@ -274,8 +349,9 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
 pub mod {mod_name} {{
 	use atspi_macros::TrySignify;
 	use crate::{{
+		Event,
 		error::AtspiError,
-		events::{{AtspiEvent, GenericEvent}},
+		events::{{AtspiEvent, GenericEvent, EventInterfaces}},
 		signify::Signified,
 	}};
 	use zbus;
@@ -289,7 +365,7 @@ pub mod {mod_name} {{
 }
 
 fn generate_enum_from_iface(iface: &Interface) -> String {
-	let name_ident = iface.name().split('.').next_back().expect("Interface must contain a period");
+	let name_ident = iface_to_enum_name(iface);
 	let name_ident_plural = events_ident(name_ident);
 	let signal_quotes = iface.signals()
 			.into_iter()
@@ -304,18 +380,62 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 	")
 }
 
+pub fn get_signal_names_from_interfaces(interfaces: Vec<&Interface>) -> String {
+	interfaces
+		.iter()
+		.map(|iface| {
+			let mut signal_events_names = iface.signals()
+				.iter()
+				.map(|signal| signal.name().to_owned() + "Event")
+				.collect::<Vec<String>>();
+			// if there is only one event, this is probably doesn't need the interface event on top. This is because no enum should be necessary to contain a single type.
+			if signal_events_names.len() != 1 {
+				let interface_ending = generate_sub_enum_from_interface(iface);
+				signal_events_names.push(interface_ending);
+			}
+			signal_events_names.join(",")
+		})
+		.collect::<Vec<String>>()
+		.join(",")
+}
+
+pub fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
+	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
+	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
+	let event_imports = get_signal_names_from_interfaces(data.interfaces());
+	let iface_data = data.interfaces()
+		.iter()
+		.map(|iface| 
+			iface.signals()
+				.iter()
+				.map(|signal| generate_try_from_event_impl(signal, iface))
+				.collect::<Vec<String>>()
+				.join("\n")
+		)
+		.collect::<Vec<String>>()
+		.join("\n");
+	format!("use crate::events::{{{}}};\n{}", event_imports, iface_data)
+}
+
 pub fn create_events_from_xml(file_name: &str) -> String {
 	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
 	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
-	let doc_comment = data.doc().expect("You need documentation in the node element.").data;
 	let iface_data = data.interfaces()
 		.iter()
 		.map(|iface| generate_mod_from_iface(iface))
 		.collect::<Vec<String>>()
 		.join("\n");
-	format!("{}{}", doc_comment, iface_data)
+  format!("
+  use crate::AtspiError;
+  use crate::Event;
+	{iface_data}
+  ")
 }
 
 pub fn main() {
 	println!("{}", create_events_from_xml("xml/Event.xml"));
+	//println!("use crate::events::{{{}}};", get_signal_names_from_xml("xml/Cache.xml"));
+	println!("{}", create_try_from_event_impl_from_xml("xml/Cache.xml"));
+	println!("{}", create_try_from_event_impl_from_xml("xml/Registry.xml"));
+	println!("{}", create_try_from_event_impl_from_xml("xml/Socket.xml"));
 }

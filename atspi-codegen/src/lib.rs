@@ -31,15 +31,6 @@ macro_rules! get_vec {
             .collect()
     };
 }
-macro_rules! get_doc {
-    ($vec:expr, $kind:path) => {
-        $vec.iter()
-            .filter_map(|e| if let $kind(m) = e { Some(m.to_owned()) } else { None })
-            .collect::<Vec<Doc>>()
-						.get(0)
-						.cloned()
-    };
-}
 
 /// Annotations are generic key/value pairs of metadata.
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -307,11 +298,6 @@ impl Node {
     pub fn name(&self) -> Option<&str> {
         self.name.as_deref()
     }
-
-		/// Return the node documentation, if any.
-		pub fn doc(&self) -> Option<Doc> {
-			get_doc!(self.elems, NodeElement::Doc)
-		}
 
     /// Returns the children nodes.
     pub fn nodes(&self) -> Vec<&Node> {
