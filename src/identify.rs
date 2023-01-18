@@ -1,6 +1,5 @@
 
   use crate::AtspiError;
-  use crate::events::*;
   use crate::Event;
 	
 #[allow(clippy::module_name_repetitions)]
@@ -1459,6 +1458,7 @@ pub mod focus {
 }
 	
   
+use crate::events::{AddAccessibleEvent,RemoveAccessibleEvent,CacheEvents};
 	impl TryFrom<Event> for AddAccessibleEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1479,6 +1479,7 @@ pub mod focus {
 			}
 		}
 	}
+use crate::events::{EventListenerRegisteredEvent,EventListenerDeregisteredEvent,EventListenerEvents};
 	impl TryFrom<Event> for EventListenerRegisteredEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1499,6 +1500,7 @@ pub mod focus {
 			}
 		}
 	}
+use crate::events::{AvailableEvent};
 	impl TryFrom<Event> for AvailableEvent {
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {

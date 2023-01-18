@@ -102,6 +102,7 @@ pub enum Event {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
     Add(AddAccessibleEvent),
     Remove(RemoveAccessibleEvent),
@@ -284,6 +285,7 @@ fn test_event_listener_signature() {
 
 /// Covers both `EventListener` events.
 #[derive(Clone, Debug)]
+#[allow(clippy::module_name_repetitions)]
 pub enum EventListenerEvents {
     Registered(EventListenerRegisteredEvent),
     Deregistered(EventListenerDeregisteredEvent),

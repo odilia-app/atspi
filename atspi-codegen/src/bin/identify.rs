@@ -192,7 +192,7 @@ fn generate_sub_enum_from_interface(interface: &Interface) -> String {
   match last_after_period.as_str() {
     "Cache" => "CacheEvents",
     "Socket" => "AvailableEvent",
-    "Registry" => "ListenerEvents",
+    "Registry" => "EventListenerEvents",
     // this covers all other cases like Document, Object, etc.
     _ => "EventInterfaces",
   }.to_string()
@@ -230,10 +230,8 @@ fn generate_try_from_event_impl_match_statement(signal: &Signal, interface: &Int
     },
     "Registry" => {
       // add "Event" to the beginning of the sub_enum, this is beacuase it should be EventListenerEvents::*
-      let event_string = "Event".to_string();
-      let new_sub_enum = event_string + &sub_enum;
       let sig_name = sig_name.replace("EventListener", "");
-      format!("if let Event::{event_variant}({new_sub_enum}::{sig_name}(inner_event)) = event {{")
+      format!("if let Event::{event_variant}({sub_enum}::{sig_name}(inner_event)) = event {{")
     },
     "Socket" => {
       format!("if let Event::{event_variant}(inner_event) = event {{")
@@ -382,9 +380,29 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 	")
 }
 
+pub fn get_signal_names_from_interfaces(interfaces: Vec<&Interface>) -> String {
+	interfaces
+		.iter()
+		.map(|iface| {
+			let mut signal_events_names = iface.signals()
+				.iter()
+				.map(|signal| signal.name().to_owned() + "Event")
+				.collect::<Vec<String>>();
+			// if there is only one event, this is probably doesn't need the interface event on top. This is because no enum should be necessary to contain a single type.
+			if signal_events_names.len() != 1 {
+				let interface_ending = generate_sub_enum_from_interface(iface);
+				signal_events_names.push(interface_ending);
+			}
+			signal_events_names.join(",")
+		})
+		.collect::<Vec<String>>()
+		.join(",")
+}
+
 pub fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
 	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
 	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
+	let event_imports = get_signal_names_from_interfaces(data.interfaces());
 	let iface_data = data.interfaces()
 		.iter()
 		.map(|iface| 
@@ -396,7 +414,7 @@ pub fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
 		)
 		.collect::<Vec<String>>()
 		.join("\n");
-	iface_data
+	format!("use crate::events::{{{}}};\n{}", event_imports, iface_data)
 }
 
 pub fn create_events_from_xml(file_name: &str) -> String {
@@ -409,7 +427,6 @@ pub fn create_events_from_xml(file_name: &str) -> String {
 		.join("\n");
   format!("
   use crate::AtspiError;
-  use crate::events::*;
   use crate::Event;
 	{iface_data}
   ")
@@ -417,6 +434,7 @@ pub fn create_events_from_xml(file_name: &str) -> String {
 
 pub fn main() {
 	println!("{}", create_events_from_xml("xml/Event.xml"));
+	//println!("use crate::events::{{{}}};", get_signal_names_from_xml("xml/Cache.xml"));
 	println!("{}", create_try_from_event_impl_from_xml("xml/Cache.xml"));
 	println!("{}", create_try_from_event_impl_from_xml("xml/Registry.xml"));
 	println!("{}", create_try_from_event_impl_from_xml("xml/Socket.xml"));
