@@ -9,9 +9,23 @@
 //! [Writing a client proxy](https://dbus.pages.freedesktop.org/zbus/client.html)
 //! section of the zbus documentation.
 //!
+#![allow(clippy::too_many_arguments)]
+// this allow zbus to change the number of parameters in a function without setting off clippy
 
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
+
+pub type MatchArgs<'a> = (
+    &'a [i32],
+    MatchType,
+    std::collections::HashMap<&'a str, &'a str>,
+    MatchType,
+    &'a [i32],
+    MatchType,
+    &'a [&'a str],
+    MatchType,
+    bool,
+);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -65,17 +79,7 @@ trait Collection {
     /// GetMatches method
     fn get_matches(
         &self,
-        rule: &(
-            &[i32],
-            MatchType,
-            std::collections::HashMap<&str, &str>,
-            MatchType,
-            &[i32],
-            MatchType,
-            &[&str],
-            MatchType,
-            bool,
-        ),
+        rule: &MatchArgs<'_>,
         sortby: SortOrder,
         count: i32,
         traverse: bool,
@@ -85,17 +89,7 @@ trait Collection {
     fn get_matches_from(
         &self,
         current_object: &zbus::zvariant::ObjectPath<'_>,
-        rule: &(
-            &[i32],
-            MatchType,
-            std::collections::HashMap<&str, &str>,
-            MatchType,
-            &[i32],
-            MatchType,
-            &[&str],
-            MatchType,
-            bool,
-        ),
+        rule: &MatchArgs<'_>,
         sortby: SortOrder,
         tree: TreeTraversalType,
         count: i32,
@@ -106,17 +100,7 @@ trait Collection {
     fn get_matches_to(
         &self,
         current_object: &zbus::zvariant::ObjectPath<'_>,
-        rule: &(
-            &[i32],
-            MatchType,
-            std::collections::HashMap<&str, &str>,
-            MatchType,
-            &[i32],
-            MatchType,
-            &[&str],
-            MatchType,
-            bool,
-        ),
+        rule: &MatchArgs<'_>,
         sortby: SortOrder,
         tree: TreeTraversalType,
         limit_scope: bool,

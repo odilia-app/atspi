@@ -303,6 +303,8 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
     let try_froms = generate_try_from_atspi_event(iface);
     format!(
         "
+#[allow(clippy::module_name_repetitions)]
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod {mod_name} {{
 	use atspi_macros::TrySignify;
 	use crate::{{
