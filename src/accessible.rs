@@ -13,6 +13,8 @@
 use crate::{InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 /// An accessible object role.
@@ -289,7 +291,7 @@ pub enum RelationType {
 }
 pub type RelationSet = Vec<(RelationType, Vec<(String, zbus::zvariant::OwnedObjectPath)>)>;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
     /// GetApplication method
     fn get_application(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
