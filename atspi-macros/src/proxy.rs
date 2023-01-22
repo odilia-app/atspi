@@ -1,7 +1,10 @@
 use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use regex::Regex;
-use std::collections::HashMap;
+use std::{
+	collections::HashMap,
+	str::FromStr,
+};
 use syn::{
     self, fold::Fold, parse_quote, spanned::Spanned, AttributeArgs, Error, FnArg, Ident, ItemTrait,
     NestedMeta, ReturnType, TraitItemMethod, Type,
@@ -51,6 +54,7 @@ pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
     Ok(quote! {
         #blocking_trait
 
+				#[async_trait]
         #async_trait
     })
 }
@@ -71,12 +75,59 @@ pub fn create_trait(
     let proxy_name = Ident::new(proxy_name, Span::call_site());
     let ident = input.ident.to_string();
     let mut methods = TokenStream::new();
+    let mut trait_methods = TokenStream::new();
     let mut stream_types = TokenStream::new();
     let mut has_properties = false;
     let mut uncached_properties: Vec<String> = vec![];
 
     let async_opts = AsyncOpts::new(blocking);
 
+    for i in input.items.iter() {
+        if let syn::TraitItem::Method(m) = i {
+            let method_name = m.sig.ident.to_string();
+            let attrs = parse_item_attributes(&m.attrs, "dbus_proxy")?;
+            let property_attrs = attrs.iter().find_map(|x| match x {
+                ItemAttribute::Property(v) => Some(v),
+                _ => None,
+            });
+            let is_property = property_attrs.is_some();
+            let is_signal = attrs.iter().any(|x| x.is_signal());
+            let has_inputs = m.sig.inputs.len() > 1;
+            let member_name = attrs
+                .iter()
+                .find_map(|x| match x {
+                    ItemAttribute::Name(n) => Some(n.to_string()),
+                    _ => None,
+                })
+                .unwrap_or_else(|| {
+                    pascal_case(if is_property && has_inputs {
+                        assert!(method_name.starts_with("set_"));
+                        &method_name[4..]
+                    } else {
+                        &method_name
+                    })
+                });
+            let m = if let Some(prop_attrs) = property_attrs {
+                assert!(is_property);
+                has_properties = true;
+                let emits_changed_signal = PropertyEmitsChangedSignal::parse_from_attrs(prop_attrs);
+                if let PropertyEmitsChangedSignal::False = emits_changed_signal {
+                    uncached_properties.push(member_name.clone());
+                }
+                gen_trait_property(
+                    &member_name,
+                    &method_name,
+                    m,
+                    &async_opts,
+                    emits_changed_signal,
+                )
+            } else {
+                gen_trait_method_signature(&member_name, &method_name, m, &async_opts)
+            };
+            trait_methods.extend(m);
+        }
+    }
+		// now do method implementations
     for i in input.items.iter() {
         if let syn::TraitItem::Method(m) = i {
             let method_name = m.sig.ident.to_string();
@@ -149,20 +200,178 @@ pub fn create_trait(
 
 		if blocking {
 			Ok(quote! {
-					#[async_trait]
 					pub trait #proxy_name {
 						type Error;
+						#trait_methods
 					}
 			})
 		} else {
 			Ok(quote! {
 					pub trait #proxy_name {
 						type Error;
+						#trait_methods
 					}
 			})
 		}
 }
 
+// TODO: this is sketchy as all hell
+// it replaces all mentions of zbus::Result with the Generic std::result::Result, then, adds the Self::Error error type to the second part of the generic
+// finally, it replaces all mentions of (String, zbus :: zvairnat :: OwnedObjectPath) with &Self.
+// this menas that implementors will need to return a borrowed value of the same type to comply with the type system.
+// unsure if this will hold up over time.
+fn genericize_method_return_type(rt: &ReturnType) -> TokenStream {
+	let original = format!("{}", rt.to_token_stream());
+	let mut generic_result = original.replace("zbus :: Result", "std :: result :: Result");
+	let end_of_str = generic_result.len();
+	generic_result.insert_str(end_of_str-2, ", Self :: Error");
+	let generic_impl = generic_result.replace("(String, zbus :: zvariant :: OwnedObjectPath)", "&Self");
+	TokenStream::from_str(&generic_impl).expect("Could not genericize zbus method/property/signal. Attempted to turn \"{generic_result}\" into a TokenStream.")
+}
+
+fn gen_trait_method_signature(
+    method_name: &str,
+    snake_case_name: &str,
+    m: &TraitItemMethod,
+    async_opts: &AsyncOpts,
+) -> TokenStream {
+    let AsyncOpts {
+        usage,
+        wait,
+        blocking,
+    } = async_opts;
+    let zbus = zbus_path();
+    let other_attrs: Vec<_> = m
+        .attrs
+        .iter()
+        .filter(|a| !a.path.is_ident("dbus_proxy"))
+        .collect();
+    let args: Vec<_> = m
+        .sig
+        .inputs
+        .iter()
+        .filter_map(typed_arg)
+        .filter_map(pat_ident)
+        .collect();
+    let attrs = parse_item_attributes(&m.attrs, "dbus_proxy").unwrap();
+    let async_proxy_object = attrs.iter().find_map(|x| match x {
+        ItemAttribute::AsyncObject(o) => Some(o.clone()),
+        _ => None,
+    });
+    let blocking_proxy_object = attrs.iter().find_map(|x| match x {
+        ItemAttribute::BlockingObject(o) => Some(o.clone()),
+        _ => None,
+    });
+    let proxy_object = attrs.iter().find_map(|x| match x {
+        ItemAttribute::Object(o) => {
+            if *blocking {
+                // FIXME: for some reason Rust doesn't let us move `blocking_proxy_object` so we've to clone.
+                blocking_proxy_object
+                    .as_ref()
+                    .cloned()
+                    .or_else(|| Some(format!("{o}ProxyBlocking")))
+            } else {
+                async_proxy_object
+                    .as_ref()
+                    .cloned()
+                    .or_else(|| Some(format!("{o}Proxy")))
+            }
+        }
+        _ => None,
+    });
+    let no_reply = attrs.iter().any(|x| matches!(x, ItemAttribute::NoReply));
+    let no_autostart = attrs
+        .iter()
+        .any(|x| matches!(x, ItemAttribute::NoAutoStart));
+    let allow_interactive_auth = attrs
+        .iter()
+        .any(|x| matches!(x, ItemAttribute::AllowInteractiveAuth));
+
+    let method_flags = match (no_reply, no_autostart, allow_interactive_auth) {
+        (true, false, false) => Some(quote!(::std::convert::Into::into(
+            zbus::MethodFlags::NoReplyExpected
+        ))),
+        (false, true, false) => Some(quote!(::std::convert::Into::into(
+            zbus::MethodFlags::NoAutoStart
+        ))),
+        (false, false, true) => Some(quote!(::std::convert::Into::into(
+            zbus::MethodFlags::AllowInteractiveAuth
+        ))),
+
+        (true, true, false) => Some(quote!(
+            zbus::MethodFlags::NoReplyExpected | zbus::MethodFlags::NoAutoStart
+        )),
+        (true, false, true) => Some(quote!(
+            zbus::MethodFlags::NoReplyExpected | zbus::MethodFlags::AllowInteractiveAuth
+        )),
+        (false, true, true) => Some(quote!(
+            zbus::MethodFlags::NoAutoStart | zbus::MethodFlags::AllowInteractiveAuth
+        )),
+
+        (true, true, true) => Some(quote!(
+            zbus::MethodFlags::NoReplyExpected
+                | zbus::MethodFlags::NoAutoStart
+                | zbus::MethodFlags::AllowInteractiveAuth
+        )),
+        _ => None,
+    };
+
+    let method = Ident::new(snake_case_name, Span::call_site());
+    let inputs = &m.sig.inputs;
+    let mut generics = m.sig.generics.clone();
+    let where_clause = generics.where_clause.get_or_insert(parse_quote!(where));
+    for param in generics
+        .params
+        .iter()
+        .filter(|a| matches!(a, syn::GenericParam::Type(_)))
+    {
+        let is_input_type = inputs.iter().any(|arg| {
+            // FIXME: We want to only require `Serialize` from input types and `DeserializeOwned`
+            // from output types but since we don't have type introspection, we employ this
+            // workaround of regex matching on string reprepresention of the the types to figure out
+            // which generic types are input types.
+            if let FnArg::Typed(pat) = arg {
+                let pattern = format!("& *{}", param.to_token_stream());
+                let regex = Regex::new(&pattern).unwrap();
+                regex.is_match(&pat.ty.to_token_stream().to_string())
+            } else {
+                false
+            }
+        });
+        let serde_bound: TokenStream = if is_input_type {
+            parse_quote!(#zbus::export::serde::ser::Serialize)
+        } else {
+            parse_quote!(#zbus::export::serde::de::DeserializeOwned)
+        };
+        where_clause.predicates.push(parse_quote!(
+            #param: #serde_bound + #zbus::zvariant::Type
+        ));
+    }
+    let (_, ty_generics, where_clause) = generics.split_for_impl();
+
+		let body = if args.len() == 1 {
+				// Wrap single arg in a tuple so if it's a struct/tuple itself, zbus will only remove
+				// the '()' from the signature that we add and not the actual intended ones.
+				let arg = &args[0];
+				quote! {
+						&(#arg,)
+				}
+		} else {
+				quote! {
+						&(#(#args),*)
+				}
+		};
+
+		let output = genericize_method_return_type(&m.sig.output);
+		let signature = quote! {
+				fn #method(#inputs) #output
+		};
+
+		quote! {
+				#(#other_attrs)*
+				#usage #signature;
+		}
+}
 fn gen_proxy_method_call(
     method_name: &str,
     snake_case_name: &str,
@@ -398,6 +607,40 @@ impl PropertyEmitsChangedSignal {
     }
 }
 
+fn gen_trait_property(
+    property_name: &str,
+    method_name: &str,
+    m: &TraitItemMethod,
+    async_opts: &AsyncOpts,
+    emits_changed_signal: PropertyEmitsChangedSignal,
+) -> TokenStream {
+    let AsyncOpts {
+        usage,
+        wait,
+        blocking,
+    } = async_opts;
+    let zbus = zbus_path();
+    let other_attrs: Vec<_> = m
+        .attrs
+        .iter()
+        .filter(|a| !a.path.is_ident("dbus_proxy"))
+        .collect();
+    let method = Ident::new(method_name, Span::call_site());
+		let signature = &m.sig;
+    let inputs = &m.sig.inputs;
+    let output = genericize_method_return_type(&m.sig.output);
+    if signature.inputs.len() > 1 {
+        quote! {
+            #(#other_attrs)*
+            #usage #method(#inputs) #output;
+        }
+    } else {
+        quote! {
+            #(#other_attrs)*
+            #usage fn #method(#inputs) #output;
+        }
+    }
+}
 fn gen_proxy_property(
     property_name: &str,
     method_name: &str,
