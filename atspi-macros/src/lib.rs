@@ -1,3 +1,7 @@
+mod zbus_proxy;
+mod proxy;
+mod utils;
+
 use proc_macro::{
 	TokenStream,
 };
@@ -9,7 +13,7 @@ use quote::{
 	quote,
 };
 use syn::{
-    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta, MetaNameValue,
+    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, ItemTrait, Lit, Meta, MetaNameValue,
 		Ident,
     NestedMeta, Type,
 };
@@ -21,7 +25,14 @@ use zvariant::{
 			    DICT_ENTRY_SIG_START_CHAR, STRUCT_SIG_END_CHAR, STRUCT_SIG_START_CHAR, VARIANT_SIGNATURE_CHAR,
 };
 
-use std::str::FromStr;
+use std::{
+	str::FromStr,
+	convert::{
+		TryFrom,
+		TryInto,
+	},
+	iter::FromIterator,
+};
 
 enum FromZbusMessageParam {
     Invalid,
@@ -437,7 +448,20 @@ pub fn create_from_xml(attr: TokenStream, _input: TokenStream) -> TokenStream {
 	).into()
 }
 
-//#[proc_macro_derive(TryFromMessage)]
+#[proc_macro_attribute]
+pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
+	let args = parse_macro_input!(attr as AttributeArgs);
+	let input = parse_macro_input!(item as ItemTrait);
+	let zbus_part = zbus_proxy::expand(args, input.clone())
+		.unwrap_or_else(|err| err.into_compile_error());
+	let atspi_part = proxy::expand(input)
+		.unwrap_or_else(|err| err.into_compile_error());
+	quote! {
+#zbus_part
+#atspi_part
+	}.into()
+}
+
 #[proc_macro_attribute]
 pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStream {
     let item_struct = parse_macro_input!(input as ItemStruct);
