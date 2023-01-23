@@ -566,7 +566,7 @@ fn gen_proxy_trait_method_impl(
 
 		let output_str = format!("{output}");
 		let proxy = TokenStream::from_str(proxy_name).expect("Could not create token stream from \"{proxy_name}\"");
-		if output_str.contains("Result < Self") {
+		let x = if output_str.contains("Result < Self") {
 			quote! {
 				#(#other_attrs)*
 				#usage #signature {
@@ -583,7 +583,7 @@ fn gen_proxy_trait_method_impl(
 			quote! {
 				#(#other_attrs)*
 				#usage #signature {
-					let vec_of_object_pairs = self.#method()#wait?;
+					let vec_of_object_pairs = self.#method(#body)#wait?;
 					let mut vec_self = Vec::new();
 					let conn = self.connection().clone();
 					for object_pair in vec_of_object_pairs {
@@ -598,7 +598,7 @@ fn gen_proxy_trait_method_impl(
 				}
 			}
 	} else {
-			if inputs.len() >= 1 {
+			if inputs.len() > 1 {
 				quote! {
 						#(#other_attrs)*
 						#usage #signature {
@@ -613,7 +613,9 @@ fn gen_proxy_trait_method_impl(
 						}
 				}
 			}
-	}
+	};
+	println!("FUNC: {x}");
+	x
 }
 fn gen_proxy_method_call(
     method_name: &str,
@@ -898,6 +900,13 @@ fn gen_proxy_trait_impl_property(
         blocking,
     } = async_opts;
     let zbus = zbus_path();
+    let args: Vec<_> = m
+        .sig
+        .inputs
+        .iter()
+        .filter_map(typed_arg)
+        .filter_map(pat_ident)
+        .collect();
     let other_attrs: Vec<_> = m
         .attrs
         .iter()
@@ -926,6 +935,18 @@ fn gen_proxy_trait_impl_property(
         };
 				let output_str = format!("{}", output);
 				let proxy = TokenStream::from_str(proxy_name).expect("Could not create token stream from \"{proxy_name}\"");
+				let input_args = if args.len() == 1 {
+						// Wrap single arg in a tuple so if it's a struct/tuple itself, zbus will only remove
+						// the '()' from the signature that we add and not the actual intended ones.
+						let arg = &args[0];
+						quote! {
+								&(#arg,)
+						}
+				} else {
+						quote! {
+								&(#(#args),*)
+						}
+				};
 				let body = if output_str.contains("Result < Self,") {
 					quote! {
 						let object_pair = self.#method()#wait?;
@@ -937,8 +958,14 @@ fn gen_proxy_trait_impl_property(
 							#wait
 					}
 				} else {
-					quote! {
-            self.#method()#wait
+					if inputs.len() > 1 {
+						quote! {
+							self.#method(#input_args)#wait
+						}
+					} else {
+						quote! {
+							self.#method()#wait
+						}
 					}
         };
         let ret_type = if let ReturnType::Type(_, ty) = &signature.output {
