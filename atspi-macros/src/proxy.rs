@@ -38,10 +38,13 @@ pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
 		let trait_name = format!("{}Blocking", input.ident);
     let blocking_trait = create_trait(&input, &trait_name, true)?;
     let async_trait = create_trait(&input, &async_trait_name, false)?;
+		let blocking_impl = create_proxy_trait_impl(&input, &async_trait_name, true)?;
 		let async_impl = create_proxy_trait_impl(&input, &async_trait_name, false)?;
 
     Ok(quote! {
         #blocking_trait
+
+				#blocking_impl
 
 				#[async_trait]
         #async_trait
@@ -62,6 +65,12 @@ pub fn create_proxy_trait_impl(
 		} else {
 			format!("{trait_name}Proxy")
 		};
+		let trait_impl_name_string = if blocking {
+			format!("{trait_name}Blocking")
+		} else {
+			format!("{trait_name}")
+		};
+		let trait_impl_name = TokenStream::from_str(&trait_impl_name_string).expect("Could not create token stream from \"{trait_impl_name_string}\"");
 		let proxy_name = TokenStream::from_str(&proxy_name_string)?;
     let other_attrs: Vec<_> = input
         .attrs
@@ -149,21 +158,12 @@ pub fn create_proxy_trait_impl(
         (proxy, connection, builder)
     };
 
-		if blocking {
-			Ok(quote! {
-					impl<'c> #trait_name for #proxy_name<'c> {
-						type Error = zbus::Error;
-						#methods
-					}
-			})
-		} else {
-			Ok(quote! {
-					impl<'c> #trait_name for #proxy_name<'c> {
-						type Error = zbus::Error;
-						#methods
-					}
-			})
-		}
+		Ok(quote! {
+				impl<'c> #trait_impl_name for #proxy_name<'c> {
+					type Error = zbus::Error;
+					#methods
+				}
+		})
 }
 pub fn create_trait(
     input: &ItemTrait,
