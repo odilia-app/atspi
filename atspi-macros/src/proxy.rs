@@ -555,7 +555,7 @@ fn gen_proxy_trait_method_impl(
 			quote! {}
 		} else {
 				quote! {
-						&(#(#args),*)
+						#(#args),*
 				}
 		};
 
@@ -598,11 +598,20 @@ fn gen_proxy_trait_method_impl(
 				}
 			}
 	} else {
-			quote! {
-					#(#other_attrs)*
-					#usage #signature {
-						self.#method()#wait
-					}
+			if inputs.len() >= 1 {
+				quote! {
+						#(#other_attrs)*
+						#usage #signature {
+							self.#method(#body)#wait
+						}
+				}
+			} else {
+				quote! {
+						#(#other_attrs)*
+						#usage #signature {
+							self.#method()#wait
+						}
+				}
 			}
 	}
 }
