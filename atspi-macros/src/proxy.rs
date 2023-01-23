@@ -127,15 +127,6 @@ pub fn create_proxy_trait_impl(
                     &async_opts,
                     emits_changed_signal,
                 )
-            } else if is_signal {
-                let method = gen_proxy_signal(
-                    &trait_name,
-                    &member_name,
-                    &method_name,
-                    m,
-                    &async_opts,
-                );
-                method
             } else {
                 gen_proxy_trait_method_impl(&member_name, &method_name, &proxy_name_string, m, &async_opts)
             };
