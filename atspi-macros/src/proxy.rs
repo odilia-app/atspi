@@ -113,6 +113,7 @@ pub fn create_proxy_trait_impl(
                 gen_proxy_trait_impl_property(
                     &member_name,
                     &method_name,
+										&proxy_name_string,
                     m,
                     &async_opts,
                     emits_changed_signal,
@@ -127,7 +128,7 @@ pub fn create_proxy_trait_impl(
                 );
                 method
             } else {
-                gen_proxy_trait_method_impl(&member_name, &method_name, m, &async_opts)
+                gen_proxy_trait_method_impl(&member_name, &method_name, &proxy_name_string, m, &async_opts)
             };
             methods.extend(m);
         }
@@ -274,7 +275,8 @@ fn genericize_method_return_type(rt: &ReturnType) -> TokenStream {
 	let mut generic_result = original.replace("zbus :: Result", "std :: result :: Result");
 	let end_of_str = generic_result.len();
 	generic_result.insert_str(end_of_str-2, ", Self :: Error");
-	let generic_impl = generic_result.replace("(String, zbus :: zvariant :: OwnedObjectPath)", "&Self");
+	let mut generic_impl = generic_result.replace("(String, zbus :: zvariant :: OwnedObjectPath)", "Self");
+	generic_impl.push_str(" where Self: Sized");
 	TokenStream::from_str(&generic_impl).expect("Could not genericize zbus method/property/signal. Attempted to turn \"{generic_result}\" into a TokenStream.")
 }
 
@@ -424,6 +426,7 @@ fn gen_trait_method_signature(
 fn gen_proxy_trait_method_impl(
     method_name: &str,
     snake_case_name: &str,
+		proxy_name: &str,
     m: &TraitItemMethod,
     async_opts: &AsyncOpts,
 ) -> TokenStream {
@@ -546,8 +549,10 @@ fn gen_proxy_trait_method_impl(
 				// the '()' from the signature that we add and not the actual intended ones.
 				let arg = &args[0];
 				quote! {
-						&(#arg,)
+						#arg
 				}
+		} else if args.len() == 0 {
+			quote! {}
 		} else {
 				quote! {
 						&(#(#args),*)
@@ -559,12 +564,47 @@ fn gen_proxy_trait_method_impl(
 				fn #method(#inputs) #output
 		};
 
-		quote! {
+		let output_str = format!("{output}");
+		let proxy = TokenStream::from_str(proxy_name).expect("Could not create token stream from \"{proxy_name}\"");
+		if output_str.contains("Result < Self") {
+			quote! {
 				#(#other_attrs)*
 				#usage #signature {
-					self.#method(#body)#wait
+					let object_pair = self.#method(#body)#wait?;
+					let conn = self.connection().clone();
+					#proxy::builder(&conn)
+						.path(object_pair.1)?
+						.destination(object_pair.0)?
+						.build()
+						#wait
 				}
-		}
+			}
+		} else if output_str.contains("< Vec < Self") {
+			quote! {
+				#(#other_attrs)*
+				#usage #signature {
+					let vec_of_object_pairs = self.#method()#wait?;
+					let mut vec_self = Vec::new();
+					let conn = self.connection().clone();
+					for object_pair in vec_of_object_pairs {
+						let proxy = #proxy::builder(&conn)
+							.path(object_pair.1)?
+							.destination(object_pair.0)?
+							.build()
+							#wait?;
+						vec_self.push(proxy);
+					}
+					Ok(vec_self)
+				}
+			}
+	} else {
+			quote! {
+					#(#other_attrs)*
+					#usage #signature {
+						self.#method()#wait
+					}
+			}
+	}
 }
 fn gen_proxy_method_call(
     method_name: &str,
@@ -838,6 +878,7 @@ fn gen_trait_property(
 fn gen_proxy_trait_impl_property(
     property_name: &str,
     method_name: &str,
+		proxy_name: &str,
     m: &TraitItemMethod,
     async_opts: &AsyncOpts,
     emits_changed_signal: PropertyEmitsChangedSignal,
@@ -874,8 +915,22 @@ fn gen_proxy_trait_impl_property(
         } else {
             signature.span()
         };
-        let body = quote! {
-            self.#method()#wait?.try_into()?
+				let output_str = format!("{}", output);
+				let proxy = TokenStream::from_str(proxy_name).expect("Could not create token stream from \"{proxy_name}\"");
+				let body = if output_str.contains("Result < Self,") {
+					quote! {
+						let object_pair = self.#method()#wait?;
+						let conn = self.connection().clone();
+						#proxy::builder(&conn)
+							.path(object_pair.1)?
+							.destination(object_pair.0)?
+							.build()
+							#wait
+					}
+				} else {
+					quote! {
+            self.#method()#wait
+					}
         };
         let ret_type = if let ReturnType::Type(_, ty) = &signature.output {
             Some(ty)
@@ -892,7 +947,7 @@ fn gen_proxy_trait_impl_property(
             ("zbus::Proxy", quote! { #zbus::PropertyStream })
         };
 
-				if inputs.len() > 1 {
+				if inputs.len() >= 1 {
 					quote! {
 							#(#other_attrs)*
 							#usage fn #method(#inputs) #output {
