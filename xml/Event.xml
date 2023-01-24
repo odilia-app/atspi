@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node>
+
   <!-- FIXME: all the following signatures are incorrect and need to be synched
        with the C code and the actual implementations in toolkits.
 
@@ -164,7 +165,7 @@
     <signal name="TextChanged">
       <arg name="detail" type="s"/>
       <arg name="start_pos" type="i"/>
-      <arg name="end_pos" type="i"/>
+      <arg name="length" type="i"/>
       <arg name="text" type="v"/>
       <arg name="properties" type="a{sv}"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QSpiEvent"/>

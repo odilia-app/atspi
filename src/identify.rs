@@ -431,7 +431,7 @@ pub mod object {
 	
 
 		#[must_use]
-		pub fn end_pos(&self) -> i32 {
+		pub fn length(&self) -> i32 {
 			self.0.detail2()
 		}
 	
