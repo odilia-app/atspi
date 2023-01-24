@@ -35,3 +35,5 @@ zbus_names = "2.4.0"
 
 [dev-dependencies]
 byteorder = "1.4.3"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1.11"
