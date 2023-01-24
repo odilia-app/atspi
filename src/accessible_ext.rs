@@ -1,5 +1,5 @@
 use crate::{
-    accessible::{AccessibleProxy, RelationType, Role, Accessible},
+    accessible::{AccessibleProxy, RelationType, Role},
     collection::MatchType,
     convertable::Convertable,
     error::ObjectPathConversionError,

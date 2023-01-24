@@ -11,7 +11,6 @@
 //!
 
 use crate::device_event_controller::DeviceEvent;
-use zbus::dbus_proxy;
 use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
 

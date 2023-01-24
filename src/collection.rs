@@ -13,7 +13,7 @@
 // this allow zbus to change the number of parameters in a function without setting off clippy
 
 use serde::{Deserialize, Serialize};
-use zbus::{dbus_proxy, zvariant::Type};
+use zbus::zvariant::Type;
 use async_trait::async_trait;
 use atspi_macros::atspi_proxy;
 

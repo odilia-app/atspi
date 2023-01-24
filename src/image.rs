@@ -10,7 +10,6 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
 
 use crate::CoordType;
 use atspi_macros::atspi_proxy;

@@ -11,7 +11,7 @@
 //!
 
 use serde::{Deserialize, Serialize};
-use zbus::{dbus_proxy, zvariant::Type};
+use zbus::zvariant::Type;
 use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
 

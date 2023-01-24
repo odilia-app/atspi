@@ -6,7 +6,6 @@
 
 use crate::{accessible::Role, InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
-use zbus::dbus_proxy;
 use zbus::zvariant::{OwnedObjectPath, Type};
 use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
