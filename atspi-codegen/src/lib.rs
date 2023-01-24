@@ -31,13 +31,14 @@ macro_rules! get_vec {
             .collect()
     };
 }
+
 macro_rules! get_doc {
     ($vec:expr, $kind:path) => {
         $vec.iter()
             .filter_map(|e| if let $kind(m) = e { Some(m.to_owned()) } else { None })
             .collect::<Vec<Doc>>()
-						.get(0)
-						.cloned()
+            .get(0)
+            .cloned()
     };
 }
 
@@ -61,10 +62,10 @@ impl Annotation {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy)]
-#[serde(rename_all="lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum Direction {
-	In,
-	Out,
+    In,
+    Out,
 }
 
 /// An argument
@@ -77,7 +78,6 @@ pub struct Arg {
     annotations: Vec<Annotation>,
 }
 
-
 impl Arg {
     /// Return the argument name, if any.
     pub fn name(&self) -> Option<&str> {
@@ -89,10 +89,12 @@ impl Arg {
         &self.r#type
     }
 
-		/// Return the signature type.
-		pub fn signature(&self) -> zbus::zvariant::Signature<'static> {
-			zbus::zvariant::Signature::try_from(self.ty()).expect("Could not create DBus signature from {self.type}").to_owned()
-		}
+    /// Return the signature type.
+    pub fn signature(&self) -> zbus::zvariant::Signature<'static> {
+        zbus::zvariant::Signature::try_from(self.ty())
+            .expect("Could not create DBus signature from {self.type}")
+            .to_owned()
+    }
 
     /// Return the argument direction (should be "in" or "out"), if any.
     pub fn direction(&self) -> Option<Direction> {
@@ -101,7 +103,7 @@ impl Arg {
 
     /// Return the associated annotations.
     pub fn annotations(&self) -> Vec<&Annotation> {
-				self.annotations.iter().collect()
+        self.annotations.iter().collect()
     }
 }
 
@@ -120,7 +122,6 @@ pub struct Method {
     #[serde(rename = "$value", default)]
     elems: Vec<MethodElement>,
 }
-
 
 impl Method {
     /// Return the method name.
@@ -155,7 +156,6 @@ pub struct Signal {
     elems: Vec<SignalElement>,
 }
 
-
 impl Signal {
     /// Return the signal name.
     pub fn name(&self) -> &str {
@@ -174,11 +174,11 @@ impl Signal {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy)]
-#[serde(rename_all="lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum Access {
-	Read,
-	Write,
-	ReadWrite,
+    Read,
+    Write,
+    ReadWrite,
 }
 
 /// A property
@@ -192,7 +192,6 @@ pub struct Property {
     annotations: Vec<Annotation>,
 }
 
-
 impl Property {
     /// Returns the property name.
     pub fn name(&self) -> &str {
@@ -203,12 +202,13 @@ impl Property {
     pub fn ty(&self) -> &str {
         &self.r#type
     }
-		
-		/// Return the signature type.
-		pub fn signature(&self) -> zbus::zvariant::Signature<'static> {
-			zbus::zvariant::Signature::try_from(self.ty()).expect("Could not create DBus signature from {self.type}").to_owned()
-		}
 
+    /// Return the signature type.
+    pub fn signature(&self) -> zbus::zvariant::Signature<'static> {
+        zbus::zvariant::Signature::try_from(self.ty())
+            .expect("Could not create DBus signature from {self.type}")
+            .to_owned()
+    }
 
     /// Returns the property access flags (should be "read", "write" or "readwrite").
     pub fn access(&self) -> Access {
@@ -239,7 +239,6 @@ pub struct Interface {
     elems: Vec<InterfaceElement>,
 }
 
-
 impl Interface {
     /// Returns the interface name.
     pub fn name(&self) -> &str {
@@ -268,10 +267,10 @@ impl Interface {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-#[serde(rename_all="lowercase")]
+#[serde(rename_all = "lowercase")]
 pub struct Doc {
-	#[serde(rename="$value")]
-	pub data: String
+    #[serde(rename = "$value")]
+    pub data: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -279,8 +278,8 @@ pub struct Doc {
 enum NodeElement {
     Node(Node),
     Interface(Interface),
-		Annotation(Annotation),
-		Doc(Doc),
+    Annotation(Annotation),
+    Doc(Doc),
 }
 
 /// An introspection tree node (typically the root of the XML document).
@@ -308,10 +307,10 @@ impl Node {
         self.name.as_deref()
     }
 
-		/// Return the node documentation, if any.
-		pub fn doc(&self) -> Option<Doc> {
-			get_doc!(self.elems, NodeElement::Doc)
-		}
+    /// Return the node documentation, if any.
+    pub fn doc(&self) -> Option<Doc> {
+        get_doc!(self.elems, NodeElement::Doc)
+    }
 
     /// Returns the children nodes.
     pub fn nodes(&self) -> Vec<&Node> {
@@ -325,7 +324,7 @@ impl Node {
 
     /// Return the associated annotations.
     pub fn annotations(&self) -> Vec<&Annotation> {
-				get_vec!(self.elems, NodeElement::Annotation)
+        get_vec!(self.elems, NodeElement::Annotation)
     }
 }
 
