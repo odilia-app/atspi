@@ -180,6 +180,7 @@ where
     sig_name_event_str.push_str("Events");
     into_rust_enum_str(sig_name_event_str)
 }
+
 fn event_ident<S>(string: S) -> String
 where
     S: Into<String>,
@@ -358,12 +359,45 @@ pub mod {mod_name} {{
     )
 }
 
+fn generate_enum_associated_example(iface_name: &str) -> String {
+    format!(
+  "{STRIPPER_IGNORE_START}
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{{events::EventInterfaces, Event}};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {{
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {{
+    /// #       let Ok(ev) = ev else {{ break }};
+    ///          let Event::Interfaces(EventInterfaces::{iface_name}(_event)) = ev else {{ continue }};
+    ///     }}
+    /// }}
+    /// ```
+    {STRIPPER_IGNORE_STOP}"
+    )
+}
+
 fn generate_enum_from_iface(iface: &Interface) -> String {
     let name_ident = iface
         .name()
         .split('.')
         .next_back()
         .expect("Interface must contain a period");
+    let example_string = generate_enum_associated_example(name_ident);
     let name_ident_plural = events_ident(name_ident);
     let signal_quotes = iface
         .signals()
@@ -373,6 +407,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
         .join("\n");
     format!(
         "
+    {example_string}
 	#[derive(Clone, Debug)]
 	pub enum {name_ident_plural} {{
 {signal_quotes}
@@ -633,7 +668,7 @@ fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
     // collect all strings in vec
     let new_source: String = source_and_doc_lines
         .into_iter()
-        .map(|line| if !line.ends_with("\n") { line + "\n" } else { line })
+        .map(|line| if !line.ends_with('\n') { line + "\n" } else { line })
         .collect();
 
     // write string to source
@@ -798,7 +833,6 @@ pub fn main() {
                 reinstate_docs(&path_to_source, docvec);
             } else {
                 eprintln!("comments save file does nt exist.");
-                return;
             }
         }
         _ => println!("unsupported combination of switches"),
