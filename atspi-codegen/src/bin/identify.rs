@@ -234,10 +234,45 @@ fn generate_impl_from_signal(signal: &Signal) -> String {
     )
 }
 
-fn generate_struct_from_signal(signal: &Signal) -> String {
+fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> String {
+    format!(
+        "{STRIPPER_IGNORE_START}
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{{events::EventInterfaces, Event}};
+    /// use atspi::identify::{mod_name}::{signal_name};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {{
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {{
+    /// #       let Ok(ev) = ev else {{ break }};
+    ///         let Ok(event)  = {signal_name}::try_from(ev) else {{ continue }};
+    ///     }}
+    /// }}
+    /// ```
+    {STRIPPER_IGNORE_STOP}"
+    )
+}
+
+fn generate_struct_from_signal(mod_name: &str, signal: &Signal) -> String {
     let sig_name_event = event_ident(signal.name());
+    let example = generate_signal_associated_example(mod_name, &sig_name_event);
     format!(
         "
+    {example}
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct {sig_name_event}(pub(crate) AtspiEvent);
 	"
@@ -291,7 +326,7 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
     let structs = iface
         .signals()
         .iter()
-        .map(|signal| generate_struct_from_signal(signal))
+        .map(|signal| generate_struct_from_signal(&mod_name, signal))
         .collect::<Vec<String>>()
         .join("\n");
     let impls = iface
