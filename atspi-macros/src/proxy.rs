@@ -236,7 +236,7 @@ pub fn create_trait(
 
 		Ok(quote! {
 				pub trait #trait_name {
-					type Error;
+					type Error: std::error::Error;
 					#trait_methods
 				}
 		})
