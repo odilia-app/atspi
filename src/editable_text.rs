@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = true)]
 trait EditableText {
     /// CopyText method
     fn copy_text(&self, start_pos: i32, end_pos: i32) -> zbus::Result<()>;

@@ -8,6 +8,8 @@ use crate::{accessible::Role, InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus::dbus_proxy;
 use zbus::zvariant::{OwnedObjectPath, Type};
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
@@ -52,7 +54,7 @@ fn zvariant_type_signature_of_cache_item() {
 // }
 //
 
-#[dbus_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
+#[atspi_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {
     /// GetItems method
     fn get_items(&self) -> zbus::Result<Vec<CacheItem>>;

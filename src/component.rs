@@ -12,6 +12,8 @@
 
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
 /// Indicates relative stacking order of a [`ComponentProxy`] with respect to the
 /// onscreen visual representation of the UI.
@@ -65,7 +67,7 @@ pub enum ScrollType {
 
 use crate::CoordType;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
 trait Component {
     /// Contains method
     fn contains(&self, x: i32, y: i32, coord_type: CoordType) -> zbus::Result<bool>;

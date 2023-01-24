@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Hypertext", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Hypertext", assume_defaults = true)]
 trait Hypertext {
     /// GetLink method
     fn get_link(&self, link_index: i32) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;

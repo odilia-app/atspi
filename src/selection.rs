@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
 trait Selection {
     /// ClearSelection method
     fn clear_selection(&self) -> zbus::Result<bool>;

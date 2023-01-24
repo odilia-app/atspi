@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
 trait Application {
     /// DeregisterEventListener method
     fn deregister_event_listener(&self, event: &str) -> zbus::Result<()>;
@@ -30,6 +32,7 @@ trait Application {
     /// Id property
     #[dbus_proxy(property)]
     fn id(&self) -> zbus::Result<i32>;
+
     #[dbus_proxy(property)]
     fn set_id(&self, value: i32) -> zbus::Result<()>;
 
@@ -41,6 +44,7 @@ trait Application {
     #[dbus_proxy(property)]
     fn version(&self) -> zbus::Result<String>;
 }
+
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for ApplicationProxy<'a> {
     const INTERFACE: Interface = Interface::Application;

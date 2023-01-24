@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
 trait Table {
     /// AddColumnSelection method
     fn add_column_selection(&self, column: i32) -> zbus::Result<bool>;

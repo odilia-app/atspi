@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
 trait Action {
     /// DoAction method
     fn do_action(&self, index: i32) -> zbus::Result<bool>;

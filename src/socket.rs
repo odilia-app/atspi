@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(
+#[atspi_proxy(
     interface = "org.a11y.atspi.Socket",
     default_path = "/org/a11y/atspi/accessible/root",
     default_service = "org.a11y.atspi.Registry"

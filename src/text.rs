@@ -14,6 +14,8 @@
 
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
+use async_trait::async_trait;
+use atspi_macros::atspi_proxy;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -31,7 +33,7 @@ pub enum Granularity {
     Paragraph,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
 trait Text {
     /// AddSelection method
     fn add_selection(&self, start_offset: i32, end_offset: i32) -> zbus::Result<bool>;

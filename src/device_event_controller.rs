@@ -12,6 +12,8 @@
 
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -68,7 +70,7 @@ pub struct KeyDefinition<'a> {
     pub unused: i32,
 }
 
-#[dbus_proxy(
+#[atspi_proxy(
     interface = "org.a11y.atspi.DeviceEventController",
     default_path = "/org/a11y/atspi/registry/deviceeventcontroller",
     default_service = "org.a11y.atspi.Registry"

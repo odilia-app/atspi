@@ -11,8 +11,10 @@
 //!
 
 use zbus::dbus_proxy;
+use atspi_macros::atspi_proxy;
+use async_trait::async_trait;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
 trait Document {
     /// GetAttributeValue method
     fn get_attribute_value(&self, attributename: &str) -> zbus::Result<String>;

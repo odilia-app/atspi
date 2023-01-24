@@ -20,7 +20,6 @@ pub use events::{Event, EventBody};
 pub mod hyperlink;
 pub mod hypertext;
 pub mod image;
-pub mod processed;
 pub mod registry;
 pub mod selection;
 pub mod socket;

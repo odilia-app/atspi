@@ -14,6 +14,8 @@
 
 use serde::{Deserialize, Serialize};
 use zbus::{dbus_proxy, zvariant::Type};
+use async_trait::async_trait;
+use atspi_macros::atspi_proxy;
 
 pub type MatchArgs<'a> = (
     &'a [i32],
@@ -60,7 +62,7 @@ pub enum MatchType {
     LastDefined,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
     /// GetActiveDescendant method
     fn get_active_descendant(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
