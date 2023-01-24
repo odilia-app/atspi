@@ -1,5 +1,5 @@
 use crate::{
-    accessible::AccessibleProxy, action::ActionProxy, application::ApplicationProxy,
+    accessible::{AccessibleProxy, Accessible}, action::ActionProxy, application::ApplicationProxy,
     cache::CacheProxy, collection::CollectionProxy, component::ComponentProxy,
     device_event_controller::DeviceEventControllerProxy,
     device_event_listener::DeviceEventListenerProxy, document::DocumentProxy,
@@ -32,6 +32,35 @@ pub trait Convertable {
     async fn to_registry(&self) -> zbus::Result<RegistryProxy<'_>>;
     async fn to_device_event_controller(&self) -> zbus::Result<DeviceEventControllerProxy<'_>>;
     async fn to_device_event_listener(&self) -> zbus::Result<DeviceEventListenerProxy<'_>>;
+}
+
+#[inline]
+async fn convert_to_new_type2<
+    'a,
+    'b,
+    T: From<Proxy<'b>> + ProxyDefault,
+    U: Deref<Target = Proxy<'a>> + ProxyDefault + AtspiProxy + Accessible,
+>(
+    from: &U,
+) -> Result<T, Box<dyn std::error::Error>> {
+    // if the interface we're trying to convert to is not available as an interface; this can be problematic because the interface we're passing in could potentially be different from what we're converting to.
+    if !from
+        .get_interfaces()
+        .await?
+        .contains(<U as AtspiProxy>::INTERFACE)
+    {
+        return Err(Box::new(Error::InterfaceNotFound));
+    }
+    // otherwise, make a new Proxy with the related type.
+    let path = from.path().to_owned();
+    let dest = from.destination().to_owned();
+    ProxyBuilder::<'b, T>::new_bare(from.connection())
+        .interface(<T as ProxyDefault>::INTERFACE)?
+        .destination(dest)?
+        .cache_properties(CacheProperties::No)
+        .path(path)?
+        .build()
+        .await
 }
 
 #[inline]
