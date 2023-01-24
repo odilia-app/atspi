@@ -1,5 +1,44 @@
 use std::{process::Output, time::Duration};
 
+use std::collections::HashMap;
+use std::sync::Arc;
+use zbus::zvariant::Value;
+use zbus::zvariant::{ObjectPath, OwnedValue};
+use zbus::Error;
+use zbus::{Message, MessageBuilder};
+use zbus_names::{InterfaceName, MemberName};
+
+use atspi::events::EventBodyOwned;
+
+pub fn test_event_body() -> EventBodyOwned {
+    let any_data: OwnedValue =
+        OwnedValue::try_from(Value::U16(0_u16)).expect("trivial value should convert");
+    let props: HashMap<String, OwnedValue> = HashMap::new();
+    EventBodyOwned {
+        kind: "test body".to_string(),
+        detail1: 0_i32,
+        detail2: 0_i32,
+        any_data,
+        properties: props,
+    }
+}
+
+/// An `Event` matching `method`, `interface` and `path`.
+pub fn valid_mockup_message<'p, 'i, 'm, P, I, M>(method: M, iface: I, path: P) -> Arc<Message>
+where
+    P: TryInto<ObjectPath<'p>>,
+    I: TryInto<InterfaceName<'i>>,
+    M: TryInto<MemberName<'m>>,
+    P::Error: Into<Error>,
+    I::Error: Into<Error>,
+    M::Error: Into<Error>,
+{
+    let body = test_event_body();
+    let builder = MessageBuilder::signal(path, iface, method).unwrap();
+    let msg = builder.build(&body).unwrap();
+    Arc::new(msg)
+}
+
 pub fn a11y_bus_address() -> String {
     let output = std::process::Command::new("busctl")
         .arg("--user")
