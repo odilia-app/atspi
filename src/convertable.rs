@@ -13,54 +13,27 @@ use zbus::{CacheProperties, Error, Proxy, ProxyBuilder, ProxyDefault};
 
 #[async_trait]
 pub trait Convertable {
-    async fn to_accessible(&self) -> zbus::Result<AccessibleProxy<'_>>;
-    async fn to_action(&self) -> zbus::Result<ActionProxy<'_>>;
-    async fn to_application(&self) -> zbus::Result<ApplicationProxy<'_>>;
-    async fn to_collection(&self) -> zbus::Result<CollectionProxy<'_>>;
-    async fn to_component(&self) -> zbus::Result<ComponentProxy<'_>>;
-    async fn to_document(&self) -> zbus::Result<DocumentProxy<'_>>;
-    async fn to_hypertext(&self) -> zbus::Result<HypertextProxy<'_>>;
-    async fn to_hyperlink(&self) -> zbus::Result<HyperlinkProxy<'_>>;
-    async fn to_image(&self) -> zbus::Result<ImageProxy<'_>>;
-    async fn to_selection(&self) -> zbus::Result<SelectionProxy<'_>>;
-    async fn to_table(&self) -> zbus::Result<TableProxy<'_>>;
-    async fn to_table_cell(&self) -> zbus::Result<TableCellProxy<'_>>;
-    async fn to_text(&self) -> zbus::Result<TextProxy<'_>>;
-    async fn to_editable_text(&self) -> zbus::Result<EditableTextProxy<'_>>;
-    async fn to_cache(&self) -> zbus::Result<CacheProxy<'_>>;
-    async fn to_value(&self) -> zbus::Result<ValueProxy<'_>>;
-    async fn to_registry(&self) -> zbus::Result<RegistryProxy<'_>>;
-    async fn to_device_event_controller(&self) -> zbus::Result<DeviceEventControllerProxy<'_>>;
-    async fn to_device_event_listener(&self) -> zbus::Result<DeviceEventListenerProxy<'_>>;
-}
+	type Error: std::error::Error;
 
-#[inline]
-async fn convert_to_new_type2<
-    'a,
-    'b,
-    T: From<Proxy<'b>> + ProxyDefault,
-    U: Deref<Target = Proxy<'a>> + ProxyDefault + AtspiProxy + Accessible,
->(
-    from: &U,
-) -> Result<T, Box<dyn std::error::Error>> {
-    // if the interface we're trying to convert to is not available as an interface; this can be problematic because the interface we're passing in could potentially be different from what we're converting to.
-    if !from
-        .get_interfaces()
-        .await?
-        .contains(<U as AtspiProxy>::INTERFACE)
-    {
-        return Err(Box::new(Error::InterfaceNotFound));
-    }
-    // otherwise, make a new Proxy with the related type.
-    let path = from.path().to_owned();
-    let dest = from.destination().to_owned();
-    ProxyBuilder::<'b, T>::new_bare(from.connection())
-        .interface(<T as ProxyDefault>::INTERFACE)?
-        .destination(dest)?
-        .cache_properties(CacheProperties::No)
-        .path(path)?
-        .build()
-        .await
+    async fn to_accessible(&self) -> Result<AccessibleProxy<'_>, Self::Error>;
+    async fn to_action(&self) -> Result<ActionProxy<'_>, Self::Error>;
+    async fn to_application(&self) -> Result<ApplicationProxy<'_>, Self::Error>;
+    async fn to_collection(&self) -> Result<CollectionProxy<'_>, Self::Error>;
+    async fn to_component(&self) -> Result<ComponentProxy<'_>, Self::Error>;
+    async fn to_document(&self) -> Result<DocumentProxy<'_>, Self::Error>;
+    async fn to_hypertext(&self) -> Result<HypertextProxy<'_>, Self::Error>;
+    async fn to_hyperlink(&self) -> Result<HyperlinkProxy<'_>, Self::Error>;
+    async fn to_image(&self) -> Result<ImageProxy<'_>, Self::Error>;
+    async fn to_selection(&self) -> Result<SelectionProxy<'_>, Self::Error>;
+    async fn to_table(&self) -> Result<TableProxy<'_>, Self::Error>;
+    async fn to_table_cell(&self) -> Result<TableCellProxy<'_>, Self::Error>;
+    async fn to_text(&self) -> Result<TextProxy<'_>, Self::Error>;
+    async fn to_editable_text(&self) -> Result<EditableTextProxy<'_>, Self::Error>;
+    async fn to_cache(&self) -> Result<CacheProxy<'_>, Self::Error>;
+    async fn to_value(&self) -> Result<ValueProxy<'_>, Self::Error>;
+    async fn to_registry(&self) -> Result<RegistryProxy<'_>, Self::Error>;
+    async fn to_device_event_controller(&self) -> Result<DeviceEventControllerProxy<'_>, Self::Error>;
+    async fn to_device_event_listener(&self) -> Result<DeviceEventListenerProxy<'_>, Self::Error>;
 }
 
 #[inline]
@@ -101,6 +74,7 @@ async fn convert_to_new_type<
 
 #[async_trait]
 impl<'a, T: Deref<Target = Proxy<'a>> + ProxyDefault + AtspiProxy + Sync> Convertable for T {
+		type Error = zbus::Error;
     /* no guard due to assumption it is always possible */
     async fn to_accessible(&self) -> zbus::Result<AccessibleProxy<'_>> {
         convert_to_new_type(self).await
