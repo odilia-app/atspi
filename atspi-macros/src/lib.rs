@@ -292,7 +292,7 @@ fn str_to_type<S>(s: S) -> Type
 	let rust_type_ts = TokenStream::from_str(&s.clone().into()).expect("The string \"{rust_type_str}\" is not able to be turned into a TokenStream");
 	match parse_macro_input::parse::<Type>(rust_type_ts) {
 		Ok(data) => data,
-		_ => panic!("The string {} could not be converted to Type", s.clone()),
+		_ => panic!("The string {} could not be converted to Type", s),
 	}
 }
 
@@ -417,7 +417,7 @@ fn generate_enum_from_iface(iface: &Interface) -> TokenStream2 {
 	let signal_quotes = TokenStream2::from_iter(
 		iface.signals()
 			.into_iter()
-			.map(|signal| generate_variant_from_signal(signal))
+			.map(generate_variant_from_signal)
 	);
 	quote! {
 		#[derive(Clone, Debug)]

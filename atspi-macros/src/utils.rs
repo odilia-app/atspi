@@ -30,10 +30,6 @@ pub fn pat_ident(pat: &PatType) -> Option<&Ident> {
     }
 }
 
-pub fn get_doc_attrs(attrs: &[Attribute]) -> Vec<&Attribute> {
-    attrs.iter().filter(|x| x.path.is_ident("doc")).collect()
-}
-
 // Convert to pascal case, assuming snake case.
 // If `s` is already in pascal case, should yield the same result.
 pub fn pascal_case(s: &str) -> String {
@@ -52,19 +48,6 @@ pub fn pascal_case(s: &str) -> String {
     pascal
 }
 
-// Convert to snake case, assuming pascal case.
-// If `s` is already in snake case, should yield the same result.
-pub fn snake_case(s: &str) -> String {
-    let mut snake = String::new();
-    for ch in s.chars() {
-        if ch.is_ascii_uppercase() && !snake.is_empty() {
-            snake.push('_');
-        }
-        snake.push(ch.to_ascii_lowercase());
-    }
-    snake
-}
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum ItemAttribute {
     Property(HashMap<String, String>),
@@ -74,23 +57,14 @@ pub enum ItemAttribute {
     AllowInteractiveAuth,
     OutArgs(Vec<String>),
     Name(String),
-    ZbusError,
     Object(String),
     AsyncObject(String),
     BlockingObject(String),
 }
 
 impl ItemAttribute {
-    pub fn is_property(&self) -> bool {
-        matches!(self, Self::Property(_))
-    }
-
     pub fn is_signal(&self) -> bool {
         self == &Self::Signal
-    }
-
-    pub fn is_out_args(&self) -> bool {
-        matches!(self, Self::OutArgs(_))
     }
 }
 
@@ -240,37 +214,6 @@ pub fn parse_item_attributes(attrs: &[Attribute], attr_name: &str) -> Result<Vec
     };
 
     Ok(v)
-}
-
-fn error_parse_item_attribute(meta: &NestedMeta) -> Result<ItemAttribute> {
-    let (ident, mut values) = parse_single_attribute(meta);
-
-    match ident.as_ref() {
-        "name" => Ok(ItemAttribute::Name(values.remove(0))),
-        "zbus_error" => Ok(ItemAttribute::ZbusError),
-        s => panic!("Unknown item meta {}", s),
-    }
-}
-
-// Parse optional item attributes such as:
-// #[dbus_error(name = "MyName")]
-pub fn error_parse_item_attributes(attrs: &[Attribute]) -> Result<Vec<ItemAttribute>> {
-    let meta = find_attribute_meta(attrs, "dbus_error")?;
-
-    let v = match meta {
-        Some(meta) => meta
-            .nested
-            .iter()
-            .map(|m| error_parse_item_attribute(m).unwrap())
-            .collect(),
-        None => Vec::new(),
-    };
-
-    Ok(v)
-}
-
-pub fn is_blank(s: &str) -> bool {
-    s.trim().is_empty()
 }
 
 #[cfg(test)]
