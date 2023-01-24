@@ -5,8 +5,9 @@
 //!
 //! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
 //!
-#[allow(clippy::module_name_repetitions)]
+
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+#[allow(clippy::module_name_repetitions)]
 pub mod object {
     use crate::{
         error::AtspiError,
@@ -17,6 +18,33 @@ pub mod object {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Object(_event)) = ev else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     /// Any of the `Object` events.
     ///
     /// Event table for the contained types:
@@ -71,73 +99,686 @@ pub mod object {
         TextCaretMoved(TextCaretMovedEvent),
     }
 
-    // ------<- end of Obj signals
-    // ----------> Start of Win
-
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::PropertyChangeEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = PropertyChangeEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::BoundsChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = BoundsChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct BoundsChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::LinkSelectedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = LinkSelectedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LinkSelectedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::StateChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = StateChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct StateChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::ChildrenChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ChildrenChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::VisibleDataChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct VisibleDataChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::SelectionChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = SelectionChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct SelectionChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::ModelChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ModelChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ModelChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::ActiveDescendantChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     // TODO Check my impl please.
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ActiveDescendantChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::AnnouncementEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = AnnouncementEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct AnnouncementEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::AttributesChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = AttributesChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::RowInsertedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = RowInsertedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct RowInsertedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::RowReorderedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = RowReorderedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct RowReorderedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::RowDeletedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = RowDeletedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct RowDeletedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::ColumnInsertedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ColumnInsertedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::ColumnReorderedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ColumnReorderedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::ColumnDeletedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ColumnDeletedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::TextBoundsChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct TextBoundsChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::TextSelectionChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct TextSelectionChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::TextChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = TextChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct TextChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::TextAttributesChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct TextAttributesChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::object::TextCaretMovedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct TextCaretMovedEvent(pub(crate) AtspiEvent);
 
@@ -276,8 +917,8 @@ pub mod object {
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+#[allow(clippy::module_name_repetitions)]
 pub mod window {
     use crate::{
         error::AtspiError,
@@ -288,6 +929,33 @@ pub mod window {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Window(_event)) = ev else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     /// Any of the `Window` events.
     ///
     /// Event table for the contained types:
@@ -336,60 +1004,592 @@ pub mod window {
         Restyle(RestyleEvent),
     }
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::PropertyChangeEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = PropertyChangeEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::MinimizeEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = MinimizeEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct MinimizeEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::MaximizeEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = MaximizeEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct MaximizeEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::RestoreEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = RestoreEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct RestoreEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::CloseEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = CloseEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct CloseEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::CreateEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = CreateEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct CreateEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::ReparentEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ReparentEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ReparentEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::DesktopCreateEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = DesktopCreateEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct DesktopCreateEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::DesktopDestroyEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct DesktopDestroyEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::DestroyEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = DestroyEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct DestroyEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::ActivateEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ActivateEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ActivateEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::DeactivateEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = DeactivateEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct DeactivateEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::RaiseEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = RaiseEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct RaiseEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::LowerEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = LowerEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LowerEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::MoveEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = MoveEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct MoveEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::ResizeEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ResizeEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ResizeEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::ShadeEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ShadeEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ShadeEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::UUshadeEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = UUshadeEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct UUshadeEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::window::RestyleEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = RestyleEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct RestyleEvent(pub(crate) AtspiEvent);
 
@@ -462,8 +1662,8 @@ pub mod window {
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+#[allow(clippy::module_name_repetitions)]
 pub mod mouse {
     use crate::{
         error::AtspiError,
@@ -474,20 +1674,63 @@ pub mod mouse {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     /// Any of the `Mouse` events.
     ///
     /// Those interested in `Event.Mouse` events, this enum
     /// may help select and specify for those on a stream:
     ///
     /// # Example
-    /// ```
-    /// // Boilerplate omitted.
-    /// use crate::identify::MouseEvent;
     ///
-    /// while let Ok(Some(ev)) = event_stream.next().await? {
-    ///   let mse_ev: MouseEvent = ev.try_into()?;
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
+    ///     }
     /// }
-    ///  ```
+    /// ```
     /// Event table for the contained types:
     ///
     /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
@@ -502,15 +1745,96 @@ pub mod mouse {
         Button(ButtonEvent),
     }
 
-    // ----------<- end of Win signals
-    // ----------> Start of Mse
-
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::mouse::AbsEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = AbsEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct AbsEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::mouse::RelEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = RelEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct RelEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::mouse::ButtonEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ButtonEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ButtonEvent(pub(crate) AtspiEvent);
 
@@ -519,8 +1843,10 @@ pub mod mouse {
         ///  Coordinates are absolute, with the origin in the top-left of the 'root window'
         /// X-coordinate of mouse button event
         ///  Coordinates are absolute, with the origin in the top-left of the 'root window'
-        /// X-coordinate of mouse button event
-        /// X-coordinate of mouse button event
+        /// Y-coordinate of mouse button event
+        /// Coordinates are relative to the focused window's top left corner coordinates.
+        /// Y-coordinate of mouse button event
+        /// Coordinates are relative to the focused window's top left corner coordinates.
         #[must_use]
         pub fn x(&self) -> i32 {
             self.0.detail1()
@@ -530,9 +1856,11 @@ pub mod mouse {
         /// Coordinates are absolute, with the origin in the top-left of the 'root window'
         /// Y-coordinate of mouse button event
         /// Coordinates are absolute, with the origin in the top-left of the 'root window'
-        /// Y-coordinate of mouse button event
-        /// Y-coordinate of mouse button event
         #[must_use]
+        /// Y-coordinate of mouse button event
+        /// Coordinates are relative to the focused window's top left corner coordinates.
+        /// Y-coordinate of mouse button event
+        /// Coordinates are relative to the focused window's top left corner coordinates.
         pub fn y(&self) -> i32 {
             self.0.detail2()
         }
@@ -579,6 +1907,8 @@ pub mod mouse {
 
 #[allow(clippy::module_name_repetitions)]
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod keyboard {
     use crate::{
         error::AtspiError,
@@ -589,6 +1919,33 @@ pub mod keyboard {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     /// The `Keyboard` events.
     ///
     /// Contains the variant of the `Keyboard` event.
@@ -598,15 +1955,6 @@ pub mod keyboard {
     /// If you are interested in `Event.Keyboard` events, this enum
     /// may, for instance, help you select for those on a stream:
     ///
-    /// # Example
-    /// ```
-    /// // Boilerplate omitted.
-    /// use crate::identify::KeyboardEvent;
-    ///
-    /// while let Ok(Some(ev)) = event_stream.next().await? {
-    ///   let kb_ev: KeyboardEvent = ev.try_into()?;
-    /// }
-    ///  ```
     /// Event table for the contained types:
     ///
     /// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
@@ -617,9 +1965,34 @@ pub mod keyboard {
         Modifiers(ModifiersEvent),
     }
 
-    // ----------<- end of Mse signals
-    // ----------> Start of Kbd
-
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::keyboard::ModifiersEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ModifiersEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ModifiersEvent(pub(crate) AtspiEvent);
 
@@ -648,8 +2021,8 @@ pub mod keyboard {
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+#[allow(clippy::module_name_repetitions)]
 pub mod terminal {
     use crate::{
         error::AtspiError,
@@ -660,20 +2033,38 @@ pub mod terminal {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     /// Any of the `Terminal` events.
     ///
     /// If you are interested in `Event.Terminal` events, this enum
     /// may, for instance, help you select for those on a stream:
     ///
-    /// # Example
-    /// ```
-    /// // Boilerplate omitted.
-    /// use crate::identify::TerminalEvent;
-    ///
-    /// while let Ok(Some(ev)) = event_stream.next().await? {
-    ///   let term_ev: TerminalEvent = ev.try_into()?;
-    /// }
-    ///  ```
     /// Event table for the contained types:
     ///
     /// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
@@ -692,21 +2083,160 @@ pub mod terminal {
         CharWidthChanged(CharWidthChangedEvent),
     }
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::terminal::LineChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = LineChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
     // ----------<- end of Kbd signals
     // ----------> Start of Term
-
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LineChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::terminal::ColumnCountChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ColumnCountChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::terminal::LineCountChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = LineCountChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LineCountChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::terminal::ApplicationChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ApplicationChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::terminal::CharWidthChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct CharWidthChangedEvent(pub(crate) AtspiEvent);
 
@@ -747,6 +2277,8 @@ pub mod terminal {
 
 #[allow(clippy::module_name_repetitions)]
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+// this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod document {
     use crate::{
         error::AtspiError,
@@ -757,20 +2289,38 @@ pub mod document {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Document(_event)) = ev else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     /// Any of the `Document` events.
     ///
     /// If you are interested in `Event.Document` events, this enum
     /// may help you select for these:
     ///
-    /// # Example
-    /// ```
-    /// // Boilerplate omitted.
-    /// use crate::identify::DocumentEvent;
-    ///
-    /// while let Ok(Some(ev)) = event_stream.next().await? {
-    ///     let doc_ev: DocumentEvent = ev.try_into()?;
-    /// }
-    ///  ```
     /// The event details encoded in the de-generalized types.
     ///
     ///
@@ -795,24 +2345,191 @@ pub mod document {
         PageChanged(PageChangedEvent),
     }
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::document::LoadCompleteEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = LoadCompleteEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
     // -------<- end of Term signals
     // ----------> Start of Doc
-
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LoadCompleteEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::document::ReloadEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ReloadEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ReloadEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::document::LoadStoppedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = LoadStoppedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct LoadStoppedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::document::ContentChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = ContentChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct ContentChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::document::AttributesChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = AttributesChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::document::PageChangedEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = PageChangedEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct PageChangedEvent(pub(crate) AtspiEvent);
 
@@ -848,8 +2565,8 @@ pub mod document {
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+#[allow(clippy::module_name_repetitions)]
 pub mod focus {
     use crate::{
         error::AtspiError,
@@ -860,6 +2577,33 @@ pub mod focus {
     use zbus;
     use zbus::zvariant::OwnedValue;
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that this example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///          let Event::Interfaces(EventInterfaces::Focus(_event)) = ev else { continue };
+    ///     }
+    /// }
+    /// ```
+    // IgnoreBlock stop
     /// The `Focus` event.
     /// ## Deprecation notice!!
     /// since: AT-SPI 2.9.4
@@ -876,10 +2620,39 @@ pub mod focus {
         Focus(FocusEvent),
     }
 
+    // IgnoreBlock start
+    /// # Example
+    ///
+    /// Even though this example employs `Tokio`, any runtime will do.
+    ///
+    /// Note that the example is minimized for rhe sake of brevity.
+    /// More complete examples may be found in the `examples/` directory.
+    ///
+    /// ```
+    /// use atspi::{events::EventInterfaces, Event};
+    /// use atspi::identify::focus::FocusEvent;
+    /// # use std::time::Duration;
+    /// use tokio_stream::StreamExt;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let events = atspi.event_stream();
+    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     tokio::pin!(events);
+    ///
+    ///     while let Some(Ok(ev)) = events.next().await {
+    /// #       let Ok(ev) = ev else { break };
+    ///         let Ok(event)  = FocusEvent::try_from(ev) else { continue };
+    ///     }
+    /// }
+    /// ```
+
     // ---------- End of Doc
     // ----------> Start of Focus
 
     // #[deprecated(note = "Users are advised to monitor Object:StateChanged:focused instead.")]
+    // IgnoreBlock stop
     #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
     pub struct FocusEvent(pub(crate) AtspiEvent);
 
