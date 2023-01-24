@@ -239,21 +239,12 @@ pub fn create_trait(
         (proxy, connection, builder)
     };
 
-		if blocking {
-			Ok(quote! {
-					pub trait #trait_name {
-						type Error;
-						#trait_methods
-					}
-			})
-		} else {
-			Ok(quote! {
-					pub trait #trait_name {
-						type Error;
-						#trait_methods
-					}
-			})
-		}
+		Ok(quote! {
+				pub trait #trait_name {
+					type Error;
+					#trait_methods
+				}
+		})
 }
 
 // TODO: this is sketchy as all hell
@@ -557,7 +548,7 @@ fn gen_proxy_trait_method_impl(
 
 		let output_str = format!("{output}");
 		let proxy = TokenStream::from_str(proxy_name).expect("Could not create token stream from \"{proxy_name}\"");
-		let x = if output_str.contains("Result < Self") {
+		if output_str.contains("Result < Self") {
 			quote! {
 				#(#other_attrs)*
 				#usage #signature {
@@ -604,9 +595,7 @@ fn gen_proxy_trait_method_impl(
 						}
 				}
 			}
-	};
-	println!("FUNC: {x}");
-	x
+	}
 }
 fn gen_proxy_method_call(
     method_name: &str,
@@ -865,17 +854,15 @@ fn gen_trait_property(
 		let signature = &m.sig;
     let inputs = &m.sig.inputs;
     let output = genericize_method_return_type(&m.sig.output);
-    if signature.inputs.len() > 1 {
-        quote! {
-            #(#other_attrs)*
-            #usage #method(#inputs) #output;
-        }
-    } else {
-        quote! {
-            #(#other_attrs)*
-            #usage fn #method(#inputs) #output;
-        }
-    }
+		// do not process methods setting property values
+		if inputs.len() > 1 {
+			quote! {}
+		} else {
+			quote! {
+					#(#other_attrs)*
+					#usage fn #method(#inputs) #output;
+			}
+		}
 }
 fn gen_proxy_trait_impl_property(
     property_name: &str,
@@ -908,14 +895,8 @@ fn gen_proxy_trait_impl_property(
     let signature = &m.sig;
 		let method = TokenStream::from_str(method_name).expect("Could not convert \"{method_name}\" into a token stream");
     if signature.inputs.len() > 1 {
-        let value = pat_ident(typed_arg(signature.inputs.last().unwrap()).unwrap()).unwrap();
-        quote! {
-            #(#other_attrs)*
-            #[allow(clippy::needless_question_mark)]
-            pub #usage #signature {
-                ::std::result::Result::Ok(self.0.set_property(#property_name, #value)#wait?)
-            }
-        }
+				// do not include property update method
+        quote! {}
     } else {
         // This should fail to compile only if the return type is wrong,
         // so use that as the span.
@@ -1079,7 +1060,7 @@ fn gen_proxy_property(
                 );
                 quote! {
                     #[doc = #cached_doc]
-                    pub fn #cached_getter(&self) -> ::std::result::Result<
+                    fn #cached_getter(&self) -> ::std::result::Result<
                         ::std::option::Option<<#ret_type as #zbus::ResultAdapter>::Ok>,
                         <#ret_type as #zbus::ResultAdapter>::Err>
                     {
