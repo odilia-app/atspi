@@ -23,75 +23,36 @@ pub trait AccessibleExt {
 	type Error: std::error::Error;
     // Assumes that an accessible can be made from the component parts
     fn get_id(&self) -> Option<AccessibleId>;
-    async fn get_parent_ext<'a>(&self) -> Result<AccessibleProxy<'a>, Self::Error>;
+    async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error> where Self: Sized;
     async fn get_children_ext<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
     async fn get_siblings<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized;
     async fn get_children_indexes<'a>(&self) -> Result<Vec<i32>, Self::Error>;
-    async fn get_siblings_before<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
-    async fn get_siblings_after<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>>;
-    async fn get_ancestors<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Self::Error>;
-    async fn get_ancestor_with_role<'a>(&self, role: Role) -> Result<AccessibleProxy<'a>, Self::Error>;
+    async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized;
+    async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized;
+    async fn get_ancestors(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
+    async fn get_ancestor_with_role<'a>(&self, role: Role) -> Result<Self, Self::Error> where Self: Sized;
     /* TODO: not sure where these should go since it requires both Text as a self interface and
      * Hyperlink as children interfaces. */
-    async fn get_children_caret<'a>(&self, after: bool) -> Result<Vec<AccessibleProxy<'a>>, Self::Error>;
+    async fn get_children_caret<'a>(&self, after: bool) -> Result<Vec<Self>, Self::Error> where Self: Sized;
     async fn get_next<'a>(
         &self,
         matcher_args: &MatcherArgs,
         backward: bool,
-    ) -> Result<Option<AccessibleProxy<'a>>, Self::Error>;
+    ) -> Result<Option<Self>, Self::Error> where Self: Sized;
     async fn get_relation_set_ext<'a>(
         &self,
-    ) -> Result<HashMap<RelationType, Vec<AccessibleProxy<'a>>>, Self::Error>;
-}
-
-// TODO: make match more broad, allow use of other parameters; also, support multiple roles, since right now, multiple will just exit immediately with false
-async fn match_(
-    accessible: &AccessibleProxy<'_>,
-    matcher_args: &MatcherArgs,
-) -> zbus::Result<bool> {
-    let roles = &matcher_args.0;
-    if roles.len() != 1 {
-        return Ok(false);
-    }
-    // our unwrap is protected from panicing with the above check
-    Ok(accessible.get_role().await? == *roles.get(0).unwrap())
-}
-
-impl AccessibleProxy<'_> {
-    #[async_recursion]
+    ) -> Result<HashMap<RelationType, Vec<Self>>, Self::Error> where Self: Sized;
     async fn find_inner<'a>(
         &self,
         after_or_before: i32,
         matcher_args: &MatcherArgs,
         backward: bool,
         recur: bool,
-    ) -> Result<Option<AccessibleProxy<'a>>, <Self as AccessibleExt>::Error> {
-        let children = if backward {
-            let mut vec = self.get_children_ext().await?;
-            vec.reverse();
-            vec
-        } else {
-            self.get_children_ext().await?
-        };
-        for child in children {
-            let child_index = child.get_index_in_parent().await?;
-            if !recur
-                && ((child_index <= after_or_before && !backward)
-                    || (child_index >= after_or_before && backward))
-            {
-                continue;
-            }
-            if match_(&child.clone(), matcher_args).await? {
-                return Ok(Some(child));
-            }
-            /* 0 here is ignored because we are recursive; see the line starting with if !recur */
-            if let Some(found_decendant) = child.find_inner(0, matcher_args, backward, true).await?
-            {
-                return Ok(Some(found_decendant));
-            }
-        }
-        Ok(None)
-    }
+    ) -> Result<Option<Self>, <Self as AccessibleExt>::Error> where Self: Sized;
+	async fn match_(
+			&self,
+			matcher_args: &MatcherArgs,
+	) -> Result<bool, <Self as AccessibleExt>::Error>;
 }
 
 #[derive(Clone, Copy, Hash, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -188,14 +149,8 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
             _ => None,
         }
     }
-    async fn get_parent_ext<'a>(&self) -> Result<AccessibleProxy<'a>, Self::Error> {
-        let parent_parts = self.parent().await?;
-        Ok(AccessibleProxy::builder(self.connection())
-            .destination(parent_parts.0)?
-            .cache_properties(CacheProperties::No)
-            .path(parent_parts.1)?
-            .build()
-            .await?)
+    async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error> where Self: Sized {
+        Ok(self.parent().await?)
     }
     async fn get_children_indexes<'a>(&self) -> Result<Vec<i32>, Self::Error> {
         let mut indexes = Vec::new();
@@ -235,10 +190,10 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
             .collect();
         Ok(children)
     }
-    async fn get_siblings_before<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>> {
+    async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized {
         let parent = self.parent().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
-        let children: Vec<AccessibleProxy<'a>> = parent
+        let children: Vec<Self> = parent
             .get_children_ext()
             .await?
             .into_iter()
@@ -247,10 +202,10 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
             .collect();
         Ok(children)
     }
-    async fn get_siblings_after<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Box<dyn Error>> {
+    async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized {
         let parent = self.parent().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
-        let children: Vec<AccessibleProxy<'a>> = parent
+        let children: Vec<Self> = parent
             .get_children_ext()
             .await?
             .into_iter()
@@ -259,7 +214,7 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
             .collect();
         Ok(children)
     }
-    async fn get_ancestors<'a>(&self) -> Result<Vec<AccessibleProxy<'a>>, Self::Error> {
+    async fn get_ancestors(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized {
         let mut ancestors = Vec::new();
         let mut ancestor = self.get_parent_ext().await?;
         while ancestor.get_role().await? != Role::Frame {
@@ -268,20 +223,23 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
         }
         Ok(ancestors)
     }
-    async fn get_ancestor_with_role<'a>(&self, role: Role) -> Result<AccessibleProxy<'a>, Self::Error> {
+    async fn get_ancestor_with_role<'a>(&self, role: Role) -> Result<Self, Self::Error> where Self: Sized {
         let mut ancestor = self.get_parent_ext().await?;
-        while ancestor.get_role().await? != role && ancestor.get_role().await? != Role::Frame {
+				let mut ancestor_role = ancestor.get_role().await?;
+        while ancestor_role != role && ancestor_role != Role::Frame {
             ancestor = ancestor.get_parent_ext().await?;
+						ancestor_role = ancestor.get_role().await?;
         }
         Ok(ancestor)
     }
     async fn get_children_caret<'a>(
         &self,
         backward: bool,
-    ) -> Result<Vec<AccessibleProxy<'a>>, Self::Error> {
+    ) -> Result<Vec<Self>, Self::Error> where Self: Sized {
         let mut children_after_before = Vec::new();
-        let caret_pos = self.to_text().await?.caret_offset().await?;
-        let children_hyperlink = self.to_accessible().await?.get_children_ext().await?;
+				let text_iface = self.to_text().await?;
+        let caret_pos = text_iface.caret_offset().await?;
+        let children_hyperlink = self.get_children_ext().await?;
         for child in children_hyperlink {
             let hyperlink = child.to_hyperlink().await?;
             if let Ok(start_index) = hyperlink.start_index().await {
@@ -300,11 +258,11 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
         &self,
         matcher_args: &MatcherArgs,
         backward: bool,
-    ) -> Result<Option<AccessibleProxy<'a>>, Self::Error> {
+    ) -> Result<Option<Self>, Self::Error> where Self: Sized {
         // TODO if backwards, check here
         let caret_children = self.get_children_caret(backward).await?;
         for child in caret_children {
-            if match_(&child.clone(), matcher_args).await? {
+            if child.match_(matcher_args).await? {
                 return Ok(Some(child));
             } else if let Some(found_sub) =
                 child.find_inner(0, matcher_args, backward, true).await?
@@ -329,22 +287,61 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
     }
     async fn get_relation_set_ext<'a>(
         &self,
-    ) -> Result<HashMap<RelationType, Vec<AccessibleProxy<'a>>>, Self::Error> {
+    ) -> Result<HashMap<RelationType, Vec<Self>>, Self::Error> where Self: Sized {
         let raw_relations = self.get_relation_set().await?;
         let mut relations = HashMap::new();
         for relation in raw_relations {
             let mut related_vec = Vec::new();
             for related in relation.1 {
-                let accessible = AccessibleProxy::builder(self.connection())
-                    .destination(related.0)?
-                    .cache_properties(CacheProperties::No)
-                    .path(related.1)?
-                    .build()
-                    .await?;
-                related_vec.push(accessible);
+                related_vec.push(related);
             }
             relations.insert(relation.0, related_vec);
         }
         Ok(relations)
     }
+    async fn find_inner<'a>(
+        &self,
+        after_or_before: i32,
+        matcher_args: &MatcherArgs,
+        backward: bool,
+        recur: bool,
+    ) -> Result<Option<Self>, <Self as AccessibleExt>::Error> where Self: Sized {
+        let children = if backward {
+            let mut vec = self.get_children_ext().await?;
+            vec.reverse();
+            vec
+        } else {
+            self.get_children_ext().await?
+        };
+        for child in children {
+            let child_index = child.get_index_in_parent().await?;
+            if !recur
+                && ((child_index <= after_or_before && !backward)
+                    || (child_index >= after_or_before && backward))
+            {
+                continue;
+            }
+            if child.match_(matcher_args).await? {
+                return Ok(Some(child));
+            }
+            /* 0 here is ignored because we are recursive; see the line starting with if !recur */
+            if let Some(found_decendant) = child.find_inner(0, matcher_args, backward, true).await?
+            {
+                return Ok(Some(found_decendant));
+            }
+        }
+        Ok(None)
+    }
+		// TODO: make match more broad, allow use of other parameters; also, support multiple roles, since right now, multiple will just exit immediately with false
+		async fn match_(
+				&self,
+				matcher_args: &MatcherArgs,
+		) -> Result<bool, <Self as AccessibleExt>::Error> {
+				let roles = &matcher_args.0;
+				if roles.len() != 1 {
+						return Ok(false);
+				}
+				// our unwrap is protected from panicing with the above check
+				Ok(self.get_role().await? == *roles.get(0).unwrap())
+		}
 }
