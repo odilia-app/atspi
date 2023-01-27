@@ -94,15 +94,15 @@ pub enum Event {
     /// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
     Available(AvailableEvent),
     /// Both `CacheAdd` and `CacheRemove` signals
-    Cache(CacheEvent),
+    Cache(CacheEvents),
     /// Emitted on registry or deregristry of event listeners.,
     ///
     /// (eg. "Cache:AddAccessible:")
-    Listener(EventListenerEvent),
+    Listener(EventListenerEvents),
 }
 
 #[derive(Debug, Clone)]
-pub enum CacheEvent {
+pub enum CacheEvents {
     Add(AddAccessibleEvent),
     Remove(RemoveAccessibleEvent),
 }
@@ -272,19 +272,19 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct EventListener {
+pub struct EventListeners {
     pub bus_name: OwnedUniqueName,
     pub path: String,
 }
 
 #[test]
 fn test_event_listener_signature() {
-    assert_eq!(EventListener::signature(), "(ss)");
+    assert_eq!(EventListeners::signature(), "(ss)");
 }
 
 /// Covers both `EventListener` events.
 #[derive(Clone, Debug)]
-pub enum EventListenerEvent {
+pub enum EventListenerEvents {
     Registered(EventListenerRegisteredEvent),
     Deregistered(EventListenerDeregisteredEvent),
 }
@@ -292,18 +292,18 @@ pub enum EventListenerEvent {
 /// An event that is emitted by the regostry daemon to signal that an event has been deregistered
 /// to no longer listen for.
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body = "EventListener")]
+#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerDeregisteredEvent {
     pub(crate) message: Arc<Message>,
-    pub body: EventListener,
+    pub body: EventListeners,
 }
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body = "EventListener")]
+#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerRegisteredEvent {
     pub(crate) message: Arc<Message>,
-    pub body: EventListener,
+    pub body: EventListeners,
 }
 
 /// An event that is emitted when the registry daemon has started.
@@ -336,7 +336,7 @@ impl TryFrom<Arc<Message>> for Event {
             "(so)" => match message_member {
                 "RemoveAccessible" => {
                     let ev = RemoveAccessibleEvent::try_from(msg)?;
-                    Ok(Event::Cache(CacheEvent::Remove(ev)))
+                    Ok(Event::Cache(CacheEvents::Remove(ev)))
                 }
                 "Available" => {
                     let ev = AvailableEvent::try_from(msg)?;
@@ -352,17 +352,17 @@ impl TryFrom<Arc<Message>> for Event {
             }
             "(ss)" => {
                 if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg.clone()) {
-                    return Ok(Event::Listener(EventListenerEvent::Registered(ev)));
+                    return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
                 }
                 if let Ok(ev) = EventListenerDeregisteredEvent::try_from(msg) {
-                    return Ok(Event::Listener(EventListenerEvent::Deregistered(ev)));
+                    return Ok(Event::Listener(EventListenerEvents::Deregistered(ev)));
                 }
                 Err(AtspiError::UnknownSignal)
             }
             // CacheAdd signature
             "((so)(so)(so)iiassusau)" => {
                 let ev = AddAccessibleEvent::try_from(msg)?;
-                Ok(Event::Cache(CacheEvent::Add(ev)))
+                Ok(Event::Cache(CacheEvents::Add(ev)))
             }
             _ => Err(AtspiError::UnknownBusSignature),
         }
