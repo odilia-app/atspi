@@ -10,7 +10,7 @@ use zbus_names::{InterfaceName, MemberName};
 
 use atspi::events::EventBodyOwned;
 
-pub fn test_event_body() -> EventBodyOwned {
+pub(crate) fn test_event_body() -> EventBodyOwned {
     let any_data: OwnedValue =
         OwnedValue::try_from(Value::U16(0_u16)).expect("trivial value should convert");
     let props: HashMap<String, OwnedValue> = HashMap::new();
