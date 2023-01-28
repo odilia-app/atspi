@@ -11,6 +11,10 @@ use syn::{
 
 use crate::utils::*;
 
+/// The name of an object pair. See: [`atspi::accessible::ObjectPair`].
+const OBJECT_PAIR_NAME: &'static str = "ObjectPair";
+
+
 struct AsyncOpts {
     blocking: bool,
     usage: TokenStream,
@@ -252,7 +256,7 @@ fn genericize_method_return_type(rt: &ReturnType) -> TokenStream {
 	let mut generic_result = original.replace("zbus :: Result", "std :: result :: Result");
 	let end_of_str = generic_result.len();
 	generic_result.insert_str(end_of_str-2, ", Self :: Error");
-	let mut generic_impl = generic_result.replace("(String, zbus :: zvariant :: OwnedObjectPath)", "Self");
+	let mut generic_impl = generic_result.replace(OBJECT_PAIR_NAME, "Self");
 	generic_impl.push_str(" where Self: Sized");
 	TokenStream::from_str(&generic_impl).expect("Could not genericize zbus method/property/signal. Attempted to turn \"{generic_result}\" into a TokenStream.")
 }
