@@ -1,18 +1,16 @@
 use crate::{
-    accessible::{AccessibleProxy, RelationType, Role, Accessible},
+    accessible::{RelationType, Role, Accessible},
     collection::MatchType,
     convertable::Convertable,
     error::ObjectPathConversionError,
 		AtspiError,
     InterfaceSet,
 };
-use async_recursion::async_recursion;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, error::Error};
+use std::collections::HashMap;
 use zbus::{
     zvariant::{ObjectPath, OwnedObjectPath},
-    CacheProperties,
 };
 
 pub type MatcherArgs =
@@ -25,12 +23,10 @@ pub trait AccessibleExt {
     fn get_id(&self) -> Option<AccessibleId>;
     async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error> where Self: Sized;
     async fn get_children_ext<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
-    async fn get_siblings<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized;
+    async fn get_siblings<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
     async fn get_children_indexes<'a>(&self) -> Result<Vec<i32>, Self::Error>;
-    async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized;
-    async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized;
-    async fn get_ancestors(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
-    async fn get_ancestor_with_role<'a>(&self, role: Role) -> Result<Self, Self::Error> where Self: Sized;
+    async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
+    async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
     /* TODO: not sure where these should go since it requires both Text as a self interface and
      * Hyperlink as children interfaces. */
     async fn get_children_caret<'a>(&self, after: bool) -> Result<Vec<Self>, Self::Error> where Self: Sized;
@@ -129,8 +125,7 @@ impl<'a> TryFrom<&ObjectPath<'a>> for AccessibleId {
 impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Proxy<'c>> + Send> AccessibleExt for T where 
 	<T as Convertable>::Error: Into<AtspiError>,
 	<T as Accessible>::Error: Into<AtspiError>,
-	AtspiError: From<<T as Accessible>::Error>,
-	AtspiError: From<<T as Convertable>::Error> {
+	AtspiError: From<<T as Accessible>::Error> + From<<T as Convertable>::Error> {
 		type Error = AtspiError;
     /// get_id gets the id (if available) for any accessible.
     /// This *should* always return a Some(i32) and never None, but you never know.
@@ -176,7 +171,7 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
         Ok(children)
 				*/
     }
-    async fn get_siblings<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized {
+    async fn get_siblings<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized {
         let parent = self.parent().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
         // Clippy false positive: Standard pattern for excluding index item from list.
@@ -190,7 +185,7 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
             .collect();
         Ok(children)
     }
-    async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized {
+    async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized {
         let parent = self.parent().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
         let children: Vec<Self> = parent
@@ -202,7 +197,7 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
             .collect();
         Ok(children)
     }
-    async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Box<dyn Error>> where Self: Sized {
+    async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized {
         let parent = self.parent().await?;
         let index = self.get_index_in_parent().await?.try_into()?;
         let children: Vec<Self> = parent
@@ -213,24 +208,6 @@ impl<'c, T: Accessible + Convertable + Sync + std::ops::Deref<Target = zbus::Pro
             .filter_map(|(i, a)| if i > index { Some(a) } else { None })
             .collect();
         Ok(children)
-    }
-    async fn get_ancestors(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized {
-        let mut ancestors = Vec::new();
-        let mut ancestor = self.get_parent_ext().await?;
-        while ancestor.get_role().await? != Role::Frame {
-            ancestors.push(ancestor.clone());
-            ancestor = ancestor.get_parent_ext().await?;
-        }
-        Ok(ancestors)
-    }
-    async fn get_ancestor_with_role<'a>(&self, role: Role) -> Result<Self, Self::Error> where Self: Sized {
-        let mut ancestor = self.get_parent_ext().await?;
-				let mut ancestor_role = ancestor.get_role().await?;
-        while ancestor_role != role && ancestor_role != Role::Frame {
-            ancestor = ancestor.get_parent_ext().await?;
-						ancestor_role = ancestor.get_role().await?;
-        }
-        Ok(ancestor)
     }
     async fn get_children_caret<'a>(
         &self,
