@@ -556,6 +556,29 @@ fn gen_proxy_trait_method_impl(
 						#wait
 				}
 			}
+			// this is only one function: get_relation_set
+		} else if output_str.contains("RelationType, Vec < Self") {
+			quote! {
+				#(#other_attrs)*
+				#usage #signature {
+					let raw_relation_sets = self.#method(#body)#wait?;
+					let mut relation_sets = Vec::new();
+					let conn = self.connection().clone();
+					for raw_relation_set in raw_relation_sets {
+						let mut proxies = Vec::new();
+						for object_pair in raw_relation_set.1 {
+							let proxy = #proxy::builder(&conn)
+								.path(object_pair.1)?
+								.destination(object_pair.0)?
+								.build()
+								#wait?;
+							proxies.push(proxy);
+						}
+						relation_sets.push((raw_relation_set.0, proxies));
+					}
+					Ok(relation_sets)
+				}
+			}
 		} else if output_str.contains("< Vec < Self") {
 			quote! {
 				#(#other_attrs)*
