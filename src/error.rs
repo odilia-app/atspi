@@ -45,6 +45,9 @@ pub enum AtspiError {
 
     /// Std i/o error variant.
     IO(std::io::Error),
+
+		/// Failed to convert an integer into another type of integer (usually i32 -> usize).
+		IntConversionError(std::num::TryFromIntError),
 }
 
 impl std::error::Error for AtspiError {}
@@ -70,7 +73,16 @@ impl std::fmt::Display for AtspiError {
                 f.write_str(&format!("ID cannot be extracted from the path: {e}"))
             }
             Self::IO(e) => f.write_str(&format!("std IO Error: {e}")),
+						Self::IntConversionError(e) => {
+							f.write_str(&format!("Integer conversion error: {e}"))
+						}
         }
+    }
+}
+
+impl From<std::num::TryFromIntError> for AtspiError {
+    fn from(e: std::num::TryFromIntError) -> Self {
+        Self::IntConversionError(e)
     }
 }
 
