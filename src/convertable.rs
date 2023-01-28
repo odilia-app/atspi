@@ -1,5 +1,5 @@
 use crate::{
-    accessible::{AccessibleProxy, Accessible}, action::ActionProxy, application::ApplicationProxy,
+    accessible::AccessibleProxy, action::ActionProxy, application::ApplicationProxy,
     cache::CacheProxy, collection::CollectionProxy, component::ComponentProxy,
     device_event_controller::DeviceEventControllerProxy,
     device_event_listener::DeviceEventListenerProxy, document::DocumentProxy,
