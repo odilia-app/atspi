@@ -260,7 +260,8 @@ fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> Strin
     let sig_name_event = event_ident(signal.name());
     let matcher = generate_try_from_event_impl_match_statement(signal, interface);
     format!(
-        "	impl TryFrom<Event> for {sig_name_event} {{
+        "	#[rustfmt::skip]
+        impl TryFrom<Event> for {sig_name_event} {{
 		type Error = AtspiError;
 		fn try_from(event: Event) -> Result<Self, Self::Error> {{
        {matcher}
@@ -407,7 +408,7 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
         .iter()
         .map(|signal| match_arm_for_signal(&iname, signal))
         .collect::<Vec<String>>()
-        .join("\n\n");
+        .join("\n");
     format!("
 	impl TryFrom<AtspiEvent> for {impl_for_name} {{
 		type Error = AtspiError;
@@ -503,7 +504,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
         .into_iter()
         .map(generate_variant_from_signal)
         .collect::<Vec<String>>()
-        .join("\n");
+        .join("");
     format!(
         "
     {example}
@@ -548,7 +549,7 @@ pub fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
                 .iter()
                 .map(|signal| generate_try_from_event_impl(signal, iface))
                 .collect::<Vec<String>>()
-                .join("\n\n")
+                .join("\n")
         })
         .collect::<Vec<String>>()
         .join("\n");
