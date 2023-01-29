@@ -1,6 +1,4 @@
-use zbus::Error as ZbusError;
 use zbus::zvariant::{
-	Error as ZvariantError,
 	OwnedValue,
 	ObjectPath,
 	OwnedObjectPath,
@@ -57,7 +55,7 @@ impl TryFrom<String> for AccessibleId {
             Some("root") => Ok(AccessibleId::Root),
             Some(id) => match id.parse::<i64>() {
                 Ok(uid) => Ok(AccessibleId::Number(uid)),
-                Err(e) => Err(Self::Error::Message("Unable to parse the ID as part of a conversion from a String to an AccessibleId.".to_string())),
+                Err(_) => Err(Self::Error::Message("Unable to parse the ID as part of a conversion from a String to an AccessibleId.".to_string())),
             },
             None => Err(Self::Error::Message("No ID in attempted conversion from a String to an AccessibleId".to_string())),
         }
@@ -108,8 +106,16 @@ impl TryFrom<OwnedValue> for AccessibleId {
 	}
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub trait HasAccessibleId {
 	type Error: std::error::Error;
 
+	/// Gets the accessible ID of an item.
+	/// This must be implemented for any type which implements the [`crate::accessible::Accessible`] trait.
+	/// But it is separated since it should never by async... in theory.
+	///
+	/// # Errors
+	/// * Will return an error if either: the field is not readable (may be behind an `RWLock`),
+	/// * or if a conversion from some other type was not able to be parsed into the `AccessibleId`.
 	fn id(&self) -> Result<AccessibleId, Self::Error>;
 }

@@ -1,20 +1,14 @@
 use crate::{
     accessible::{RelationType, Role, Accessible},
-		AccessibleId,
     collection::MatchType,
     convertable::Convertable,
-    error::ObjectPathConversionError,
 		text::Text,
 		hyperlink::Hyperlink,
 		AtspiError,
     InterfaceSet,
 };
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use zbus::{
-    zvariant::{ObjectPath, OwnedObjectPath},
-};
 
 pub type MatcherArgs =
     (Vec<Role>, MatchType, HashMap<String, String>, MatchType, InterfaceSet, MatchType);
@@ -53,12 +47,12 @@ pub trait AccessibleExt {
 }
 
 #[async_trait]
-impl<'c, T: Accessible + Convertable + Text + Sync + Send> AccessibleExt for T where 
+impl<T: Accessible + Convertable + Sync + Send> AccessibleExt for T where 
 	<T as Convertable>::Error: Into<AtspiError>,
 	<T as Accessible>::Error: Into<AtspiError>,
-	AtspiError: From<<T as Accessible>::Error>
+	AtspiError:
+			From<<T as Accessible>::Error>
 		+ From<<T as Convertable>::Error>
-		+ From<<T as Text>::Error>
 		+ From<<<T as Convertable>::Text as Text>::Error> {
 		type Error = AtspiError;
     async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error> where Self: Sized {
