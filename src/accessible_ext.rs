@@ -4,7 +4,6 @@ use crate::{
     convertable::Convertable,
 		text::Text,
 		hyperlink::Hyperlink,
-		AtspiError,
     InterfaceSet,
 };
 use async_trait::async_trait;
@@ -44,13 +43,19 @@ pub trait AccessibleExt {
 	) -> Result<bool, <Self as AccessibleExt>::Error>;
 }
 
+pub trait AccessibleExtError: Accessible + Convertable {
+	type Error: std::error::Error
+		+ From<<Self as Accessible>::Error>
+		+ From<<Self as Convertable>::Error>
+		+ From<<<Self as Convertable>::Text as Text>::Error>
+		+ From<std::num::TryFromIntError>
+		+ Send
+		+ Sync;
+}
+
 #[async_trait]
-impl<T: Accessible + Convertable + Sync + Send> AccessibleExt for T where 
-	AtspiError:
-			From<<T as Accessible>::Error>
-		+ From<<T as Convertable>::Error>
-		+ From<<<T as Convertable>::Text as Text>::Error> {
-		type Error = AtspiError;
+impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleExt for T {
+		type Error = <T as AccessibleExtError>::Error;
     async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error> where Self: Sized {
         Ok(self.parent().await?)
     }
@@ -228,4 +233,18 @@ impl<T: Accessible + Convertable + Sync + Send> AccessibleExt for T where
 				// our unwrap is protected from panicing with the above check
 				Ok(self.get_role().await? == *roles.get(0).unwrap())
 		}
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::{
+		accessible::AccessibleProxy,
+		accessible_ext::AccessibleExt,
+	};
+
+	fn implements_accessible_ext<T: AccessibleExt>() {}
+	#[test]
+	fn check_accessible_proxy_implements_accessible_ext() {
+		implements_accessible_ext::<AccessibleProxy<'static>>();
+	}
 }
