@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 
+#[allow(clippy::module_name_repetitions)]
 pub trait TextExtError: crate::text::Text {
 	type Error: std::error::Error
 		+ From<<Self as crate::text::Text>::Error>
