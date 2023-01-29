@@ -48,8 +48,6 @@ pub trait AccessibleExt {
 
 #[async_trait]
 impl<T: Accessible + Convertable + Sync + Send> AccessibleExt for T where 
-	<T as Convertable>::Error: Into<AtspiError>,
-	<T as Accessible>::Error: Into<AtspiError>,
 	AtspiError:
 			From<<T as Accessible>::Error>
 		+ From<<T as Convertable>::Error>
