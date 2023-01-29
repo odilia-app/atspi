@@ -39,10 +39,14 @@ impl AsyncOpts {
 pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
 		let async_trait_name = format!("{}", input.ident);
 		let trait_name = format!("{}Blocking", input.ident);
+		let async_proxy_name = format!("{}Proxy", input.ident);
+		let proxy_name = format!("{}ProxyBlocking", input.ident);
     let blocking_trait = create_trait(&input, &trait_name, true)?;
     let async_trait = create_trait(&input, &async_trait_name, false)?;
 		let blocking_impl = create_proxy_trait_impl(&input, &async_trait_name, true)?;
 		let async_impl = create_proxy_trait_impl(&input, &async_trait_name, false)?;
+		let atspi_proxy_impl = create_atspi_proxy_trait_impl(&async_proxy_name)?;
+		let blocking_atspi_proxy_impl = create_atspi_proxy_trait_impl(&proxy_name)?;
 
     Ok(quote! {
         #blocking_trait
@@ -54,7 +58,25 @@ pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
 
 				#[async_trait]
 				#async_impl
+
+				#atspi_proxy_impl
+				#blocking_atspi_proxy_impl
     })
+}
+
+pub fn create_atspi_proxy_trait_impl(
+	proxy_name: &str
+) -> Result<TokenStream, Error> {
+	let mut interface_name_str = proxy_name.to_owned().clone();
+	interface_name_str = interface_name_str.replace("ProxyBlocking", "");
+	interface_name_str = interface_name_str.replace("Proxy", "");
+	let trait_impl_name = TokenStream::from_str(&proxy_name)?;
+	let interface_name = TokenStream::from_str(&interface_name_str)?;
+	Ok(quote! {
+		impl crate::AtspiProxy for #trait_impl_name<'_> {
+			const INTERFACE: crate::Interface = crate::Interface::#interface_name;
+		}
+	})
 }
 
 pub fn create_proxy_trait_impl(
