@@ -36,7 +36,3 @@ trait Hyperlink {
     #[dbus_proxy(property)]
     fn start_index(&self) -> zbus::Result<i32>;
 }
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for HyperlinkProxy<'a> {
-    const INTERFACE: Interface = Interface::Hyperlink;
-}

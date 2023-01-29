@@ -34,7 +34,3 @@ trait Image {
     #[dbus_proxy(property)]
     fn image_locale(&self) -> zbus::Result<String>;
 }
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ImageProxy<'a> {
-    const INTERFACE: Interface = Interface::Image;
-}

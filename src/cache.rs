@@ -66,7 +66,3 @@ trait Cache {
     #[dbus_proxy(signal)]
     fn remove_accessible(&self, node_removed: (String, OwnedObjectPath)) -> zbus::Result<()>;
 }
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for CacheProxy<'a> {
-    const INTERFACE: Interface = Interface::Cache;
-}

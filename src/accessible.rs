@@ -371,9 +371,6 @@ impl HasAccessibleId for AccessibleProxy<'_> {
 		path.try_into()
 	}
 }
-
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for AccessibleProxy<'a> {
-    const INTERFACE: Interface = Interface::Accessible;
+impl crate::accessible_ext::AccessibleExtError for AccessibleProxy<'_> {
+	type Error = crate::error::AtspiError;
 }
-

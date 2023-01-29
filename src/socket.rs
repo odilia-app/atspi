@@ -32,7 +32,3 @@ trait Socket {
     #[dbus_proxy(signal)]
     fn available(&self, socket: (&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
 }
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for SocketProxy<'a> {
-    const INTERFACE: Interface = Interface::Socket;
-}

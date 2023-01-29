@@ -24,7 +24,3 @@ trait Hypertext {
     /// GetNLinks method
     fn get_nlinks(&self) -> zbus::Result<i32>;
 }
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for HypertextProxy<'a> {
-    const INTERFACE: Interface = Interface::Hypertext;
-}

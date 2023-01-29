@@ -126,7 +126,3 @@ trait DeviceEventController {
         mode: &EventListenerMode,
     ) -> zbus::Result<bool>;
 }
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for DeviceEventControllerProxy<'a> {
-    const INTERFACE: Interface = Interface::DeviceEventController;
-}

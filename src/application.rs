@@ -43,8 +43,3 @@ trait Application {
     #[dbus_proxy(property)]
     fn version(&self) -> zbus::Result<String>;
 }
-
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ApplicationProxy<'a> {
-    const INTERFACE: Interface = Interface::Application;
-}

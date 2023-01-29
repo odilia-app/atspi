@@ -43,7 +43,3 @@ trait Selection {
     #[dbus_proxy(property)]
     fn nselected_children(&self) -> zbus::Result<i32>;
 }
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for SelectionProxy<'a> {
-    const INTERFACE: Interface = Interface::Selection;
-}
