@@ -22,8 +22,6 @@ pub trait AccessibleExt {
     async fn get_children_indexes<'a>(&self) -> Result<Vec<i32>, Self::Error>;
     async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
     async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Self::Error> where Self: Sized;
-    /* TODO: not sure where these should go since it requires both Text as a self interface and
-     * Hyperlink as children interfaces. */
     async fn get_children_caret<'a>(&self, after: bool) -> Result<Vec<Self>, Self::Error> where Self: Sized;
     async fn get_next<'a>(
         &self,
