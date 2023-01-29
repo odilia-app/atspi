@@ -43,10 +43,12 @@ pub trait AccessibleExt {
 	) -> Result<bool, <Self as AccessibleExt>::Error>;
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub trait AccessibleExtError: Accessible + Convertable {
 	type Error: std::error::Error
 		+ From<<Self as Accessible>::Error>
 		+ From<<Self as Convertable>::Error>
+		// TODO: add all convertable error types
 		+ From<<<Self as Convertable>::Text as Text>::Error>
 		+ From<std::num::TryFromIntError>
 		+ Send
