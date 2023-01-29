@@ -10,7 +10,7 @@
 //! section of the zbus documentation.
 //!
 
-use crate::{InterfaceSet, StateSet};
+use crate::{InterfaceSet, StateSet, AccessibleId, HasAccessibleId};
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 use atspi_macros::atspi_proxy;
@@ -334,7 +334,7 @@ trait Accessible {
 
     /// AccessibleId property
     #[dbus_proxy(property)]
-    fn accessible_id(&self) -> zbus::Result<String>;
+    fn accessible_id(&self) -> zbus::Result<AccessibleId>;
 
     /// ChildCount property
     #[dbus_proxy(property)]
@@ -363,7 +363,17 @@ impl PartialEq for AccessibleProxy<'_> {
     }
 }
 impl Eq for AccessibleProxy<'_> {}
+impl HasAccessibleId for AccessibleProxy<'_> {
+	type Error = zbus::zvariant::Error;
+
+	fn id(&self) -> Result<AccessibleId, Self::Error> {
+		let path = self.path();
+		path.try_into()
+	}
+}
+
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for AccessibleProxy<'a> {
     const INTERFACE: Interface = Interface::Accessible;
 }
+
