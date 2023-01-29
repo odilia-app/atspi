@@ -158,3 +158,7 @@ trait Text {
     #[dbus_proxy(property)]
     fn character_count(&self) -> zbus::Result<i32>;
 }
+
+impl crate::text_ext::TextExtError for TextProxy<'_> {
+	type Error = crate::AtspiError;
+}
