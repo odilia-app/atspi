@@ -2,6 +2,9 @@
 // #![deny(clippy::missing_docs)]
 
 pub mod accessible;
+pub mod accessible_id;
+pub use accessible_id::*;
+
 pub mod action;
 pub mod application;
 pub mod bus;
