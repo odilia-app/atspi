@@ -293,18 +293,24 @@
 
     <!--
         ScrollToPoint:
-        @type: How to position the component within its parent; see the description of the
-        ScrollTo method for the possible values.
+        @coord_type: Whether the coordinates are relative to the screen or to the
+        component's top level window; see the description.
         @x: X coordinate within the component to make visible.
         @y: Y coordinate within the component to make visible.
 
         Similar to the ScrollTo method, but makes a specific point from the component
         visible in its parent.
 
+        The @coord_type values are as follows, and correspond to AtkCoordType:
+
+        0 - Coordinates are relative to the screen.
+        1 - Coordinates are relative to the component's toplevel window.
+        2 - Coordinates are relative to the component's immediate parent.
+
         Returns: true if successful, or false otherwise.
     -->
     <method name="ScrollToPoint">
-      <arg direction="in" name="type" type="u"/>
+      <arg direction="in" name="coord_type" type="u"/>
       <arg direction="in" name="x" type="i"/>
       <arg direction="in" name="y" type="i"/>
       <arg direction="out" type="b"/>
