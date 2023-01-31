@@ -8,9 +8,19 @@ pub trait TextExtError: crate::text::Text {
 		+ Sync;
 }
 
+#[allow(clippy::module_name_repetitions)]
+pub trait TextBlockingExtError: crate::text::TextBlocking {
+	type Error: std::error::Error
+		+ From<<Self as crate::text::Text>::Error>;
+}
+
 #[async_trait]
 pub trait TextExt: TextExtError {
     async fn get_all_text(&self) -> Result<String, <Self as TextExtError>::Error>;
+}
+
+pub trait TextBlockingExt: TextBlockingExtError {
+    fn get_all_text(&self) -> Result<String, <Self as TextBlockingExtError>::Error>;
 }
 
 #[async_trait]
@@ -18,6 +28,13 @@ impl<T: crate::text::Text + TextExtError + Send + Sync> TextExt for T {
     async fn get_all_text(&self) -> Result<String, <T as TextExtError>::Error> {
         let length_of_string = self.character_count().await?;
         Ok(self.get_text(0, length_of_string).await?)
+    }
+}
+
+impl<T: crate::text::TextBlocking + TextBlockingExtError> TextExt for T {
+    fn get_all_text(&self) -> Result<String, <T as TextBlockingExtError>::Error> {
+        let length_of_string = self.character_count()?;
+        Ok(self.get_text(0, length_of_string)?)
     }
 }
 
