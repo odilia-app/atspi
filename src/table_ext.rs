@@ -35,6 +35,6 @@ mod test {
 	}
 	#[test]
 	fn check_blocking_table_implements_table_ext() {
-		implements_table_ext::<TableProxyBlocking<'static>>();
+		implements_table_blocking_ext::<TableProxyBlocking<'static>>();
 	}
 }

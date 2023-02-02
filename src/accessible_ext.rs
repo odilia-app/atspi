@@ -1,8 +1,8 @@
 use crate::{
-    accessible::{RelationType, Role, Accessible},
+    accessible::{RelationType, Role, Accessible, AccessibleBlocking},
     collection::MatchType,
-    convertable::Convertable,
-		text::Text,
+    convertable::{Convertable, ConvertableBlocking},
+		text::{Text, TextBlocking},
 		hyperlink::Hyperlink,
     InterfaceSet,
 };
@@ -42,6 +42,8 @@ pub trait AccessibleExt {
 			matcher_args: &MatcherArgs,
 	) -> Result<bool, <Self as AccessibleExt>::Error>;
 }
+// TODO: implement AccessibleExt
+pub trait AccessibleBlockingExt {}
 
 #[allow(clippy::module_name_repetitions)]
 pub trait AccessibleExtError: Accessible + Convertable {
@@ -53,6 +55,14 @@ pub trait AccessibleExtError: Accessible + Convertable {
 		+ From<std::num::TryFromIntError>
 		+ Send
 		+ Sync;
+}
+pub trait AccessibleBlockingExtError: AccessibleBlocking + ConvertableBlocking {
+	type Error: std::error::Error
+		+ From<<Self as AccessibleBlocking>::Error>
+		+ From<<Self as ConvertableBlocking>::Error>
+		// TODO: add all convertable error types
+		+ From<<<Self as ConvertableBlocking>::Text as TextBlocking>::Error>
+		+ From<std::num::TryFromIntError>;
 }
 
 #[async_trait]
@@ -237,16 +247,26 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 		}
 }
 
+impl<T: AccessibleBlocking + ConvertableBlocking + AccessibleBlockingExtError> AccessibleBlockingExt for T {
+}
+
 #[cfg(test)]
 mod tests {
 	use crate::{
 		accessible::AccessibleProxy,
+    accessible::AccessibleProxyBlocking,
 		accessible_ext::AccessibleExt,
+		accessible_ext::AccessibleBlockingExt,
 	};
 
 	fn implements_accessible_ext<T: AccessibleExt>() {}
+	fn implements_accessible_blocking_ext<T: AccessibleBlockingExt>() {}
 	#[test]
 	fn check_accessible_proxy_implements_accessible_ext() {
 		implements_accessible_ext::<AccessibleProxy<'static>>();
+	}
+	#[test]
+	fn check_accessible_proxy_blocking_implements_accessible_ext() {
+		implements_accessible_blocking_ext::<AccessibleProxyBlocking<'static>>();
 	}
 }

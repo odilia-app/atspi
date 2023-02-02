@@ -17,16 +17,24 @@ impl<T: TableCellBlockingExtError + crate::table_cell::TableCellBlocking> TableC
 
 #[cfg(test)]
 mod test {
-use crate::{
-	table_cell_ext::TableCellExt,
-	table_cell::{TableCellProxy,
-	TableCellProxyBlocking}};	fn implements_table_cell_ext<T: TableCellExt>() {}
+  use crate::{
+    table_cell_ext::{
+      TableCellExt,
+      TableCellBlockingExt,
+    },
+    table_cell::{
+      TableCellProxy,
+      TableCellProxyBlocking,
+    },
+  };
+  fn implements_table_cell_ext<T: TableCellExt>() {}
+  fn implements_table_cell_blocking_ext<T: TableCellBlockingExt>() {}
 	#[test]
 	fn check_table_cell_implements_table_cell_ext() {
 		implements_table_cell_ext::<TableCellProxy<'static>>();
 	}
 	#[test]
 	fn check_blocking_table_cell_implements_table_cell_ext() {
-		implements_table_cell_ext::<TableCellProxyBlocking<'static>>();
+		implements_table_cell_blocking_ext::<TableCellProxyBlocking<'static>>();
 	}
 }
