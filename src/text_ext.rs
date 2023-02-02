@@ -41,8 +41,14 @@ impl<T: crate::text::TextBlocking + TextBlockingExtError> TextBlockingExt for T 
 #[cfg(test)]
 mod tests {
 	use crate::{
-		text::TextProxy,
-		text_ext::TextExt,
+		text::{
+      TextProxy,
+      TextProxyBlocking,
+    },
+		text_ext::{
+      TextExt,
+      TextBlockingExt,
+    },
 	};
 
 	fn implements_text_ext<T: TextExt>() {}
@@ -53,6 +59,6 @@ mod tests {
 	}
 	#[test]
 	fn test_blocking_text_proxy_implement_text_ext() {
-		implements_text_blocking_ext::<TextProxyBlocki9ng<'static>>();
+		implements_text_blocking_ext::<TextProxyBlocking<'static>>();
 	}
 }
