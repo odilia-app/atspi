@@ -47,8 +47,8 @@ pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
 		let async_impl = create_proxy_trait_impl(&input, &async_trait_name, false)?;
 		let atspi_proxy_impl = create_atspi_proxy_trait_impl(&async_proxy_name)?;
 		let blocking_atspi_proxy_impl = create_atspi_proxy_trait_impl(&proxy_name)?;
-		let ext_err_impl = create_ext_error_trait_impl(&async_proxy_name)?;
-		let blocking_ext_err_impl = create_ext_error_trait_impl(&proxy_name)?;
+		let ext_err_impl = create_ext_error_trait_impl(&async_proxy_name, false)?;
+		let blocking_ext_err_impl = create_ext_error_trait_impl(&proxy_name, true)?;
 
     Ok(quote! {
         #blocking_trait
@@ -70,12 +70,17 @@ pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
 }
 
 pub fn create_ext_error_trait_impl(
-	proxy_name: &str
+	proxy_name: &str,
+  blocking: bool
 ) -> Result<TokenStream, Error> {
 	let mut interface_name_str = proxy_name.to_owned().clone();
 	interface_name_str = interface_name_str.replace("ProxyBlocking", "");
 	interface_name_str = interface_name_str.replace("Proxy", "");
-	interface_name_str.push_str("ExtError");
+  if blocking {
+    interface_name_str.push_str("BlockingExtError");
+  } else {
+    interface_name_str.push_str("ExtError");
+  }
 	let mut module_name_str = proxy_name.to_owned().clone();
 	module_name_str = module_name_str.replace("ProxyBlocking", "");
 	module_name_str = module_name_str.replace("Proxy", "");
