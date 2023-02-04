@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait RegistryExtError: crate::registry::Registry {
 	type Error: std::error::Error;
 }

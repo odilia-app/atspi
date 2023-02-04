@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait EditableTextExtError: crate::editable_text::EditableText {
 	type Error: std::error::Error;
 }

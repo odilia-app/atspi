@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait CollectionExtError: crate::collection::Collection {
 	type Error: std::error::Error;
 }

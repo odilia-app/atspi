@@ -1,7 +1,9 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait ValueExtError: crate::value::Value {
 	type Error: std::error::Error;
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub trait ValueBlockingExtError: crate::value::ValueBlocking {
 	type Error: std::error::Error;
 }

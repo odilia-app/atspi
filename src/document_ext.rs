@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait DocumentExtError: crate::document::Document {
 	type Error: std::error::Error;
 }

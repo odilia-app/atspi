@@ -16,10 +16,20 @@ pub trait TextBlockingExtError: crate::text::TextBlocking {
 
 #[async_trait]
 pub trait TextExt: TextExtError {
+    /// Gets the full text within the accessible item.
+    /// # Errors
+    /// 
+    /// This may fail based on the implementation of [`crate::text::Text::get_text`] or [`crate::text::TextBlocking::get_text`].
+    /// With the [`crate::text::TextProxy`] and [`crate::text::TextProxyBlocking`] implmentations, this can fail if you ask for an invalid start or end index, or if the `DBus` method fails to send or receive.
     async fn get_all_text(&self) -> Result<String, <Self as TextExtError>::Error>;
 }
 
 pub trait TextBlockingExt: TextBlockingExtError {
+    /// Gets the full text within the accessible item.
+    /// # Errors
+    /// 
+    /// This may fail based on the implementation of [`crate::text::Text::get_text`] or [`crate::text::TextBlocking::get_text`].
+    /// With the [`crate::text::TextProxy`] and [`crate::text::TextProxyBlocking`] implmentations, this can fail if you ask for an invalid start or end index, or if the `DBus` method fails to send or receive.
     fn get_all_text(&self) -> Result<String, <Self as TextBlockingExtError>::Error>;
 }
 

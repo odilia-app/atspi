@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait SocketExtError: crate::socket::Socket {
 	type Error: std::error::Error;
 }

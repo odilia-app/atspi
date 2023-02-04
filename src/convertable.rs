@@ -119,6 +119,7 @@ use async_trait::async_trait;
 use std::ops::Deref;
 use zbus::{CacheProperties, Error, Proxy, blocking::Proxy as ProxyBlocking, ProxyBuilder, blocking::ProxyBuilder as ProxyBuilderBlocking, ProxyDefault};
 
+#[allow(clippy::module_name_repetitions)]
 #[async_trait]
 pub trait Convertable {
 	type Error: std::error::Error;
@@ -142,10 +143,37 @@ pub trait Convertable {
 	type DeviceEventController: DeviceEventController + Send + Sync;
 	type DeviceEventListener: DeviceEventListener + Send + Sync;
 
+  /// Creates an [`Self::Accessible`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation of.
+  /// Generally, it fails if the accessible item does not implement to accessible interface.
+  /// This shouldn't be possible, but this function may fail for other reasons.
+  /// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`crate::accessible::AccessibleProxy`].
 	async fn to_accessible(&self) -> Result<Self::Accessible, Self::Error>;
+  /// Creates an [`Self::Action`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to action interface.
 	async fn to_action(&self) -> Result<Self::Action, Self::Error>;
+  /// Creates an [`Self::Application`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to application interface.
 	async fn to_application(&self) -> Result<Self::Application, Self::Error>;
+  /// Creates an [`Self::Collection`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to collection interface.
 	async fn to_collection(&self) -> Result<Self::Collection, Self::Error>;
+  /// Creates an [`Self::Component`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to component interface.
 	async fn to_component(&self) -> Result<Self::Component, Self::Error>;
 	async fn to_document(&self) -> Result<Self::Document, Self::Error>;
 	async fn to_hypertext(&self) -> Result<Self::Hypertext, Self::Error>;
@@ -163,6 +191,7 @@ pub trait Convertable {
 	async fn to_device_event_listener(&self) -> Result<Self::DeviceEventListener, Self::Error>;
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub trait ConvertableBlocking {
 	type Error: std::error::Error;
 	type Accessible: AccessibleBlocking;
@@ -185,24 +214,121 @@ pub trait ConvertableBlocking {
 	type DeviceEventController: DeviceEventControllerBlocking;
 	type DeviceEventListener: DeviceEventListenerBlocking;
 
+  /// Creates an [`Self::Accessible`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation of.
+  /// Generally, it fails if the accessible item does not implement to accessible interface.
+  /// This shouldn't be possible, but this function may fail for other reasons.
+  /// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`crate::accessible::AccessibleProxyBlocking`].
 	 fn to_accessible(&self) -> Result<Self::Accessible, Self::Error>;
+  /// Creates an [`Self::Action`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to action interface.
 	 fn to_action(&self) -> Result<Self::Action, Self::Error>;
+  /// Creates an [`Self::Application`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to application interface.
 	 fn to_application(&self) -> Result<Self::Application, Self::Error>;
+  /// Creates an [`Self::Collection`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to collection interface.
 	 fn to_collection(&self) -> Result<Self::Collection, Self::Error>;
+  /// Creates an [`Self::Component`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to component interface.
 	 fn to_component(&self) -> Result<Self::Component, Self::Error>;
+  /// Creates an [`Self::Document`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to document interface.
 	 fn to_document(&self) -> Result<Self::Document, Self::Error>;
+  /// Creates an [`Self::Hypertext`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to hypertext interface.
 	 fn to_hypertext(&self) -> Result<Self::Hypertext, Self::Error>;
+  /// Creates an [`Self::Hyperlink`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to hyperlink interface.
 	 fn to_hyperlink(&self) -> Result<Self::Hyperlink, Self::Error>;
+  /// Creates an [`Self::Image`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to image interface.
 	 fn to_image(&self) -> Result<Self::Image, Self::Error>;
+  /// Creates an [`Self::Selection`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to selection interface.
 	 fn to_selection(&self) -> Result<Self::Selection, Self::Error>;
+  /// Creates an [`Self::Table`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to table interface.
 	 fn to_table(&self) -> Result<Self::Table, Self::Error>;
+  /// Creates an [`Self::TableCell`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to table cell interface.
 	 fn to_table_cell(&self) -> Result<Self::TableCell, Self::Error>;
+  /// Creates an [`Self::Text`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to text interface.
 	 fn to_text(&self) -> Result<Self::Text, Self::Error>;
+  /// Creates an [`Self::EditableText`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to editable text interface.
 	 fn to_editable_text(&self) -> Result<Self::EditableText, Self::Error>;
+  /// Creates an [`Self::Cache`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to cache interface.
 	 fn to_cache(&self) -> Result<Self::Cache, Self::Error>;
+  /// Creates an [`Self::Value`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to value interface.
 	 fn to_value(&self) -> Result<Self::Value, Self::Error>;
+  /// Creates an [`Self::Registry`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to registry interface.
 	 fn to_registry(&self) -> Result<Self::Registry, Self::Error>;
+  /// Creates an [`Self::DeviceEventController`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to device event controller interface.
 	 fn to_device_event_controller(&self) -> Result<Self::DeviceEventController, Self::Error>;
+  /// Creates an [`Self::DeviceEventListener`] from the existing accessible item.
+  /// # Errors
+  /// 
+  /// This may fail based on the implementation.
+  /// Generally, it fails if the accessible item does not implement to device event listener interface.
 	 fn to_device_event_listener(&self) -> Result<Self::DeviceEventListener, Self::Error>;
 }
 

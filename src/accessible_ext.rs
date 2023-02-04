@@ -56,6 +56,8 @@ pub trait AccessibleExtError: Accessible + Convertable {
 		+ Send
 		+ Sync;
 }
+
+#[allow(clippy::module_name_repetitions)]
 pub trait AccessibleBlockingExtError: AccessibleBlocking + ConvertableBlocking {
 	type Error: std::error::Error
 		+ From<<Self as AccessibleBlocking>::Error>

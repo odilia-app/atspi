@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait HypertextExtError: crate::hypertext::Hypertext {
 	type Error: std::error::Error;
 }

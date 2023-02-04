@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait CacheExtError: crate::cache::Cache {
 	type Error: std::error::Error;
 }

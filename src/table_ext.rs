@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait TableExtError: crate::table::Table {
 	type Error: std::error::Error;
 }

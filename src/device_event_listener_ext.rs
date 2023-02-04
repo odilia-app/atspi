@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait DeviceEventListenerExtError: crate::device_event_listener::DeviceEventListener {
 	type Error: std::error::Error;
 }

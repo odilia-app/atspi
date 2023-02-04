@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait ImageExtError: crate::image::Image {
 	type Error: std::error::Error;
 }

@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait ComponentExtError: crate::component::Component {
 	type Error: std::error::Error;
 }

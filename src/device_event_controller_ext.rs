@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait DeviceEventControllerExtError: crate::device_event_controller::DeviceEventController {
 	type Error: std::error::Error;
 }

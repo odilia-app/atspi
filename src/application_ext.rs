@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait ApplicationExtError: crate::application::Application {
 	type Error: std::error::Error;
 }

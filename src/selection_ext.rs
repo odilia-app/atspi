@@ -1,3 +1,4 @@
+#[allow(clippy::module_name_repetitions)]
 pub trait SelectionExtError: crate::selection::Selection {
 	type Error: std::error::Error;
 }
