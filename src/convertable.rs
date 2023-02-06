@@ -17,12 +17,6 @@ use crate::{
       ApplicationBlocking,
       ApplicationProxy
     },
-    cache::{
-      Cache,
-      CacheProxyBlocking,
-      CacheBlocking,
-      CacheProxy,
-    },
 		collection::{
       Collection,
       CollectionProxyBlocking,
@@ -34,18 +28,6 @@ use crate::{
       ComponentProxyBlocking,
       ComponentBlocking,
       ComponentProxy
-    },
-    device_event_controller::{
-      DeviceEventControllerBlocking,
-      DeviceEventControllerProxyBlocking,
-      DeviceEventController,
-      DeviceEventControllerProxy,
-    },
-    device_event_listener::{
-      DeviceEventListenerBlocking,
-      DeviceEventListenerProxyBlocking,
-      DeviceEventListener,
-      DeviceEventListenerProxy,
     },
 		document::{
       DocumentBlocking,
@@ -76,12 +58,6 @@ use crate::{
       ImageProxyBlocking,
       Image,
       ImageProxy,
-    },
-		registry::{
-      RegistryBlocking,
-      RegistryProxyBlocking,
-      Registry,
-      RegistryProxy,
     },
 		selection::{
       SelectionBlocking,
@@ -137,11 +113,7 @@ pub trait Convertable {
 	type TableCell: TableCell + Send + Sync;
 	type Text: Text + Send + Sync;
 	type EditableText: EditableText + Send + Sync;
-	type Cache: Cache + Send + Sync;
 	type Value: Value + Send + Sync;
-	type Registry: Registry + Send + Sync;
-	type DeviceEventController: DeviceEventController + Send + Sync;
-	type DeviceEventListener: DeviceEventListener + Send + Sync;
 
   /// Creates an [`Self::Accessible`] from the existing accessible item.
   /// # Errors
@@ -184,11 +156,7 @@ pub trait Convertable {
 	async fn to_table_cell(&self) -> Result<Self::TableCell, Self::Error>;
 	async fn to_text(&self) -> Result<Self::Text, Self::Error>;
 	async fn to_editable_text(&self) -> Result<Self::EditableText, Self::Error>;
-	async fn to_cache(&self) -> Result<Self::Cache, Self::Error>;
 	async fn to_value(&self) -> Result<Self::Value, Self::Error>;
-	async fn to_registry(&self) -> Result<Self::Registry, Self::Error>;
-	async fn to_device_event_controller(&self) -> Result<Self::DeviceEventController, Self::Error>;
-	async fn to_device_event_listener(&self) -> Result<Self::DeviceEventListener, Self::Error>;
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -208,11 +176,7 @@ pub trait ConvertableBlocking {
 	type TableCell: TableCellBlocking;
 	type Text: TextBlocking;
 	type EditableText: EditableTextBlocking;
-	type Cache: CacheBlocking;
 	type Value: ValueBlocking;
-	type Registry: RegistryBlocking;
-	type DeviceEventController: DeviceEventControllerBlocking;
-	type DeviceEventListener: DeviceEventListenerBlocking;
 
   /// Creates an [`Self::Accessible`] from the existing accessible item.
   /// # Errors
@@ -300,36 +264,12 @@ pub trait ConvertableBlocking {
   /// This may fail based on the implementation.
   /// Generally, it fails if the accessible item does not implement to editable text interface.
 	 fn to_editable_text(&self) -> Result<Self::EditableText, Self::Error>;
-  /// Creates an [`Self::Cache`] from the existing accessible item.
-  /// # Errors
-  /// 
-  /// This may fail based on the implementation.
-  /// Generally, it fails if the accessible item does not implement to cache interface.
-	 fn to_cache(&self) -> Result<Self::Cache, Self::Error>;
   /// Creates an [`Self::Value`] from the existing accessible item.
   /// # Errors
   /// 
   /// This may fail based on the implementation.
   /// Generally, it fails if the accessible item does not implement to value interface.
 	 fn to_value(&self) -> Result<Self::Value, Self::Error>;
-  /// Creates an [`Self::Registry`] from the existing accessible item.
-  /// # Errors
-  /// 
-  /// This may fail based on the implementation.
-  /// Generally, it fails if the accessible item does not implement to registry interface.
-	 fn to_registry(&self) -> Result<Self::Registry, Self::Error>;
-  /// Creates an [`Self::DeviceEventController`] from the existing accessible item.
-  /// # Errors
-  /// 
-  /// This may fail based on the implementation.
-  /// Generally, it fails if the accessible item does not implement to device event controller interface.
-	 fn to_device_event_controller(&self) -> Result<Self::DeviceEventController, Self::Error>;
-  /// Creates an [`Self::DeviceEventListener`] from the existing accessible item.
-  /// # Errors
-  /// 
-  /// This may fail based on the implementation.
-  /// Generally, it fails if the accessible item does not implement to device event listener interface.
-	 fn to_device_event_listener(&self) -> Result<Self::DeviceEventListener, Self::Error>;
 }
 
 #[inline]
@@ -418,11 +358,7 @@ impl<'a, T: Deref<Target = Proxy<'a>> + ProxyDefault + AtspiProxy + Sync> Conver
 		type TableCell = TableCellProxy<'a>;
 		type Text = TextProxy<'a>;
 		type EditableText = EditableTextProxy<'a>;
-		type Cache = CacheProxy<'a>;
 		type Value = ValueProxy<'a>;
-		type Registry = RegistryProxy<'a>;
-		type DeviceEventController = DeviceEventControllerProxy<'a>;
-		type DeviceEventListener = DeviceEventListenerProxy<'a>;
     /* no guard due to assumption it is always possible */
     async fn to_accessible(&self) -> zbus::Result<Self::Accessible> {
         convert_to_new_type(self).await
@@ -466,19 +402,7 @@ impl<'a, T: Deref<Target = Proxy<'a>> + ProxyDefault + AtspiProxy + Sync> Conver
     async fn to_editable_text(&self) -> zbus::Result<Self::EditableText> {
         convert_to_new_type(self).await
     }
-    async fn to_cache(&self) -> zbus::Result<Self::Cache> {
-        convert_to_new_type(self).await
-    }
     async fn to_value(&self) -> zbus::Result<Self::Value> {
-        convert_to_new_type(self).await
-    }
-    async fn to_registry(&self) -> zbus::Result<Self::Registry> {
-        convert_to_new_type(self).await
-    }
-    async fn to_device_event_controller(&self) -> zbus::Result<Self::DeviceEventController> {
-        convert_to_new_type(self).await
-    }
-    async fn to_device_event_listener(&self) -> zbus::Result<Self::DeviceEventListener> {
         convert_to_new_type(self).await
     }
 }
@@ -499,11 +423,7 @@ impl<'a, T: Deref<Target = ProxyBlocking<'a>> + ProxyDefault + AtspiProxy> Conve
 		type TableCell = TableCellProxyBlocking<'a>;
 		type Text = TextProxyBlocking<'a>;
 		type EditableText = EditableTextProxyBlocking<'a>;
-		type Cache = CacheProxyBlocking<'a>;
 		type Value = ValueProxyBlocking<'a>;
-		type Registry = RegistryProxyBlocking<'a>;
-		type DeviceEventController = DeviceEventControllerProxyBlocking<'a>;
-		type DeviceEventListener = DeviceEventListenerProxyBlocking<'a>;
     /* no guard due to assumption it is always possible */
     fn to_accessible(&self) -> zbus::Result<Self::Accessible> {
         convert_to_new_type_blocking(self)
@@ -547,19 +467,7 @@ impl<'a, T: Deref<Target = ProxyBlocking<'a>> + ProxyDefault + AtspiProxy> Conve
     fn to_editable_text(&self) -> zbus::Result<Self::EditableText> {
         convert_to_new_type_blocking(self)
     }
-    fn to_cache(&self) -> zbus::Result<Self::Cache> {
-        convert_to_new_type_blocking(self)
-    }
-    fn to_value(&self) -> zbus::Result<Self::Value> {
-        convert_to_new_type_blocking(self)
-    }
-    fn to_registry(&self) -> zbus::Result<Self::Registry> {
-        convert_to_new_type_blocking(self)
-    }
-    fn to_device_event_controller(&self) -> zbus::Result<Self::DeviceEventController> {
-        convert_to_new_type_blocking(self)
-    }
-    fn to_device_event_listener(&self) -> zbus::Result<Self::DeviceEventListener> {
+   fn to_value(&self) -> zbus::Result<Self::Value> {
         convert_to_new_type_blocking(self)
     }
 }
