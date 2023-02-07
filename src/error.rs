@@ -78,7 +78,7 @@ impl std::fmt::Display for AtspiError {
 						Self::IntConversionError(e) => {
 							f.write_str(&format!("Integer conversion error: {e}"))
 						}
-            Self::Infallible => f.write_str(&format!("Infallible; only to trick the compiler. This should never happen.")),
+            Self::Infallible => f.write_str("Infallible; only to trick the compiler. This should never happen."),
         }
     }
 }
