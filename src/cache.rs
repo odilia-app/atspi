@@ -4,7 +4,7 @@
 //! Source: `Cache.xml`.
 //!
 
-use crate::{accessible::Role, InterfaceSet, StateSet};
+use crate::{accessible::{Role, ObjectPair}, InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{OwnedObjectPath, Type};
 use atspi_macros::atspi_proxy;
@@ -15,11 +15,11 @@ use async_trait::async_trait;
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct CacheItem {
     /// The accessible object (within the application)   (so)
-    pub object: (String, OwnedObjectPath),
+    pub object: ObjectPair,
     /// The application (root object(?)    (so)
-    pub app: (String, OwnedObjectPath),
+    pub app: ObjectPair,
     /// The parent object.  (so)
-    pub parent: (String, OwnedObjectPath),
+    pub parent: ObjectPair,
     /// The accessbile index in parent.  i
     pub index: i32,
     /// Child count of the accessible  i
