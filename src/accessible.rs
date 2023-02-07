@@ -10,9 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::{InterfaceSet, StateSet, AccessibleId, HasAccessibleId};
+use crate::{InterfaceSet, StateSet, AccessibleId, AtspiError, accessible_id::HasAccessibleId};
 use serde::{Deserialize, Serialize};
-use zbus::zvariant::Type;
+use zbus::zvariant::{Type, OwnedObjectPath};
 use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
 
@@ -291,8 +291,8 @@ pub enum RelationType {
 }
 
 /// A pair of (`sender`, `object path with id`) which constitutes the fundemental parts of an Accessible object in `atspi`.
-/// NOTE: If you update this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
-pub type ObjectPair = (String, zbus::zvariant::OwnedObjectPath);
+/// NOTE: If you update the name of this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
+pub type ObjectPair = (String, AccessibleId);
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
@@ -355,6 +355,16 @@ trait Accessible {
     /// Parent property
     #[dbus_proxy(property)]
     fn parent(&self) -> zbus::Result<ObjectPair>;
+}
+
+impl TryFrom<AccessibleProxy<'_>> for ObjectPair {
+  type Error = AtspiError;
+  fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectPair, Self::Error> {
+    Ok((
+      proxy.destination().to_string(),
+      proxy.path().to_string().try_into()?,
+    ))
+  }
 }
 
 impl PartialEq for AccessibleProxy<'_> {
