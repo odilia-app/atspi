@@ -183,12 +183,13 @@ pub trait HasAccessibleId {
 
 #[cfg(test)]
 mod tests {
+  use serde_plain;
   use crate::AccessibleId;
 
   #[test]
   fn deserialize_root_object_path() {
     let root_str = "/org/a11y/atspi/accessible/root";
-    let id = AccessibleId::try_from(root_str).expect("Can not deserialize {root_str}");
+    let id: AccessibleId = serde_plain::from_str(root_str).expect("Can not deserialize {root_str}");
     assert_eq!(id, AccessibleId::Root);
   }
   #[test]
@@ -215,5 +216,36 @@ mod tests {
     let root_str = "/org/a11y/atspi/accessible/123923283733455";
     let id = AccessibleId::try_from(root_str).expect("Can not deserialize {root_str}");
     assert_eq!(id, AccessibleId::Number(123923283733455));
+  }
+  #[test]
+  fn serialize_root_object_path() {
+    let id = AccessibleId::Root;
+    let root_str = serde_plain::to_string(&id).expect("Could not deserialize {id}");
+    assert_eq!(root_str, "/org/a11y/atspi/accessible/root".to_string());
+  }
+  #[test]
+  fn serialize_null_object_path() {
+    let id = AccessibleId::Null;
+    let null_str = serde_plain::to_string(&id).expect("Could not deserialize {id}");
+    assert_eq!(null_str, "/org/a11y/atspi/accessible/null".to_string());
+  }
+  #[test]
+  fn serialize_zero_object_path() {
+    let id = AccessibleId::Number(0);
+    let zero_str = serde_plain::to_string(&id).expect("Could not deserialize {id}");
+    assert_eq!(zero_str, "/org/a11y/atspi/accessible/0");
+  }
+  #[test]
+  fn serialize_1337_object_path() {
+    let id = AccessibleId::Number(1337);
+    let one_one_three_one_str = serde_plain::to_string(&id).expect("Could not deserialize {id}");
+    assert_eq!(one_one_three_one_str, "/org/a11y/atspi/accessible/1337".to_string());
+  }
+  // this test is specifically because we nned to check for i64-sized numbers.
+  #[test]
+  fn serialize_large_num_object_path() {
+    let id = AccessibleId::Number(123923283733455);
+    let large_str = serde_plain::to_string(&id).expect("Could not deserialize {id}");
+    assert_eq!(large_str, "/org/a11y/atspi/accessible/123923283733455".to_string());
   }
 }
