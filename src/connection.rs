@@ -1,7 +1,12 @@
-use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
+use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError, events::names::Signal};
+use enumflags2::{
+  BitFlags,
+  BitFlag,
+};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
+use zbus::{zvariant::Signature, Address, MessageStream, MessageType, fdo::DBusProxy, MatchRule};
+use serde::Serialize;
 
 // Event body signatures: These outline the event specific deserialized event types.
 // Safety: These are evaluated at compile time.
@@ -75,8 +80,11 @@ impl Connection {
     /// # Example
     /// B asic use:
     /// ```
-    /// use atspi::events::EventInterfaces;
-    /// use atspi::identify::object::ObjectEvents;
+    /// use atspi::events::{
+    ///   EventInterfaces,
+    ///   names::ObjectEvents,
+    /// };
+    /// use enumflags2::BitFlag;
     /// use atspi::signify::Signified;
     /// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
     /// use atspi::Event;
@@ -89,15 +97,7 @@ impl Connection {
     ///
     /// # async fn example() -> Result<(), Box<dyn Error>> {
     ///     let atspi = atspi::Connection::open().await?;
-    ///     atspi.register_event("Object").await?;
-    ///
-    ///     let rule = MatchRule::builder()
-    ///        .msg_type(MessageType::Signal)
-    ///         .interface("org.a11y.atspi.Event.Object")?
-    ///         .build();
-    ///
-    ///     let dbus = DBusProxy::new(atspi.connection()).await?;
-    ///     dbus.add_match_rule(rule).await?;
+    ///     atspi.register_events(ObjectEvents::all()).await?;
     ///
     ///     let events = atspi.event_stream();
     ///     futures_lite::pin!(events);
@@ -155,6 +155,58 @@ impl Connection {
             }
         })
     }
+
+    // TODO: do this without instantiating a DBus proxy evwry time.
+    /// Registers an events as defined in [`crate::events::names`]. This function registers a single event, like so:
+    /// ```rust
+    /// use atspi::events::names::ObjectEvents;
+    /// # tokio_test::block_on(async {
+    /// let connection = atspi::Connection::open().await.unwrap();
+    /// connection.register_event(ObjectEvents::StateChanged).await.unwrap();
+    /// # })
+    /// ```
+    ///
+    /// # Errors
+    /// 
+    /// This function may return an error if it is unable to serialize the variant of the enum that has been passed (should never happen), or
+    /// a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule`].
+    pub async fn register_event<T: Signal + Serialize + std::fmt::Debug>(&self, event: T) -> Result<(), AtspiError> {
+        let dbus_proxy = DBusProxy::new(self.registry.connection())
+          .await?;
+        let Ok(member_string) = serde_plain::to_string(&event) else {
+          return Err(AtspiError::ParseError("Unable to serialize member string to create a match rule."))
+        };
+        let match_rule = MatchRule::builder()
+          .msg_type(MessageType::Signal)
+          .interface(<T as Signal>::INTERFACE)?
+          .member(member_string)?
+          .build();
+        dbus_proxy.add_match_rule(match_rule).await?;
+        Ok(())
+    }
+
+  /// Register multiple events in one swoop!
+  /// Very useful for registering events of one interface together.
+  /// This can be done like so:
+  ///
+  /// ```rust
+  /// use atspi::events::names::ObjectEvents;
+  /// use enumflags2::BitFlag;
+  /// # tokio_test::block_on(async {
+  /// let connection = atspi::Connection::open().await.unwrap();
+  /// connection.register_events(ObjectEvents::all()).await.unwrap();
+  /// # })
+  /// ```
+  ///
+  /// # Errors
+  /// For failure conditions, see [`Self::register_event`].
+  pub async fn register_events<T>(&self, events: BitFlags<T>) -> Result<(), AtspiError> 
+    where T: Signal + Serialize + std::fmt::Debug + BitFlag {
+    for event in events.iter() {
+      self.register_event(event).await?;
+    }
+    Ok(())
+  }
 }
 
 impl Deref for Connection {
