@@ -1,9 +1,6 @@
 use async_std::prelude::*;
 use atspi::{
-    events::{
-      GenericEvent,
-      names::ObjectEvents,
-    },
+    events::{names::ObjectEvents, GenericEvent},
     identify::object::StateChangedEvent,
     signify::Signified,
 };
