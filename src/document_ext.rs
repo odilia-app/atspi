@@ -6,30 +6,20 @@ pub trait DocumentBlockingExtError: crate::document::DocumentBlocking {
 	type Error: std::error::Error;
 }
 
-pub trait DocumentExt {
-}
-pub trait DocumentBlockingExt {
-}
+pub trait DocumentExt {}
+pub trait DocumentBlockingExt {}
 
-impl<T: DocumentExtError + crate::document::Document> DocumentExt for T {
-}
-impl<T: DocumentBlockingExtError + crate::document::DocumentBlocking> DocumentBlockingExt for T {
-}
+impl<T: DocumentExtError + crate::document::Document> DocumentExt for T {}
+impl<T: DocumentBlockingExtError + crate::document::DocumentBlocking> DocumentBlockingExt for T {}
 
 #[cfg(test)]
 mod test {
-  use crate::{
-    document_ext::{
-      DocumentExt,
-      DocumentBlockingExt,
-    },
-    document::{
-      DocumentProxy,
-      DocumentProxyBlocking,
-    },
-  };
-  fn implements_document_ext<T: DocumentExt>() {}
-  fn implements_document_blocking_ext<T: DocumentBlockingExt>() {}
+	use crate::{
+		document::{DocumentProxy, DocumentProxyBlocking},
+		document_ext::{DocumentBlockingExt, DocumentExt},
+	};
+	fn implements_document_ext<T: DocumentExt>() {}
+	fn implements_document_blocking_ext<T: DocumentBlockingExt>() {}
 	#[test]
 	fn check_document_implements_document_ext() {
 		implements_document_ext::<DocumentProxy<'static>>();

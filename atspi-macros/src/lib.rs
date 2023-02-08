@@ -1,37 +1,24 @@
-mod zbus_proxy;
 mod proxy;
 mod utils;
+mod zbus_proxy;
 
-use proc_macro::{
-	TokenStream,
-};
-use proc_macro2::{
-	Span,
-	TokenStream as TokenStream2,
-};
-use quote::{
-	quote,
-};
+use proc_macro::TokenStream;
+use proc_macro2::{Span, TokenStream as TokenStream2};
+use quote::quote;
 use syn::{
-    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, ItemTrait, Lit, Meta, MetaNameValue,
-		Ident,
-    NestedMeta, Type,
+    parse_macro_input, AttributeArgs, DeriveInput, Ident, ItemStruct, ItemTrait, Lit, Meta,
+    MetaNameValue, NestedMeta, Type,
 };
-use zbus::{
-	xml::*,
-};
+use zbus::xml::*;
 use zvariant::{
-	    Basic, ObjectPath, Signature, ARRAY_SIGNATURE_CHAR, DICT_ENTRY_SIG_END_CHAR,
-			    DICT_ENTRY_SIG_START_CHAR, STRUCT_SIG_END_CHAR, STRUCT_SIG_START_CHAR, VARIANT_SIGNATURE_CHAR,
+    Basic, ObjectPath, Signature, ARRAY_SIGNATURE_CHAR, DICT_ENTRY_SIG_END_CHAR,
+    DICT_ENTRY_SIG_START_CHAR, STRUCT_SIG_END_CHAR, STRUCT_SIG_START_CHAR, VARIANT_SIGNATURE_CHAR,
 };
 
 use std::{
-	str::FromStr,
-	convert::{
-		TryFrom,
-		TryInto,
-	},
-	iter::FromIterator,
+    convert::{TryFrom, TryInto},
+    iter::FromIterator,
+    str::FromStr,
 };
 
 enum FromZbusMessageParam {
@@ -54,8 +41,8 @@ impl From<(String, String)> for FromZbusMessageParam {
 }
 
 enum XmlGenParams {
-	Invalid,
-	FileName(String),
+    Invalid,
+    FileName(String),
 }
 impl From<(String, String)> for XmlGenParams {
     fn from(items: (String, String)) -> Self {
@@ -102,8 +89,10 @@ pub fn implement_signified(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-fn make_into_params<T>(items: AttributeArgs) -> Vec<T> 
-	where T: From<(String, String)> {
+fn make_into_params<T>(items: AttributeArgs) -> Vec<T>
+where
+    T: From<(String, String)>,
+{
     items
         .into_iter()
         .filter_map(|nm| match nm {
@@ -132,36 +121,37 @@ fn make_into_params<T>(items: AttributeArgs) -> Vec<T>
 }
 
 enum AtspiEventInnerName {
-	Detail1,
-	Detail2,
-	AnyData,
+    Detail1,
+    Detail2,
+    AnyData,
 }
 impl ToString for AtspiEventInnerName {
-	fn to_string(&self) -> String {
-		match self {
-			Self::Detail1 => "detail1",
-			Self::Detail2 => "detail2",
-			Self::AnyData => "any_data",
-		}.to_string()
-	}
+    fn to_string(&self) -> String {
+        match self {
+            Self::Detail1 => "detail1",
+            Self::Detail2 => "detail2",
+            Self::AnyData => "any_data",
+        }
+        .to_string()
+    }
 }
 enum ConversionError {
-	FunctionAlreadyCreatedFor,
-	UnknownItem,
+    FunctionAlreadyCreatedFor,
+    UnknownItem,
 }
 impl TryFrom<usize> for AtspiEventInnerName {
-	type Error = ConversionError;
+    type Error = ConversionError;
 
-	fn try_from(from: usize) -> Result<Self, Self::Error> {
-		match from {
-			0 => Err(ConversionError::FunctionAlreadyCreatedFor),
-			1 => Ok(Self::Detail1),
-			2 => Ok(Self::Detail2),
-			3 => Ok(Self::AnyData),
-			4 => Err(ConversionError::FunctionAlreadyCreatedFor),
-			_ => Err(ConversionError::UnknownItem),
-		}
-	}
+    fn try_from(from: usize) -> Result<Self, Self::Error> {
+        match from {
+            0 => Err(ConversionError::FunctionAlreadyCreatedFor),
+            1 => Ok(Self::Detail1),
+            2 => Ok(Self::Detail2),
+            3 => Ok(Self::AnyData),
+            4 => Err(ConversionError::FunctionAlreadyCreatedFor),
+            _ => Err(ConversionError::UnknownItem),
+        }
+    }
 }
 
 // taken from zbus_xmlgen: https://gitlab.freedesktop.org/dbus/zbus/-/blob/main/zbus_xmlgen/src/gen.rs
@@ -184,12 +174,7 @@ fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
             u64::SIGNATURE_CHAR => "u64".into(),
             f64::SIGNATURE_CHAR => "f64".into(),
             // xmlgen accepts 'h' on Windows, only for code generation
-            'h' => (if input {
-                "zbus::zvariant::Fd"
-            } else {
-                "zbus::zvariant::OwnedFd"
-            })
-            .into(),
+            'h' => (if input { "zbus::zvariant::Fd" } else { "zbus::zvariant::OwnedFd" }).into(),
             <&str>::SIGNATURE_CHAR => (if input || as_ref { "&str" } else { "String" }).into(),
             ObjectPath::SIGNATURE_CHAR => (if input {
                 if as_ref {
@@ -265,201 +250,217 @@ fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
 }
 
 // accept String or &str
-fn str_ident<S>(string: S) -> Ident 
-	where S: Into<String> {
-	Ident::new(&string.into(), Span::call_site())
+fn str_ident<S>(string: S) -> Ident
+where
+    S: Into<String>,
+{
+    Ident::new(&string.into(), Span::call_site())
 }
 
 fn iface_name(iface: &Interface) -> String {
-	iface.name().split('.').next_back().expect("An interface must have a period in its name.").to_string()
+    iface
+        .name()
+        .split('.')
+        .next_back()
+        .expect("An interface must have a period in its name.")
+        .to_string()
 }
 
-fn events_ident<S>(string: S) -> Ident 
-	where S: Into<String> {
-	let mut sig_name_event_str = string.into();
-	sig_name_event_str.push_str("Events");
-	str_ident(sig_name_event_str)
+fn events_ident<S>(string: S) -> Ident
+where
+    S: Into<String>,
+{
+    let mut sig_name_event_str = string.into();
+    sig_name_event_str.push_str("Events");
+    str_ident(sig_name_event_str)
 }
-fn event_ident<S>(string: S) -> Ident 
-	where S: Into<String> {
-	let mut sig_name_event_str = string.into();
-	sig_name_event_str.push_str("Event");
-	str_ident(sig_name_event_str)
-}
-
-fn str_to_type<S>(s: S) -> Type 
-	where S: Into<String> + Clone + std::fmt::Display {
-	let rust_type_ts = TokenStream::from_str(&s.clone().into()).expect("The string \"{rust_type_str}\" is not able to be turned into a TokenStream");
-	match parse_macro_input::parse::<Type>(rust_type_ts) {
-		Ok(data) => data,
-		_ => panic!("The string {} could not be converted to Type", s),
-	}
+fn event_ident<S>(string: S) -> Ident
+where
+    S: Into<String>,
+{
+    let mut sig_name_event_str = string.into();
+    sig_name_event_str.push_str("Event");
+    str_ident(sig_name_event_str)
 }
 
-fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName) -> TokenStream2 {
-	if signal_item.name().is_none() {
-		return quote!{};
-	}
-	// unwrap is safe due to check
-	let function_name = str_ident(signal_item.name().unwrap());
-	let inner_name = str_ident(inner_event_name.to_string());
-	let rust_type = str_to_type(to_rust_type(signal_item.ty(), true, true));
-	
-	quote!{
-		#[must_use]
-		pub fn #function_name(&self) -> #rust_type {
-			self.0.#inner_name()
-		}
-	}
+fn str_to_type<S>(s: S) -> Type
+where
+    S: Into<String> + Clone + std::fmt::Display,
+{
+    let rust_type_ts = TokenStream::from_str(&s.clone().into())
+        .expect("The string \"{rust_type_str}\" is not able to be turned into a TokenStream");
+    match parse_macro_input::parse::<Type>(rust_type_ts) {
+        Ok(data) => data,
+        _ => panic!("The string {} could not be converted to Type", s),
+    }
+}
+
+fn generate_fn_for_signal_item(
+    signal_item: &Arg,
+    inner_event_name: AtspiEventInnerName,
+) -> TokenStream2 {
+    if signal_item.name().is_none() {
+        return quote! {};
+    }
+    // unwrap is safe due to check
+    let function_name = str_ident(signal_item.name().unwrap());
+    let inner_name = str_ident(inner_event_name.to_string());
+    let rust_type = str_to_type(to_rust_type(signal_item.ty(), true, true));
+
+    quote! {
+        #[must_use]
+        pub fn #function_name(&self) -> #rust_type {
+            self.0.#inner_name()
+        }
+    }
 }
 
 fn generate_impl_from_signal(signal: &Signal) -> TokenStream2 {
-	let sig_name_event = event_ident(signal.name());
-	let functions = TokenStream2::from_iter(
-		signal.args()
-			.iter()
-			.enumerate()
-				.filter_map(|(i, arg)| match i.try_into() {
-					Ok(func_name) => Some(generate_fn_for_signal_item(arg, func_name)),
-					Err(_) => None,
-			})
-	);
-	quote!{
-		impl #sig_name_event {
-			#functions
-		}
-	}
+    let sig_name_event = event_ident(signal.name());
+    let functions =
+        TokenStream2::from_iter(signal.args().iter().enumerate().filter_map(|(i, arg)| {
+            match i.try_into() {
+                Ok(func_name) => Some(generate_fn_for_signal_item(arg, func_name)),
+                Err(_) => None,
+            }
+        }));
+    quote! {
+        impl #sig_name_event {
+            #functions
+        }
+    }
 }
 
 fn generate_struct_from_signal(signal: &Signal) -> TokenStream2 {
-	let sig_name_event = event_ident(signal.name());
-	quote! {
-		#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-		pub struct #sig_name_event(pub(crate) AtspiEvent);
-	}
+    let sig_name_event = event_ident(signal.name());
+    quote! {
+        #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+        pub struct #sig_name_event(pub(crate) AtspiEvent);
+    }
 }
 
 fn generate_variant_from_signal(signal: &Signal) -> TokenStream2 {
-	let sig_name = str_ident(signal.name());
-	let sig_name_event = event_ident(signal.name());
-	quote!{
-		#sig_name(#sig_name_event),
-	}
+    let sig_name = str_ident(signal.name());
+    let sig_name_event = event_ident(signal.name());
+    quote! {
+        #sig_name(#sig_name_event),
+    }
 }
 
 fn match_arm_for_signal(iface_name: &str, signal: &Signal) -> TokenStream2 {
-	let signal_name = signal.name();
-	let enum_name = events_ident(iface_name);
-	let signal_variant = str_ident(signal_name);
-	let signal_struct_name = event_ident(signal_name);
-	quote! {
-		#signal_name => Ok(#enum_name::#signal_variant(#signal_struct_name(ev))),
-	}
+    let signal_name = signal.name();
+    let enum_name = events_ident(iface_name);
+    let signal_variant = str_ident(signal_name);
+    let signal_struct_name = event_ident(signal_name);
+    quote! {
+        #signal_name => Ok(#enum_name::#signal_variant(#signal_struct_name(ev))),
+    }
 }
 
 fn generate_try_from_atspi_event(iface: &Interface) -> TokenStream2 {
-	let iname = iface_name(iface);
-	let error_str = format!("No matching member for {iname}");
-	let impl_for_name = events_ident(&iname);
-	let member_conversions = TokenStream2::from_iter(
-		iface.signals()
-			.iter()
-			.map(|signal| match_arm_for_signal(&iname, signal))
-	);
-	quote! {
-		impl TryFrom<AtspiEvent> for #impl_for_name {
-			type Error = AtspiError;
+    let iname = iface_name(iface);
+    let error_str = format!("No matching member for {iname}");
+    let impl_for_name = events_ident(&iname);
+    let member_conversions = TokenStream2::from_iter(
+        iface
+            .signals()
+            .iter()
+            .map(|signal| match_arm_for_signal(&iname, signal)),
+    );
+    quote! {
+        impl TryFrom<AtspiEvent> for #impl_for_name {
+            type Error = AtspiError;
 
-			fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
-				let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
-				match member.as_str() {
-					#member_conversions
-					_ => Err(AtspiError::MemberMatch(#error_str.into())),
-				}
-			}
-		}
-	}
+            fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+                let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
+                match member.as_str() {
+                    #member_conversions
+                    _ => Err(AtspiError::MemberMatch(#error_str.into())),
+                }
+            }
+        }
+    }
 }
 
 fn generate_mod_from_iface(iface: &Interface) -> TokenStream2 {
-	let mod_name = str_ident(iface_name(iface).to_lowercase());
-	let enums = generate_enum_from_iface(iface);
-	let structs = TokenStream2::from_iter(
-		iface.signals()
-			.iter()
-			.map(|signal| generate_struct_from_signal(signal)));
-	let impls = TokenStream2::from_iter(
-		iface.signals()
-			.iter()
-			.map(|signal| generate_impl_from_signal(signal)));
-	let try_froms = generate_try_from_atspi_event(iface);
-	quote! {
-		pub mod #mod_name {
-			use atspi_macros::TrySignify;
-			use crate::{
-				error::AtspiError,
-				events::{AtspiEvent, GenericEvent},
-				identify::Signified,
-			};
-			use zbus;
-			use zbus::zvariant::{OwnedObjectPath, OwnedValue};
-			#enums
-			#structs
-			#impls
-			#try_froms
-		}
-	}
+    let mod_name = str_ident(iface_name(iface).to_lowercase());
+    let enums = generate_enum_from_iface(iface);
+    let structs = TokenStream2::from_iter(
+        iface
+            .signals()
+            .iter()
+            .map(|signal| generate_struct_from_signal(signal)),
+    );
+    let impls = TokenStream2::from_iter(
+        iface.signals().iter().map(|signal| generate_impl_from_signal(signal)),
+    );
+    let try_froms = generate_try_from_atspi_event(iface);
+    quote! {
+        pub mod #mod_name {
+            use atspi_macros::TrySignify;
+            use crate::{
+                error::AtspiError,
+                events::{AtspiEvent, GenericEvent},
+                identify::Signified,
+            };
+            use zbus;
+            use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+            #enums
+            #structs
+            #impls
+            #try_froms
+        }
+    }
 }
 
 fn generate_enum_from_iface(iface: &Interface) -> TokenStream2 {
-	let name_ident = iface.name().split('.').next_back().expect("Interface must contain a period");
-	let name_ident_plural = events_ident(name_ident);
-	let signal_quotes = TokenStream2::from_iter(
-		iface.signals()
-			.into_iter()
-			.map(generate_variant_from_signal)
-	);
-	quote! {
-		#[derive(Clone, Debug)]
-		pub enum #name_ident_plural {
-			#signal_quotes
-		}
-	}
+    let name_ident = iface
+        .name()
+        .split('.')
+        .next_back()
+        .expect("Interface must contain a period");
+    let name_ident_plural = events_ident(name_ident);
+    let signal_quotes =
+        TokenStream2::from_iter(iface.signals().into_iter().map(generate_variant_from_signal));
+    quote! {
+        #[derive(Clone, Debug)]
+        pub enum #name_ident_plural {
+            #signal_quotes
+        }
+    }
 }
 
 //#[proc_macro_derive(TryFromMessage)]
 #[proc_macro_attribute]
 pub fn create_from_xml(attr: TokenStream, _input: TokenStream) -> TokenStream {
-	let args = parse_macro_input!(attr as AttributeArgs);
-	let args_parsed: Vec<XmlGenParams> = make_into_params(args);
-	let file_name = match args_parsed
-			.get(0)
-			.expect("There must be at least one argument to the macro.")
-	{
-			XmlGenParams::FileName(name) => name,
-			_ => panic!("The file parameter must be set first, and must be a string."),
-	};
-	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
-	let data: zbus::xml::Node = zbus::xml::Node::from_reader(&xml_file).expect("Cannot deserialize file");
-	TokenStream2::from_iter(
-		data.interfaces()
-			.iter()
-			.map(|iface| generate_mod_from_iface(iface))
-	).into()
+    let args = parse_macro_input!(attr as AttributeArgs);
+    let args_parsed: Vec<XmlGenParams> = make_into_params(args);
+    let file_name = match args_parsed
+        .get(0)
+        .expect("There must be at least one argument to the macro.")
+    {
+        XmlGenParams::FileName(name) => name,
+        _ => panic!("The file parameter must be set first, and must be a string."),
+    };
+    let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
+    let data: zbus::xml::Node =
+        zbus::xml::Node::from_reader(&xml_file).expect("Cannot deserialize file");
+    TokenStream2::from_iter(data.interfaces().iter().map(|iface| generate_mod_from_iface(iface)))
+        .into()
 }
 
 #[proc_macro_attribute]
 pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
-	let args = parse_macro_input!(attr as AttributeArgs);
-	let input = parse_macro_input!(item as ItemTrait);
-	let zbus_part = zbus_proxy::expand(args, input.clone())
-		.unwrap_or_else(|err| err.into_compile_error());
-	let atspi_part = proxy::expand(input)
-		.unwrap_or_else(|err| err.into_compile_error());
-	quote! {
-#zbus_part
-#atspi_part
-	}.into()
+    let args = parse_macro_input!(attr as AttributeArgs);
+    let input = parse_macro_input!(item as ItemTrait);
+    let zbus_part =
+        zbus_proxy::expand(args, input.clone()).unwrap_or_else(|err| err.into_compile_error());
+    let atspi_part = proxy::expand(input).unwrap_or_else(|err| err.into_compile_error());
+    quote! {
+    #zbus_part
+    #atspi_part
+        }
+    .into()
 }
 
 #[proc_macro_attribute]
@@ -472,7 +473,7 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
     let name_string = name.to_string();
 
     let args = parse_macro_input!(attr as AttributeArgs);
-		let args_parsed = make_into_params(args);
+    let args_parsed = make_into_params(args);
     let body_type = match args_parsed
         .get(0)
         .expect("There must be at least one argument to the macro.")

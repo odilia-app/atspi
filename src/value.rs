@@ -10,27 +10,27 @@
 //! section of the zbus documentation.
 //!
 
-use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
+use atspi_macros::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Value", assume_defaults = true)]
 trait Value {
-    /// CurrentValue property
-    #[dbus_proxy(property)]
-    fn current_value(&self) -> zbus::Result<f64>;
+	/// CurrentValue property
+	#[dbus_proxy(property)]
+	fn current_value(&self) -> zbus::Result<f64>;
 
-    #[dbus_proxy(property)]
-    fn set_current_value(&self, value: f64) -> zbus::Result<()>;
+	#[dbus_proxy(property)]
+	fn set_current_value(&self, value: f64) -> zbus::Result<()>;
 
-    /// MaximumValue property
-    #[dbus_proxy(property)]
-    fn maximum_value(&self) -> zbus::Result<f64>;
+	/// MaximumValue property
+	#[dbus_proxy(property)]
+	fn maximum_value(&self) -> zbus::Result<f64>;
 
-    /// MinimumIncrement property
-    #[dbus_proxy(property)]
-    fn minimum_increment(&self) -> zbus::Result<f64>;
+	/// MinimumIncrement property
+	#[dbus_proxy(property)]
+	fn minimum_increment(&self) -> zbus::Result<f64>;
 
-    /// MinimumValue property
-    #[dbus_proxy(property)]
-    fn minimum_value(&self) -> zbus::Result<f64>;
+	/// MinimumValue property
+	#[dbus_proxy(property)]
+	fn minimum_value(&self) -> zbus::Result<f64>;
 }

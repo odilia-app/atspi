@@ -6,30 +6,23 @@ pub trait EditableTextBlockingExtError: crate::editable_text::EditableTextBlocki
 	type Error: std::error::Error;
 }
 
-pub trait EditableTextExt {
-}
-pub trait EditableTextBlockingExt {
-}
+pub trait EditableTextExt {}
+pub trait EditableTextBlockingExt {}
 
-impl<T: EditableTextExtError + crate::editable_text::EditableText> EditableTextExt for T {
-}
-impl<T: EditableTextBlockingExtError + crate::editable_text::EditableTextBlocking> EditableTextBlockingExt for T {
+impl<T: EditableTextExtError + crate::editable_text::EditableText> EditableTextExt for T {}
+impl<T: EditableTextBlockingExtError + crate::editable_text::EditableTextBlocking>
+	EditableTextBlockingExt for T
+{
 }
 
 #[cfg(test)]
 mod test {
-  use crate::{
-    editable_text_ext::{
-      EditableTextExt,
-      EditableTextBlockingExt,
-    },
-    editable_text::{
-      EditableTextProxy,
-      EditableTextProxyBlocking,
-    },
-  };
-  fn implements_editable_text_ext<T: EditableTextExt>() {}
-  fn implements_editable_text_blocking_ext<T: EditableTextBlockingExt>() {}
+	use crate::{
+		editable_text::{EditableTextProxy, EditableTextProxyBlocking},
+		editable_text_ext::{EditableTextBlockingExt, EditableTextExt},
+	};
+	fn implements_editable_text_ext<T: EditableTextExt>() {}
+	fn implements_editable_text_blocking_ext<T: EditableTextBlockingExt>() {}
 	#[test]
 	fn check_editable_text_implements_editable_text_ext() {
 		implements_editable_text_ext::<EditableTextProxy<'static>>();

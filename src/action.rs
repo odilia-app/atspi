@@ -10,30 +10,30 @@
 //! section of the zbus documentation.
 //!
 
-use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
+use atspi_macros::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
 trait Action {
-    /// DoAction method
-    fn do_action(&self, index: i32) -> zbus::Result<bool>;
+	/// DoAction method
+	fn do_action(&self, index: i32) -> zbus::Result<bool>;
 
-    /// GetActions method
-    fn get_actions(&self) -> zbus::Result<Vec<(String, String, String)>>;
+	/// GetActions method
+	fn get_actions(&self) -> zbus::Result<Vec<(String, String, String)>>;
 
-    /// GetDescription method
-    fn get_description(&self, index: i32) -> zbus::Result<String>;
+	/// GetDescription method
+	fn get_description(&self, index: i32) -> zbus::Result<String>;
 
-    /// GetKeyBinding method
-    fn get_key_binding(&self, index: i32) -> zbus::Result<String>;
+	/// GetKeyBinding method
+	fn get_key_binding(&self, index: i32) -> zbus::Result<String>;
 
-    /// GetLocalizedName method
-    fn get_localized_name(&self, index: i32) -> zbus::Result<String>;
+	/// GetLocalizedName method
+	fn get_localized_name(&self, index: i32) -> zbus::Result<String>;
 
-    /// GetName method
-    fn get_name(&self, index: i32) -> zbus::Result<String>;
+	/// GetName method
+	fn get_name(&self, index: i32) -> zbus::Result<String>;
 
-    /// NActions property
-    #[dbus_proxy(property)]
-    fn nactions(&self) -> zbus::Result<i32>;
+	/// NActions property
+	#[dbus_proxy(property)]
+	fn nactions(&self) -> zbus::Result<i32>;
 }

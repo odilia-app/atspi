@@ -12,101 +12,101 @@
 #![allow(clippy::too_many_arguments)]
 // this allow zbus to change the number of parameters in a function without setting off clippy
 
-use serde::{Deserialize, Serialize};
-use zbus::zvariant::Type;
 use async_trait::async_trait;
 use atspi_macros::atspi_proxy;
+use serde::{Deserialize, Serialize};
+use zbus::zvariant::Type;
 
 pub type MatchArgs<'a> = (
-    &'a [i32],
-    MatchType,
-    std::collections::HashMap<&'a str, &'a str>,
-    MatchType,
-    &'a [i32],
-    MatchType,
-    &'a [&'a str],
-    MatchType,
-    bool,
+	&'a [i32],
+	MatchType,
+	std::collections::HashMap<&'a str, &'a str>,
+	MatchType,
+	&'a [i32],
+	MatchType,
+	&'a [&'a str],
+	MatchType,
+	bool,
 );
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 pub enum SortOrder {
-    Invalid,
-    Canonical,
-    Flow,
-    Tab,
-    ReverseCanonical,
-    ReverseFlow,
-    ReverseTab,
-    LastDefined,
+	Invalid,
+	Canonical,
+	Flow,
+	Tab,
+	ReverseCanonical,
+	ReverseFlow,
+	ReverseTab,
+	LastDefined,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 pub enum TreeTraversalType {
-    RestrictChildren,
-    RestrictSibling,
-    Inorder,
-    LastDefined,
+	RestrictChildren,
+	RestrictSibling,
+	Inorder,
+	LastDefined,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
 pub enum MatchType {
-    Invalid,
-    All,
-    Any,
-    NA,
-    Empty,
-    LastDefined,
+	Invalid,
+	All,
+	Any,
+	NA,
+	Empty,
+	LastDefined,
 }
 
 #[atspi_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
-    /// GetActiveDescendant method
-    fn get_active_descendant(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	/// GetActiveDescendant method
+	fn get_active_descendant(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
 
-    /* ROLE fields:
-      &[i32]: AtspiStateSet,
-      i32: AtspiCollectionMatchType,
-      HashMap<&str, &str>: attributes,
-      i32: AtspiCollectionMatchType (attribute match type),
-      &[i32]: roles,
-      i32: AtspiCollectionMatchType (role match type),
-      &[&str]: interfaces,
-      i32: AtspiCollectionMatchType (interface match type),
-      bool: invert
-    */
-    /// GetMatches method
-    fn get_matches(
-        &self,
-        rule: &MatchArgs<'_>,
-        sortby: SortOrder,
-        count: i32,
-        traverse: bool,
-    ) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
+	/* ROLE fields:
+	  &[i32]: AtspiStateSet,
+	  i32: AtspiCollectionMatchType,
+	  HashMap<&str, &str>: attributes,
+	  i32: AtspiCollectionMatchType (attribute match type),
+	  &[i32]: roles,
+	  i32: AtspiCollectionMatchType (role match type),
+	  &[&str]: interfaces,
+	  i32: AtspiCollectionMatchType (interface match type),
+	  bool: invert
+	*/
+	/// GetMatches method
+	fn get_matches(
+		&self,
+		rule: &MatchArgs<'_>,
+		sortby: SortOrder,
+		count: i32,
+		traverse: bool,
+	) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
 
-    /// GetMatchesFrom method
-    fn get_matches_from(
-        &self,
-        current_object: &zbus::zvariant::ObjectPath<'_>,
-        rule: &MatchArgs<'_>,
-        sortby: SortOrder,
-        tree: TreeTraversalType,
-        count: i32,
-        traverse: bool,
-    ) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
+	/// GetMatchesFrom method
+	fn get_matches_from(
+		&self,
+		current_object: &zbus::zvariant::ObjectPath<'_>,
+		rule: &MatchArgs<'_>,
+		sortby: SortOrder,
+		tree: TreeTraversalType,
+		count: i32,
+		traverse: bool,
+	) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
 
-    /// GetMatchesTo method
-    fn get_matches_to(
-        &self,
-        current_object: &zbus::zvariant::ObjectPath<'_>,
-        rule: &MatchArgs<'_>,
-        sortby: SortOrder,
-        tree: TreeTraversalType,
-        limit_scope: bool,
-        count: i32,
-        traverse: bool,
-    ) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
+	/// GetMatchesTo method
+	fn get_matches_to(
+		&self,
+		current_object: &zbus::zvariant::ObjectPath<'_>,
+		rule: &MatchArgs<'_>,
+		sortby: SortOrder,
+		tree: TreeTraversalType,
+		limit_scope: bool,
+		count: i32,
+		traverse: bool,
+	) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
 }

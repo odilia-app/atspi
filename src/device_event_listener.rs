@@ -11,11 +11,11 @@
 //!
 
 use crate::device_event_controller::DeviceEvent;
-use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
+use atspi_macros::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.DeviceEventListener", assume_defaults = true)]
 trait DeviceEventListener {
-    /// NotifyEvent method
-    fn notify_event(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;
+	/// NotifyEvent method
+	fn notify_event(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;
 }

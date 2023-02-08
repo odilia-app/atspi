@@ -44,9 +44,9 @@ pub mod selection_ext;
 pub mod socket;
 pub mod socket_ext;
 pub mod table;
-pub mod table_ext;
 pub mod table_cell;
 pub mod table_cell_ext;
+pub mod table_ext;
 pub mod text;
 pub mod text_ext;
 pub mod value;
@@ -74,14 +74,14 @@ use serde::{Deserialize, Serialize};
 #[repr(u32)]
 /// The coordinate type encodes the frame of reference.
 pub enum CoordType {
-    /// In relation to the entire screen.
-    Screen,
-    /// In relation to only the window.
-    Window,
-    /// In relation to the parent of the element being checked.
-    Parent,
+	/// In relation to the entire screen.
+	Screen,
+	/// In relation to only the window.
+	Window,
+	/// In relation to the parent of the element being checked.
+	Parent,
 }
 
 pub trait AtspiProxy {
-    const INTERFACE: Interface;
+	const INTERFACE: Interface;
 }

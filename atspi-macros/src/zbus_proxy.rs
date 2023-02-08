@@ -17,16 +17,9 @@ struct AsyncOpts {
 
 impl AsyncOpts {
     fn new(blocking: bool) -> Self {
-        let (usage, wait) = if blocking {
-            (quote! {}, quote! {})
-        } else {
-            (quote! { async }, quote! { .await })
-        };
-        Self {
-            blocking,
-            usage,
-            wait,
-        }
+        let (usage, wait) =
+            if blocking { (quote! {}, quote! {}) } else { (quote! { async }, quote! { .await }) };
+        Self { blocking, usage, wait }
     }
 }
 
@@ -77,10 +70,7 @@ pub fn expand(args: AttributeArgs, input: ItemTrait) -> Result<TokenStream, Erro
                     if let syn::Lit::Str(lit) = &nv.lit {
                         blocking_name = Some(lit.value());
                     } else {
-                        return Err(Error::new_spanned(
-                            &nv.lit,
-                            "invalid blocking_name argument",
-                        ));
+                        return Err(Error::new_spanned(&nv.lit, "invalid blocking_name argument"));
                     }
                 } else if nv.path.is_ident("gen_async") {
                     if let syn::Lit::Bool(lit) = &nv.lit {
@@ -103,10 +93,7 @@ pub fn expand(args: AttributeArgs, input: ItemTrait) -> Result<TokenStream, Erro
     }
 
     // Some sanity checks
-    assert!(
-        gen_blocking || gen_async,
-        "Can't disable both asynchronous and blocking proxy. 😸",
-    );
+    assert!(gen_blocking || gen_async, "Can't disable both asynchronous and blocking proxy. 😸",);
     assert!(
         gen_blocking || blocking_name.is_none(),
         "Can't set blocking proxy's name if you disabled it. 😸",
@@ -244,13 +231,7 @@ pub fn create_proxy(
                 if let PropertyEmitsChangedSignal::False = emits_changed_signal {
                     uncached_properties.push(member_name.clone());
                 }
-                gen_proxy_property(
-                    &member_name,
-                    &method_name,
-                    m,
-                    &async_opts,
-                    emits_changed_signal,
-                )
+                gen_proxy_property(&member_name, &method_name, m, &async_opts, emits_changed_signal)
             } else if is_signal {
                 let (method, types) = gen_proxy_signal(
                     &proxy_name,
@@ -473,17 +454,9 @@ fn gen_proxy_method_call(
     m: &TraitItemMethod,
     async_opts: &AsyncOpts,
 ) -> TokenStream {
-    let AsyncOpts {
-        usage,
-        wait,
-        blocking,
-    } = async_opts;
+    let AsyncOpts { usage, wait, blocking } = async_opts;
     let zbus = zbus_path();
-    let other_attrs: Vec<_> = m
-        .attrs
-        .iter()
-        .filter(|a| !a.path.is_ident("dbus_proxy"))
-        .collect();
+    let other_attrs: Vec<_> = m.attrs.iter().filter(|a| !a.path.is_ident("dbus_proxy")).collect();
     let args: Vec<_> = m
         .sig
         .inputs
@@ -518,33 +491,30 @@ fn gen_proxy_method_call(
         _ => None,
     });
     let no_reply = attrs.iter().any(|x| matches!(x, ItemAttribute::NoReply));
-    let no_autostart = attrs
-        .iter()
-        .any(|x| matches!(x, ItemAttribute::NoAutoStart));
-    let allow_interactive_auth = attrs
-        .iter()
-        .any(|x| matches!(x, ItemAttribute::AllowInteractiveAuth));
+    let no_autostart = attrs.iter().any(|x| matches!(x, ItemAttribute::NoAutoStart));
+    let allow_interactive_auth =
+        attrs.iter().any(|x| matches!(x, ItemAttribute::AllowInteractiveAuth));
 
     let method_flags = match (no_reply, no_autostart, allow_interactive_auth) {
-        (true, false, false) => Some(quote!(::std::convert::Into::into(
-            zbus::MethodFlags::NoReplyExpected
-        ))),
-        (false, true, false) => Some(quote!(::std::convert::Into::into(
-            zbus::MethodFlags::NoAutoStart
-        ))),
-        (false, false, true) => Some(quote!(::std::convert::Into::into(
-            zbus::MethodFlags::AllowInteractiveAuth
-        ))),
+        (true, false, false) => {
+            Some(quote!(::std::convert::Into::into(zbus::MethodFlags::NoReplyExpected)))
+        }
+        (false, true, false) => {
+            Some(quote!(::std::convert::Into::into(zbus::MethodFlags::NoAutoStart)))
+        }
+        (false, false, true) => {
+            Some(quote!(::std::convert::Into::into(zbus::MethodFlags::AllowInteractiveAuth)))
+        }
 
-        (true, true, false) => Some(quote!(
-            zbus::MethodFlags::NoReplyExpected | zbus::MethodFlags::NoAutoStart
-        )),
+        (true, true, false) => {
+            Some(quote!(zbus::MethodFlags::NoReplyExpected | zbus::MethodFlags::NoAutoStart))
+        }
         (true, false, true) => Some(quote!(
             zbus::MethodFlags::NoReplyExpected | zbus::MethodFlags::AllowInteractiveAuth
         )),
-        (false, true, true) => Some(quote!(
-            zbus::MethodFlags::NoAutoStart | zbus::MethodFlags::AllowInteractiveAuth
-        )),
+        (false, true, true) => {
+            Some(quote!(zbus::MethodFlags::NoAutoStart | zbus::MethodFlags::AllowInteractiveAuth))
+        }
 
         (true, true, true) => Some(quote!(
             zbus::MethodFlags::NoReplyExpected
@@ -709,17 +679,9 @@ fn gen_proxy_property(
     async_opts: &AsyncOpts,
     emits_changed_signal: PropertyEmitsChangedSignal,
 ) -> TokenStream {
-    let AsyncOpts {
-        usage,
-        wait,
-        blocking,
-    } = async_opts;
+    let AsyncOpts { usage, wait, blocking } = async_opts;
     let zbus = zbus_path();
-    let other_attrs: Vec<_> = m
-        .attrs
-        .iter()
-        .filter(|a| !a.path.is_ident("dbus_proxy"))
-        .collect();
+    let other_attrs: Vec<_> = m.attrs.iter().filter(|a| !a.path.is_ident("dbus_proxy")).collect();
     let signature = &m.sig;
     if signature.inputs.len() > 1 {
         let value = pat_ident(typed_arg(signature.inputs.last().unwrap()).unwrap()).unwrap();
@@ -741,17 +703,11 @@ fn gen_proxy_property(
         let body = quote_spanned! {body_span =>
             ::std::result::Result::Ok(self.0.get_property(#property_name)#wait?)
         };
-        let ret_type = if let ReturnType::Type(_, ty) = &signature.output {
-            Some(ty)
-        } else {
-            None
-        };
+        let ret_type =
+            if let ReturnType::Type(_, ty) = &signature.output { Some(ty) } else { None };
 
         let (proxy_name, prop_stream) = if *blocking {
-            (
-                "zbus::blocking::Proxy",
-                quote! { #zbus::blocking::PropertyIterator },
-            )
+            ("zbus::blocking::Proxy", quote! { #zbus::blocking::PropertyIterator })
         } else {
             ("zbus::Proxy", quote! { #zbus::PropertyStream })
         };
@@ -838,17 +794,9 @@ fn gen_proxy_signal(
     async_opts: &AsyncOpts,
     gen_sig_args: bool,
 ) -> (TokenStream, TokenStream) {
-    let AsyncOpts {
-        usage,
-        wait,
-        blocking,
-    } = async_opts;
+    let AsyncOpts { usage, wait, blocking } = async_opts;
     let zbus = zbus_path();
-    let other_attrs: Vec<_> = m
-        .attrs
-        .iter()
-        .filter(|a| !a.path.is_ident("dbus_proxy"))
-        .collect();
+    let other_attrs: Vec<_> = m.attrs.iter().filter(|a| !a.path.is_ident("dbus_proxy")).collect();
     let input_types: Vec<Box<Type>> = m
         .sig
         .inputs

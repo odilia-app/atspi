@@ -10,36 +10,36 @@
 //! section of the zbus documentation.
 //!
 
-use atspi_macros::atspi_proxy;
 use async_trait::async_trait;
+use atspi_macros::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
 trait Application {
-    /// DeregisterEventListener method
-    fn deregister_event_listener(&self, event: &str) -> zbus::Result<()>;
+	/// DeregisterEventListener method
+	fn deregister_event_listener(&self, event: &str) -> zbus::Result<()>;
 
-    /// GetLocale method
-    fn get_locale(&self, lctype: u32) -> zbus::Result<String>;
+	/// GetLocale method
+	fn get_locale(&self, lctype: u32) -> zbus::Result<String>;
 
-    /// RegisterEventListener method
-    fn register_event_listener(&self, event: &str) -> zbus::Result<()>;
+	/// RegisterEventListener method
+	fn register_event_listener(&self, event: &str) -> zbus::Result<()>;
 
-    /// AtspiVersion property
-    #[dbus_proxy(property)]
-    fn atspi_version(&self) -> zbus::Result<String>;
+	/// AtspiVersion property
+	#[dbus_proxy(property)]
+	fn atspi_version(&self) -> zbus::Result<String>;
 
-    /// Id property
-    #[dbus_proxy(property)]
-    fn id(&self) -> zbus::Result<i32>;
+	/// Id property
+	#[dbus_proxy(property)]
+	fn id(&self) -> zbus::Result<i32>;
 
-    #[dbus_proxy(property)]
-    fn set_id(&self, value: i32) -> zbus::Result<()>;
+	#[dbus_proxy(property)]
+	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
-    /// ToolkitName property
-    #[dbus_proxy(property)]
-    fn toolkit_name(&self) -> zbus::Result<String>;
+	/// ToolkitName property
+	#[dbus_proxy(property)]
+	fn toolkit_name(&self) -> zbus::Result<String>;
 
-    /// Version property
-    #[dbus_proxy(property)]
-    fn version(&self) -> zbus::Result<String>;
+	/// Version property
+	#[dbus_proxy(property)]
+	fn version(&self) -> zbus::Result<String>;
 }
