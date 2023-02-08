@@ -13,26 +13,26 @@
 use zbus::{dbus_proxy, names::OwnedBusName};
 
 #[dbus_proxy(
-    interface = "org.a11y.atspi.Registry",
-    default_service = "org.a11y.atspi.Registry",
-    default_path = "/org/a11y/atspi/registry"
+	interface = "org.a11y.atspi.Registry",
+	default_service = "org.a11y.atspi.Registry",
+	default_path = "/org/a11y/atspi/registry"
 )]
 trait Registry {
-    /// DeregisterEvent method
-    fn deregister_event(&self, event: &str) -> zbus::Result<()>;
+	/// DeregisterEvent method
+	fn deregister_event(&self, event: &str) -> zbus::Result<()>;
 
-    /// GetRegisteredEvents method
-    #[dbus_proxy(name = "GetRegisteredEvents")]
-    fn registered_events(&self) -> zbus::Result<Vec<(OwnedBusName, String)>>;
+	/// GetRegisteredEvents method
+	#[dbus_proxy(name = "GetRegisteredEvents")]
+	fn registered_events(&self) -> zbus::Result<Vec<(OwnedBusName, String)>>;
 
-    /// RegisterEvent method
-    fn register_event(&self, event: &str) -> zbus::Result<()>;
+	/// RegisterEvent method
+	fn register_event(&self, event: &str) -> zbus::Result<()>;
 
-    /// EventListenerDeregistered signal
-    #[dbus_proxy(signal)]
-    fn event_listener_deregistered(&self, bus: &str, path: &str) -> zbus::Result<()>;
+	/// EventListenerDeregistered signal
+	#[dbus_proxy(signal)]
+	fn event_listener_deregistered(&self, bus: &str, path: &str) -> zbus::Result<()>;
 
-    /// EventListenerRegistered signal
-    #[dbus_proxy(signal)]
-    fn event_listener_registered(&self, bus: &str, path: &str) -> zbus::Result<()>;
+	/// EventListenerRegistered signal
+	#[dbus_proxy(signal)]
+	fn event_listener_registered(&self, bus: &str, path: &str) -> zbus::Result<()>;
 }

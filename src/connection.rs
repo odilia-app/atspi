@@ -23,54 +23,54 @@ pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv
 pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD: Signature<'_> =
-    Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
 /// A connection to the at-spi bus
 pub struct Connection {
-    registry: RegistryProxy<'static>,
+	registry: RegistryProxy<'static>,
 }
 
 impl Connection {
-    /// Open a new connection to the bus
-    #[tracing::instrument]
-    pub async fn open() -> zbus::Result<Self> {
-        // Grab the a11y bus address from the session bus
-        let a11y_bus_addr = {
-            tracing::debug!("Connecting to session bus");
-            let session_bus = zbus::Connection::session().await?;
-            tracing::debug!(
-                name = session_bus.unique_name().map(|n| n.as_str()),
-                "Connected to session bus"
-            );
-            let proxy = BusProxy::new(&session_bus).await?;
-            tracing::debug!("Getting a11y bus address from session bus");
-            proxy.get_address().await?
-        };
-        tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
-        let addr: Address = a11y_bus_addr.parse()?;
-        Self::connect(addr).await
-    }
+	/// Open a new connection to the bus
+	#[tracing::instrument]
+	pub async fn open() -> zbus::Result<Self> {
+		// Grab the a11y bus address from the session bus
+		let a11y_bus_addr = {
+			tracing::debug!("Connecting to session bus");
+			let session_bus = zbus::Connection::session().await?;
+			tracing::debug!(
+				name = session_bus.unique_name().map(|n| n.as_str()),
+				"Connected to session bus"
+			);
+			let proxy = BusProxy::new(&session_bus).await?;
+			tracing::debug!("Getting a11y bus address from session bus");
+			proxy.get_address().await?
+		};
+		tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
+		let addr: Address = a11y_bus_addr.parse()?;
+		Self::connect(addr).await
+	}
 
-    /// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
-    /// on the accessibility bus.
-    ///
-    /// You may want to call this if you have the accessibility bus address and want a connection with
-    /// a convenient async event stream provisioning.
-    ///
-    /// Without address, you will want to call  `open`, which tries to obtain the accessibility bus' address
-    /// on your behalf.
-    ///
-    /// ## Errors
-    /// * `RegistryProxy` is configured with invalid path, interface or destination defaults.
-    pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
-        tracing::debug!("Connecting to a11y bus");
-        let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
-        tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
-        // The Proxy holds a strong reference to a Connection, so we only need to store the proxy
-        let registry = RegistryProxy::new(&bus).await?;
+	/// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
+	/// on the accessibility bus.
+	///
+	/// You may want to call this if you have the accessibility bus address and want a connection with
+	/// a convenient async event stream provisioning.
+	///
+	/// Without address, you will want to call  `open`, which tries to obtain the accessibility bus' address
+	/// on your behalf.
+	///
+	/// ## Errors
+	/// * `RegistryProxy` is configured with invalid path, interface or destination defaults.
+	pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
+		tracing::debug!("Connecting to a11y bus");
+		let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
+		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
+		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
+		let registry = RegistryProxy::new(&bus).await?;
 
-        Ok(Self { registry })
-    }
+		Ok(Self { registry })
+	}
 
     /// Stream yielding all `Event` types.
     ///
@@ -213,11 +213,11 @@ impl Connection {
 }
 
 impl Deref for Connection {
-    type Target = RegistryProxy<'static>;
+	type Target = RegistryProxy<'static>;
 
-    fn deref(&self) -> &Self::Target {
-        &self.registry
-    }
+	fn deref(&self) -> &Self::Target {
+		&self.registry
+	}
 }
 
 /// Set the `IsEnabled` property in the session bus.
@@ -241,14 +241,14 @@ impl Deref for Connection {
 /// * if the `IsEnabled` property cannot be read
 /// * the `IsEnabled` property cannot be set.
 pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), AtspiError> {
-    // Get a connection to the session bus.
-    let session = zbus::Connection::session().await?;
+	// Get a connection to the session bus.
+	let session = zbus::Connection::session().await?;
 
-    // Aqcuire a `StatusProxy` for the session bus.
-    let status_proxy = crate::bus::StatusProxy::new(&session).await?;
+	// Aqcuire a `StatusProxy` for the session bus.
+	let status_proxy = crate::bus::StatusProxy::new(&session).await?;
 
-    if status_proxy.is_enabled().await? != status {
-        status_proxy.set_is_enabled(status).await?;
-    }
-    Ok(())
+	if status_proxy.is_enabled().await? != status {
+		status_proxy.set_is_enabled(status).await?;
+	}
+	Ok(())
 }

@@ -14,25 +14,25 @@ use zbus::dbus_proxy;
 
 #[dbus_proxy(interface = "org.a11y.atspi.Value", assume_defaults = true)]
 trait Value {
-    /// CurrentValue property
-    #[dbus_proxy(property)]
-    fn current_value(&self) -> zbus::Result<f64>;
-    #[dbus_proxy(property)]
-    fn set_current_value(&self, value: f64) -> zbus::Result<()>;
+	/// CurrentValue property
+	#[dbus_proxy(property)]
+	fn current_value(&self) -> zbus::Result<f64>;
+	#[dbus_proxy(property)]
+	fn set_current_value(&self, value: f64) -> zbus::Result<()>;
 
-    /// MaximumValue property
-    #[dbus_proxy(property)]
-    fn maximum_value(&self) -> zbus::Result<f64>;
+	/// MaximumValue property
+	#[dbus_proxy(property)]
+	fn maximum_value(&self) -> zbus::Result<f64>;
 
-    /// MinimumIncrement property
-    #[dbus_proxy(property)]
-    fn minimum_increment(&self) -> zbus::Result<f64>;
+	/// MinimumIncrement property
+	#[dbus_proxy(property)]
+	fn minimum_increment(&self) -> zbus::Result<f64>;
 
-    /// MinimumValue property
-    #[dbus_proxy(property)]
-    fn minimum_value(&self) -> zbus::Result<f64>;
+	/// MinimumValue property
+	#[dbus_proxy(property)]
+	fn minimum_value(&self) -> zbus::Result<f64>;
 }
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for ValueProxy<'a> {
-    const INTERFACE: Interface = Interface::Value;
+	const INTERFACE: Interface = Interface::Value;
 }

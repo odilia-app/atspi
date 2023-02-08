@@ -9,3 +9,6 @@ reorder_imports = true
 # precedes what is implied by `use_small_heuristics"
 chain_width = 70
 use_small_heuristics = "Max"
+
+# force the use of tabs, not spaces
+hard_tabs = true

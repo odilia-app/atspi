@@ -22,30 +22,30 @@
 use zbus::dbus_proxy;
 
 #[dbus_proxy(
-    interface = "org.a11y.Status",
-    default_service = "org.a11y.Bus",
-    default_path = "/org/a11y/bus"
+	interface = "org.a11y.Status",
+	default_service = "org.a11y.Bus",
+	default_path = "/org/a11y/bus"
 )]
 trait Status {
-    /// IsEnabled property
-    #[dbus_proxy(property)]
-    fn is_enabled(&self) -> zbus::Result<bool>;
-    #[dbus_proxy(property)]
-    fn set_is_enabled(&self, value: bool) -> zbus::Result<()>;
+	/// IsEnabled property
+	#[dbus_proxy(property)]
+	fn is_enabled(&self) -> zbus::Result<bool>;
+	#[dbus_proxy(property)]
+	fn set_is_enabled(&self, value: bool) -> zbus::Result<()>;
 
-    /// ScreenReaderEnabled property
-    #[dbus_proxy(property)]
-    fn screen_reader_enabled(&self) -> zbus::Result<bool>;
-    #[dbus_proxy(property)]
-    fn set_screen_reader_enabled(&self, value: bool) -> zbus::Result<()>;
+	/// ScreenReaderEnabled property
+	#[dbus_proxy(property)]
+	fn screen_reader_enabled(&self) -> zbus::Result<bool>;
+	#[dbus_proxy(property)]
+	fn set_screen_reader_enabled(&self, value: bool) -> zbus::Result<()>;
 }
 
 #[dbus_proxy(
-    interface = "org.a11y.Bus",
-    default_service = "org.a11y.Bus",
-    default_path = "/org/a11y/bus"
+	interface = "org.a11y.Bus",
+	default_service = "org.a11y.Bus",
+	default_path = "/org/a11y/bus"
 )]
 trait Bus {
-    /// GetAddress method
-    fn get_address(&self) -> zbus::Result<String>;
+	/// GetAddress method
+	fn get_address(&self) -> zbus::Result<String>;
 }

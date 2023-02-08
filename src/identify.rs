@@ -1,531 +1,530 @@
-
 use crate::AtspiError;
 use crate::Event;
 
 #[allow(clippy::module_name_repetitions)]
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 pub mod object {
-    use crate::{
-        error::AtspiError,
-        events::{AtspiEvent, EventInterfaces, GenericEvent},
-        signify::Signified,
-        Event,
-    };
-    use atspi_macros::TrySignify;
-    use zbus;
-    use zbus::zvariant::OwnedValue;
+	use crate::{
+		error::AtspiError,
+		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		signify::Signified,
+		Event,
+	};
+	use atspi_macros::TrySignify;
+	use zbus;
+	use zbus::zvariant::OwnedValue;
 
-    #[derive(Clone, Debug)]
-    pub enum ObjectEvents {
-        PropertyChange(PropertyChangeEvent),
-        BoundsChanged(BoundsChangedEvent),
-        LinkSelected(LinkSelectedEvent),
-        StateChanged(StateChangedEvent),
-        ChildrenChanged(ChildrenChangedEvent),
-        VisibleDataChanged(VisibleDataChangedEvent),
-        SelectionChanged(SelectionChangedEvent),
-        ModelChanged(ModelChangedEvent),
-        ActiveDescendantChanged(ActiveDescendantChangedEvent),
-        Announcement(AnnouncementEvent),
-        AttributesChanged(AttributesChangedEvent),
-        RowInserted(RowInsertedEvent),
-        RowReordered(RowReorderedEvent),
-        RowDeleted(RowDeletedEvent),
-        ColumnInserted(ColumnInsertedEvent),
-        ColumnReordered(ColumnReorderedEvent),
-        ColumnDeleted(ColumnDeletedEvent),
-        TextBoundsChanged(TextBoundsChangedEvent),
-        TextSelectionChanged(TextSelectionChangedEvent),
-        TextChanged(TextChangedEvent),
-        TextAttributesChanged(TextAttributesChangedEvent),
-        TextCaretMoved(TextCaretMovedEvent),
-    }
+	#[derive(Clone, Debug)]
+	pub enum ObjectEvents {
+		PropertyChange(PropertyChangeEvent),
+		BoundsChanged(BoundsChangedEvent),
+		LinkSelected(LinkSelectedEvent),
+		StateChanged(StateChangedEvent),
+		ChildrenChanged(ChildrenChangedEvent),
+		VisibleDataChanged(VisibleDataChangedEvent),
+		SelectionChanged(SelectionChangedEvent),
+		ModelChanged(ModelChangedEvent),
+		ActiveDescendantChanged(ActiveDescendantChangedEvent),
+		Announcement(AnnouncementEvent),
+		AttributesChanged(AttributesChangedEvent),
+		RowInserted(RowInsertedEvent),
+		RowReordered(RowReorderedEvent),
+		RowDeleted(RowDeletedEvent),
+		ColumnInserted(ColumnInsertedEvent),
+		ColumnReordered(ColumnReorderedEvent),
+		ColumnDeleted(ColumnDeletedEvent),
+		TextBoundsChanged(TextBoundsChangedEvent),
+		TextSelectionChanged(TextSelectionChangedEvent),
+		TextChanged(TextChangedEvent),
+		TextAttributesChanged(TextAttributesChangedEvent),
+		TextCaretMoved(TextCaretMovedEvent),
+	}
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct BoundsChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct BoundsChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct LinkSelectedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct LinkSelectedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct StateChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct StateChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct ChildrenChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct ChildrenChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct VisibleDataChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct VisibleDataChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct SelectionChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct SelectionChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct ModelChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct ModelChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct ActiveDescendantChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct ActiveDescendantChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct AnnouncementEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct AnnouncementEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct RowInsertedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct RowInsertedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct RowReorderedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct RowReorderedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct RowDeletedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct RowDeletedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct ColumnInsertedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct ColumnInsertedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct ColumnReorderedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct ColumnReorderedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct ColumnDeletedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct ColumnDeletedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct TextBoundsChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct TextBoundsChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct TextSelectionChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct TextSelectionChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct TextChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct TextChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct TextAttributesChangedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct TextAttributesChangedEvent(pub(crate) AtspiEvent);
 
-    #[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-    pub struct TextCaretMovedEvent(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
+	pub struct TextCaretMovedEvent(pub(crate) AtspiEvent);
 
-    impl PropertyChangeEvent {
-        #[must_use]
-        pub fn value(&self) -> &zbus::zvariant::Value<'_> {
-            self.0.any_data()
-        }
-    }
-    impl TryFrom<Event> for PropertyChangeEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::PropertyChange(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl PropertyChangeEvent {
+		#[must_use]
+		pub fn value(&self) -> &zbus::zvariant::Value<'_> {
+			self.0.any_data()
+		}
+	}
+	impl TryFrom<Event> for PropertyChangeEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::PropertyChange(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl BoundsChangedEvent {}
-    impl TryFrom<Event> for BoundsChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::BoundsChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl BoundsChangedEvent {}
+	impl TryFrom<Event> for BoundsChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::BoundsChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl LinkSelectedEvent {}
-    impl TryFrom<Event> for LinkSelectedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::LinkSelected(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl LinkSelectedEvent {}
+	impl TryFrom<Event> for LinkSelectedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::LinkSelected(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl StateChangedEvent {
-        #[must_use]
-        pub fn enabled(&self) -> i32 {
-            self.0.detail1()
-        }
-    }
-    impl TryFrom<Event> for StateChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::StateChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl StateChangedEvent {
+		#[must_use]
+		pub fn enabled(&self) -> i32 {
+			self.0.detail1()
+		}
+	}
+	impl TryFrom<Event> for StateChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::StateChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl ChildrenChangedEvent {
-        #[must_use]
-        pub fn index_in_parent(&self) -> i32 {
-            self.0.detail1()
-        }
+	impl ChildrenChangedEvent {
+		#[must_use]
+		pub fn index_in_parent(&self) -> i32 {
+			self.0.detail1()
+		}
 
-        #[must_use]
-        pub fn child(&self) -> &zbus::zvariant::Value<'_> {
-            self.0.any_data()
-        }
-    }
-    impl TryFrom<Event> for ChildrenChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ChildrenChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+		#[must_use]
+		pub fn child(&self) -> &zbus::zvariant::Value<'_> {
+			self.0.any_data()
+		}
+	}
+	impl TryFrom<Event> for ChildrenChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ChildrenChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl VisibleDataChangedEvent {}
-    impl TryFrom<Event> for VisibleDataChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::VisibleDataChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl VisibleDataChangedEvent {}
+	impl TryFrom<Event> for VisibleDataChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::VisibleDataChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl SelectionChangedEvent {}
-    impl TryFrom<Event> for SelectionChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::SelectionChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl SelectionChangedEvent {}
+	impl TryFrom<Event> for SelectionChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::SelectionChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl ModelChangedEvent {}
-    impl TryFrom<Event> for ModelChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ModelChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl ModelChangedEvent {}
+	impl TryFrom<Event> for ModelChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ModelChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl ActiveDescendantChangedEvent {
-        #[must_use]
-        pub fn child(&self) -> &zbus::zvariant::Value<'_> {
-            self.0.any_data()
-        }
-    }
-    impl TryFrom<Event> for ActiveDescendantChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(
-                ObjectEvents::ActiveDescendantChanged(inner_event),
-            )) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl ActiveDescendantChangedEvent {
+		#[must_use]
+		pub fn child(&self) -> &zbus::zvariant::Value<'_> {
+			self.0.any_data()
+		}
+	}
+	impl TryFrom<Event> for ActiveDescendantChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(
+				ObjectEvents::ActiveDescendantChanged(inner_event),
+			)) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl AnnouncementEvent {}
-    impl TryFrom<Event> for AnnouncementEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::Announcement(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl AnnouncementEvent {}
+	impl TryFrom<Event> for AnnouncementEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::Announcement(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl AttributesChangedEvent {}
-    impl TryFrom<Event> for AttributesChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::AttributesChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl AttributesChangedEvent {}
+	impl TryFrom<Event> for AttributesChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::AttributesChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl RowInsertedEvent {}
-    impl TryFrom<Event> for RowInsertedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowInserted(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl RowInsertedEvent {}
+	impl TryFrom<Event> for RowInsertedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowInserted(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl RowReorderedEvent {}
-    impl TryFrom<Event> for RowReorderedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowReordered(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl RowReorderedEvent {}
+	impl TryFrom<Event> for RowReorderedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowReordered(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl RowDeletedEvent {}
-    impl TryFrom<Event> for RowDeletedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowDeleted(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl RowDeletedEvent {}
+	impl TryFrom<Event> for RowDeletedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::RowDeleted(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl ColumnInsertedEvent {}
-    impl TryFrom<Event> for ColumnInsertedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnInserted(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl ColumnInsertedEvent {}
+	impl TryFrom<Event> for ColumnInsertedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnInserted(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl ColumnReorderedEvent {}
-    impl TryFrom<Event> for ColumnReorderedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnReordered(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl ColumnReorderedEvent {}
+	impl TryFrom<Event> for ColumnReorderedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnReordered(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl ColumnDeletedEvent {}
-    impl TryFrom<Event> for ColumnDeletedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnDeleted(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl ColumnDeletedEvent {}
+	impl TryFrom<Event> for ColumnDeletedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ColumnDeleted(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl TextBoundsChangedEvent {}
-    impl TryFrom<Event> for TextBoundsChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextBoundsChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl TextBoundsChangedEvent {}
+	impl TryFrom<Event> for TextBoundsChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextBoundsChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl TextSelectionChangedEvent {}
-    impl TryFrom<Event> for TextSelectionChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextSelectionChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl TextSelectionChangedEvent {}
+	impl TryFrom<Event> for TextSelectionChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextSelectionChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl TextChangedEvent {
-        #[must_use]
-        pub fn start_pos(&self) -> i32 {
-            self.0.detail1()
-        }
+	impl TextChangedEvent {
+		#[must_use]
+		pub fn start_pos(&self) -> i32 {
+			self.0.detail1()
+		}
 
-        #[must_use]
-        pub fn length(&self) -> i32 {
-            self.0.detail2()
-        }
+		#[must_use]
+		pub fn length(&self) -> i32 {
+			self.0.detail2()
+		}
 
-        #[must_use]
-        pub fn text(&self) -> &zbus::zvariant::Value<'_> {
-            self.0.any_data()
-        }
-    }
-    impl TryFrom<Event> for TextChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextChanged(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+		#[must_use]
+		pub fn text(&self) -> &zbus::zvariant::Value<'_> {
+			self.0.any_data()
+		}
+	}
+	impl TryFrom<Event> for TextChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextChanged(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl TextAttributesChangedEvent {}
-    impl TryFrom<Event> for TextAttributesChangedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(
-                ObjectEvents::TextAttributesChanged(inner_event),
-            )) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl TextAttributesChangedEvent {}
+	impl TryFrom<Event> for TextAttributesChangedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(
+				ObjectEvents::TextAttributesChanged(inner_event),
+			)) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl TextCaretMovedEvent {
-        #[must_use]
-        pub fn position(&self) -> i32 {
-            self.0.detail1()
-        }
-    }
-    impl TryFrom<Event> for TextCaretMovedEvent {
-        type Error = AtspiError;
-        fn try_from(event: Event) -> Result<Self, Self::Error> {
-            if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextCaretMoved(
-                inner_event,
-            ))) = event
-            {
-                Ok(inner_event)
-            } else {
-                Err(AtspiError::Conversion("Invalid type"))
-            }
-        }
-    }
+	impl TextCaretMovedEvent {
+		#[must_use]
+		pub fn position(&self) -> i32 {
+			self.0.detail1()
+		}
+	}
+	impl TryFrom<Event> for TextCaretMovedEvent {
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {
+			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextCaretMoved(
+				inner_event,
+			))) = event
+			{
+				Ok(inner_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
 
-    impl TryFrom<AtspiEvent> for ObjectEvents {
-        type Error = AtspiError;
+	impl TryFrom<AtspiEvent> for ObjectEvents {
+		type Error = AtspiError;
 
-        fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
-            let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
-            match member.as_str() {
-                "PropertyChange" => Ok(ObjectEvents::PropertyChange(PropertyChangeEvent(ev))),
-                "BoundsChanged" => Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent(ev))),
-                "LinkSelected" => Ok(ObjectEvents::LinkSelected(LinkSelectedEvent(ev))),
-                "StateChanged" => Ok(ObjectEvents::StateChanged(StateChangedEvent(ev))),
-                "ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ChildrenChangedEvent(ev))),
-                "VisibleDataChanged" => {
-                    Ok(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev)))
-                }
-                "SelectionChanged" => Ok(ObjectEvents::SelectionChanged(SelectionChangedEvent(ev))),
-                "ModelChanged" => Ok(ObjectEvents::ModelChanged(ModelChangedEvent(ev))),
-                "ActiveDescendantChanged" => {
-                    Ok(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev)))
-                }
-                "Announcement" => Ok(ObjectEvents::Announcement(AnnouncementEvent(ev))),
-                "AttributesChanged" => {
-                    Ok(ObjectEvents::AttributesChanged(AttributesChangedEvent(ev)))
-                }
-                "RowInserted" => Ok(ObjectEvents::RowInserted(RowInsertedEvent(ev))),
-                "RowReordered" => Ok(ObjectEvents::RowReordered(RowReorderedEvent(ev))),
-                "RowDeleted" => Ok(ObjectEvents::RowDeleted(RowDeletedEvent(ev))),
-                "ColumnInserted" => Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent(ev))),
-                "ColumnReordered" => Ok(ObjectEvents::ColumnReordered(ColumnReorderedEvent(ev))),
-                "ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent(ev))),
-                "TextBoundsChanged" => {
-                    Ok(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev)))
-                }
-                "TextSelectionChanged" => {
-                    Ok(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev)))
-                }
-                "TextChanged" => Ok(ObjectEvents::TextChanged(TextChangedEvent(ev))),
-                "TextAttributesChanged" => {
-                    Ok(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev)))
-                }
-                "TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent(ev))),
-                _ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
-            }
-        }
-    }
+		fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {
+			let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
+			match member.as_str() {
+				"PropertyChange" => Ok(ObjectEvents::PropertyChange(PropertyChangeEvent(ev))),
+				"BoundsChanged" => Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent(ev))),
+				"LinkSelected" => Ok(ObjectEvents::LinkSelected(LinkSelectedEvent(ev))),
+				"StateChanged" => Ok(ObjectEvents::StateChanged(StateChangedEvent(ev))),
+				"ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ChildrenChangedEvent(ev))),
+				"VisibleDataChanged" => {
+					Ok(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev)))
+				}
+				"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(SelectionChangedEvent(ev))),
+				"ModelChanged" => Ok(ObjectEvents::ModelChanged(ModelChangedEvent(ev))),
+				"ActiveDescendantChanged" => {
+					Ok(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev)))
+				}
+				"Announcement" => Ok(ObjectEvents::Announcement(AnnouncementEvent(ev))),
+				"AttributesChanged" => {
+					Ok(ObjectEvents::AttributesChanged(AttributesChangedEvent(ev)))
+				}
+				"RowInserted" => Ok(ObjectEvents::RowInserted(RowInsertedEvent(ev))),
+				"RowReordered" => Ok(ObjectEvents::RowReordered(RowReorderedEvent(ev))),
+				"RowDeleted" => Ok(ObjectEvents::RowDeleted(RowDeletedEvent(ev))),
+				"ColumnInserted" => Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent(ev))),
+				"ColumnReordered" => Ok(ObjectEvents::ColumnReordered(ColumnReorderedEvent(ev))),
+				"ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent(ev))),
+				"TextBoundsChanged" => {
+					Ok(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev)))
+				}
+				"TextSelectionChanged" => {
+					Ok(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev)))
+				}
+				"TextChanged" => Ok(ObjectEvents::TextChanged(TextChangedEvent(ev))),
+				"TextAttributesChanged" => {
+					Ok(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev)))
+				}
+				"TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent(ev))),
+				_ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
+			}
+		}
+	}
 }
 
 #[allow(clippy::module_name_repetitions)]
