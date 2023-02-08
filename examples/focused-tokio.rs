@@ -1,7 +1,7 @@
 use atspi::{
-    events::{names::ObjectEvents, GenericEvent},
-    identify::object::StateChangedEvent,
-    signify::Signified,
+	events::{names::ObjectEvents, GenericEvent},
+	identify::object::StateChangedEvent,
+	signify::Signified,
 };
 use enumflags2::BitFlag;
 use std::error::Error;
@@ -9,8 +9,8 @@ use tokio_stream::StreamExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let atspi = atspi::Connection::open().await?;
-    atspi.register_events(ObjectEvents::all()).await?;
+	let atspi = atspi::Connection::open().await?;
+	atspi.register_events(ObjectEvents::all()).await?;
 
 	let events = atspi.event_stream();
 	tokio::pin!(events);
