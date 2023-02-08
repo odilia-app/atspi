@@ -14,24 +14,24 @@ use zbus::dbus_proxy;
 
 #[dbus_proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
 trait Document {
-    /// GetAttributeValue method
-    fn get_attribute_value(&self, attributename: &str) -> zbus::Result<String>;
+	/// GetAttributeValue method
+	fn get_attribute_value(&self, attributename: &str) -> zbus::Result<String>;
 
-    /// GetAttributes method
-    fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
+	/// GetAttributes method
+	fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
-    /// GetLocale method
-    fn get_locale(&self) -> zbus::Result<String>;
+	/// GetLocale method
+	fn get_locale(&self) -> zbus::Result<String>;
 
-    /// CurrentPageNumber property
-    #[dbus_proxy(property)]
-    fn current_page_number(&self) -> zbus::Result<i32>;
+	/// CurrentPageNumber property
+	#[dbus_proxy(property)]
+	fn current_page_number(&self) -> zbus::Result<i32>;
 
-    /// PageCount property
-    #[dbus_proxy(property)]
-    fn page_count(&self) -> zbus::Result<i32>;
+	/// PageCount property
+	#[dbus_proxy(property)]
+	fn page_count(&self) -> zbus::Result<i32>;
 }
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for DocumentProxy<'a> {
-    const INTERFACE: Interface = Interface::Document;
+	const INTERFACE: Interface = Interface::Document;
 }

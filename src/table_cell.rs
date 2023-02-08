@@ -14,26 +14,26 @@ use zbus::dbus_proxy;
 
 #[dbus_proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 trait TableCell {
-    /// GetRowColumnSpan method
-    fn get_row_column_span(&self) -> zbus::Result<(bool, i32, i32, i32, i32)>;
+	/// GetRowColumnSpan method
+	fn get_row_column_span(&self) -> zbus::Result<(bool, i32, i32, i32, i32)>;
 
-    /// ColumnSpan property
-    #[dbus_proxy(property)]
-    fn column_span(&self) -> zbus::Result<i32>;
+	/// ColumnSpan property
+	#[dbus_proxy(property)]
+	fn column_span(&self) -> zbus::Result<i32>;
 
-    /// Position property
-    #[dbus_proxy(property)]
-    fn position(&self) -> zbus::Result<(i32, i32)>;
+	/// Position property
+	#[dbus_proxy(property)]
+	fn position(&self) -> zbus::Result<(i32, i32)>;
 
-    /// RowSpan property
-    #[dbus_proxy(property)]
-    fn row_span(&self) -> zbus::Result<i32>;
+	/// RowSpan property
+	#[dbus_proxy(property)]
+	fn row_span(&self) -> zbus::Result<i32>;
 
-    /// Table property
-    #[dbus_proxy(property)]
-    fn table(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	/// Table property
+	#[dbus_proxy(property)]
+	fn table(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
 }
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for TableCellProxy<'a> {
-    const INTERFACE: Interface = Interface::TableCell;
+	const INTERFACE: Interface = Interface::TableCell;
 }

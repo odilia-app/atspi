@@ -14,35 +14,35 @@ use zbus::dbus_proxy;
 
 #[dbus_proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
 trait Selection {
-    /// ClearSelection method
-    fn clear_selection(&self) -> zbus::Result<bool>;
+	/// ClearSelection method
+	fn clear_selection(&self) -> zbus::Result<bool>;
 
-    /// DeselectChild method
-    fn deselect_child(&self, child_index: i32) -> zbus::Result<bool>;
+	/// DeselectChild method
+	fn deselect_child(&self, child_index: i32) -> zbus::Result<bool>;
 
-    /// DeselectSelectedChild method
-    fn deselect_selected_child(&self, selected_child_index: i32) -> zbus::Result<bool>;
+	/// DeselectSelectedChild method
+	fn deselect_selected_child(&self, selected_child_index: i32) -> zbus::Result<bool>;
 
-    /// GetSelectedChild method
-    fn get_selected_child(
-        &self,
-        selected_child_index: i32,
-    ) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	/// GetSelectedChild method
+	fn get_selected_child(
+		&self,
+		selected_child_index: i32,
+	) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
 
-    /// IsChildSelected method
-    fn is_child_selected(&self, child_index: i32) -> zbus::Result<bool>;
+	/// IsChildSelected method
+	fn is_child_selected(&self, child_index: i32) -> zbus::Result<bool>;
 
-    /// SelectAll method
-    fn select_all(&self) -> zbus::Result<bool>;
+	/// SelectAll method
+	fn select_all(&self) -> zbus::Result<bool>;
 
-    /// SelectChild method
-    fn select_child(&self, child_index: i32) -> zbus::Result<bool>;
+	/// SelectChild method
+	fn select_child(&self, child_index: i32) -> zbus::Result<bool>;
 
-    /// NSelectedChildren property
-    #[dbus_proxy(property)]
-    fn nselected_children(&self) -> zbus::Result<i32>;
+	/// NSelectedChildren property
+	#[dbus_proxy(property)]
+	fn nselected_children(&self) -> zbus::Result<i32>;
 }
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for SelectionProxy<'a> {
-    const INTERFACE: Interface = Interface::Selection;
+	const INTERFACE: Interface = Interface::Selection;
 }

@@ -14,28 +14,28 @@ use zbus::dbus_proxy;
 
 #[dbus_proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
 trait Hyperlink {
-    /// GetObject method
-    fn get_object(&self, i: i32) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	/// GetObject method
+	fn get_object(&self, i: i32) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
 
-    /// GetURI method
-    fn get_uri(&self, i: i32) -> zbus::Result<String>;
+	/// GetURI method
+	fn get_uri(&self, i: i32) -> zbus::Result<String>;
 
-    /// IsValid method
-    fn is_valid(&self) -> zbus::Result<bool>;
+	/// IsValid method
+	fn is_valid(&self) -> zbus::Result<bool>;
 
-    /// EndIndex property
-    #[dbus_proxy(property)]
-    fn end_index(&self) -> zbus::Result<i32>;
+	/// EndIndex property
+	#[dbus_proxy(property)]
+	fn end_index(&self) -> zbus::Result<i32>;
 
-    /// NAnchors property
-    #[dbus_proxy(property)]
-    fn nanchors(&self) -> zbus::Result<i16>;
+	/// NAnchors property
+	#[dbus_proxy(property)]
+	fn nanchors(&self) -> zbus::Result<i16>;
 
-    /// StartIndex property
-    #[dbus_proxy(property)]
-    fn start_index(&self) -> zbus::Result<i32>;
+	/// StartIndex property
+	#[dbus_proxy(property)]
+	fn start_index(&self) -> zbus::Result<i32>;
 }
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for HyperlinkProxy<'a> {
-    const INTERFACE: Interface = Interface::Hyperlink;
+	const INTERFACE: Interface = Interface::Hyperlink;
 }
