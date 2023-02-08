@@ -1,5 +1,6 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
 // #![deny(clippy::missing_docs)]
+#![allow(clippy::multiple_crate_versions)]
 
 pub mod accessible;
 pub mod action;
