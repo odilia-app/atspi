@@ -2,6 +2,7 @@ pub mod document;
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
+pub mod names;
 pub mod object;
 pub mod terminal;
 pub mod window;
