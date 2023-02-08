@@ -180,3 +180,40 @@ pub trait HasAccessibleId {
 	/// * or if a conversion from some other type was not able to be parsed into the `AccessibleId`.
 	fn id(&self) -> Result<AccessibleId, Self::Error>;
 }
+
+#[cfg(test)]
+mod tests {
+  use crate::AccessibleId;
+
+  #[test]
+  fn deserialize_root_object_path() {
+    let root_str = "/org/a11y/atspi/accessible/root";
+    let id = AccessibleId::try_from(root_str).expect("Can not deserialize {root_str}");
+    assert_eq!(id, AccessibleId::Root);
+  }
+  #[test]
+  fn deserialize_null_object_path() {
+    let root_str = "/org/a11y/atspi/accessible/null";
+    let id = AccessibleId::try_from(root_str).expect("Can not deserialize {root_str}");
+    assert_eq!(id, AccessibleId::Null);
+  }
+  #[test]
+  fn deserialize_zero_object_path() {
+    let root_str = "/org/a11y/atspi/accessible/0";
+    let id = AccessibleId::try_from(root_str).expect("Can not deserialize {root_str}");
+    assert_eq!(id, AccessibleId::Number(0));
+  }
+  #[test]
+  fn deserialize_1337_object_path() {
+    let root_str = "/org/a11y/atspi/accessible/1337";
+    let id = AccessibleId::try_from(root_str).expect("Can not deserialize {root_str}");
+    assert_eq!(id, AccessibleId::Number(1337));
+  }
+  // this test is specifically because we nned to check for i64-sized numbers.
+  #[test]
+  fn deserialize_large_num_object_path() {
+    let root_str = "/org/a11y/atspi/accessible/123923283733455";
+    let id = AccessibleId::try_from(root_str).expect("Can not deserialize {root_str}");
+    assert_eq!(id, AccessibleId::Number(123923283733455));
+  }
+}
