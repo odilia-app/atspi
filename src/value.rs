@@ -19,6 +19,7 @@ trait Value {
 	#[dbus_proxy(property)]
 	fn current_value(&self) -> zbus::Result<f64>;
 
+	/// Set CurrentValue property
 	#[dbus_proxy(property)]
 	fn set_current_value(&self, value: f64) -> zbus::Result<()>;
 

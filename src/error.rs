@@ -48,6 +48,7 @@ pub enum AtspiError {
 
 	/// Failed to convert an integer into another type of integer (usually i32 -> usize).
 	IntConversionError(std::num::TryFromIntError),
+
 	/// An infallible error; this is just something to satisfy the compiler.
 	Infallible,
 }

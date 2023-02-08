@@ -32,6 +32,7 @@ trait Application {
 	#[dbus_proxy(property)]
 	fn id(&self) -> zbus::Result<i32>;
 
+	/// Set ID property
 	#[dbus_proxy(property)]
 	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
