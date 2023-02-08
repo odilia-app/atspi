@@ -23,7 +23,7 @@ impl TryFrom<Value<'static>> for AccessibleId {
   type Error = ZvariantError;
   fn try_from(value: Value<'static>) -> Result<AccessibleId, Self::Error> {
     match value {
-      Value::Str(path_id) =>
+      Value::ObjectPath(path_id) =>
         match path_id.as_str().try_into() {
           Ok(id) => Ok(id),
           Err(_) => Err(ZvariantError::Message("Incorrect string format; it must be in the format: /org/a11y/atspi/accessible/ID, where ID is between 0 and `i64::MAX`.".to_string())),
