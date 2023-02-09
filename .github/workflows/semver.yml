@@ -75,6 +75,6 @@ runs:
         RUSTC_BOOTSTRAP=1 cargo rustdoc $RUSTDOC_EARLY_FLAGS -- $RUSTDOC_LATE_FLAGS
         mv "$(cargo metadata --format-version 1 | jq -r .target_directory)/doc/$PACKAGE_NAME_WITH_UNDERSCORES.json" /tmp/current.json
 
-        # Check for semver violations.
-        cargo install cargo-semver-checks --locked
+        # Check for semver violations; no default features to make it use a non-vendored OpenSSL version
+        cargo install cargo-semver-checks --locked --no-default-features
         cargo semver-checks check-release --current /tmp/current.json --baseline /tmp/baseline.json
