@@ -9,6 +9,7 @@ pub trait Signal {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum ObjectEvents {
 	PropertyChange,
 	BoundsChanged,
@@ -40,6 +41,7 @@ impl Signal for ObjectEvents {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum WindowEvents {
 	PropertyChange,
 	Minimize,
@@ -68,6 +70,7 @@ impl Signal for WindowEvents {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum MouseEvents {
 	Abs,
 	Rel,
@@ -80,6 +83,7 @@ impl Signal for MouseEvents {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum KeyboardEvents {
 	Modifiers,
 }
@@ -90,6 +94,7 @@ impl Signal for KeyboardEvents {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum TerminalEvents {
 	LineChanged,
 	ColumnCountChanged,
@@ -104,6 +109,7 @@ impl Signal for TerminalEvents {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum DocumentEvents {
 	LoadComplete,
 	Reload,
@@ -119,6 +125,7 @@ impl Signal for DocumentEvents {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum FocusEvents {
 	Focus,
 }
@@ -129,6 +136,7 @@ impl Signal for FocusEvents {
 #[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum CacheEvents {
 	AddAccessible,
 	RemoveAccessible,
