@@ -10,10 +10,9 @@ use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use zbus::{
-	MatchRule,
 	names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
 	zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
-	Message,
+	MatchRule, Message,
 };
 
 use crate::{

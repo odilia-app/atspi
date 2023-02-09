@@ -1,5 +1,8 @@
 use crate::{
-	bus::BusProxy, events::{HasMatchRule, Event}, registry::RegistryProxy, AtspiError,
+	bus::BusProxy,
+	events::{Event, HasMatchRule},
+	registry::RegistryProxy,
+	AtspiError,
 };
 use enumflags2::{BitFlag, BitFlags};
 use futures_lite::stream::{Stream, StreamExt};
@@ -174,10 +177,7 @@ impl Connection {
 	///
 	/// This function may return an error if it is unable to serialize the variant of the enum that has been passed (should never happen), or
 	/// a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule`].
-	pub async fn register_event(
-		&self,
-		match_rule: MatchRule<'_>
-	) -> Result<(), AtspiError> {
+	pub async fn register_event(&self, match_rule: MatchRule<'_>) -> Result<(), AtspiError> {
 		let dbus_proxy = DBusProxy::new(self.registry.connection()).await?;
 		dbus_proxy.add_match_rule(match_rule).await?;
 		Ok(())
@@ -202,7 +202,7 @@ impl Connection {
 	/// For failure conditions, see [`Self::register_event`].
 	pub async fn register_events<'a, I>(&self, events: I) -> Result<(), AtspiError>
 	where
-		I: IntoIterator<Item = MatchRule<'a>>
+		I: IntoIterator<Item = MatchRule<'a>>,
 	{
 		for event in events {
 			self.register_event(event).await?;
