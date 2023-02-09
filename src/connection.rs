@@ -159,7 +159,7 @@ impl Connection {
 	}
 
 	// TODO: do this without instantiating a DBus proxy evwry time.
-	/// Registers an events as defined in [`crate::events::names`]. This function registers a single event, like so:
+	/// Registers an events as defined in [`crate::identify`]. This function registers a single event, like so:
 	/// ```rust
 	/// use atspi::{
 	///   identify::object::StateChangedEvent,
