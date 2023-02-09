@@ -1,12 +1,10 @@
 use crate::{
 	bus::BusProxy,
-	events::{Event, HasMatchRule},
+	events::Event,
 	registry::RegistryProxy,
 	AtspiError,
 };
-use enumflags2::{BitFlag, BitFlags};
 use futures_lite::stream::{Stream, StreamExt};
-use serde::Serialize;
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, zvariant::Signature, Address, MatchRule, MessageStream, MessageType};
 
@@ -85,7 +83,7 @@ impl Connection {
 	/// ```
 	/// use atspi::events::{
 	///   EventInterfaces,
-	///		HasMatchRules,
+	///   HasMatchRules,
 	/// };
 	/// use enumflags2::BitFlag;
 	/// use atspi::identify::object::ObjectEvents;
@@ -164,9 +162,9 @@ impl Connection {
 	/// Registers an events as defined in [`crate::events::names`]. This function registers a single event, like so:
 	/// ```rust
 	/// use atspi::{
-	///		identify::object::StateChangedEvent,
-	///		events::HasMatchRule,
-	///	};
+	///   identify::object::StateChangedEvent,
+	///   events::HasMatchRule,
+	/// };
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::Connection::open().await.unwrap();
 	/// connection.register_event(StateChangedEvent::match_rule().unwrap()).await.unwrap();
@@ -189,9 +187,9 @@ impl Connection {
 	///
 	/// ```rust
 	/// use atspi::{
-	///		identify::object::ObjectEvents,
-	///		events::HasMatchRules,
-	///	};
+	///   identify::object::ObjectEvents,
+	///   events::HasMatchRules,
+	/// };
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::Connection::open().await.unwrap();
 	/// connection.register_events(ObjectEvents::match_rules().unwrap()).await.unwrap();
