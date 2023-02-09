@@ -121,7 +121,7 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          profile: stable
+          toolchain: stable
       - name: Check Semver Compatibility
         uses: obi1kenobi/cargo-semver-checks-action@v1
         with:
