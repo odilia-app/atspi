@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     setps:
       name: Check Semver Compatibility
-      uses: ./.github/workflows/semver.yml
+      uses: obi1kenobi/cargo-semver-checks-action@v1
       with:
         crate-name: atspi
         version-tag-prefix: v
