@@ -103,8 +103,8 @@ jobs:
   semver:
     runs-on: ubuntu-latest
     steps:
-      name: Check Semver Compatibility
-      uses: obi1kenobi/cargo-semver-checks-action@v1
-      with:
-        crate-name: atspi
-        version-tag-prefix: v
+      - name: Check Semver Compatibility
+        uses: obi1kenobi/cargo-semver-checks-action@v1
+        with:
+          crate-name: atspi
+          version-tag-prefix: v
