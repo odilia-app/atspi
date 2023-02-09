@@ -105,6 +105,19 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v2
+      - name: Cache cargo home
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cargo-home
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
