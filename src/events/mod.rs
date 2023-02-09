@@ -2,7 +2,6 @@ pub mod document;
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
-pub mod names;
 pub mod object;
 pub mod terminal;
 pub mod window;
@@ -11,6 +10,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use zbus::{
+	MatchRule,
 	names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
 	zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
 	Message,
@@ -393,6 +393,16 @@ pub trait GenericEvent {
 	/// - when deserializeing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<UniqueName>, AtspiError>;
+}
+
+pub trait HasMatchRule {
+	const INTERFACE: &'static str;
+	const MEMBER: &'static str;
+	fn match_rule() -> Result<MatchRule<'static>, AtspiError>;
+}
+
+pub trait HasMatchRules {
+	fn match_rules() -> Result<Vec<MatchRule<'static>>, AtspiError>;
 }
 
 impl AtspiEvent {
