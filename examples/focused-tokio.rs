@@ -3,7 +3,6 @@ use atspi::{
 	identify::object::{ObjectEvents, StateChangedEvent},
 	signify::Signified,
 };
-use enumflags2::BitFlag;
 use std::error::Error;
 use tokio_stream::StreamExt;
 
