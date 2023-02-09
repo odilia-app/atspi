@@ -1,5 +1,5 @@
 use crate::{
-	bus::BusProxy, events::names::Signal, events::Event, registry::RegistryProxy, AtspiError,
+	bus::BusProxy, events::{HasMatchRule, Event}, registry::RegistryProxy, AtspiError,
 };
 use enumflags2::{BitFlag, BitFlags};
 use futures_lite::stream::{Stream, StreamExt};
@@ -77,13 +77,15 @@ impl Connection {
 	/// Monitor this stream to be notified and receive events on the a11y bus.
 	///
 	/// # Example
-	/// B asic use:
+	/// Basic use:
+	///
 	/// ```
 	/// use atspi::events::{
 	///   EventInterfaces,
-	///   names::ObjectEvents,
+	///		HasMatchRules,
 	/// };
 	/// use enumflags2::BitFlag;
+	/// use atspi::identify::object::ObjectEvents;
 	/// use atspi::signify::Signified;
 	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
 	/// use atspi::Event;
@@ -96,7 +98,7 @@ impl Connection {
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
 	///     let atspi = atspi::Connection::open().await?;
-	///     atspi.register_events(ObjectEvents::all()).await?;
+	///     atspi.register_events(ObjectEvents::match_rules().unwrap()).await?;
 	///
 	///     let events = atspi.event_stream();
 	///     futures_lite::pin!(events);
@@ -158,10 +160,13 @@ impl Connection {
 	// TODO: do this without instantiating a DBus proxy evwry time.
 	/// Registers an events as defined in [`crate::events::names`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi::events::names::ObjectEvents;
+	/// use atspi::{
+	///		identify::object::StateChangedEvent,
+	///		events::HasMatchRule,
+	///	};
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::Connection::open().await.unwrap();
-	/// connection.register_event(ObjectEvents::StateChanged).await.unwrap();
+	/// connection.register_event(StateChangedEvent::match_rule().unwrap()).await.unwrap();
 	/// # })
 	/// ```
 	///
@@ -169,19 +174,11 @@ impl Connection {
 	///
 	/// This function may return an error if it is unable to serialize the variant of the enum that has been passed (should never happen), or
 	/// a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule`].
-	pub async fn register_event<T: Signal + Serialize + std::fmt::Debug>(
+	pub async fn register_event(
 		&self,
-		event: T,
+		match_rule: MatchRule<'_>
 	) -> Result<(), AtspiError> {
 		let dbus_proxy = DBusProxy::new(self.registry.connection()).await?;
-		let Ok(member_string) = serde_plain::to_string(&event) else {
-          return Err(AtspiError::ParseError("Unable to serialize member string to create a match rule."))
-        };
-		let match_rule = MatchRule::builder()
-			.msg_type(MessageType::Signal)
-			.interface(<T as Signal>::INTERFACE)?
-			.member(member_string)?
-			.build();
 		dbus_proxy.add_match_rule(match_rule).await?;
 		Ok(())
 	}
@@ -191,21 +188,23 @@ impl Connection {
 	/// This can be done like so:
 	///
 	/// ```rust
-	/// use atspi::events::names::ObjectEvents;
-	/// use enumflags2::BitFlag;
+	/// use atspi::{
+	///		identify::object::ObjectEvents,
+	///		events::HasMatchRules,
+	///	};
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::Connection::open().await.unwrap();
-	/// connection.register_events(ObjectEvents::all()).await.unwrap();
+	/// connection.register_events(ObjectEvents::match_rules().unwrap()).await.unwrap();
 	/// # })
 	/// ```
 	///
 	/// # Errors
 	/// For failure conditions, see [`Self::register_event`].
-	pub async fn register_events<T>(&self, events: BitFlags<T>) -> Result<(), AtspiError>
+	pub async fn register_events<'a, I>(&self, events: I) -> Result<(), AtspiError>
 	where
-		T: Signal + Serialize + std::fmt::Debug + BitFlag,
+		I: IntoIterator<Item = MatchRule<'a>>
 	{
-		for event in events.iter() {
+		for event in events {
 			self.register_event(event).await?;
 		}
 		Ok(())
