@@ -101,6 +101,7 @@ jobs:
         with:
           command: doc
   semver:
+    runs-on: ubuntu-latest
     setps:
       uses: ./.github/workflows/semver.yml
       with:
