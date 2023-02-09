@@ -102,7 +102,7 @@ jobs:
           command: doc
   semver:
     runs-on: ubuntu-latest
-    setps:
+    steps:
       name: Check Semver Compatibility
       uses: obi1kenobi/cargo-semver-checks-action@v1
       with:
