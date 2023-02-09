@@ -418,6 +418,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 			.join("\n");
 	format!("
 	#[derive(Clone, Debug)]
+	#[non_exhaustive]
 	pub enum {name_ident_plural} {{
 {signal_quotes}
 	}}
