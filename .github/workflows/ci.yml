@@ -101,7 +101,7 @@ jobs:
         with:
           command: doc
   semver:
-    uses: obi1kenobi/cargo-semver-checks-action@v1
+    uses: ./.github/workflows/semver.yml@cargo-semver-check
     with:
       crate-name: atspi
       version-tag-prefix: v
