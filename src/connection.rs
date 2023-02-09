@@ -1,9 +1,4 @@
-use crate::{
-	bus::BusProxy,
-	events::Event,
-	registry::RegistryProxy,
-	AtspiError,
-};
+use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, zvariant::Signature, Address, MatchRule, MessageStream, MessageType};
