@@ -41,6 +41,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 	format!("#[bitflags]
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[non_exhaustive]
 pub enum {name_ident_plural} {{
 {signal_quotes}
 }}
