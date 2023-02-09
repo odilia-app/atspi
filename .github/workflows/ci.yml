@@ -101,7 +101,7 @@ jobs:
         with:
           command: doc
 - name: semver
-	uses: obi1kenobi/cargo-semver-checks-action@v1
-	with:
-		crate-name: atspi
-		version-tag-prefix: v
+  uses: obi1kenobi/cargo-semver-checks-action@v1
+  with:
+    crate-name: atspi
+    version-tag-prefix: v
