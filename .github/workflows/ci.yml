@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -100,3 +100,30 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
+  semver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Cache cargo home
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cargo-home
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: stable
+      - name: Check Semver Compatibility
+        uses: obi1kenobi/cargo-semver-checks-action@v1
+        with:
+          crate-name: atspi
+          version-tag-prefix: v
