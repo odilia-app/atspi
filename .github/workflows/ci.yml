@@ -101,8 +101,8 @@ jobs:
         with:
           command: doc
   semver:
-		setps:
-			uses: ./.github/workflows/semver.yml
-			with:
-				crate-name: atspi
-				version-tag-prefix: v
+    setps:
+      uses: ./.github/workflows/semver.yml
+      with:
+        crate-name: atspi
+        version-tag-prefix: v
