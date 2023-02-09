@@ -286,12 +286,12 @@ pub struct Node {
 impl Node {
     /// Parse the introspection XML document from reader.
     pub fn from_reader<R: Read>(reader: R) -> Result<Node, Error> {
-        Ok(from_reader(reader)?)
+        from_reader(reader)
     }
 
     /// Write the XML document to writer.
     pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), Error> {
-        Ok(to_writer(writer, &self)?)
+        to_writer(writer, &self)
     }
 
     /// Returns the node name, if any.
@@ -320,7 +320,7 @@ impl std::str::FromStr for Node {
 
     /// Parse the introspection XML document from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(from_str(s)?)
+        from_str(s)
     }
 }
 

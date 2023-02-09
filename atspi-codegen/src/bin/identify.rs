@@ -172,7 +172,7 @@ fn event_ident<S>(string: S) -> String
 
 fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName) -> String {
 	if signal_item.name().is_none() {
-		return format!("");
+		return String::new();
 	}
 	// unwrap is safe due to check
 	let function_name = signal_item.name().expect("No name for arg");
@@ -264,10 +264,10 @@ fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
 			.filter_map(|(i, arg)| {
 					let func_name = i.try_into();
 					let arg_name = arg.name();
-					if func_name.is_ok() && arg_name.is_some() {
-						return Some(generate_fn_for_signal_item(arg, func_name.unwrap()));
+					match (func_name, arg_name) {
+						(Ok(ok_func_name), Some(_)) => Some(generate_fn_for_signal_item(arg, ok_func_name)),
+						_ => None
 					}
-					None
 			})
 			.collect::<Vec<String>>()
 			.join("\n");
@@ -369,7 +369,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 	let name_ident_plural = events_ident(name_ident);
 	let signal_quotes = iface.signals()
 			.into_iter()
-			.map(|signal| generate_variant_from_signal(signal))
+			.map(generate_variant_from_signal)
 			.collect::<Vec<String>>()
 			.join("\n");
 	format!("
@@ -380,7 +380,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 	")
 }
 
-pub fn get_signal_names_from_interfaces(interfaces: Vec<&Interface>) -> String {
+fn get_signal_names_from_interfaces(interfaces: Vec<&Interface>) -> String {
 	interfaces
 		.iter()
 		.map(|iface| {
@@ -399,7 +399,7 @@ pub fn get_signal_names_from_interfaces(interfaces: Vec<&Interface>) -> String {
 		.join(",")
 }
 
-pub fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
+fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
 	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
 	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
 	let event_imports = get_signal_names_from_interfaces(data.interfaces());
@@ -417,7 +417,7 @@ pub fn create_try_from_event_impl_from_xml(file_name: &str) -> String {
 	format!("use crate::events::{{{}}};\n{}", event_imports, iface_data)
 }
 
-pub fn create_events_from_xml(file_name: &str) -> String {
+fn create_events_from_xml(file_name: &str) -> String {
 	let xml_file = std::fs::File::open(file_name).expect("Cannot read file");
 	let data: Node = Node::from_reader(&xml_file).expect("Cannot deserialize file");
 	let iface_data = data.interfaces()
@@ -432,7 +432,7 @@ pub fn create_events_from_xml(file_name: &str) -> String {
   ")
 }
 
-pub fn main() {
+fn main() {
 	println!("{}", create_events_from_xml("xml/Event.xml"));
 	//println!("use crate::events::{{{}}};", get_signal_names_from_xml("xml/Cache.xml"));
 	println!("{}", create_try_from_event_impl_from_xml("xml/Cache.xml"));
