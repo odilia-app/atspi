@@ -19,149 +19,149 @@ pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv
 pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD: Signature<'_> =
-    Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
 /// A connection to the at-spi bus
 pub struct Connection {
-    registry: RegistryProxy<'static>,
+	registry: RegistryProxy<'static>,
 }
 
 impl Connection {
-    /// Open a new connection to the bus
-    #[tracing::instrument]
-    pub async fn open() -> zbus::Result<Self> {
-        // Grab the a11y bus address from the session bus
-        let a11y_bus_addr = {
-            tracing::debug!("Connecting to session bus");
-            let session_bus = zbus::Connection::session().await?;
-            tracing::debug!(
-                name = session_bus.unique_name().map(|n| n.as_str()),
-                "Connected to session bus"
-            );
-            let proxy = BusProxy::new(&session_bus).await?;
-            tracing::debug!("Getting a11y bus address from session bus");
-            proxy.get_address().await?
-        };
-        tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
-        let addr: Address = a11y_bus_addr.parse()?;
-        Self::connect(addr).await
-    }
+	/// Open a new connection to the bus
+	#[tracing::instrument]
+	pub async fn open() -> zbus::Result<Self> {
+		// Grab the a11y bus address from the session bus
+		let a11y_bus_addr = {
+			tracing::debug!("Connecting to session bus");
+			let session_bus = zbus::Connection::session().await?;
+			tracing::debug!(
+				name = session_bus.unique_name().map(|n| n.as_str()),
+				"Connected to session bus"
+			);
+			let proxy = BusProxy::new(&session_bus).await?;
+			tracing::debug!("Getting a11y bus address from session bus");
+			proxy.get_address().await?
+		};
+		tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
+		let addr: Address = a11y_bus_addr.parse()?;
+		Self::connect(addr).await
+	}
 
-    /// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
-    /// on the accessibility bus.
-    ///
-    /// You may want to call this if you have the accessibility bus address and want a connection with
-    /// a convenient async event stream provisioning.
-    ///
-    /// Without address, you will want to call  `open`, which tries to obtain the accessibility bus' address
-    /// on your behalf.
-    ///
-    /// ## Errors
-    /// * `RegistryProxy` is configured with invalid path, interface or destination defaults.
-    pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
-        tracing::debug!("Connecting to a11y bus");
-        let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
-        tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
-        // The Proxy holds a strong reference to a Connection, so we only need to store the proxy
-        let registry = RegistryProxy::new(&bus).await?;
+	/// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
+	/// on the accessibility bus.
+	///
+	/// You may want to call this if you have the accessibility bus address and want a connection with
+	/// a convenient async event stream provisioning.
+	///
+	/// Without address, you will want to call  `open`, which tries to obtain the accessibility bus' address
+	/// on your behalf.
+	///
+	/// ## Errors
+	/// * `RegistryProxy` is configured with invalid path, interface or destination defaults.
+	pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
+		tracing::debug!("Connecting to a11y bus");
+		let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
+		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
+		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
+		let registry = RegistryProxy::new(&bus).await?;
 
-        Ok(Self { registry })
-    }
+		Ok(Self { registry })
+	}
 
-    /// Stream yielding all `Event` types.
-    ///
-    /// Monitor this stream to be notified and receive events on the a11y bus.
-    ///
-    /// # Example
-    /// Basic use:
-    /// ```
-    /// use atspi::events::EventInterfaces;
-    /// use atspi::identify::object::ObjectEvents;
-    /// use atspi::signify::Signified;
-    /// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
-    /// use atspi::Event;
-    /// # use futures_lite::StreamExt;
-    /// # use std::error::Error;
-    ///
-    /// # fn main() {
-    /// #   assert!(futures_lite::future::block_on(example()).is_ok());
-    /// # }
-    ///
-    /// # async fn example() -> Result<(), Box<dyn Error>> {
-    ///     let atspi = atspi::Connection::open().await?;
-    ///     atspi.register_event("Object").await?;
-    ///
-    ///     let rule = MatchRule::builder()
-    ///        .msg_type(MessageType::Signal)
-    ///         .interface("org.a11y.atspi.Event.Object")?
-    ///         .build();
-    ///
-    ///     let dbus = DBusProxy::new(atspi.connection()).await?;
-    ///     dbus.add_match_rule(rule).await?;
-    ///
-    ///     let events = atspi.event_stream();
-    ///     futures_lite::pin!(events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("StateChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         // Handle Objject events
-    ///        break;
-    ///     }
-    /// #    Ok(())
-    /// # }
-    /// ```
-    pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
-        MessageStream::from(self.registry.connection()).filter_map(|res| {
-            let msg = match res {
-                Ok(m) => m,
-                Err(e) => return Some(Err(e.into())),
-            };
-            match msg.message_type() {
-                MessageType::Signal => Some(Event::try_from(msg)),
-                _ => None,
-            }
-        })
-    }
+	/// Stream yielding all `Event` types.
+	///
+	/// Monitor this stream to be notified and receive events on the a11y bus.
+	///
+	/// # Example
+	/// Basic use:
+	/// ```
+	/// use atspi::events::EventInterfaces;
+	/// use atspi::identify::object::ObjectEvents;
+	/// use atspi::signify::Signified;
+	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
+	/// use atspi::Event;
+	/// # use futures_lite::StreamExt;
+	/// # use std::error::Error;
+	///
+	/// # fn main() {
+	/// #   assert!(futures_lite::future::block_on(example()).is_ok());
+	/// # }
+	///
+	/// # async fn example() -> Result<(), Box<dyn Error>> {
+	///     let atspi = atspi::Connection::open().await?;
+	///     atspi.register_event("Object").await?;
+	///
+	///     let rule = MatchRule::builder()
+	///        .msg_type(MessageType::Signal)
+	///         .interface("org.a11y.atspi.Event.Object")?
+	///         .build();
+	///
+	///     let dbus = DBusProxy::new(atspi.connection()).await?;
+	///     dbus.add_match_rule(rule).await?;
+	///
+	///     let events = atspi.event_stream();
+	///     futures_lite::pin!(events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("StateChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         // Handle Objject events
+	///        break;
+	///     }
+	/// #    Ok(())
+	/// # }
+	/// ```
+	pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
+		MessageStream::from(self.registry.connection()).filter_map(|res| {
+			let msg = match res {
+				Ok(m) => m,
+				Err(e) => return Some(Err(e.into())),
+			};
+			match msg.message_type() {
+				MessageType::Signal => Some(Event::try_from(msg)),
+				_ => None,
+			}
+		})
+	}
 }
 
 impl Deref for Connection {
-    type Target = RegistryProxy<'static>;
+	type Target = RegistryProxy<'static>;
 
-    fn deref(&self) -> &Self::Target {
-        &self.registry
-    }
+	fn deref(&self) -> &Self::Target {
+		&self.registry
+	}
 }
 
 /// Set the `IsEnabled` property in the session bus.
@@ -185,14 +185,14 @@ impl Deref for Connection {
 /// * if the `IsEnabled` property cannot be read
 /// * the `IsEnabled` property cannot be set.
 pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), AtspiError> {
-    // Get a connection to the session bus.
-    let session = zbus::Connection::session().await?;
+	// Get a connection to the session bus.
+	let session = zbus::Connection::session().await?;
 
-    // Aqcuire a `StatusProxy` for the session bus.
-    let status_proxy = crate::bus::StatusProxy::new(&session).await?;
+	// Aqcuire a `StatusProxy` for the session bus.
+	let status_proxy = crate::bus::StatusProxy::new(&session).await?;
 
-    if status_proxy.is_enabled().await? != status {
-        status_proxy.set_is_enabled(status).await?;
-    }
-    Ok(())
+	if status_proxy.is_enabled().await? != status {
+		status_proxy.set_is_enabled(status).await?;
+	}
+	Ok(())
 }

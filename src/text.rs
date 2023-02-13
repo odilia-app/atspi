@@ -19,145 +19,145 @@ use zbus::{dbus_proxy, zvariant::Type};
 #[repr(u32)]
 /// Level of granularity to get text of, in relation to a cursor position.
 pub enum Granularity {
-    /// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the chracter that appears after the cursor.
-    Char,
-    /// Gives the entire word in front of or which contains the cursor. TODO: confirm that it always chooses the word in front of the cursor.
-    Word,
-    /// Gives to entire sentence in fron of the or which contains the cursor. TODO: confirm that it always chooses the sentence after the cursor.
-    Sentence,
-    /// Gives the line, as seen visually of which the cursor is situated within.
-    Line,
-    /// Gives the entire block of text, regardless of where the cursor lies within it.
-    Paragraph,
+	/// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the chracter that appears after the cursor.
+	Char,
+	/// Gives the entire word in front of or which contains the cursor. TODO: confirm that it always chooses the word in front of the cursor.
+	Word,
+	/// Gives to entire sentence in fron of the or which contains the cursor. TODO: confirm that it always chooses the sentence after the cursor.
+	Sentence,
+	/// Gives the line, as seen visually of which the cursor is situated within.
+	Line,
+	/// Gives the entire block of text, regardless of where the cursor lies within it.
+	Paragraph,
 }
 
 #[dbus_proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
 trait Text {
-    /// AddSelection method
-    fn add_selection(&self, start_offset: i32, end_offset: i32) -> zbus::Result<bool>;
+	/// AddSelection method
+	fn add_selection(&self, start_offset: i32, end_offset: i32) -> zbus::Result<bool>;
 
-    /// GetAttributeRun method
-    fn get_attribute_run(
-        &self,
-        offset: i32,
-        include_defaults: bool,
-    ) -> zbus::Result<(std::collections::HashMap<String, String>, i32, i32)>;
+	/// GetAttributeRun method
+	fn get_attribute_run(
+		&self,
+		offset: i32,
+		include_defaults: bool,
+	) -> zbus::Result<(std::collections::HashMap<String, String>, i32, i32)>;
 
-    /// GetAttributeValue method
-    fn get_attribute_value(&self, offset: i32, attribute_name: &str) -> zbus::Result<String>;
+	/// GetAttributeValue method
+	fn get_attribute_value(&self, offset: i32, attribute_name: &str) -> zbus::Result<String>;
 
-    /// GetAttributes method
-    fn get_attributes(
-        &self,
-        offset: i32,
-    ) -> zbus::Result<(std::collections::HashMap<String, String>, i32, i32)>;
+	/// GetAttributes method
+	fn get_attributes(
+		&self,
+		offset: i32,
+	) -> zbus::Result<(std::collections::HashMap<String, String>, i32, i32)>;
 
-    /// GetBoundedRanges method
-    fn get_bounded_ranges(
-        &self,
-        x: i32,
-        y: i32,
-        width: i32,
-        height: i32,
-        coord_type: u32,
-        x_clip_type: u32,
-        y_clip_type: u32,
-    ) -> zbus::Result<Vec<(i32, i32, String, zbus::zvariant::OwnedValue)>>;
+	/// GetBoundedRanges method
+	fn get_bounded_ranges(
+		&self,
+		x: i32,
+		y: i32,
+		width: i32,
+		height: i32,
+		coord_type: u32,
+		x_clip_type: u32,
+		y_clip_type: u32,
+	) -> zbus::Result<Vec<(i32, i32, String, zbus::zvariant::OwnedValue)>>;
 
-    /// GetCharacterAtOffset method
-    fn get_character_at_offset(&self, offset: i32) -> zbus::Result<i32>;
+	/// GetCharacterAtOffset method
+	fn get_character_at_offset(&self, offset: i32) -> zbus::Result<i32>;
 
-    /// GetCharacterExtents method
-    fn get_character_extents(
-        &self,
-        offset: i32,
-        coord_type: u32,
-    ) -> zbus::Result<(i32, i32, i32, i32)>;
+	/// GetCharacterExtents method
+	fn get_character_extents(
+		&self,
+		offset: i32,
+		coord_type: u32,
+	) -> zbus::Result<(i32, i32, i32, i32)>;
 
-    /// GetDefaultAttributeSet method
-    fn get_default_attribute_set(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
+	/// GetDefaultAttributeSet method
+	fn get_default_attribute_set(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
-    /// GetDefaultAttributes method
-    fn get_default_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
+	/// GetDefaultAttributes method
+	fn get_default_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
-    /// GetNSelections method
-    fn get_nselections(&self) -> zbus::Result<i32>;
+	/// GetNSelections method
+	fn get_nselections(&self) -> zbus::Result<i32>;
 
-    /// GetOffsetAtPoint method
-    fn get_offset_at_point(&self, x: i32, y: i32, coord_type: u32) -> zbus::Result<i32>;
+	/// GetOffsetAtPoint method
+	fn get_offset_at_point(&self, x: i32, y: i32, coord_type: u32) -> zbus::Result<i32>;
 
-    /// GetRangeExtents method
-    fn get_range_extents(
-        &self,
-        start_offset: i32,
-        end_offset: i32,
-        coord_type: u32,
-    ) -> zbus::Result<(i32, i32, i32, i32)>;
+	/// GetRangeExtents method
+	fn get_range_extents(
+		&self,
+		start_offset: i32,
+		end_offset: i32,
+		coord_type: u32,
+	) -> zbus::Result<(i32, i32, i32, i32)>;
 
-    /// GetSelection method
-    fn get_selection(&self, selection_num: i32) -> zbus::Result<(i32, i32)>;
+	/// GetSelection method
+	fn get_selection(&self, selection_num: i32) -> zbus::Result<(i32, i32)>;
 
-    /// GetStringAtOffset method
-    fn get_string_at_offset(
-        &self,
-        offset: i32,
-        granularity: Granularity,
-    ) -> zbus::Result<(String, i32, i32)>;
+	/// GetStringAtOffset method
+	fn get_string_at_offset(
+		&self,
+		offset: i32,
+		granularity: Granularity,
+	) -> zbus::Result<(String, i32, i32)>;
 
-    /// GetText method
-    fn get_text(&self, start_offset: i32, end_offset: i32) -> zbus::Result<String>;
+	/// GetText method
+	fn get_text(&self, start_offset: i32, end_offset: i32) -> zbus::Result<String>;
 
-    /// GetTextAfterOffset method
-    fn get_text_after_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
+	/// GetTextAfterOffset method
+	fn get_text_after_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
 
-    /// GetTextAtOffset method
-    fn get_text_at_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
+	/// GetTextAtOffset method
+	fn get_text_at_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
 
-    /// GetTextBeforeOffset method
-    fn get_text_before_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
+	/// GetTextBeforeOffset method
+	fn get_text_before_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
 
-    /// RemoveSelection method
-    fn remove_selection(&self, selection_num: i32) -> zbus::Result<bool>;
+	/// RemoveSelection method
+	fn remove_selection(&self, selection_num: i32) -> zbus::Result<bool>;
 
-    /// ScrollSubstringTo method
-    fn scroll_substring_to(
-        &self,
-        start_offset: i32,
-        end_offset: i32,
-        type_: u32,
-    ) -> zbus::Result<bool>;
+	/// ScrollSubstringTo method
+	fn scroll_substring_to(
+		&self,
+		start_offset: i32,
+		end_offset: i32,
+		type_: u32,
+	) -> zbus::Result<bool>;
 
-    /// ScrollSubstringToPoint method
-    fn scroll_substring_to_point(
-        &self,
-        start_offset: i32,
-        end_offset: i32,
-        type_: u32,
-        x: i32,
-        y: i32,
-    ) -> zbus::Result<bool>;
+	/// ScrollSubstringToPoint method
+	fn scroll_substring_to_point(
+		&self,
+		start_offset: i32,
+		end_offset: i32,
+		type_: u32,
+		x: i32,
+		y: i32,
+	) -> zbus::Result<bool>;
 
-    /// SetCaretOffset method
-    fn set_caret_offset(&self, offset: i32) -> zbus::Result<bool>;
+	/// SetCaretOffset method
+	fn set_caret_offset(&self, offset: i32) -> zbus::Result<bool>;
 
-    /// SetSelection method
-    fn set_selection(
-        &self,
-        selection_num: i32,
-        start_offset: i32,
-        end_offset: i32,
-    ) -> zbus::Result<bool>;
+	/// SetSelection method
+	fn set_selection(
+		&self,
+		selection_num: i32,
+		start_offset: i32,
+		end_offset: i32,
+	) -> zbus::Result<bool>;
 
-    /// CaretOffset property
-    #[dbus_proxy(property)]
-    fn caret_offset(&self) -> zbus::Result<i32>;
+	/// CaretOffset property
+	#[dbus_proxy(property)]
+	fn caret_offset(&self) -> zbus::Result<i32>;
 
-    /// CharacterCount property
-    #[dbus_proxy(property)]
-    fn character_count(&self) -> zbus::Result<i32>;
+	/// CharacterCount property
+	#[dbus_proxy(property)]
+	fn character_count(&self) -> zbus::Result<i32>;
 }
 
 use crate::{AtspiProxy, Interface};
 impl<'a> AtspiProxy for TextProxy<'a> {
-    const INTERFACE: Interface = Interface::Text;
+	const INTERFACE: Interface = Interface::Text;
 }
