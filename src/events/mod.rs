@@ -99,16 +99,6 @@ pub enum Event {
 	///
 	/// (eg. "Cache:AddAccessible:")
 	Listener(EventListenerEvents),
-	// Exploring if having a fully destructable hierarchical  works as we'd like..
-	Interfaces(EventInterfaces),
-	/// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
-	Available(AvailableEvent),
-	/// Both `CacheAdd` and `CacheRemove` signals
-	Cache(CacheEvents),
-	/// Emitted on registry or deregristry of event listeners.,
-	///
-	/// (eg. "Cache:AddAccessible:")
-	Listener(EventListenerEvents),
 }
 
 #[derive(Debug, Clone)]

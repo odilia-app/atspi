@@ -10,13 +10,6 @@
             "//!",
         ],
     ))),
-    (Some("pub trait Signified {"), CmtOrItem((
-        dist: 0,
-        doc: [
-            "/// All Atspi / Qspi event types encapsulate `AtspiEvent`.",
-            "/// This trait allows access to the underlying item.",
-        ],
-    ))),
     (Some("pub enum DocumentEvents {"), CmtOrItem((
         dist: 1,
         doc: [
@@ -170,30 +163,6 @@
             "/// |Keyboard|Modifiers|    |previous_modifiers|current_modifiers|    |properties|",
         ],
     ))),
-    (Some("pub fn enabled(&self) -> bool {"), CmtOrItem((
-        dist: 1,
-        doc: [
-            "    //TODO checkme please!!",
-        ],
-    ))),
-    (Some("pub struct ActiveDescendantChangedEvent(AtspiEvent);"), CmtOrItem((
-        dist: 1,
-        doc: [
-            "// TODO Check my impl please.",
-        ],
-    ))),
-    (Some("pub fn text(&self) -> &OwnedValue {"), CmtOrItem((
-        dist: 1,
-        doc: [
-            "    // TODO zvariant::Value -> String me please",
-        ],
-    ))),
-    (Some("pub struct WindowPropertyChangeEvent(AtspiEvent);"), CmtOrItem((
-        dist: 2,
-        doc: [
-            "//TODO Check my impl with bus signal",
-        ],
-    ))),
     (Some("pub fn x(&self) -> i32 {"), CmtOrItem((
         dist: 1,
         doc: [
@@ -206,13 +175,6 @@
         doc: [
             "    /// Y-coordinate of mouse button event",
             "    /// Coordinates are absolute, with the origin in the top-left of the \'root window\'",
-        ],
-    ))),
-    (Some("pub fn button(&self) -> &str {"), CmtOrItem((
-        dist: 1,
-        doc: [
-            "    /// Button being used 1..n",
-            "    /// The suffix may either be \'p\', for pressed, or \'r\' for rekeased.",
         ],
     ))),
 ]

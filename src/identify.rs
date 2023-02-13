@@ -792,19 +792,6 @@ pub mod object {
 			self.0.any_data()
 		}
 	}
-	impl TryFrom<Event> for PropertyChangeEvent {
-		type Error = AtspiError;
-		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::PropertyChange(
-				inner_event,
-			))) = event
-			{
-				Ok(inner_event)
-			} else {
-				Err(AtspiError::Conversion("Invalid type"))
-			}
-		}
-	}
 
 	#[rustfmt::skip]
     impl TryFrom<Event> for PropertyChangeEvent {
@@ -872,19 +859,6 @@ pub mod object {
 			self.0.any_data()
 		}
 	}
-	impl TryFrom<Event> for ChildrenChangedEvent {
-		type Error = AtspiError;
-		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::ChildrenChanged(
-				inner_event,
-			))) = event
-			{
-				Ok(inner_event)
-			} else {
-				Err(AtspiError::Conversion("Invalid type"))
-			}
-		}
-	}
 
 	#[rustfmt::skip]
     impl TryFrom<Event> for ChildrenChangedEvent {
@@ -938,19 +912,6 @@ pub mod object {
 		#[must_use]
 		pub fn child(&self) -> &zbus::zvariant::Value<'_> {
 			self.0.any_data()
-		}
-	}
-	impl TryFrom<Event> for ActiveDescendantChangedEvent {
-		type Error = AtspiError;
-		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(
-				ObjectEvents::ActiveDescendantChanged(inner_event),
-			)) = event
-			{
-				Ok(inner_event)
-			} else {
-				Err(AtspiError::Conversion("Invalid type"))
-			}
 		}
 	}
 
@@ -1100,19 +1061,6 @@ pub mod object {
 		#[must_use]
 		pub fn text(&self) -> &zbus::zvariant::Value<'_> {
 			self.0.any_data()
-		}
-	}
-	impl TryFrom<Event> for TextChangedEvent {
-		type Error = AtspiError;
-		fn try_from(event: Event) -> Result<Self, Self::Error> {
-			if let Event::Interfaces(EventInterfaces::Object(ObjectEvents::TextChanged(
-				inner_event,
-			))) = event
-			{
-				Ok(inner_event)
-			} else {
-				Err(AtspiError::Conversion("Invalid type"))
-			}
 		}
 	}
 
