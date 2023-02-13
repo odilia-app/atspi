@@ -2395,7 +2395,7 @@ pub mod keyboard {
 	///
 	/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
 	/// |:--|---|---|---|---|---|---|
-	/// |Keyboard|Modifiers|    |previous_modifiers|current_modifiers|    |properties|
+	/// |Keyboard|Modifiers|    |`previous_modifiers` | `current_modifiers`|    | properties|
 	#[derive(Clone, Debug)]
 	pub enum KeyboardEvents {
 		Modifiers(ModifiersEvent),
