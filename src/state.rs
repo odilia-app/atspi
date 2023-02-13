@@ -278,7 +278,7 @@ impl StateSet {
         self.0.iter()
     }
 
-#[must_use]
+    #[must_use]
     /// Checks if all states are unset.
     pub fn is_empty(self) -> bool {
         self.0.is_empty()
