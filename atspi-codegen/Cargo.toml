@@ -10,8 +10,9 @@ argh = "0.1.9"
 ron = "0.8"
 serde = { version = "1", features = ["derive"] }
 serde-xml-rs = "0.6.0"
-zbus = { version = "3.0.0", default-features = false, features = ["xml", "tokio"] }
+zbus = { version = "3.9.0", default-features = false, features = ["xml", "tokio"] }
 
 [dev-dependencies]
 env_logger = "0.10.0"
 test-log = "0.2.11"
+temp-file = "0.1.7"

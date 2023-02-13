@@ -260,17 +260,18 @@ fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> Strin
     let sig_name_event = event_ident(signal.name());
     let matcher = generate_try_from_event_impl_match_statement(signal, interface);
     format!(
-        "	#[rustfmt::skip]
-        impl TryFrom<Event> for {sig_name_event} {{
-		type Error = AtspiError;
-		fn try_from(event: Event) -> Result<Self, Self::Error> {{
+        "#[rustfmt::skip]
+    impl TryFrom<Event> for {sig_name_event} {{
+	type Error = AtspiError;
+	fn try_from(event: Event) -> Result<Self, Self::Error> {{
        {matcher}
 				Ok(inner_event)
 			}} else {{
 				Err(AtspiError::Conversion(\"Invalid type\"))
 			}}
 		}}
-	}}"
+	}}
+    "
     )
 }
 
@@ -443,7 +444,9 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
     format!(
         "
 #[allow(clippy::module_name_repetitions)]
+{STRIPPER_IGNORE_START}
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
+{STRIPPER_IGNORE_STOP}
 pub mod {mod_name} {{
 	use atspi_macros::TrySignify;
 	use crate::{{
@@ -607,14 +610,8 @@ struct Args {
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-struct ItemLevel {
+struct CmtOrItem {
     // distance to next 'identifier' / string we can associate the docs with
-    dist: u8,
-    doc: Vec<String>,
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-struct Comment {
     dist: u8,
     doc: Vec<String>,
 }
@@ -627,30 +624,29 @@ struct ModuleLevel {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 enum DocType {
     Module(ModuleLevel),
-    Item(ItemLevel),
-    Comment(Comment),
+    CmtOrItem(CmtOrItem),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 enum ParseState {
+    #[default]
     None,
-    Comment,
+    CmtOrItem,
     ModuleLevel,
-    ItemLevel,
-    IgnoreBlock,
+    IgnoreBlock(Box<ParseState>),
 }
 
-/// Reads from the source file into a Vec.
+/// Collects from the source file into a Vec.
 /// HashMap does not (necessarilly) preserve order of insertion.  Hence Vec.
-fn read_file_to_vec(path: &Path) -> Vec<(Option<String>, DocType)> {
+fn read_file_to_vec(src: &Path) -> Vec<(Option<String>, DocType)> {
     let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
-    let mut saved = OpenOptions::new()
+    let mut src = OpenOptions::new()
         .read(true)
-        .open(path)
+        .open(src)
         .expect("could not open save file");
 
     let mut buf = String::new();
-    let n = saved.read_to_string(&mut buf).expect("could not read to file to buf");
+    let n = src.read_to_string(&mut buf).expect("could not read source to buf");
     println!("read {n} bytes to buffer.");
 
     let mut docblock: Vec<String> = Vec::new();
@@ -665,83 +661,51 @@ fn read_file_to_vec(path: &Path) -> Vec<(Option<String>, DocType)> {
                     docblock.push(line.into());
                     continue;
                 }
-                line if line.trim().starts_with("///") => {
-                    docstate = ParseState::ItemLevel;
-                    docblock.push(line.into());
-                    continue;
-                }
-                line if line.trim().starts_with("//") => {
+                line if line.trim().starts_with("///") | line.trim().starts_with("//") => {
                     if line.contains(STRIPPER_IGNORE_START) {
-                        docstate = ParseState::IgnoreBlock;
+                        docstate = ParseState::IgnoreBlock(Box::new(ParseState::None));
                         continue;
                     }
-                    docstate = ParseState::Comment;
+                    docstate = ParseState::CmtOrItem;
                     docblock.push(line.into());
                     continue;
                 }
-                _ => {
-                    continue;
-                }
+                _ => continue,
             },
 
             ParseState::ModuleLevel => {
-                // As long as `line` starts with '//' it is still comment. a mixed block is also a block.
-                if line.trim().starts_with("//") {
-                    docblock.push(line.into());
-                } else {
-                    docstate = ParseState::None;
-                    let dt = DocType::Module(ModuleLevel { doc: docblock.clone() });
-                    docblock.clear();
-                    docvec.push((None, dt));
+                if line.contains(STRIPPER_IGNORE_START) {
+                    docstate = ParseState::IgnoreBlock(Box::new(ParseState::ModuleLevel));
+                    continue;
                 }
+                gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
                 continue;
             }
 
-            ParseState::ItemLevel => {
-                // As long as `line` starts with '//' it is still comment. a mixed block is also a block.
-                if line.trim().starts_with("//") {
-                    docblock.push(line.into());
-                } else {
-                    if line.trim().starts_with("#[") {
-                        counter += 1;
-                        continue;
-                    }
-                    if !line.trim().is_empty() {
-                        let docitem = ItemLevel { dist: counter, doc: docblock.clone() };
-                        docblock.clear();
-                        counter = 0;
-                        docstate = ParseState::None;
-                        let dt = DocType::Item(docitem);
-                        docvec.push((Some(line.trim().into()), dt));
-                        continue;
-                    }
-                }
-            }
-
-            ParseState::Comment => {
-                if line.trim().starts_with("//") {
-                    docblock.push(line.into());
-                } else if line.trim().starts_with("#[") || line.trim().is_empty() {
+            ParseState::CmtOrItem => {
+                if line.contains(STRIPPER_IGNORE_START) {
+                    docstate = ParseState::IgnoreBlock(Box::new(ParseState::CmtOrItem));
                     counter += 1;
-                } else if line.trim() == "{" {
-                    // A single curly brace or an attribute macro is too common to be an 'anchor'
-                    docstate = ParseState::None;
-                    docblock.clear();
-                    counter = 0;
-                } else if !line.trim().is_empty() {
-                    let docitem = Comment { dist: counter, doc: docblock.clone() };
-                    let dt = DocType::Comment(docitem);
-                    docvec.push((Some(line.trim().into()), dt));
-                    docblock.clear();
-                    counter = 0;
-                    docstate = ParseState::None;
+                    continue;
                 }
+                gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
                 continue;
             }
 
-            ParseState::IgnoreBlock => {
-                if line.contains(STRIPPER_IGNORE_STOP) {
-                    docstate = ParseState::None;
+            ParseState::IgnoreBlock(ref origin) => {
+                match **origin {
+                    ParseState::None => {
+                        if line.contains(STRIPPER_IGNORE_STOP) {
+                            docstate = (**origin).clone();
+                        }
+                    }
+                    ParseState::CmtOrItem | ParseState::ModuleLevel => {
+                        counter += 1;
+                        if line.contains(STRIPPER_IGNORE_STOP) {
+                            docstate = (**origin).clone();
+                        }
+                    }
+                    _ => unreachable!(),
                 }
                 continue;
             }
@@ -750,37 +714,75 @@ fn read_file_to_vec(path: &Path) -> Vec<(Option<String>, DocType)> {
     docvec
 }
 
-// Tries to match strings within source and return the docs to their associated 'lines'.
-// If this does not work, we might want to use `syn`.
+fn gather_module_level_doc_line(
+    line: &str,
+    docblock: &mut Vec<String>,
+    docstate: &mut ParseState,
+    docvec: &mut Vec<(Option<String>, DocType)>,
+) {
+    // As long as `line` starts with '//' it is still comment. a mixed block is also a block.
+    if line.trim().starts_with("//") {
+        docblock.push(line.into());
+    } else {
+        *docstate = ParseState::None;
+        let dt = DocType::Module(ModuleLevel { doc: docblock.clone() });
+        docblock.clear();
+        docvec.push((None, dt));
+    }
+}
+
+fn gather_doc_or_cmt(
+    line: &str,
+    counter: &mut u8,
+    docblock: &mut Vec<String>,
+    docstate: &mut ParseState,
+    docvec: &mut Vec<(Option<String>, DocType)>,
+) {
+    if line.trim().starts_with("//") {
+        docblock.push(line.into());
+    } else if line.trim().starts_with("#[") || line.trim().is_empty() {
+        *counter += 1;
+        return;
+    } else if line.trim() == "{" || line.trim() == "}" {
+        // A single curly brace is too common to uniquely reference to as a position.
+        *docstate = ParseState::None;
+        docblock.clear();
+        *counter = 0;
+        return;
+    } else if !line.trim().is_empty() {
+        let docitem = CmtOrItem { dist: *counter, doc: docblock.clone() };
+        let dt = DocType::CmtOrItem(docitem);
+        docvec.push((Some(line.trim().into()), dt));
+
+        docblock.clear();
+        *counter = 0;
+        *docstate = ParseState::None;
+    }
+}
+
 fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
     let mut source_string = String::new();
     let mut remains = docvec.clone();
 
-    {
-        let mut source = OpenOptions::new()
-            .read(true)
-            .open(path)
-            .expect("could not open save file");
+    OpenOptions::new()
+        .read(true)
+        .open(path)
+        .expect("could not open sources")
+        .read_to_string(&mut source_string)
+        .expect("could not read source file to string");
 
-        let _ = source
-            .read_to_string(&mut source_string)
-            .expect("could not read source file to string");
-    }
-
-    // Make Vec<String>s from whole String.
+    // Create Vec<String>s from single String.
     let source_lines: Vec<String> = source_string.lines().map(|s| s.to_string()).collect();
     let mut source_and_doc_lines: Vec<String> = source_lines.clone();
 
-    // For each key in map, look for lines in Vec that contain that key.
-    // if so, insert docs that point, honoring distance and taking in account offset,
+    // For each key in `docvec`, look in `source_lines` for a line that contain that key.
+    // if so, insert docs that point, honoring distance,
     for (k, v) in docvec {
         if k.is_none() {
             if let DocType::Module(ModuleLevel { ref doc }) = v {
                 source_and_doc_lines.splice(0..0, doc.iter().cloned());
                 remains.retain(|tup| *tup != (k.clone(), v.clone()));
                 continue;
-            } else {
-                unreachable!("k == None implies ModuleLevel docs.");
             }
         }
 
@@ -792,44 +794,38 @@ fn reinstate_docs(path: &Path, docvec: Vec<(Option<String>, DocType)>) {
                     .position(|line| (*line).contains(&pat))
                     .expect("source_lines contains pat, therefore source_and_doc_lines does too");
                 match v {
-                    DocType::Item(ItemLevel { dist, ref doc }) => {
+                    DocType::CmtOrItem(CmtOrItem { dist, ref doc }) => {
                         let i = idx - dist as usize;
                         source_and_doc_lines.splice(i..i, doc.iter().cloned());
                         remains.retain(|tup| *tup != (k.clone(), v.clone()));
                     }
-                    DocType::Comment(Comment { dist, ref doc }) => {
-                        let i = idx - dist as usize;
-                        source_and_doc_lines.splice(i..i, doc.iter().cloned());
-                        remains.retain(|tup| *tup != (k.clone(), v.clone()));
-                    }
-                    _ => {
-                        unreachable!("k == None implies ModuleLevel docs.");
-                    }
+                    _ => unreachable!("k == None implies ModuleLevel docs."),
                 }
-                continue;
             }
         }
     }
 
-    // collect all strings in vec
-    let new_source: String = source_and_doc_lines
-        .into_iter()
-        .map(|line| if !line.ends_with('\n') { line + "\n" } else { line })
+    // collect all strings in vec, adding a newline to each but the last.
+    let last = source_and_doc_lines.last().unwrap().clone();
+    let len = source_and_doc_lines.len();
+    let mut new_source: String = source_and_doc_lines[..len - 1]
+        .iter()
+        .map(|line| line.to_owned() + "\n")
         .collect();
+    new_source += &last;
 
     // write string to source
     std::fs::write(path, new_source).expect("Unable to write file");
 
-    if remains.is_empty() {
-        return;
+    if !remains.is_empty() {
+        println!("The following items could not be reinstated:");
+        println!("{remains:#?}");
+        println!("Number of items not reinstated: {}", remains.len());
     }
-    println!("The following items could not be reinstated:");
-    println!("{remains:#?}");
-    println!("Number of items not reinstated: {}", remains.len());
 }
 
-/// Writes the map to the path
-fn write_map_to_file(docvec: &Vec<(Option<String>, DocType)>, path: &Path) {
+/// Writes the serialized docs to the path
+fn write_serialized_docs_to_file(docvec: &Vec<(Option<String>, DocType)>, path: &Path) {
     // open file
     let save_comments_file = File::create(path).expect("comments file should open");
     // Configure printstyle
@@ -909,7 +905,6 @@ fn xml_to_src_file(path: &Path) {
     let buf = generated.as_bytes();
 
     let mut source_file = File::create(path).expect("error opening source file");
-
     source_file
         .write_all(buf)
         .expect("error while writing to source file");
@@ -965,7 +960,7 @@ pub fn main() {
 
             print!("saving.. ");
             let path = crate_root.join(comments_file_name);
-            write_map_to_file(&docvec, &path);
+            write_serialized_docs_to_file(&docvec, &path);
             println!("done.");
         }
 
@@ -992,5 +987,506 @@ pub fn main() {
             }
         }
         _ => println!("unsupported combination of switches"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Test line parsing of module level docs, per line.
+    #[test]
+    fn module_level_space() {
+        let line = "//! ";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::None;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn module_level_preceding_spaces() {
+        let line = "    //! ";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::ModuleLevel;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn module_level_preceding_tab() {
+        let line = "\t//! ";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::ModuleLevel;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn module_level_preceding_characters() {
+        let line = "shouldnotparse//! ";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::ModuleLevel;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_ne!(docblock, v);
+        assert_eq!(docblock, Vec::<String>::new())
+    }
+
+    #[test]
+    fn module_level_heading() {
+        let line = "//! # Heading";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::ModuleLevel;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn module_level_comment() {
+        let line = "//! // comment";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::ModuleLevel;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn module_level_nospace() {
+        let line = "//!nospace";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::ModuleLevel;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn module_level_accept_comments() {
+        let line = "// TODO";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::ModuleLevel;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+
+        gather_module_level_doc_line(line, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    /// Test line parsing of comment level docs, per line.
+    #[test]
+    fn comment_level_empty_comment() {
+        let line = "//";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn comment_level_empty_preceding_spaces() {
+        let line = "      //";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn comment_level_empty_preceding_tab() {
+        let line = "\t//";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn comment_level_empty_repeat() {
+        let line = "//////////////"; // still a valid comment
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        let v: Vec<String> = vec![String::from(line)];
+        assert_eq!(docblock, v);
+    }
+
+    #[test]
+    fn comment_level_attribute() {
+        let line = "#[SomeAttribute(attribute_param)]";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        assert_eq!(docblock, Vec::<String>::new());
+        assert_eq!(counter, 1);
+    }
+
+    #[test]
+    fn comment_level_newline() {
+        let line = "\n";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        assert_eq!(docblock, Vec::<String>::new());
+        assert_eq!(counter, 1);
+    }
+
+    #[test]
+    fn comment_level_single_open_curly_brace() {
+        let line = "{";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        assert_eq!(docblock, Vec::<String>::new());
+        assert_eq!(counter, 0);
+        assert_eq!(docstate, ParseState::None);
+        assert!(docvec.is_empty());
+    }
+
+    #[test]
+    fn comment_level_single_closing_curly_brace() {
+        let line = "}";
+
+        let mut docblock: Vec<String> = Vec::new();
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        assert_eq!(docblock, Vec::<String>::new());
+        assert_eq!(counter, 0);
+        assert_eq!(docstate, ParseState::None);
+        assert!(docvec.is_empty());
+    }
+
+    #[test]
+    fn comment_level_single_item() {
+        let line = "pub struct Foo";
+
+        // supposedly previously gathered comments
+        let mut docblock: Vec<String> =
+            vec![String::from("// Foobar"), String::from("// Touxdoux")];
+        let mut docstate = ParseState::CmtOrItem;
+        let mut docvec: Vec<(Option<String>, DocType)> = Vec::new();
+        let mut counter = 0;
+
+        gather_doc_or_cmt(line, &mut counter, &mut docblock, &mut docstate, &mut docvec);
+        assert_eq!(docblock, Vec::<String>::new());
+        assert_eq!(counter, 0);
+        assert_eq!(docstate, ParseState::None);
+
+        let docitem = CmtOrItem {
+            dist: counter,
+            doc: vec![String::from("// Foobar"), String::from("// Touxdoux")],
+        };
+        let dt = DocType::CmtOrItem(docitem);
+        let dv: Vec<(Option<String>, DocType)> = vec![(Some(line.to_owned()), dt)];
+
+        assert_eq!(docvec, dv);
+    }
+
+    #[test]
+    fn ignore_block_gather_nothing() {
+        let t = temp_file::with_contents(
+            br#"
+        // IgnoreBlock start
+        /// # Examples
+        ///
+        /// ```
+        /// use atspi::{events::EventInterfaces, Event};
+        /// # use std::time::Duration;
+        /// use tokio_stream::StreamExt;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {}
+        /// ```
+        // IgnoreBlock stop  
+        #[derive(Clone, Debug)]
+        pub enum ObjectEvents {
+        "#,
+        );
+
+        let empty: Vec<(Option<String>, DocType)> = Vec::new();
+
+        let gathered = read_file_to_vec(t.path());
+        assert_eq!(gathered, empty);
+    }
+
+    #[test]
+    fn item_level_single_line_before_ignores() {
+        let t = temp_file::with_contents(
+            br#"
+        /// Single line doc comment
+        // IgnoreBlock start
+        /// # Examples
+        // IgnoreBlock stop  
+        #[derive(Clone, Debug)]
+        pub enum ObjectEvents {
+        "#,
+        );
+
+        let line: Vec<String> = vec!["        /// Single line doc comment".to_string()];
+        let dt: DocType = DocType::CmtOrItem(CmtOrItem { dist: 4, doc: line });
+        let dt_single_line: Vec<(Option<String>, DocType)> =
+            vec![(Some("pub enum ObjectEvents {".to_string()), dt)];
+
+        let gathered = read_file_to_vec(t.path());
+        assert_eq!(gathered, dt_single_line);
+    }
+
+    #[test]
+    fn reinstale_single_line_before_ignores() {
+        let original = temp_file::with_contents(
+            br#"
+        /// Single line doc comment
+        // IgnoreBlock start
+        /// # Examples
+        // IgnoreBlock stop  
+        #[derive(Clone, Debug)]
+        pub enum ObjectEvents {
+            "#,
+        );
+
+        let generated = temp_file::with_contents(
+            br#"
+        // IgnoreBlock start
+        /// # Examples
+        // IgnoreBlock stop  
+        #[derive(Clone, Debug)]
+        pub enum ObjectEvents {
+            "#,
+        );
+
+        let gathered = read_file_to_vec(original.path());
+
+        reinstate_docs(generated.path(), gathered);
+        assert_eq!(
+            std::fs::read_to_string(original.path()).unwrap(),
+            std::fs::read_to_string(generated.path()).unwrap()
+        );
+    }
+
+    #[test]
+    fn reinstale_multiple_lines() {
+        let original = temp_file::with_contents(
+            br#"
+        /// first line of item level docs
+        /// second
+        /// third
+        pub enum ObjectEvents {
+            "#,
+        );
+
+        let generated = temp_file::with_contents(
+            br#"
+        pub enum ObjectEvents {
+            "#,
+        );
+
+        let gathered = read_file_to_vec(original.path());
+
+        reinstate_docs(generated.path(), gathered);
+        assert_eq!(
+            std::fs::read_to_string(original.path()).unwrap(),
+            std::fs::read_to_string(generated.path()).unwrap()
+        );
+    }
+
+    #[test]
+    fn reinstale_two_blocks_multiple_lines() {
+        let original = temp_file::with_contents(
+            br#"
+        /// first line of item level docs
+        /// second
+        /// third
+        pub enum ObjectEvents {
+
+        /// first line of item level docs
+        /// second
+        /// third
+        pub enum KeyboardEvents {
+            "#,
+        );
+
+        let generated = temp_file::with_contents(
+            br#"
+        pub enum ObjectEvents {
+
+        pub enum KeyboardEvents {
+            "#,
+        );
+
+        let gathered = read_file_to_vec(original.path());
+
+        reinstate_docs(generated.path(), gathered);
+        assert_eq!(
+            std::fs::read_to_string(original.path()).unwrap(),
+            std::fs::read_to_string(generated.path()).unwrap()
+        );
+    }
+
+    #[test]
+    fn dont_reinstale_at_common_curly() {
+        let original = temp_file::with_contents(
+            br#"
+        /// first line of item level docs
+        /// second
+        /// third
+                 {
+            "#,
+        );
+
+        let generated = temp_file::with_contents(
+            br#"
+
+                 {
+            "#,
+        );
+
+        let gathered = read_file_to_vec(original.path());
+
+        reinstate_docs(generated.path(), gathered);
+        assert_eq!(
+            r#"
+
+                 {
+            "#
+            .to_owned(),
+            std::fs::read_to_string(generated.path()).unwrap()
+        );
+    }
+
+    #[test]
+    fn reinstale_item_level() {
+        let original = temp_file::with_contents(
+            br#"        /// Important item level docs
+        /// describing the item
+        /// what it is, when to use, how to use
+        
+        pub struct PeculiarItem
+            "#,
+        );
+
+        let generated = temp_file::with_contents(
+            br#"        
+        pub struct PeculiarItem
+            "#,
+        );
+
+        let gathered = read_file_to_vec(original.path());
+        let dt: DocType = DocType::CmtOrItem(CmtOrItem {
+            dist: 1,
+            doc: vec![
+                "        /// Important item level docs".to_string(),
+                "        /// describing the item".to_string(),
+                "        /// what it is, when to use, how to use".to_string(),
+            ],
+        });
+        let docvec: Vec<(Option<String>, DocType)> =
+            vec![(Some("pub struct PeculiarItem".to_owned()), dt)];
+        assert_eq!(gathered, docvec);
+
+        reinstate_docs(generated.path(), gathered);
+        assert_eq!(
+            std::fs::read_to_string(original.path()).unwrap(),
+            std::fs::read_to_string(generated.path()).unwrap()
+        );
+    }
+
+    #[test]
+    fn reinstale_module_level() {
+        let original = temp_file::with_contents(
+            b"\t//! Important module level docs\n\t//! describing the module\n\t//! how it works and what is in it\n\n\tuse std::collections::SomeSet;", 
+        );
+        let generated = temp_file::with_contents(b"\n\tuse std::collections::SomeSet;");
+
+        let gathered = read_file_to_vec(original.path());
+        reinstate_docs(generated.path(), gathered);
+        assert_eq!(
+            std::fs::read_to_string(original.path()).unwrap(),
+            std::fs::read_to_string(generated.path()).unwrap()
+        );
+    }
+
+    #[test]
+    fn reinstale_nothing() {
+        let original = temp_file::with_contents(
+            br#"
+            
+            use std::collections::SomeSet;
+            "#,
+        );
+
+        let generated = temp_file::with_contents(
+            br#"
+            
+            use std::collections::SomeSet;
+            "#,
+        );
+
+        let gathered = read_file_to_vec(original.path());
+        reinstate_docs(generated.path(), gathered);
+        assert_eq!(
+            std::fs::read_to_string(original.path()).unwrap(),
+            std::fs::read_to_string(generated.path()).unwrap()
+        );
     }
 }
