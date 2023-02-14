@@ -30,7 +30,7 @@ impl AccessibilityBus {
 		Self::connect(addr).await
 	}
 
-	/// Returns an [`AccessibleBus`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
+	/// Returns an [`AccessibilityBus`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
 	/// on the accessibility bus.
 	///
 	/// You may want to call this if you have the accessibility bus address and want a connection with
