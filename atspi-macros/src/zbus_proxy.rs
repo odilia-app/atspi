@@ -217,7 +217,7 @@ pub fn create_proxy(
                     _ => None,
                 })
                 .unwrap_or_else(|| {
-                    pascal_case(if is_property && has_inputs {
+                    from_snake_case_to_upper_camel_case(if is_property && has_inputs {
                         assert!(method_name.starts_with("set_"));
                         &method_name[4..]
                     } else {
