@@ -73,7 +73,7 @@ impl Connection {
 	/// Monitor this stream to be notified and receive events on the a11y bus.
 	///
 	/// # Example
-	/// B asic use:
+	/// Basic use:
 	/// ```
 	/// use atspi::events::EventInterfaces;
 	/// use atspi::identify::object::ObjectEvents;
@@ -101,7 +101,6 @@ impl Connection {
 	///
 	///     let events = atspi.event_stream();
 	///     futures_lite::pin!(events);
-	/// #   
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
 	/// #       .arg("call")
