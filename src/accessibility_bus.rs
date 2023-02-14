@@ -6,7 +6,7 @@ use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
 /// A connection to the at-spi bus
 pub struct AccessibilityBus {
 	registry: RegistryProxy<'static>,
-  dbus_proxy: DBusProxy<'static>,
+	dbus_proxy: DBusProxy<'static>,
 }
 
 impl AccessibilityBus {
@@ -45,7 +45,7 @@ impl AccessibilityBus {
 		tracing::debug!("Connecting to a11y bus");
 		let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
 		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
-        
+
 		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
 		let registry = RegistryProxy::new(&bus).await?;
 		let dbus_proxy = DBusProxy::new(registry.connection()).await?;

@@ -24,7 +24,6 @@ pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("
 pub const CACHE_ADD: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
-
 use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
