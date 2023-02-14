@@ -31,7 +31,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -114,7 +114,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -145,7 +145,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -176,7 +176,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -207,7 +207,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -238,7 +238,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -269,7 +269,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -300,7 +300,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -331,7 +331,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -362,7 +362,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -393,7 +393,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -424,7 +424,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -455,7 +455,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -486,7 +486,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -517,7 +517,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -548,7 +548,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -579,7 +579,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -610,7 +610,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -641,7 +641,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -672,7 +672,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -703,7 +703,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -734,7 +734,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -765,7 +765,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1420,7 +1420,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1497,7 +1497,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1528,7 +1528,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1559,7 +1559,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1590,7 +1590,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1621,7 +1621,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1652,7 +1652,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1683,7 +1683,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1714,7 +1714,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1745,7 +1745,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1776,7 +1776,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1807,7 +1807,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1838,7 +1838,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1869,7 +1869,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1900,7 +1900,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1931,7 +1931,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1962,7 +1962,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1993,7 +1993,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2024,7 +2024,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2055,7 +2055,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2569,7 +2569,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2614,7 +2614,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2645,7 +2645,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2676,7 +2676,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2842,7 +2842,7 @@ pub mod keyboard {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2881,7 +2881,7 @@ pub mod keyboard {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2975,7 +2975,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3024,7 +3024,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3055,7 +3055,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3086,7 +3086,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3117,7 +3117,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3148,7 +3148,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3334,7 +3334,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3385,7 +3385,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3416,7 +3416,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3447,7 +3447,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3478,7 +3478,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3509,7 +3509,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3540,7 +3540,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3744,7 +3744,7 @@ pub mod focus {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3783,7 +3783,7 @@ pub mod focus {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
