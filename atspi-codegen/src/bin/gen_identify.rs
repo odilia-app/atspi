@@ -357,7 +357,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> Stri
     ///
     /// #[tokio::main]
     /// async fn main() {{
-    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
     ///     let events = atspi.event_stream();
     /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
     ///     tokio::pin!(events);
@@ -534,7 +534,7 @@ fn generate_enum_associated_example(iface_name: &str) -> String {
     ///
     /// #[tokio::main]
     /// async fn main() {{
-    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
     ///     let events = atspi.event_stream();
     /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
     ///     tokio::pin!(events);
