@@ -425,6 +425,48 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
 	")
 }
 
+fn generate_match_rule_vec_impl(interface: &Interface) -> String {
+    let iface_name = iface_to_enum_name(interface);
+    let enum_name = events_ident(iface_name);
+    let signal_variant_match_rules = interface
+        .signals()
+        .iter()
+        .map(|signal| {
+            let sig_event_name = event_ident(signal.name());
+            format!("<{sig_event_name} as HasMatchRule>::match_rule()?")
+        })
+        .collect::<Vec<String>>()
+        .join(",\n");
+    format!(
+        "	impl HasMatchRules for {enum_name} {{
+		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {{
+			Ok(vec![
+				{signal_variant_match_rules}
+			])
+		}}
+	}}"
+    )
+}
+
+fn generate_match_rule_impl(signal: &Signal, interface: &Interface) -> String {
+    let sig_name_event = event_ident(signal.name());
+    let member_string = signal.name();
+    let iface_long_name = interface.name();
+    format!(
+        "	impl HasMatchRule for {sig_name_event} {{
+		const INTERFACE: &'static str = \"{iface_long_name}\";
+		const MEMBER: &'static str = \"{member_string}\";
+		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {{
+			Ok(zbus::MatchRule::builder()
+				.msg_type(zbus::MessageType::Signal)
+				.interface(<Self as HasMatchRule>::INTERFACE)?
+				.member(<Self as HasMatchRule>::MEMBER)?
+				.build())
+		}}
+	}}"
+    )
+}
+
 fn generate_mod_from_iface(iface: &Interface) -> String {
     let mod_name = iface_name(iface).to_lowercase();
     let enums = generate_enum_from_iface(iface);
@@ -441,6 +483,13 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .collect::<Vec<String>>()
         .join("\n");
     let try_froms = generate_try_from_atspi_event(iface);
+    let match_rule_impls = iface
+        .signals()
+        .iter()
+        .map(|signal| generate_match_rule_impl(signal, iface))
+        .collect::<Vec<String>>()
+        .join("\n");
+    let match_rule_vec_impl = generate_match_rule_vec_impl(iface);
     format!(
         "
 #[allow(clippy::module_name_repetitions)]
@@ -452,15 +501,17 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{AtspiEvent, GenericEvent, EventInterfaces}},
+		events::{{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasMatchRules}},
 		signify::Signified,
 	}};
 	use zbus;
 	use zbus::zvariant::OwnedValue;
 	{enums}
+	{match_rule_vec_impl}
 	{structs}
 	{impls}
 	{try_froms}
+	{match_rule_impls}
 }}
 	"
     )
