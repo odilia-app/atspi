@@ -290,14 +290,14 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct EventListener {
+pub struct EventListeners {
 	pub bus_name: OwnedUniqueName,
 	pub path: String,
 }
 
 #[test]
 fn test_event_listener_signature() {
-	assert_eq!(EventListener::signature(), "(ss)");
+	assert_eq!(EventListeners::signature(), "(ss)");
 }
 
 /// Covers both `EventListener` events.
@@ -311,18 +311,18 @@ pub enum EventListenerEvents {
 /// An event that is emitted by the regostry daemon to signal that an event has been deregistered
 /// to no longer listen for.
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body = "EventListener")]
+#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerDeregisteredEvent {
 	pub(crate) message: Arc<Message>,
-	pub body: EventListener,
+	pub body: EventListeners,
 }
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body = "EventListener")]
+#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerRegisteredEvent {
 	pub(crate) message: Arc<Message>,
-	pub body: EventListener,
+	pub body: EventListeners,
 }
 
 /// An event that is emitted when the registry daemon has started.

@@ -83,7 +83,6 @@ impl AccessibilityBus {
 	///
 	///     let events = atspi.event_stream();
 	///     futures_lite::pin!(events);
-	/// #   
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
 	/// #       .arg("call")
