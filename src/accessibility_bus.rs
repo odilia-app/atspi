@@ -1,32 +1,15 @@
 use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{fdo::DBusProxy, zvariant::Signature, Address, MatchRule, MessageStream, MessageType};
-
-// Event body signatures: These outline the event specific deserialized event types.
-// Safety: These are evaluated at compile time.
-// ----
-// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
-// -  Cache : RemoveAccessible
-// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
-//
-// ATSPI- and QSPI both describe the generic events. These can be converted into
-// specific signal types with TryFrom implementations. See crate::[`identify`]
-//  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
-//  CACHE_ADD and *_REMOVE have very different types
-pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
-pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
-pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-pub const CACHE_ADD: Signature<'_> =
-	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
 
 /// A connection to the at-spi bus
-pub struct Connection {
+pub struct AccessibilityBus {
 	registry: RegistryProxy<'static>,
+  dbus_proxy: DBusProxy<'static>,
 }
 
-impl Connection {
+impl AccessibilityBus {
 	/// Open a new connection to the bus
 	#[tracing::instrument]
 	pub async fn open() -> zbus::Result<Self> {
@@ -47,7 +30,7 @@ impl Connection {
 		Self::connect(addr).await
 	}
 
-	/// Returns a  [`Connection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
+	/// Returns an [`AccessibleBus`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
 	/// on the accessibility bus.
 	///
 	/// You may want to call this if you have the accessibility bus address and want a connection with
@@ -62,10 +45,12 @@ impl Connection {
 		tracing::debug!("Connecting to a11y bus");
 		let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
 		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
+        
 		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
 		let registry = RegistryProxy::new(&bus).await?;
+		let dbus_proxy = DBusProxy::new(registry.connection()).await?;
 
-		Ok(Self { registry })
+		Ok(Self { registry, dbus_proxy })
 	}
 
 	/// Stream yielding all `Event` types.
@@ -93,7 +78,7 @@ impl Connection {
 	/// # }
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
-	///     let atspi = atspi::Connection::open().await?;
+	///     let atspi = atspi::AccessibilityBus::open().await?;
 	///     atspi.register_events(ObjectEvents::match_rules().unwrap()).await?;
 	///
 	///     let events = atspi.event_stream();
@@ -161,7 +146,7 @@ impl Connection {
 	///   events::HasMatchRule,
 	/// };
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::Connection::open().await.unwrap();
+	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
 	/// connection.register_event(StateChangedEvent::match_rule().unwrap()).await.unwrap();
 	/// # })
 	/// ```
@@ -171,8 +156,7 @@ impl Connection {
 	/// This function may return an error if it is unable to serialize the variant of the enum that has been passed (should never happen), or
 	/// a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule`].
 	pub async fn register_event(&self, match_rule: MatchRule<'_>) -> Result<(), AtspiError> {
-		let dbus_proxy = DBusProxy::new(self.registry.connection()).await?;
-		dbus_proxy.add_match_rule(match_rule).await?;
+		self.dbus_proxy.add_match_rule(match_rule).await?;
 		Ok(())
 	}
 
@@ -186,7 +170,7 @@ impl Connection {
 	///   events::HasMatchRules,
 	/// };
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::Connection::open().await.unwrap();
+	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
 	/// connection.register_events(ObjectEvents::match_rules().unwrap()).await.unwrap();
 	/// # })
 	/// ```
@@ -204,7 +188,7 @@ impl Connection {
 	}
 }
 
-impl Deref for Connection {
+impl Deref for AccessibilityBus {
 	type Target = RegistryProxy<'static>;
 
 	fn deref(&self) -> &Self::Target {

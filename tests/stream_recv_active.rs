@@ -14,7 +14,7 @@ use crate::common::{a11y_bus_address, create_command, timeout};
 #[test]
 fn recv_active_signal() {
 	let receive_good_event = async {
-		let connection = atspi::Connection::open().await.unwrap();
+		let connection = atspi::AccessibilityBus::open().await.unwrap();
 		let object_match_rule = MatchRule::builder()
 			.msg_type(MessageType::Signal)
 			.interface("org.a11y.atspi.Event.Object")

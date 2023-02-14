@@ -34,8 +34,8 @@ pub mod accessible_ext;
 pub mod text_ext;
 
 // Hand-written connection module
-mod connection;
-pub use connection::*;
+mod accessibility_bus;
+pub use accessibility_bus::*;
 
 mod interfaces;
 pub use interfaces::*;
