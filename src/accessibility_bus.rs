@@ -1,4 +1,9 @@
-use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
+use crate::{
+	bus::BusProxy,
+	events::{Event, HasMatchRule, HasRegistryEventString},
+	registry::RegistryProxy,
+	AtspiError,
+};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
@@ -60,11 +65,8 @@ impl AccessibilityBus {
 	/// # Example
 	/// Basic use:
 	///
-	/// ```
-	/// use atspi::events::{
-	///   EventInterfaces,
-	///   HasMatchRules,
-	/// };
+	/// ```rust
+	/// use atspi::events::EventInterfaces;
 	/// use enumflags2::BitFlag;
 	/// use atspi::identify::object::ObjectEvents;
 	/// use atspi::signify::Signified;
@@ -79,7 +81,7 @@ impl AccessibilityBus {
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
 	///     let atspi = atspi::AccessibilityBus::open().await?;
-	///     atspi.register_events(ObjectEvents::match_rules().unwrap()).await?;
+	///     atspi.register_event::<ObjectEvents>().await?;
 	///
 	///     let events = atspi.event_stream();
 	///     futures_lite::pin!(events);
@@ -140,13 +142,10 @@ impl AccessibilityBus {
 	// TODO: do this without instantiating a DBus proxy evwry time.
 	/// Registers an events as defined in [`crate::identify`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi::{
-	///   identify::object::StateChangedEvent,
-	///   events::HasMatchRule,
-	/// };
+	/// use atspi::identify::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
-	/// connection.register_event(StateChangedEvent::match_rule().unwrap()).await.unwrap();
+	/// connection.register_event::<StateChangedEvent>().await.unwrap();
 	/// # })
 	/// ```
 	///
@@ -154,35 +153,28 @@ impl AccessibilityBus {
 	///
 	/// This function may return an error if it is unable to serialize the variant of the enum that has been passed (should never happen), or
 	/// a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule`].
-	pub async fn register_event(&self, match_rule: MatchRule<'_>) -> Result<(), AtspiError> {
+	pub async fn add_match_rule<T: HasMatchRule>(&self) -> Result<(), AtspiError> {
+		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING)?;
 		self.dbus_proxy.add_match_rule(match_rule).await?;
 		Ok(())
 	}
 
-	/// Register multiple events in one swoop!
-	/// Very useful for registering events of one interface together.
-	/// This can be done like so:
-	///
-	/// ```rust
-	/// use atspi::{
-	///   identify::object::ObjectEvents,
-	///   events::HasMatchRules,
-	/// };
-	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
-	/// connection.register_events(ObjectEvents::match_rules().unwrap()).await.unwrap();
-	/// # })
-	/// ```
-	///
-	/// # Errors
-	/// For failure conditions, see [`Self::register_event`].
-	pub async fn register_events<'a, I>(&self, events: I) -> Result<(), AtspiError>
-	where
-		I: IntoIterator<Item = MatchRule<'a>>,
-	{
-		for event in events {
-			self.register_event(event).await?;
-		}
+	pub async fn add_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
+		self.registry
+			.register_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
+			.await?;
+		Ok(())
+	}
+
+	/// Add an event to the registry daemon.
+	/// This will alert applications to send events to the acessibility bus when they occur.
+	/// Without this, most applications will not provide information about thier state over the bus.
+	/// This is called as part of [`register_event`].
+	pub async fn register_event<T: HasRegistryEventString + HasMatchRule>(
+		&self,
+	) -> Result<(), AtspiError> {
+		self.add_registry_event::<T>().await?;
+		self.add_match_rule::<T>().await?;
 		Ok(())
 	}
 

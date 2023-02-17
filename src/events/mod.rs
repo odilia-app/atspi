@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 use zbus::{
 	names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
 	zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
-	MatchRule, Message,
+	Message,
 };
 
 use crate::{
@@ -412,23 +412,11 @@ pub trait GenericEvent {
 }
 
 pub trait HasMatchRule {
-	const INTERFACE: &'static str;
-	const MEMBER: &'static str;
-	/// Generate match rules for the associated type.
-	///
-	/// # Errors
-	///
-	/// May fail if the [`zbus::MatchRule`] is not able to be built by [`zbus::MatchRuleBuilder`].
-	fn match_rule() -> Result<MatchRule<'static>, AtspiError>;
+	const MATCH_RULE_STRING: &'static str;
 }
 
-pub trait HasMatchRules {
-	/// Generate match rules for the associated types.
-	///
-	/// # Errors
-	///
-	/// May fail if the [`zbus::MatchRule`] is not able to be built by [`zbus::MatchRuleBuilder`] for any variant of the enum this trait is applied to.
-	fn match_rules() -> Result<Vec<MatchRule<'static>>, AtspiError>;
+pub trait HasRegistryEventString {
+	const REGISTRY_EVENT_STRING: &'static str;
 }
 
 impl AtspiEvent {

@@ -426,24 +426,38 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
 }
 
 fn generate_match_rule_vec_impl(interface: &Interface) -> String {
+    let iface_long_name = interface.name();
     let iface_name = iface_to_enum_name(interface);
     let enum_name = events_ident(iface_name);
-    let signal_variant_match_rules = interface
-        .signals()
-        .iter()
-        .map(|signal| {
-            let sig_event_name = event_ident(signal.name());
-            format!("<{sig_event_name} as HasMatchRule>::match_rule()?")
-        })
-        .collect::<Vec<String>>()
-        .join(",\n");
+    let match_rule = zbus::MatchRule::builder()
+				.msg_type(zbus::MessageType::Signal)
+				.interface(iface_long_name).expect("Unable to use an interface: {iface_long_name}")
+				.build();
+    let match_rule_str = match_rule.to_string();
     format!(
-        "	impl HasMatchRules for {enum_name} {{
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {{
-			Ok(vec![
-				{signal_variant_match_rules}
-			])
-		}}
+        "	impl HasMatchRule for {enum_name} {{
+      const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
+	}}"
+    )
+}
+
+fn generate_registry_event_enum_impl(interface: &Interface) -> String {
+    let iface_prefix = iface_name(interface);
+    let iface_name = iface_to_enum_name(interface);
+    let enum_name = events_ident(iface_name);
+    format!(
+        "	impl HasRegistryEventString for {enum_name} {{
+		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:\";
+	}}"
+    )
+}
+fn generate_registry_event_impl(signal: &Signal, interface: &Interface) -> String {
+    let sig_name_event = event_ident(signal.name());
+    let member_string = signal.name();
+    let iface_prefix = iface_name(interface);
+    format!(
+        "	impl HasRegistryEventString for {sig_name_event} {{
+		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:{member_string}\";
 	}}"
     )
 }
@@ -452,17 +466,15 @@ fn generate_match_rule_impl(signal: &Signal, interface: &Interface) -> String {
     let sig_name_event = event_ident(signal.name());
     let member_string = signal.name();
     let iface_long_name = interface.name();
+    let match_rule = zbus::MatchRule::builder()
+				.msg_type(zbus::MessageType::Signal)
+				.interface(iface_long_name).expect("Unable to use an interface: {iface_long_name}")
+				.member(member_string).expect("Unable to use a member: {member_string}")
+				.build();
+    let match_rule_str = match_rule.to_string();
     format!(
         "	impl HasMatchRule for {sig_name_event} {{
-		const INTERFACE: &'static str = \"{iface_long_name}\";
-		const MEMBER: &'static str = \"{member_string}\";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {{
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}}
+      const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
 	}}"
     )
 }
@@ -483,6 +495,13 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .collect::<Vec<String>>()
         .join("\n");
     let try_froms = generate_try_from_atspi_event(iface);
+    let registry_event_enum_impl = generate_registry_event_enum_impl(iface);
+    let registry_event_impls = iface
+        .signals()
+        .iter()
+        .map(|signal| generate_registry_event_impl(signal, iface))
+        .collect::<Vec<String>>()
+        .join("\n");
     let match_rule_impls = iface
         .signals()
         .iter()
@@ -501,7 +520,7 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasMatchRules}},
+		events::{{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString}},
 		signify::Signified,
 	}};
 	use zbus;
@@ -512,6 +531,8 @@ pub mod {mod_name} {{
 	{impls}
 	{try_froms}
 	{match_rule_impls}
+  {registry_event_impls}
+  {registry_event_enum_impl}
 }}
 	"
     )

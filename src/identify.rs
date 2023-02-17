@@ -7,7 +7,7 @@ use crate::AtspiError;
 pub mod object {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasMatchRules},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -68,33 +68,9 @@ pub mod object {
 		TextCaretMoved(TextCaretMovedEvent),
 	}
 
-	impl HasMatchRules for ObjectEvents {
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {
-			Ok(vec![
-				<PropertyChangeEvent as HasMatchRule>::match_rule()?,
-				<BoundsChangedEvent as HasMatchRule>::match_rule()?,
-				<LinkSelectedEvent as HasMatchRule>::match_rule()?,
-				<StateChangedEvent as HasMatchRule>::match_rule()?,
-				<ChildrenChangedEvent as HasMatchRule>::match_rule()?,
-				<VisibleDataChangedEvent as HasMatchRule>::match_rule()?,
-				<SelectionChangedEvent as HasMatchRule>::match_rule()?,
-				<ModelChangedEvent as HasMatchRule>::match_rule()?,
-				<ActiveDescendantChangedEvent as HasMatchRule>::match_rule()?,
-				<AnnouncementEvent as HasMatchRule>::match_rule()?,
-				<AttributesChangedEvent as HasMatchRule>::match_rule()?,
-				<RowInsertedEvent as HasMatchRule>::match_rule()?,
-				<RowReorderedEvent as HasMatchRule>::match_rule()?,
-				<RowDeletedEvent as HasMatchRule>::match_rule()?,
-				<ColumnInsertedEvent as HasMatchRule>::match_rule()?,
-				<ColumnReorderedEvent as HasMatchRule>::match_rule()?,
-				<ColumnDeletedEvent as HasMatchRule>::match_rule()?,
-				<TextBoundsChangedEvent as HasMatchRule>::match_rule()?,
-				<TextSelectionChangedEvent as HasMatchRule>::match_rule()?,
-				<TextChangedEvent as HasMatchRule>::match_rule()?,
-				<TextAttributesChangedEvent as HasMatchRule>::match_rule()?,
-				<TextCaretMovedEvent as HasMatchRule>::match_rule()?,
-			])
-		}
+	impl HasMatchRule for ObjectEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object'";
 	}
 
 	// IgnoreBlock start
@@ -1146,246 +1122,160 @@ pub mod object {
 	}
 
 	impl HasMatchRule for PropertyChangeEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "PropertyChange";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
 	}
 	impl HasMatchRule for BoundsChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "BoundsChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'";
 	}
 	impl HasMatchRule for LinkSelectedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "LinkSelected";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
 	}
 	impl HasMatchRule for StateChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "StateChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'";
 	}
 	impl HasMatchRule for ChildrenChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "ChildrenChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
 	}
 	impl HasMatchRule for VisibleDataChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "VisibleDataChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'";
 	}
 	impl HasMatchRule for SelectionChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "SelectionChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'";
 	}
 	impl HasMatchRule for ModelChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "ModelChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
 	}
 	impl HasMatchRule for ActiveDescendantChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "ActiveDescendantChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
 	}
 	impl HasMatchRule for AnnouncementEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "Announcement";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'";
 	}
 	impl HasMatchRule for AttributesChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "AttributesChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'";
 	}
 	impl HasMatchRule for RowInsertedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "RowInserted";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
 	}
 	impl HasMatchRule for RowReorderedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "RowReordered";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'";
 	}
 	impl HasMatchRule for RowDeletedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "RowDeleted";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
 	}
 	impl HasMatchRule for ColumnInsertedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "ColumnInserted";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'";
 	}
 	impl HasMatchRule for ColumnReorderedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "ColumnReordered";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
 	}
 	impl HasMatchRule for ColumnDeletedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "ColumnDeleted";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'";
 	}
 	impl HasMatchRule for TextBoundsChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "TextBoundsChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'";
 	}
 	impl HasMatchRule for TextSelectionChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "TextSelectionChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
 	}
 	impl HasMatchRule for TextChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "TextChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
 	}
 	impl HasMatchRule for TextAttributesChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "TextAttributesChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
 	}
 	impl HasMatchRule for TextCaretMovedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-		const MEMBER: &'static str = "TextCaretMoved";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'";
+	}
+	impl HasRegistryEventString for PropertyChangeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:PropertyChange";
+	}
+	impl HasRegistryEventString for BoundsChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:BoundsChanged";
+	}
+	impl HasRegistryEventString for LinkSelectedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:LinkSelected";
+	}
+	impl HasRegistryEventString for StateChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:StateChanged";
+	}
+	impl HasRegistryEventString for ChildrenChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ChildrenChanged";
+	}
+	impl HasRegistryEventString for VisibleDataChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:VisibleDataChanged";
+	}
+	impl HasRegistryEventString for SelectionChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:SelectionChanged";
+	}
+	impl HasRegistryEventString for ModelChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ModelChanged";
+	}
+	impl HasRegistryEventString for ActiveDescendantChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ActiveDescendantChanged";
+	}
+	impl HasRegistryEventString for AnnouncementEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:Announcement";
+	}
+	impl HasRegistryEventString for AttributesChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:AttributesChanged";
+	}
+	impl HasRegistryEventString for RowInsertedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:RowInserted";
+	}
+	impl HasRegistryEventString for RowReorderedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:RowReordered";
+	}
+	impl HasRegistryEventString for RowDeletedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:RowDeleted";
+	}
+	impl HasRegistryEventString for ColumnInsertedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ColumnInserted";
+	}
+	impl HasRegistryEventString for ColumnReorderedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ColumnReordered";
+	}
+	impl HasRegistryEventString for ColumnDeletedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ColumnDeleted";
+	}
+	impl HasRegistryEventString for TextBoundsChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextBoundsChanged";
+	}
+	impl HasRegistryEventString for TextSelectionChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextSelectionChanged";
+	}
+	impl HasRegistryEventString for TextChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextChanged";
+	}
+	impl HasRegistryEventString for TextAttributesChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextAttributesChanged";
+	}
+	impl HasRegistryEventString for TextCaretMovedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextCaretMoved";
+	}
+	impl HasRegistryEventString for ObjectEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:";
 	}
 }
 
@@ -1396,7 +1286,7 @@ pub mod object {
 pub mod window {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasMatchRules},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -1454,30 +1344,9 @@ pub mod window {
 		Restyle(RestyleEvent),
 	}
 
-	impl HasMatchRules for WindowEvents {
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {
-			Ok(vec![
-				<PropertyChangeEvent as HasMatchRule>::match_rule()?,
-				<MinimizeEvent as HasMatchRule>::match_rule()?,
-				<MaximizeEvent as HasMatchRule>::match_rule()?,
-				<RestoreEvent as HasMatchRule>::match_rule()?,
-				<CloseEvent as HasMatchRule>::match_rule()?,
-				<CreateEvent as HasMatchRule>::match_rule()?,
-				<ReparentEvent as HasMatchRule>::match_rule()?,
-				<DesktopCreateEvent as HasMatchRule>::match_rule()?,
-				<DesktopDestroyEvent as HasMatchRule>::match_rule()?,
-				<DestroyEvent as HasMatchRule>::match_rule()?,
-				<ActivateEvent as HasMatchRule>::match_rule()?,
-				<DeactivateEvent as HasMatchRule>::match_rule()?,
-				<RaiseEvent as HasMatchRule>::match_rule()?,
-				<LowerEvent as HasMatchRule>::match_rule()?,
-				<MoveEvent as HasMatchRule>::match_rule()?,
-				<ResizeEvent as HasMatchRule>::match_rule()?,
-				<ShadeEvent as HasMatchRule>::match_rule()?,
-				<UUshadeEvent as HasMatchRule>::match_rule()?,
-				<RestyleEvent as HasMatchRule>::match_rule()?,
-			])
-		}
+	impl HasMatchRule for WindowEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window'";
 	}
 
 	// IgnoreBlock start
@@ -2328,213 +2197,140 @@ pub mod window {
 	}
 
 	impl HasMatchRule for PropertyChangeEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "PropertyChange";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
 	}
 	impl HasMatchRule for MinimizeEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Minimize";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
 	}
 	impl HasMatchRule for MaximizeEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Maximize";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
 	}
 	impl HasMatchRule for RestoreEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Restore";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
 	}
 	impl HasMatchRule for CloseEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Close";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
 	}
 	impl HasMatchRule for CreateEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Create";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
 	}
 	impl HasMatchRule for ReparentEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Reparent";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
 	}
 	impl HasMatchRule for DesktopCreateEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "DesktopCreate";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
 	}
 	impl HasMatchRule for DesktopDestroyEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "DesktopDestroy";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
 	}
 	impl HasMatchRule for DestroyEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Destroy";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
 	}
 	impl HasMatchRule for ActivateEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Activate";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
 	}
 	impl HasMatchRule for DeactivateEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Deactivate";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
 	}
 	impl HasMatchRule for RaiseEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Raise";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
 	}
 	impl HasMatchRule for LowerEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Lower";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
 	}
 	impl HasMatchRule for MoveEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Move";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
 	}
 	impl HasMatchRule for ResizeEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Resize";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
 	}
 	impl HasMatchRule for ShadeEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Shade";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
 	}
 	impl HasMatchRule for UUshadeEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "uUshade";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
 	}
 	impl HasMatchRule for RestyleEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-		const MEMBER: &'static str = "Restyle";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
+	}
+	impl HasRegistryEventString for PropertyChangeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:PropertyChange";
+	}
+	impl HasRegistryEventString for MinimizeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Minimize";
+	}
+	impl HasRegistryEventString for MaximizeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Maximize";
+	}
+	impl HasRegistryEventString for RestoreEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Restore";
+	}
+	impl HasRegistryEventString for CloseEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Close";
+	}
+	impl HasRegistryEventString for CreateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Create";
+	}
+	impl HasRegistryEventString for ReparentEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Reparent";
+	}
+	impl HasRegistryEventString for DesktopCreateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:DesktopCreate";
+	}
+	impl HasRegistryEventString for DesktopDestroyEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:DesktopDestroy";
+	}
+	impl HasRegistryEventString for DestroyEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Destroy";
+	}
+	impl HasRegistryEventString for ActivateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Activate";
+	}
+	impl HasRegistryEventString for DeactivateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Deactivate";
+	}
+	impl HasRegistryEventString for RaiseEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Raise";
+	}
+	impl HasRegistryEventString for LowerEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Lower";
+	}
+	impl HasRegistryEventString for MoveEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Move";
+	}
+	impl HasRegistryEventString for ResizeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Resize";
+	}
+	impl HasRegistryEventString for ShadeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Shade";
+	}
+	impl HasRegistryEventString for UUshadeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:uUshade";
+	}
+	impl HasRegistryEventString for RestyleEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Restyle";
+	}
+	impl HasRegistryEventString for WindowEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:";
 	}
 }
 
@@ -2545,7 +2341,7 @@ pub mod window {
 pub mod mouse {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasMatchRules},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -2587,14 +2383,9 @@ pub mod mouse {
 		Button(ButtonEvent),
 	}
 
-	impl HasMatchRules for MouseEvents {
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {
-			Ok(vec![
-				<AbsEvent as HasMatchRule>::match_rule()?,
-				<RelEvent as HasMatchRule>::match_rule()?,
-				<ButtonEvent as HasMatchRule>::match_rule()?,
-			])
-		}
+	impl HasMatchRule for MouseEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse'";
 	}
 
 	// IgnoreBlock start
@@ -2777,37 +2568,28 @@ pub mod mouse {
 	}
 
 	impl HasMatchRule for AbsEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-		const MEMBER: &'static str = "Abs";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
 	}
 	impl HasMatchRule for RelEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-		const MEMBER: &'static str = "Rel";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
 	}
 	impl HasMatchRule for ButtonEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-		const MEMBER: &'static str = "Button";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
+	}
+	impl HasRegistryEventString for AbsEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Abs";
+	}
+	impl HasRegistryEventString for RelEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Rel";
+	}
+	impl HasRegistryEventString for ButtonEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Button";
+	}
+	impl HasRegistryEventString for MouseEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 	}
 }
 
@@ -2818,7 +2600,7 @@ pub mod mouse {
 pub mod keyboard {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasMatchRules},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -2858,10 +2640,9 @@ pub mod keyboard {
 		Modifiers(ModifiersEvent),
 	}
 
-	impl HasMatchRules for KeyboardEvents {
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {
-			Ok(vec![<ModifiersEvent as HasMatchRule>::match_rule()?])
-		}
+	impl HasMatchRule for KeyboardEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 	}
 
 	// IgnoreBlock start
@@ -2932,15 +2713,14 @@ pub mod keyboard {
 	}
 
 	impl HasMatchRule for ModifiersEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
-		const MEMBER: &'static str = "Modifiers";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
+	}
+	impl HasRegistryEventString for ModifiersEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Keyboard:Modifiers";
+	}
+	impl HasRegistryEventString for KeyboardEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 	}
 }
 
@@ -2951,7 +2731,7 @@ pub mod keyboard {
 pub mod terminal {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasMatchRules},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -2995,16 +2775,9 @@ pub mod terminal {
 		CharWidthChanged(CharWidthChangedEvent),
 	}
 
-	impl HasMatchRules for TerminalEvents {
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {
-			Ok(vec![
-				<LineChangedEvent as HasMatchRule>::match_rule()?,
-				<ColumnCountChangedEvent as HasMatchRule>::match_rule()?,
-				<LineCountChangedEvent as HasMatchRule>::match_rule()?,
-				<ApplicationChangedEvent as HasMatchRule>::match_rule()?,
-				<CharWidthChangedEvent as HasMatchRule>::match_rule()?,
-			])
-		}
+	impl HasMatchRule for TerminalEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 	}
 
 	// IgnoreBlock start
@@ -3247,59 +3020,42 @@ pub mod terminal {
 	}
 
 	impl HasMatchRule for LineChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-		const MEMBER: &'static str = "LineChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
 	}
 	impl HasMatchRule for ColumnCountChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-		const MEMBER: &'static str = "ColumncountChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
 	}
 	impl HasMatchRule for LineCountChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-		const MEMBER: &'static str = "LinecountChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
 	}
 	impl HasMatchRule for ApplicationChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-		const MEMBER: &'static str = "ApplicationChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
 	}
 	impl HasMatchRule for CharWidthChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-		const MEMBER: &'static str = "CharwidthChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
+	}
+	impl HasRegistryEventString for LineChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:LineChanged";
+	}
+	impl HasRegistryEventString for ColumnCountChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:ColumncountChanged";
+	}
+	impl HasRegistryEventString for LineCountChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:LinecountChanged";
+	}
+	impl HasRegistryEventString for ApplicationChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:ApplicationChanged";
+	}
+	impl HasRegistryEventString for CharWidthChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:CharwidthChanged";
+	}
+	impl HasRegistryEventString for TerminalEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 	}
 }
 
@@ -3310,7 +3066,7 @@ pub mod terminal {
 pub mod document {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasMatchRules},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -3355,17 +3111,9 @@ pub mod document {
 		PageChanged(PageChangedEvent),
 	}
 
-	impl HasMatchRules for DocumentEvents {
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {
-			Ok(vec![
-				<LoadCompleteEvent as HasMatchRule>::match_rule()?,
-				<ReloadEvent as HasMatchRule>::match_rule()?,
-				<LoadStoppedEvent as HasMatchRule>::match_rule()?,
-				<ContentChangedEvent as HasMatchRule>::match_rule()?,
-				<AttributesChangedEvent as HasMatchRule>::match_rule()?,
-				<PageChangedEvent as HasMatchRule>::match_rule()?,
-			])
-		}
+	impl HasMatchRule for DocumentEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document'";
 	}
 
 	// IgnoreBlock start
@@ -3646,70 +3394,49 @@ pub mod document {
 	}
 
 	impl HasMatchRule for LoadCompleteEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-		const MEMBER: &'static str = "LoadComplete";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'";
 	}
 	impl HasMatchRule for ReloadEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-		const MEMBER: &'static str = "Reload";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
 	}
 	impl HasMatchRule for LoadStoppedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-		const MEMBER: &'static str = "LoadStopped";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'";
 	}
 	impl HasMatchRule for ContentChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-		const MEMBER: &'static str = "ContentChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
 	}
 	impl HasMatchRule for AttributesChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-		const MEMBER: &'static str = "AttributesChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'";
 	}
 	impl HasMatchRule for PageChangedEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-		const MEMBER: &'static str = "PageChanged";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
+	}
+	impl HasRegistryEventString for LoadCompleteEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:LoadComplete";
+	}
+	impl HasRegistryEventString for ReloadEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:Reload";
+	}
+	impl HasRegistryEventString for LoadStoppedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:LoadStopped";
+	}
+	impl HasRegistryEventString for ContentChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:ContentChanged";
+	}
+	impl HasRegistryEventString for AttributesChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:AttributesChanged";
+	}
+	impl HasRegistryEventString for PageChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:PageChanged";
+	}
+	impl HasRegistryEventString for DocumentEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:";
 	}
 }
 
@@ -3720,7 +3447,7 @@ pub mod document {
 pub mod focus {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasMatchRules},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -3760,10 +3487,9 @@ pub mod focus {
 		Focus(FocusEvent),
 	}
 
-	impl HasMatchRules for FocusEvents {
-		fn match_rules() -> Result<Vec<zbus::MatchRule<'static>>, AtspiError> {
-			Ok(vec![<FocusEvent as HasMatchRule>::match_rule()?])
-		}
+	impl HasMatchRule for FocusEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Focus'";
 	}
 
 	// IgnoreBlock start
@@ -3822,15 +3548,14 @@ pub mod focus {
 	}
 
 	impl HasMatchRule for FocusEvent {
-		const INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
-		const MEMBER: &'static str = "Focus";
-		fn match_rule() -> Result<zbus::MatchRule<'static>, AtspiError> {
-			Ok(zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(<Self as HasMatchRule>::INTERFACE)?
-				.member(<Self as HasMatchRule>::MEMBER)?
-				.build())
-		}
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
+	}
+	impl HasRegistryEventString for FocusEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Focus:Focus";
+	}
+	impl HasRegistryEventString for FocusEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 	}
 }
 use crate::events::{AddAccessibleEvent, CacheEvents, RemoveAccessibleEvent};
