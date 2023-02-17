@@ -1,5 +1,5 @@
 use atspi::{
-	events::{GenericEvent, HasMatchRules},
+	events::GenericEvent,
 	identify::object::{ObjectEvents, StateChangedEvent},
 	signify::Signified,
 };
@@ -9,7 +9,7 @@ use tokio_stream::StreamExt;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 	let atspi = atspi::AccessibilityBus::open().await?;
-	atspi.register_events(ObjectEvents::match_rules()?).await?;
+	atspi.register_event::<ObjectEvents>().await?;
 
 	let events = atspi.event_stream();
 	tokio::pin!(events);
