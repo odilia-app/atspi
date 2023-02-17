@@ -159,6 +159,13 @@ impl AccessibilityBus {
 		Ok(())
 	}
 
+  /// Add a registry event.
+  /// This tells accessible applications which events should be forwarded to the accessbility bus.
+  /// This is called by [`registr_event`].
+  ///
+  /// # Errors
+  ///
+  /// * May cause an error if the `DBus` method [`RegistryProxy::register_event`] fails.
 	pub async fn add_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
 			.register_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
@@ -166,10 +173,9 @@ impl AccessibilityBus {
 		Ok(())
 	}
 
-	/// Add an event to the registry daemon.
-	/// This will alert applications to send events to the acessibility bus when they occur.
-	/// Without this, most applications will not provide information about thier state over the bus.
-	/// This is called as part of [`register_event`].
+  /// This calls [`add_registry_event`] and [`add_match_rule`], two components necessary to receive accessiblity events.
+  /// # Errors
+  /// This will only fail if [`add_registry_event`[ or [`add_match_rule`] fails.
 	pub async fn register_event<T: HasRegistryEventString + HasMatchRule>(
 		&self,
 	) -> Result<(), AtspiError> {
