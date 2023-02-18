@@ -51,14 +51,14 @@ impl<'de> Deserialize<'de> for AccessibleId {
     }
 	}
 }
-impl ToString for AccessibleId {
-	fn to_string(&self) -> String {
+impl std::fmt::Display for AccessibleId {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		let ending = match self {
 			Self::Null => "null".to_string(),
 			Self::Root => "root".to_string(),
 			Self::Number(int) => int.to_string(),
 		};
-		format!("/org/a11y/atspi/accessible/{ending}")
+		write!(f, "/org/a11y/atspi/accessible/{ending}")
 	}
 }
 impl TryFrom<AccessibleId> for OwnedObjectPath {
