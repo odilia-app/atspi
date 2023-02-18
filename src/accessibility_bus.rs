@@ -44,8 +44,10 @@ impl AccessibilityBus {
 	/// Without address, you will want to call  `open`, which tries to obtain the accessibility bus' address
 	/// on your behalf.
 	///
-	/// ## Errors
-	/// * `RegistryProxy` is configured with invalid path, interface or destination defaults.
+	/// # Errors
+	///
+	/// `RegistryProxy` is configured with invalid path, interface or destination
+
 	pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
 		tracing::debug!("Connecting to a11y bus");
 		let bus = zbus::ConnectionBuilder::address(bus_addr)?.build().await?;
@@ -139,7 +141,6 @@ impl AccessibilityBus {
 		})
 	}
 
-	// TODO: do this without instantiating a DBus proxy evwry time.
 	/// Registers an events as defined in [`crate::identify`]. This function registers a single event, like so:
 	/// ```rust
 	/// use atspi::identify::object::StateChangedEvent;
@@ -151,9 +152,27 @@ impl AccessibilityBus {
 	///
 	/// # Errors
 	///
-	/// This function may return an error if it is unable to serialize the variant of the enum that has been passed (should never happen), or
-	/// a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule`].
+	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
 	pub async fn add_match_rule<T: HasMatchRule>(&self) -> Result<(), AtspiError> {
+		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING)?;
+		self.dbus_proxy.add_match_rule(match_rule).await?;
+		Ok(())
+	}
+
+	/// Deregisters an events as defined in [`crate::identify`]. This function registers a single event, like so:
+	/// ```rust
+	/// use atspi::identify::object::StateChangedEvent;
+	/// # tokio_test::block_on(async {
+	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
+	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
+	/// connection.remove_match_rule::<StateChangedEvent>().await.unwrap();
+	/// # })
+	/// ```
+	///
+	/// # Errors
+	///
+	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
+	pub async fn remove_match_rule<T: HasMatchRule>(&self) -> Result<(), AtspiError> {
 		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING)?;
 		self.dbus_proxy.add_match_rule(match_rule).await?;
 		Ok(())
@@ -163,12 +182,45 @@ impl AccessibilityBus {
 	/// This tells accessible applications which events should be forwarded to the accessbility bus.
 	/// This is called by [`registr_event`].
 	///
+	/// ```rust
+	/// use atspi::identify::object::StateChangedEvent;
+	/// # tokio_test::block_on(async {
+	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
+	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
+	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
+	/// # })
+	/// ```
+	///
 	/// # Errors
 	///
-	/// * May cause an error if the `DBus` method [`RegistryProxy::register_event`] fails.
+	/// May cause an error if the `DBus` method [`registry::RegistryProxy::register_event`] fails.
 	pub async fn add_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
 			.register_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
+			.await?;
+		Ok(())
+	}
+
+	/// Remove a registry event.
+	/// This tells accessible applications which events should be forwarded to the accessbility bus.
+	/// This is called by [`registr_event`].
+	/// It may be called like so:
+	///
+	/// ```rust
+	/// use atspi::identify::object::StateChangedEvent;
+	/// # tokio_test::block_on(async {
+	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
+	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
+	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
+	/// # })
+	/// ```
+	///
+	/// # Errors
+	///
+	/// May cause an error if the `DBus` method [`RegistryProxy::deregister_event`] fails.
+	pub async fn remove_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
+		self.registry
+			.deregister_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
 			.await?;
 		Ok(())
 	}
@@ -181,6 +233,17 @@ impl AccessibilityBus {
 	) -> Result<(), AtspiError> {
 		self.add_registry_event::<T>().await?;
 		self.add_match_rule::<T>().await?;
+		Ok(())
+	}
+
+	/// This calls [`remove_registry_event`] and [`remove_match_rule`], two components necessary to receive accessiblity events.
+	/// # Errors
+	/// This will only fail if [`remove_registry_event`[ or [`remove_match_rule`] fails.
+	pub async fn deregister_event<T: HasRegistryEventString + HasMatchRule>(
+		&self,
+	) -> Result<(), AtspiError> {
+		self.remove_registry_event::<T>().await?;
+		self.remove_match_rule::<T>().await?;
 		Ok(())
 	}
 
@@ -214,11 +277,12 @@ impl Deref for AccessibilityBus {
 ///     let result =  block_on( atspi::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
 /// ```
-///  ## Errors
-/// * when no connection with the session bus can be established,
-/// * if creation of a [`crate::bus::StatusProxy`] fails
-/// * if the `IsEnabled` property cannot be read
-/// * the `IsEnabled` property cannot be set.
+/// # Errors
+///
+/// 1. when no connection with the session bus can be established,
+/// 2. if creation of a [`crate::bus::StatusProxy`] fails
+/// 3. if the `IsEnabled` property cannot be read
+/// 4. the `IsEnabled` property cannot be set.
 pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), AtspiError> {
 	// Get a connection to the session bus.
 	let session = zbus::Connection::session().await?;
