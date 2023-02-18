@@ -333,6 +333,6 @@ impl std::fmt::Display for Interface {
 			Interface::DeviceEventListener => "org.a11y.atspi.DeviceEventListener",
 		}
 		.to_string();
-		write!(f, "{}", interface_string)
+		write!(f, "{interface_string}")
 	}
 }
