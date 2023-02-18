@@ -1,11 +1,3 @@
-//! ## Signified signal types
-//!
-//! The generic `AtspiEvent` has a specific meaning depending on its origin.
-//! This module offers the signified types and their conversions from a generic `AtpiEvent`.
-//!
-//! The `TrySignify` macro implements a `TryFrom<Event>` on a per-name and member basis
-//!
-
 use crate::AtspiError;
 
 #[allow(clippy::module_name_repetitions)]
@@ -15,7 +7,7 @@ use crate::AtspiError;
 pub mod object {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -38,7 +30,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -50,34 +42,6 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	/// Any of the `Object` events.
-	///
-	/// Event table for the contained types:
-	///
-	/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
-	/// |:--|---|---|---|---|---|---|
-	/// |Object|PropertyChange|property|    |    |value|properties|
-	/// |Object|BoundsChanged|    |    |    |    |properties|
-	/// |Object|LinkSelected|    |    |    |    |properties|
-	/// |Object|StateChanged|state|enabled|    |    |properties|
-	/// |`Object|ChildrenChanged|operation|index_in_parent`|    |child|properties|
-	/// |Object|VisibleDataChanged|    |    |    |    |properties|
-	/// |Object|SelectionChanged|    |    |    |    |properties|
-	/// |Object|ModelChanged|    |    |    |    |properties|
-	/// |Object|ActiveDescendantChanged|    |    |    |child|properties|
-	/// |Object|Announcement|text|    |    |    |properties|
-	/// |Object|AttributesChanged|    |    |    |    |properties|
-	/// |Object|RowInserted|    |    |    |    |properties|
-	/// |Object|RowReordered|    |    |    |    |properties|
-	/// |Object|RowDeleted|    |    |    |    |properties|
-	/// |Object|ColumnInserted|    |    |    |    |properties|
-	/// |Object|ColumnReordered|    |    |    |    |properties|
-	/// |Object|ColumnDeleted|    |    |    |    |properties|
-	/// |Object|TextBoundsChanged|    |    |    |    |properties|
-	/// |Object|TextSelectionChanged|    |    |    |    |properties|
-	/// |`Object|TextChanged|detail|start_pos|end_pos|text|properties`|
-	/// |Object|TextAttributesChanged|    |    |    |    |properties|
-	/// |Object|TextCaretMoved|    |position|    |    |properties|
 	#[derive(Clone, Debug)]
 	pub enum ObjectEvents {
 		PropertyChange(PropertyChangeEvent),
@@ -104,6 +68,11 @@ pub mod object {
 		TextCaretMoved(TextCaretMovedEvent),
 	}
 
+	impl HasMatchRule for ObjectEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object'";
+	}
+
 	// IgnoreBlock start
 	/// # Example
 	///
@@ -120,7 +89,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -151,7 +120,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -182,7 +151,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -213,7 +182,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -244,7 +213,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -275,7 +244,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -306,7 +275,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -337,7 +306,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -368,7 +337,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -399,7 +368,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -430,7 +399,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -461,7 +430,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -492,7 +461,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -523,7 +492,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -554,7 +523,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -585,7 +554,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -616,7 +585,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -647,7 +616,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -678,7 +647,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -709,7 +678,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -740,7 +709,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -771,7 +740,7 @@ pub mod object {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1151,6 +1120,163 @@ pub mod object {
 			}
 		}
 	}
+
+	impl HasMatchRule for PropertyChangeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
+	}
+	impl HasMatchRule for BoundsChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'";
+	}
+	impl HasMatchRule for LinkSelectedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
+	}
+	impl HasMatchRule for StateChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'";
+	}
+	impl HasMatchRule for ChildrenChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
+	}
+	impl HasMatchRule for VisibleDataChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'";
+	}
+	impl HasMatchRule for SelectionChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'";
+	}
+	impl HasMatchRule for ModelChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
+	}
+	impl HasMatchRule for ActiveDescendantChangedEvent {
+		const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
+	}
+	impl HasMatchRule for AnnouncementEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'";
+	}
+	impl HasMatchRule for AttributesChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'";
+	}
+	impl HasMatchRule for RowInsertedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
+	}
+	impl HasMatchRule for RowReorderedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'";
+	}
+	impl HasMatchRule for RowDeletedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
+	}
+	impl HasMatchRule for ColumnInsertedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'";
+	}
+	impl HasMatchRule for ColumnReorderedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
+	}
+	impl HasMatchRule for ColumnDeletedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'";
+	}
+	impl HasMatchRule for TextBoundsChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'";
+	}
+	impl HasMatchRule for TextSelectionChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
+	}
+	impl HasMatchRule for TextChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
+	}
+	impl HasMatchRule for TextAttributesChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
+	}
+	impl HasMatchRule for TextCaretMovedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'";
+	}
+	impl HasRegistryEventString for PropertyChangeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:PropertyChange";
+	}
+	impl HasRegistryEventString for BoundsChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:BoundsChanged";
+	}
+	impl HasRegistryEventString for LinkSelectedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:LinkSelected";
+	}
+	impl HasRegistryEventString for StateChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:StateChanged";
+	}
+	impl HasRegistryEventString for ChildrenChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ChildrenChanged";
+	}
+	impl HasRegistryEventString for VisibleDataChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:VisibleDataChanged";
+	}
+	impl HasRegistryEventString for SelectionChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:SelectionChanged";
+	}
+	impl HasRegistryEventString for ModelChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ModelChanged";
+	}
+	impl HasRegistryEventString for ActiveDescendantChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ActiveDescendantChanged";
+	}
+	impl HasRegistryEventString for AnnouncementEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:Announcement";
+	}
+	impl HasRegistryEventString for AttributesChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:AttributesChanged";
+	}
+	impl HasRegistryEventString for RowInsertedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:RowInserted";
+	}
+	impl HasRegistryEventString for RowReorderedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:RowReordered";
+	}
+	impl HasRegistryEventString for RowDeletedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:RowDeleted";
+	}
+	impl HasRegistryEventString for ColumnInsertedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ColumnInserted";
+	}
+	impl HasRegistryEventString for ColumnReorderedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ColumnReordered";
+	}
+	impl HasRegistryEventString for ColumnDeletedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:ColumnDeleted";
+	}
+	impl HasRegistryEventString for TextBoundsChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextBoundsChanged";
+	}
+	impl HasRegistryEventString for TextSelectionChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextSelectionChanged";
+	}
+	impl HasRegistryEventString for TextChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextChanged";
+	}
+	impl HasRegistryEventString for TextAttributesChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextAttributesChanged";
+	}
+	impl HasRegistryEventString for TextCaretMovedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:TextCaretMoved";
+	}
+	impl HasRegistryEventString for ObjectEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Object:";
+	}
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -1160,7 +1286,7 @@ pub mod object {
 pub mod window {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -1183,7 +1309,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1195,31 +1321,6 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	/// Any of the `Window` events.
-	///
-	/// Event table for the contained types:
-	///
-	/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
-	/// |:--|---|---|---|---|---|---|
-	/// |Window|PropertyChange|property|    |    |    |properties|
-	/// |Window|Minimize|    |    |    |    |properties|
-	/// |Window|Maximize|    |    |    |    |properties|
-	/// |Window|Restore|    |    |    |    |properties|
-	/// |Window|Close|    |    |    |    |properties|
-	/// |Window|Create|    |    |    |    |properties|
-	/// |Window|Reparent|    |    |    |    |properties|
-	/// |Window|DesktopCreate|    |    |    |    |properties|
-	/// |Window|DesktopDestroy|    |    |    |    |properties|
-	/// |Window|Destroy|    |    |    |    |properties|
-	/// |Window|Activate|    |    |    |    |properties|
-	/// |Window|Deactivate|    |    |    |    |properties|
-	/// |Window|Raise|    |    |    |    |properties|
-	/// |Window|Lower|    |    |    |    |properties|
-	/// |Window|Move|    |    |    |    |properties|
-	/// |Window|Resize|    |    |    |    |properties|
-	/// |Window|Shade|    |    |    |    |properties|
-	/// |Window|uUshade|    |    |    |    |properties|
-	/// |Window|Restyle|    |    |    |    |properties|
 	#[derive(Clone, Debug)]
 	pub enum WindowEvents {
 		PropertyChange(PropertyChangeEvent),
@@ -1243,6 +1344,11 @@ pub mod window {
 		Restyle(RestyleEvent),
 	}
 
+	impl HasMatchRule for WindowEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window'";
+	}
+
 	// IgnoreBlock start
 	/// # Example
 	///
@@ -1259,7 +1365,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1290,7 +1396,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1321,7 +1427,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1352,7 +1458,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1383,7 +1489,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1414,7 +1520,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1445,7 +1551,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1476,7 +1582,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1507,7 +1613,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1538,7 +1644,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1569,7 +1675,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1600,7 +1706,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1631,7 +1737,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1662,7 +1768,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1693,7 +1799,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1724,7 +1830,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1755,7 +1861,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1786,7 +1892,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -1817,7 +1923,7 @@ pub mod window {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2089,6 +2195,143 @@ pub mod window {
 			}
 		}
 	}
+
+	impl HasMatchRule for PropertyChangeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
+	}
+	impl HasMatchRule for MinimizeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
+	}
+	impl HasMatchRule for MaximizeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
+	}
+	impl HasMatchRule for RestoreEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
+	}
+	impl HasMatchRule for CloseEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
+	}
+	impl HasMatchRule for CreateEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
+	}
+	impl HasMatchRule for ReparentEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
+	}
+	impl HasMatchRule for DesktopCreateEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
+	}
+	impl HasMatchRule for DesktopDestroyEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
+	}
+	impl HasMatchRule for DestroyEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
+	}
+	impl HasMatchRule for ActivateEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
+	}
+	impl HasMatchRule for DeactivateEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
+	}
+	impl HasMatchRule for RaiseEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
+	}
+	impl HasMatchRule for LowerEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
+	}
+	impl HasMatchRule for MoveEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
+	}
+	impl HasMatchRule for ResizeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
+	}
+	impl HasMatchRule for ShadeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
+	}
+	impl HasMatchRule for UUshadeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
+	}
+	impl HasMatchRule for RestyleEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
+	}
+	impl HasRegistryEventString for PropertyChangeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:PropertyChange";
+	}
+	impl HasRegistryEventString for MinimizeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Minimize";
+	}
+	impl HasRegistryEventString for MaximizeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Maximize";
+	}
+	impl HasRegistryEventString for RestoreEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Restore";
+	}
+	impl HasRegistryEventString for CloseEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Close";
+	}
+	impl HasRegistryEventString for CreateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Create";
+	}
+	impl HasRegistryEventString for ReparentEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Reparent";
+	}
+	impl HasRegistryEventString for DesktopCreateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:DesktopCreate";
+	}
+	impl HasRegistryEventString for DesktopDestroyEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:DesktopDestroy";
+	}
+	impl HasRegistryEventString for DestroyEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Destroy";
+	}
+	impl HasRegistryEventString for ActivateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Activate";
+	}
+	impl HasRegistryEventString for DeactivateEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Deactivate";
+	}
+	impl HasRegistryEventString for RaiseEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Raise";
+	}
+	impl HasRegistryEventString for LowerEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Lower";
+	}
+	impl HasRegistryEventString for MoveEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Move";
+	}
+	impl HasRegistryEventString for ResizeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Resize";
+	}
+	impl HasRegistryEventString for ShadeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Shade";
+	}
+	impl HasRegistryEventString for UUshadeEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:uUshade";
+	}
+	impl HasRegistryEventString for RestyleEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:Restyle";
+	}
+	impl HasRegistryEventString for WindowEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Window:";
+	}
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -2098,7 +2341,7 @@ pub mod window {
 pub mod mouse {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -2121,7 +2364,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2133,23 +2376,16 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	/// Any of the `Mouse` events.
-	///
-	/// Those interested in `Event.Mouse` events, this enum
-	/// may help select and specify for those on a stream:
-	///
-	/// Event table for the contained types:
-	///
-	/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
-	/// |:--|---|---|---|---|---|---|
-	/// |Mouse|Abs|    |x|y|    |properties|
-	/// |Mouse|Rel|    |x|y|    |properties|
-	/// |`Mouse|Button|detail|mouse_x|mouse_y`|    |properties|
 	#[derive(Clone, Debug)]
 	pub enum MouseEvents {
 		Abs(AbsEvent),
 		Rel(RelEvent),
 		Button(ButtonEvent),
+	}
+
+	impl HasMatchRule for MouseEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse'";
 	}
 
 	// IgnoreBlock start
@@ -2168,7 +2404,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2199,7 +2435,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2230,7 +2466,7 @@ pub mod mouse {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2246,19 +2482,11 @@ pub mod mouse {
 	pub struct ButtonEvent(pub(crate) AtspiEvent);
 
 	impl AbsEvent {
-		/// X-coordinate of mouse button event
-		///  Coordinates are absolute, with the origin in the top-left of the 'root window'
-		/// X-coordinate of mouse button event
-		///  Coordinates are absolute, with the origin in the top-left of the 'root window'
 		#[must_use]
 		pub fn x(&self) -> i32 {
 			self.0.detail1()
 		}
 
-		/// Y-coordinate of mouse button event
-		/// Coordinates are absolute, with the origin in the top-left of the 'root window'
-		/// Y-coordinate of mouse button event
-		/// Coordinates are absolute, with the origin in the top-left of the 'root window'
 		#[must_use]
 		pub fn y(&self) -> i32 {
 			self.0.detail2()
@@ -2338,6 +2566,31 @@ pub mod mouse {
 			}
 		}
 	}
+
+	impl HasMatchRule for AbsEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
+	}
+	impl HasMatchRule for RelEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
+	}
+	impl HasMatchRule for ButtonEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
+	}
+	impl HasRegistryEventString for AbsEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Abs";
+	}
+	impl HasRegistryEventString for RelEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Rel";
+	}
+	impl HasRegistryEventString for ButtonEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Button";
+	}
+	impl HasRegistryEventString for MouseEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+	}
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -2347,7 +2600,7 @@ pub mod mouse {
 pub mod keyboard {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -2370,7 +2623,7 @@ pub mod keyboard {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2382,23 +2635,14 @@ pub mod keyboard {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	/// The `Keyboard` events.
-	///
-	/// Contains the variant of the `Keyboard` event.
-	/// While this enum has only one item, it is defined nevertheless
-	/// to keep conversion requirements congruent over all types.
-	///
-	/// If you are interested in `Event.Keyboard` events, this enum
-	/// may, for instance, help you select for those on a stream:
-	///
-	/// Event table for the contained types:
-	///
-	/// Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties
-	/// |:--|---|---|---|---|---|---|
-	/// |Keyboard|Modifiers|    |`previous_modifiers` | `current_modifiers`|    | properties|
 	#[derive(Clone, Debug)]
 	pub enum KeyboardEvents {
 		Modifiers(ModifiersEvent),
+	}
+
+	impl HasMatchRule for KeyboardEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 	}
 
 	// IgnoreBlock start
@@ -2417,7 +2661,7 @@ pub mod keyboard {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2467,6 +2711,17 @@ pub mod keyboard {
 			}
 		}
 	}
+
+	impl HasMatchRule for ModifiersEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
+	}
+	impl HasRegistryEventString for ModifiersEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Keyboard:Modifiers";
+	}
+	impl HasRegistryEventString for KeyboardEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
+	}
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -2476,7 +2731,7 @@ pub mod keyboard {
 pub mod terminal {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -2499,7 +2754,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2511,20 +2766,6 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	/// Any of the `Terminal` events.
-	///
-	/// If you are interested in `Event.Terminal` events, this enum
-	/// may, for instance, help you select for those on a stream:
-	///
-	/// Event table for the contained types:
-	///
-	/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
-	/// |:--|---|---|---|---|---|---|
-	/// |Terminal|LineChanged|    |    |    |    |properties|
-	/// |Terminal|ColumncountChanged|    |    |    |    |properties|
-	/// |Terminal|LinecountChanged|    |    |    |    |properties|
-	/// |Terminal|ApplicationChanged|    |    |    |    |properties|
-	/// |Terminal|CharwidthChanged|    |    |    |    |properties|
 	#[derive(Clone, Debug)]
 	pub enum TerminalEvents {
 		LineChanged(LineChangedEvent),
@@ -2532,6 +2773,11 @@ pub mod terminal {
 		LineCountChanged(LineCountChangedEvent),
 		ApplicationChanged(ApplicationChangedEvent),
 		CharWidthChanged(CharWidthChangedEvent),
+	}
+
+	impl HasMatchRule for TerminalEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 	}
 
 	// IgnoreBlock start
@@ -2550,7 +2796,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2581,7 +2827,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2612,7 +2858,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2643,7 +2889,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2674,7 +2920,7 @@ pub mod terminal {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2772,6 +3018,45 @@ pub mod terminal {
 			}
 		}
 	}
+
+	impl HasMatchRule for LineChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
+	}
+	impl HasMatchRule for ColumnCountChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
+	}
+	impl HasMatchRule for LineCountChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
+	}
+	impl HasMatchRule for ApplicationChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
+	}
+	impl HasMatchRule for CharWidthChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
+	}
+	impl HasRegistryEventString for LineChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:LineChanged";
+	}
+	impl HasRegistryEventString for ColumnCountChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:ColumncountChanged";
+	}
+	impl HasRegistryEventString for LineCountChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:LinecountChanged";
+	}
+	impl HasRegistryEventString for ApplicationChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:ApplicationChanged";
+	}
+	impl HasRegistryEventString for CharWidthChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:CharwidthChanged";
+	}
+	impl HasRegistryEventString for TerminalEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+	}
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -2781,7 +3066,7 @@ pub mod terminal {
 pub mod document {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -2804,7 +3089,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2816,21 +3101,6 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	/// Any of the `Document` events.
-	///
-	/// If you are interested in `Event.Document` events, this enum
-	/// may help you select for these:
-	///
-	/// Event table for the contained types:
-	///
-	/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
-	/// |:--|---|---|---|---|---|---|
-	/// |Document|LoadComplete|    |    |    |    |properties|
-	/// |Document|Reload|    |    |    |    |properties|
-	/// |Document|LoadStopped|    |    |    |    |properties|
-	/// |Document|ContentChanged|    |    |    |    |properties|
-	/// |Document|AttributesChanged|    |    |    |    |properties|
-	/// |Document|PageChanged|    |    |    |    |properties|
 	#[derive(Clone, Debug)]
 	pub enum DocumentEvents {
 		LoadComplete(LoadCompleteEvent),
@@ -2839,6 +3109,11 @@ pub mod document {
 		ContentChanged(ContentChangedEvent),
 		AttributesChanged(AttributesChangedEvent),
 		PageChanged(PageChangedEvent),
+	}
+
+	impl HasMatchRule for DocumentEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document'";
 	}
 
 	// IgnoreBlock start
@@ -2857,7 +3132,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2888,7 +3163,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2919,7 +3194,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2950,7 +3225,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -2981,7 +3256,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3012,7 +3287,7 @@ pub mod document {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3117,6 +3392,52 @@ pub mod document {
 			}
 		}
 	}
+
+	impl HasMatchRule for LoadCompleteEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'";
+	}
+	impl HasMatchRule for ReloadEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
+	}
+	impl HasMatchRule for LoadStoppedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'";
+	}
+	impl HasMatchRule for ContentChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
+	}
+	impl HasMatchRule for AttributesChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'";
+	}
+	impl HasMatchRule for PageChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
+	}
+	impl HasRegistryEventString for LoadCompleteEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:LoadComplete";
+	}
+	impl HasRegistryEventString for ReloadEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:Reload";
+	}
+	impl HasRegistryEventString for LoadStoppedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:LoadStopped";
+	}
+	impl HasRegistryEventString for ContentChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:ContentChanged";
+	}
+	impl HasRegistryEventString for AttributesChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:AttributesChanged";
+	}
+	impl HasRegistryEventString for PageChangedEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:PageChanged";
+	}
+	impl HasRegistryEventString for DocumentEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Document:";
+	}
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -3126,7 +3447,7 @@ pub mod document {
 pub mod focus {
 	use crate::{
 		error::AtspiError,
-		events::{AtspiEvent, EventInterfaces, GenericEvent},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
 		Event,
 	};
@@ -3149,7 +3470,7 @@ pub mod focus {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3161,19 +3482,14 @@ pub mod focus {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	/// The `Focus` event.
-	/// # Deprecation notice!!
-	/// This signal is deprecated and may be removed in the near future.
-	/// Monitor `StateChanged::Focused` signals instead.
-	///
-	/// Event table for the contained types:
-	///
-	/// |Interface|Member|Kind|Detail 1|Detail 2|Any Data|Properties|
-	/// |:--|---|---|---|---|---|---|
-	/// |Focus|Focus|    |    |    |    |properties|
 	#[derive(Clone, Debug)]
 	pub enum FocusEvents {
 		Focus(FocusEvent),
+	}
+
+	impl HasMatchRule for FocusEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Focus'";
 	}
 
 	// IgnoreBlock start
@@ -3192,7 +3508,7 @@ pub mod focus {
 	///
 	/// #[tokio::main]
 	/// async fn main() {
-	///     let atspi = atspi::Connection::open().await.unwrap();
+	///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
 	///     let events = atspi.event_stream();
 	/// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
 	///     tokio::pin!(events);
@@ -3229,6 +3545,17 @@ pub mod focus {
 				_ => Err(AtspiError::MemberMatch("No matching member for Focus".into())),
 			}
 		}
+	}
+
+	impl HasMatchRule for FocusEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
+	}
+	impl HasRegistryEventString for FocusEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Focus:Focus";
+	}
+	impl HasRegistryEventString for FocusEvents {
+		const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 	}
 }
 use crate::events::{AddAccessibleEvent, CacheEvents, RemoveAccessibleEvent};

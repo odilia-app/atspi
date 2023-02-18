@@ -1,24 +1,15 @@
 use async_std::prelude::*;
 use atspi::{
 	events::GenericEvent,
-	identify::object::StateChangedEvent,
+	identify::object::{ObjectEvents, StateChangedEvent},
 	signify::Signified,
-	zbus::{fdo::DBusProxy, MatchRule, MessageType},
 };
 use std::error::Error;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-	let atspi = atspi::Connection::open().await?;
-	atspi.register_event("Object").await?;
-
-	let rule = MatchRule::builder()
-		.msg_type(MessageType::Signal)
-		.interface("org.a11y.atspi.Event.Object")?
-		.build();
-
-	let dbus = DBusProxy::new(atspi.connection()).await?;
-	dbus.add_match_rule(rule).await?;
+	let atspi = atspi::AccessibilityBus::open().await?;
+	atspi.register_event::<ObjectEvents>().await?;
 
 	let events = atspi.event_stream();
 	tokio::pin!(events);

@@ -1,6 +1,5 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
 // #![deny(clippy::missing_docs)]
-#![allow(clippy::multiple_crate_versions)]
 
 pub mod accessible;
 pub mod action;
@@ -34,8 +33,8 @@ pub mod accessible_ext;
 pub mod text_ext;
 
 // Hand-written connection module
-mod connection;
-pub use connection::*;
+mod accessibility_bus;
+pub use accessibility_bus::*;
 
 mod interfaces;
 pub use interfaces::*;

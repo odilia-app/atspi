@@ -357,7 +357,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> Stri
     ///
     /// #[tokio::main]
     /// async fn main() {{
-    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
     ///     let events = atspi.event_stream();
     /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
     ///     tokio::pin!(events);
@@ -425,6 +425,60 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
 	")
 }
 
+fn generate_match_rule_vec_impl(interface: &Interface) -> String {
+    let iface_long_name = interface.name();
+    let iface_name = iface_to_enum_name(interface);
+    let enum_name = events_ident(iface_name);
+    let match_rule = zbus::MatchRule::builder()
+				.msg_type(zbus::MessageType::Signal)
+				.interface(iface_long_name).expect("Unable to use an interface: {iface_long_name}")
+				.build();
+    let match_rule_str = match_rule.to_string();
+    format!(
+        "	impl HasMatchRule for {enum_name} {{
+      const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
+	}}"
+    )
+}
+
+fn generate_registry_event_enum_impl(interface: &Interface) -> String {
+    let iface_prefix = iface_name(interface);
+    let iface_name = iface_to_enum_name(interface);
+    let enum_name = events_ident(iface_name);
+    format!(
+        "	impl HasRegistryEventString for {enum_name} {{
+		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:\";
+	}}"
+    )
+}
+fn generate_registry_event_impl(signal: &Signal, interface: &Interface) -> String {
+    let sig_name_event = event_ident(signal.name());
+    let member_string = signal.name();
+    let iface_prefix = iface_name(interface);
+    format!(
+        "	impl HasRegistryEventString for {sig_name_event} {{
+		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:{member_string}\";
+	}}"
+    )
+}
+
+fn generate_match_rule_impl(signal: &Signal, interface: &Interface) -> String {
+    let sig_name_event = event_ident(signal.name());
+    let member_string = signal.name();
+    let iface_long_name = interface.name();
+    let match_rule = zbus::MatchRule::builder()
+				.msg_type(zbus::MessageType::Signal)
+				.interface(iface_long_name).expect("Unable to use an interface: {iface_long_name}")
+				.member(member_string).expect("Unable to use a member: {member_string}")
+				.build();
+    let match_rule_str = match_rule.to_string();
+    format!(
+        "	impl HasMatchRule for {sig_name_event} {{
+      const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
+	}}"
+    )
+}
+
 fn generate_mod_from_iface(iface: &Interface) -> String {
     let mod_name = iface_name(iface).to_lowercase();
     let enums = generate_enum_from_iface(iface);
@@ -441,6 +495,20 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .collect::<Vec<String>>()
         .join("\n");
     let try_froms = generate_try_from_atspi_event(iface);
+    let registry_event_enum_impl = generate_registry_event_enum_impl(iface);
+    let registry_event_impls = iface
+        .signals()
+        .iter()
+        .map(|signal| generate_registry_event_impl(signal, iface))
+        .collect::<Vec<String>>()
+        .join("\n");
+    let match_rule_impls = iface
+        .signals()
+        .iter()
+        .map(|signal| generate_match_rule_impl(signal, iface))
+        .collect::<Vec<String>>()
+        .join("\n");
+    let match_rule_vec_impl = generate_match_rule_vec_impl(iface);
     format!(
         "
 #[allow(clippy::module_name_repetitions)]
@@ -452,15 +520,19 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{AtspiEvent, GenericEvent, EventInterfaces}},
+		events::{{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString}},
 		signify::Signified,
 	}};
 	use zbus;
 	use zbus::zvariant::OwnedValue;
 	{enums}
+	{match_rule_vec_impl}
 	{structs}
 	{impls}
 	{try_froms}
+	{match_rule_impls}
+  {registry_event_impls}
+  {registry_event_enum_impl}
 }}
 	"
     )
@@ -483,7 +555,7 @@ fn generate_enum_associated_example(iface_name: &str) -> String {
     ///
     /// #[tokio::main]
     /// async fn main() {{
-    ///     let atspi = atspi::Connection::open().await.unwrap();
+    ///     let atspi = atspi::AccessibilityBus::open().await.unwrap();
     ///     let events = atspi.event_stream();
     /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
     ///     tokio::pin!(events);
