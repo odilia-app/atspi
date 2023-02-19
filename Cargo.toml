@@ -18,9 +18,9 @@ publish = true
 
 [features]
 default = ["async-io"]
-async-io = ["atspi-macros/async-io", "zbus/async-io"]
+async-io = ["zbus/async-io"]
 gvariant = ["zbus/gvariant"]
-tokio = ["atspi-macros/tokio", "zbus/tokio"]
+tokio = ["zbus/tokio"]
 
 [dependencies]
 atspi-macros = { version = "0.1.4", path = "atspi-macros" }
