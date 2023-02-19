@@ -2,6 +2,9 @@
 // #![deny(clippy::missing_docs)]
 #![allow(clippy::multiple_crate_versions)]
 
+#[macro_use]
+extern crate static_assertions;
+
 pub mod accessible;
 pub mod accessible_ext;
 pub mod accessible_id;

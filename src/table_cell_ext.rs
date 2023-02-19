@@ -1,3 +1,5 @@
+use crate::table_cell::{TableCell, TableCellBlocking, TableCellProxy, TableCellProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait TableCellExtError: crate::table_cell::TableCell {
 	type Error: std::error::Error;
@@ -15,20 +17,5 @@ impl<T: TableCellBlockingExtError + crate::table_cell::TableCellBlocking> TableC
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		table_cell::{TableCellProxy, TableCellProxyBlocking},
-		table_cell_ext::{TableCellBlockingExt, TableCellExt},
-	};
-	fn implements_table_cell_ext<T: TableCellExt>() {}
-	fn implements_table_cell_blocking_ext<T: TableCellBlockingExt>() {}
-	#[test]
-	fn check_table_cell_implements_table_cell_ext() {
-		implements_table_cell_ext::<TableCellProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_table_cell_implements_table_cell_ext() {
-		implements_table_cell_blocking_ext::<TableCellProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(TableCellProxy: TableCell, TableCellExt);
+assert_impl_all!(TableCellProxyBlocking: TableCellBlocking, TableCellBlockingExt);

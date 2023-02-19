@@ -1,3 +1,5 @@
+use crate::component::{Component, ComponentBlocking, ComponentProxy, ComponentProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait ComponentExtError: crate::component::Component {
 	type Error: std::error::Error;
@@ -15,20 +17,5 @@ impl<T: ComponentBlockingExtError + crate::component::ComponentBlocking> Compone
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		component::{ComponentProxy, ComponentProxyBlocking},
-		component_ext::{ComponentBlockingExt, ComponentExt},
-	};
-	fn implements_component_ext<T: ComponentExt>() {}
-	fn implements_component_blocking_ext<T: ComponentBlockingExt>() {}
-	#[test]
-	fn check_component_implements_component_ext() {
-		implements_component_ext::<ComponentProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_component_implements_component_ext() {
-		implements_component_blocking_ext::<ComponentProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(ComponentProxy: Component, ComponentExt);
+assert_impl_all!(ComponentProxyBlocking: ComponentBlocking, ComponentBlockingExt);

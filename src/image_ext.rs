@@ -1,3 +1,5 @@
+use crate::image::{Image, ImageBlocking, ImageProxy, ImageProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait ImageExtError: crate::image::Image {
 	type Error: std::error::Error;
@@ -12,20 +14,5 @@ pub trait ImageBlockingExt {}
 impl<T: ImageExtError + crate::image::Image> ImageExt for T {}
 impl<T: ImageBlockingExtError + crate::image::ImageBlocking> ImageBlockingExt for T {}
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		image::{ImageProxy, ImageProxyBlocking},
-		image_ext::{ImageBlockingExt, ImageExt},
-	};
-	fn implements_image_ext<T: ImageExt>() {}
-	fn implements_image_blocking_ext<T: ImageBlockingExt>() {}
-	#[test]
-	fn check_image_implements_image_ext() {
-		implements_image_ext::<ImageProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_image_implements_image_ext() {
-		implements_image_blocking_ext::<ImageProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(ImageProxy: Image, ImageExt);
+assert_impl_all!(ImageProxyBlocking: ImageBlocking, ImageBlockingExt);

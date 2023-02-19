@@ -1,3 +1,5 @@
+use crate::value::{Value, ValueBlocking, ValueProxy, ValueProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait ValueExtError: crate::value::Value {
 	type Error: std::error::Error;
@@ -14,20 +16,5 @@ pub trait ValueBlockingExt {}
 impl<T: ValueExtError + crate::value::Value> ValueExt for T {}
 impl<T: ValueBlockingExtError + crate::value::ValueBlocking> ValueBlockingExt for T {}
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		value::{ValueProxy, ValueProxyBlocking},
-		value_ext::{ValueBlockingExt, ValueExt},
-	};
-	fn implements_value_ext<T: ValueExt>() {}
-	fn implements_value_blocking_ext<T: ValueBlockingExt>() {}
-	#[test]
-	fn check_value_implements_value_ext() {
-		implements_value_ext::<ValueProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_value_implements_value_ext() {
-		implements_value_blocking_ext::<ValueProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(ValueProxy: Value, ValueExt);
+assert_impl_all!(ValueProxyBlocking: ValueBlocking, ValueBlockingExt);

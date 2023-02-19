@@ -1,3 +1,5 @@
+use crate::registry::{Registry, RegistryBlocking, RegistryProxy, RegistryProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait RegistryExtError: crate::registry::Registry {
 	type Error: std::error::Error;
@@ -12,20 +14,5 @@ pub trait RegistryBlockingExt {}
 impl<T: RegistryExtError + crate::registry::Registry> RegistryExt for T {}
 impl<T: RegistryBlockingExtError + crate::registry::RegistryBlocking> RegistryBlockingExt for T {}
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		registry::{RegistryProxy, RegistryProxyBlocking},
-		registry_ext::{RegistryBlockingExt, RegistryExt},
-	};
-	fn implements_registry_ext<T: RegistryExt>() {}
-	fn implements_registry_blocking_ext<T: RegistryBlockingExt>() {}
-	#[test]
-	fn check_registry_implements_registry_ext() {
-		implements_registry_ext::<RegistryProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_registry_implements_registry_ext() {
-		implements_registry_blocking_ext::<RegistryProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(RegistryProxy: Registry, RegistryExt);
+assert_impl_all!(RegistryProxyBlocking: RegistryBlocking, RegistryBlockingExt);

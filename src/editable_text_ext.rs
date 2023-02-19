@@ -1,3 +1,7 @@
+use crate::editable_text::{
+	EditableText, EditableTextBlocking, EditableTextProxy, EditableTextProxyBlocking,
+};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait EditableTextExtError: crate::editable_text::EditableText {
 	type Error: std::error::Error;
@@ -15,20 +19,5 @@ impl<T: EditableTextBlockingExtError + crate::editable_text::EditableTextBlockin
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		editable_text::{EditableTextProxy, EditableTextProxyBlocking},
-		editable_text_ext::{EditableTextBlockingExt, EditableTextExt},
-	};
-	fn implements_editable_text_ext<T: EditableTextExt>() {}
-	fn implements_editable_text_blocking_ext<T: EditableTextBlockingExt>() {}
-	#[test]
-	fn check_editable_text_implements_editable_text_ext() {
-		implements_editable_text_ext::<EditableTextProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_editable_text_implements_editable_text_ext() {
-		implements_editable_text_blocking_ext::<EditableTextProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(EditableTextProxy: EditableText, EditableTextExt);
+assert_impl_all!(EditableTextProxyBlocking: EditableTextBlocking, EditableTextBlockingExt);

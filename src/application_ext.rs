@@ -1,3 +1,7 @@
+use crate::application::{
+	Application, ApplicationBlocking, ApplicationProxy, ApplicationProxyBlocking,
+};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait ApplicationExtError: crate::application::Application {
 	type Error: std::error::Error;
@@ -15,20 +19,5 @@ impl<T: ApplicationBlockingExtError + crate::application::ApplicationBlocking>
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		application::{ApplicationProxy, ApplicationProxyBlocking},
-		application_ext::{ApplicationBlockingExt, ApplicationExt},
-	};
-	fn implements_application_ext<T: ApplicationExt>() {}
-	fn implements_application_blocking_ext<T: ApplicationBlockingExt>() {}
-	#[test]
-	fn check_application_implements_application_ext() {
-		implements_application_ext::<ApplicationProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_application_implements_application_ext() {
-		implements_application_blocking_ext::<ApplicationProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(ApplicationProxy: Application, ApplicationExt);
+assert_impl_all!(ApplicationProxyBlocking: ApplicationBlocking, ApplicationBlockingExt);

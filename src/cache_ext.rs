@@ -1,3 +1,5 @@
+use crate::cache::{Cache, CacheBlocking, CacheProxy, CacheProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait CacheExtError: crate::cache::Cache {
 	type Error: std::error::Error;
@@ -12,20 +14,5 @@ pub trait CacheBlockingExt {}
 impl<T: CacheExtError + crate::cache::Cache> CacheExt for T {}
 impl<T: CacheBlockingExtError + crate::cache::CacheBlocking> CacheBlockingExt for T {}
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		cache::{CacheProxy, CacheProxyBlocking},
-		cache_ext::{CacheBlockingExt, CacheExt},
-	};
-	fn implements_cache_ext<T: CacheExt>() {}
-	fn implements_cache_blocking_ext<T: CacheBlockingExt>() {}
-	#[test]
-	fn check_cache_implements_cache_ext() {
-		implements_cache_ext::<CacheProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_cache_implements_cache_ext() {
-		implements_cache_blocking_ext::<CacheProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(CacheProxy: Cache, CacheExt);
+assert_impl_all!(CacheProxyBlocking: CacheBlocking, CacheBlockingExt);

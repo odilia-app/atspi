@@ -1,3 +1,5 @@
+use crate::selection::{Selection, SelectionBlocking, SelectionProxy, SelectionProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait SelectionExtError: crate::selection::Selection {
 	type Error: std::error::Error;
@@ -15,20 +17,5 @@ impl<T: SelectionBlockingExtError + crate::selection::SelectionBlocking> Selecti
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		selection::{SelectionProxy, SelectionProxyBlocking},
-		selection_ext::{SelectionBlockingExt, SelectionExt},
-	};
-	fn implements_selection_ext<T: SelectionExt>() {}
-	fn implements_selection_blocking_ext<T: SelectionBlockingExt>() {}
-	#[test]
-	fn check_selection_implements_selection_ext() {
-		implements_selection_ext::<SelectionProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_selection_implements_selection_ext() {
-		implements_selection_blocking_ext::<SelectionProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(SelectionProxy: Selection, SelectionExt);
+assert_impl_all!(SelectionProxyBlocking: SelectionBlocking, SelectionBlockingExt);

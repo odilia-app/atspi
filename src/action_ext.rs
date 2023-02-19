@@ -1,3 +1,5 @@
+use crate::action::{Action, ActionBlocking, ActionProxy, ActionProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait ActionExtError: crate::action::Action {
 	type Error: std::error::Error;
@@ -12,20 +14,5 @@ pub trait ActionBlockingExt {}
 impl<T: ActionExtError + crate::action::Action> ActionExt for T {}
 impl<T: ActionBlockingExtError + crate::action::ActionBlocking> ActionBlockingExt for T {}
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		action::{ActionProxy, ActionProxyBlocking},
-		action_ext::{ActionBlockingExt, ActionExt},
-	};
-	fn implements_action_ext<T: ActionExt>() {}
-	fn implements_action_blocking_ext<T: ActionBlockingExt>() {}
-	#[test]
-	fn check_action_implements_action_ext() {
-		implements_action_ext::<ActionProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_action_implements_action_ext() {
-		implements_action_blocking_ext::<ActionProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(ActionProxy: Action, ActionExt);
+assert_impl_all!(ActionProxyBlocking: ActionBlocking, ActionBlockingExt);

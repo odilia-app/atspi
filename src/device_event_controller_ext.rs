@@ -1,3 +1,8 @@
+use crate::device_event_controller::{
+	DeviceEventController, DeviceEventControllerBlocking, DeviceEventControllerProxy,
+	DeviceEventControllerProxyBlocking,
+};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait DeviceEventControllerExtError:
 	crate::device_event_controller::DeviceEventController
@@ -24,22 +29,8 @@ impl<
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		device_event_controller::{DeviceEventControllerProxy, DeviceEventControllerProxyBlocking},
-		device_event_controller_ext::{DeviceEventControllerBlockingExt, DeviceEventControllerExt},
-	};
-	fn implements_device_event_controller_ext<T: DeviceEventControllerExt>() {}
-	fn implements_device_event_controller_blocking_ext<T: DeviceEventControllerBlockingExt>() {}
-	#[test]
-	fn check_device_event_controller_implements_device_event_controller_ext() {
-		implements_device_event_controller_ext::<DeviceEventControllerProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_device_event_controller_implements_device_event_controller_ext() {
-		implements_device_event_controller_blocking_ext::<
-			DeviceEventControllerProxyBlocking<'static>,
-		>();
-	}
-}
+assert_impl_all!(DeviceEventControllerProxy: DeviceEventController, DeviceEventControllerExt);
+assert_impl_all!(
+	DeviceEventControllerProxyBlocking: DeviceEventControllerBlocking,
+	DeviceEventControllerBlockingExt
+);

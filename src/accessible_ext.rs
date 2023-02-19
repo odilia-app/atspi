@@ -1,5 +1,8 @@
 use crate::{
-	accessible::{Accessible, AccessibleBlocking, RelationType, Role},
+	accessible::{
+		Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking, RelationType,
+		Role,
+	},
 	collection::MatchType,
 	convertable::{Convertable, ConvertableBlocking},
 	hyperlink::Hyperlink,
@@ -298,21 +301,5 @@ impl<T: AccessibleBlocking + ConvertableBlocking + AccessibleBlockingExtError> A
 {
 }
 
-#[cfg(test)]
-mod tests {
-	use crate::{
-		accessible::AccessibleProxy, accessible::AccessibleProxyBlocking,
-		accessible_ext::AccessibleBlockingExt, accessible_ext::AccessibleExt,
-	};
-
-	fn implements_accessible_ext<T: AccessibleExt>() {}
-	fn implements_accessible_blocking_ext<T: AccessibleBlockingExt>() {}
-	#[test]
-	fn check_accessible_proxy_implements_accessible_ext() {
-		implements_accessible_ext::<AccessibleProxy<'static>>();
-	}
-	#[test]
-	fn check_accessible_proxy_blocking_implements_accessible_ext() {
-		implements_accessible_blocking_ext::<AccessibleProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(AccessibleProxy: Accessible, AccessibleExt);
+assert_impl_all!(AccessibleProxyBlocking: AccessibleBlocking, AccessibleBlockingExt);

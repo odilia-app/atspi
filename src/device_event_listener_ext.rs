@@ -1,3 +1,8 @@
+use crate::device_event_listener::{
+	DeviceEventListener, DeviceEventListenerBlocking, DeviceEventListenerProxy,
+	DeviceEventListenerProxyBlocking,
+};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait DeviceEventListenerExtError: crate::device_event_listener::DeviceEventListener {
 	type Error: std::error::Error;
@@ -22,21 +27,8 @@ impl<
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		device_event_listener::{DeviceEventListenerProxy, DeviceEventListenerProxyBlocking},
-		device_event_listener_ext::{DeviceEventListenerBlockingExt, DeviceEventListenerExt},
-	};
-	fn implements_device_event_listener_ext<T: DeviceEventListenerExt>() {}
-	fn implements_device_event_listener_blocking_ext<T: DeviceEventListenerBlockingExt>() {}
-	#[test]
-	fn check_device_event_listener_implements_device_event_listener_ext() {
-		implements_device_event_listener_ext::<DeviceEventListenerProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_device_event_listener_implements_device_event_listener_ext() {
-		implements_device_event_listener_blocking_ext::<DeviceEventListenerProxyBlocking<'static>>(
-		);
-	}
-}
+assert_impl_all!(DeviceEventListenerProxy: DeviceEventListener, DeviceEventListenerExt);
+assert_impl_all!(
+	DeviceEventListenerProxyBlocking: DeviceEventListenerBlocking,
+	DeviceEventListenerBlockingExt
+);

@@ -1,3 +1,5 @@
+use crate::hypertext::{Hypertext, HypertextBlocking, HypertextProxy, HypertextProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait HypertextExtError: crate::hypertext::Hypertext {
 	type Error: std::error::Error;
@@ -15,20 +17,5 @@ impl<T: HypertextBlockingExtError + crate::hypertext::HypertextBlocking> Hyperte
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		hypertext::{HypertextProxy, HypertextProxyBlocking},
-		hypertext_ext::{HypertextBlockingExt, HypertextExt},
-	};
-	fn implements_hypertext_ext<T: HypertextExt>() {}
-	fn implements_hypertext_blocking_ext<T: HypertextBlockingExt>() {}
-	#[test]
-	fn check_hypertext_implements_hypertext_ext() {
-		implements_hypertext_ext::<HypertextProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_hypertext_implements_hypertext_ext() {
-		implements_hypertext_blocking_ext::<HypertextProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(HypertextProxy: Hypertext, HypertextExt);
+assert_impl_all!(HypertextProxyBlocking: HypertextBlocking, HypertextBlockingExt);

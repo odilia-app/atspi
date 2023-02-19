@@ -1,3 +1,4 @@
+use crate::text::{Text, TextBlocking, TextProxy, TextProxyBlocking};
 use async_trait::async_trait;
 
 #[allow(clippy::module_name_repetitions)]
@@ -44,21 +45,5 @@ impl<T: crate::text::TextBlocking + TextBlockingExtError> TextBlockingExt for T 
 	}
 }
 
-#[cfg(test)]
-mod tests {
-	use crate::{
-		text::{TextProxy, TextProxyBlocking},
-		text_ext::{TextBlockingExt, TextExt},
-	};
-
-	fn implements_text_ext<T: TextExt>() {}
-	fn implements_text_blocking_ext<T: TextBlockingExt>() {}
-	#[test]
-	fn test_text_proxy_implement_text_ext() {
-		implements_text_ext::<TextProxy<'static>>();
-	}
-	#[test]
-	fn test_blocking_text_proxy_implement_text_ext() {
-		implements_text_blocking_ext::<TextProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(TextProxy: Text, TextExt);
+assert_impl_all!(TextProxyBlocking: TextBlocking, TextBlockingExt);

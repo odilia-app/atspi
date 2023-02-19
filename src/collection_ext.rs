@@ -1,3 +1,5 @@
+use crate::collection::{Collection, CollectionBlocking, CollectionProxy, CollectionProxyBlocking};
+
 #[allow(clippy::module_name_repetitions)]
 pub trait CollectionExtError: crate::collection::Collection {
 	type Error: std::error::Error;
@@ -15,20 +17,5 @@ impl<T: CollectionBlockingExtError + crate::collection::CollectionBlocking> Coll
 {
 }
 
-#[cfg(test)]
-mod test {
-	use crate::{
-		collection::{CollectionProxy, CollectionProxyBlocking},
-		collection_ext::{CollectionBlockingExt, CollectionExt},
-	};
-	fn implements_collection_ext<T: CollectionExt>() {}
-	fn implements_collection_blocking_ext<T: CollectionBlockingExt>() {}
-	#[test]
-	fn check_collection_implements_collection_ext() {
-		implements_collection_ext::<CollectionProxy<'static>>();
-	}
-	#[test]
-	fn check_blocking_collection_implements_collection_ext() {
-		implements_collection_blocking_ext::<CollectionProxyBlocking<'static>>();
-	}
-}
+assert_impl_all!(CollectionProxy: Collection, CollectionExt);
+assert_impl_all!(CollectionProxyBlocking: CollectionBlocking, CollectionBlockingExt);

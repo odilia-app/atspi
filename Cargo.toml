@@ -29,6 +29,7 @@ async-trait = "^0.1.59"
 enumflags2 = "^0.7.5"
 futures-lite = { version = "1.12", default-features = false }
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
+static_assertions = "^1.1.0"
 tracing = "^0.1.37"
 zbus = { version = "^3.6.2", default-features = false }
 zbus_names = "2.4.0"
