@@ -76,8 +76,7 @@ pub trait AccessibleExtError: Accessible + Convertable {
 		// TODO: add all convertable error types
 		+ From<<<Self as Convertable>::Text as Text>::Error>
 		+ From<std::num::TryFromIntError>
-		+ Send
-		+ Sync;
+		+ Send;
 }
 
 #[allow(clippy::module_name_repetitions)]
