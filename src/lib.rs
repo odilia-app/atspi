@@ -1,4 +1,5 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
+#![deny(unused_crate_dependencies)]
 // #![deny(clippy::missing_docs)]
 
 pub mod accessible;
