@@ -180,7 +180,7 @@ impl AccessibilityBus {
 
 	/// Add a registry event.
 	/// This tells accessible applications which events should be forwarded to the accessbility bus.
-	/// This is called by [`registr_event`].
+	/// This is called by [`Self::register_event`].
 	///
 	/// ```rust
 	/// use atspi::identify::object::StateChangedEvent;
@@ -193,7 +193,7 @@ impl AccessibilityBus {
 	///
 	/// # Errors
 	///
-	/// May cause an error if the `DBus` method [`registry::RegistryProxy::register_event`] fails.
+	/// May cause an error if the `DBus` method [`crate::registry::RegistryProxy::register_event`] fails.
 	pub async fn add_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
 			.register_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
@@ -203,7 +203,7 @@ impl AccessibilityBus {
 
 	/// Remove a registry event.
 	/// This tells accessible applications which events should be forwarded to the accessbility bus.
-	/// This is called by [`registr_event`].
+	/// This is called by [`Self::deregister_event`].
 	/// It may be called like so:
 	///
 	/// ```rust
@@ -225,9 +225,9 @@ impl AccessibilityBus {
 		Ok(())
 	}
 
-	/// This calls [`add_registry_event`] and [`add_match_rule`], two components necessary to receive accessiblity events.
+	/// This calls [`Self::add_registry_event`] and [`Self::add_match_rule`], two components necessary to receive accessiblity events.
 	/// # Errors
-	/// This will only fail if [`add_registry_event`[ or [`add_match_rule`] fails.
+	/// This will only fail if [`Self::add_registry_event`[ or [`Self::add_match_rule`] fails.
 	pub async fn register_event<T: HasRegistryEventString + HasMatchRule>(
 		&self,
 	) -> Result<(), AtspiError> {
@@ -236,9 +236,9 @@ impl AccessibilityBus {
 		Ok(())
 	}
 
-	/// This calls [`remove_registry_event`] and [`remove_match_rule`], two components necessary to receive accessiblity events.
+	/// This calls [`Self::remove_registry_event`] and [`Self::remove_match_rule`], two components necessary to receive accessiblity events.
 	/// # Errors
-	/// This will only fail if [`remove_registry_event`[ or [`remove_match_rule`] fails.
+	/// This will only fail if [`Self::remove_registry_event`] or [`Self::remove_match_rule`] fails.
 	pub async fn deregister_event<T: HasRegistryEventString + HasMatchRule>(
 		&self,
 	) -> Result<(), AtspiError> {
