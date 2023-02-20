@@ -2,8 +2,10 @@ name: CI
 on: 
   push:
     branches:
-      - 'main'
+      - main
   pull_request:
+    branches:
+      - main
 jobs:
   clippy:
     runs-on: ubuntu-latest
