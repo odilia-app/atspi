@@ -125,7 +125,8 @@ jobs:
       - name: Install Cargo Machete
         uses: actions-rs/cargo@v1
         with:
-          command: install cargo-machete
+          command: install
+          args: cargo-machete
       - name: Check For Unused Depdencies
         uses: actions-rs/cargo@v1
         with:
