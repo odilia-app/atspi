@@ -106,7 +106,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-  dependencies:
+  unused-dependencies:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
