@@ -106,7 +106,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-  unused-dependencies:
+  no-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
@@ -137,7 +137,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: machete
-  semver:
+  semver-compliance:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
@@ -164,7 +164,7 @@ jobs:
         with:
           crate-name: atspi
           version-tag-prefix: v
-  msrv-verification:
+  msrv-compliance:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
