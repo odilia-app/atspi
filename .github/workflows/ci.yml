@@ -164,7 +164,7 @@ jobs:
         with:
           crate-name: atspi
           version-tag-prefix: v
-  msrv:
+  msrv-verification:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
@@ -186,12 +186,12 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - name: Install Cargo Machete
+      - name: Install Cargo MSRV Verifier
         uses: actions-rs/cargo@v1
         with:
           command: install
           args: cargo-msrv
-      - name: Check For Unused Depdencies
+      - name: Check MSRV Compliance
         uses: actions-rs/cargo@v1
         with:
           command: msrv
