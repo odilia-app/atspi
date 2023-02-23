@@ -106,7 +106,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-  dependencies:
+  no-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
@@ -137,7 +137,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: machete
-  semver:
+  semver-compliance:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
@@ -164,3 +164,35 @@ jobs:
         with:
           crate-name: atspi
           version-tag-prefix: v
+  msrv-compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - name: Cache cargo home
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cargo-home
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Install Cargo MSRV Verifier
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-msrv
+      - name: Check MSRV Compliance
+        uses: actions-rs/cargo@v1
+        with:
+          command: msrv
+          args: verify
