@@ -1,25 +1,7 @@
 use crate::{bus::BusProxy, events::Event, registry::RegistryProxy, AtspiError};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{zvariant::Signature, Address, MessageStream, MessageType};
-
-// Event body signatures: These outline the event specific deserialized event types.
-// Safety: These are evaluated at compile time.
-// ----
-// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
-// -  Cache : RemoveAccessible
-// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
-//
-// ATSPI- and QSPI both describe the generic events. These can be converted into
-// specific signal types with TryFrom implementations. See crate::[`identify`]
-//  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
-//  CACHE_ADD and *_REMOVE have very different types
-pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
-pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
-pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-pub const CACHE_ADD: Signature<'_> =
-	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+use zbus::{Address, MessageStream, MessageType};
 
 /// A connection to the at-spi bus
 pub struct Connection {
