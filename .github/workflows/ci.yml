@@ -64,7 +64,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features
+          args: --features=unstable-traits
   rustfmt:
     runs-on: ubuntu-latest
     steps:
