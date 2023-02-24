@@ -22,8 +22,6 @@ proc-macro2 = "1.0"
 syn = { version = "1.0", features = ["extra-traits", "fold", "full"] }
 quote = "1.0.21"
 zbus = { version = "3.0.0", default-features = false, features = ["xml"] }
-zbus_names = "2.4.0"
-zbus_macros = "3.0.0"
 serde = "1.0"
 zvariant = "3.9.0"
 proc-macro-crate = "1.2.1"
