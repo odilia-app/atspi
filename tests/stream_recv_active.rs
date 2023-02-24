@@ -14,16 +14,8 @@ use crate::common::{a11y_bus_address, create_command, timeout};
 #[test]
 fn recv_active_signal() {
 	let receive_good_event = async {
-		let connection = atspi::Connection::open().await.unwrap();
-		let object_match_rule = MatchRule::builder()
-			.msg_type(MessageType::Signal)
-			.interface("org.a11y.atspi.Event.Object")
-			.unwrap()
-			.build();
-
-		// This creates a DBus proxy object using the same connection as the AT-SPI proxy.
-		let dbus_connection = DBusProxy::new(connection.connection()).await.unwrap();
-		dbus_connection.add_match_rule(object_match_rule).await.unwrap();
+		let connection = atspi::AccessibilityBus::open().await.unwrap();
+		connection.register_events::<ObjectEvents>().await.unwrap();
 		let a11y_event_stream = connection.event_stream();
 
 		pin!(a11y_event_stream);
