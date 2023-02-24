@@ -10,7 +10,7 @@ use syn::{
 use crate::utils::*;
 
 /// The name of an object pair. See: [`atspi::accessible::ObjectPair`].
-const OBJECT_PAIR_NAME: &'static str = "ObjectPair";
+const OBJECT_PAIR_NAME: &str = "ObjectPair";
 
 struct AsyncOpts {
     blocking: bool,
@@ -60,7 +60,7 @@ pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
 }
 
 pub fn create_ext_error_trait_impl(proxy_name: &str, blocking: bool) -> Result<TokenStream, Error> {
-    let mut interface_name_str = proxy_name.to_owned().clone();
+    let mut interface_name_str = proxy_name.to_owned();
     interface_name_str = interface_name_str.replace("ProxyBlocking", "");
     interface_name_str = interface_name_str.replace("Proxy", "");
     if blocking {
@@ -68,26 +68,25 @@ pub fn create_ext_error_trait_impl(proxy_name: &str, blocking: bool) -> Result<T
     } else {
         interface_name_str.push_str("ExtError");
     }
-    let mut module_name_str = proxy_name.to_owned().clone();
+    let mut module_name_str = proxy_name.to_owned();
     module_name_str = module_name_str.replace("ProxyBlocking", "");
     module_name_str = module_name_str.replace("Proxy", "");
     // replace upper case letters with the lower-case equiv, then add an underscore
     module_name_str = module_name_str
         .chars()
         .enumerate()
-        .map(|(idx, c)| {
+        .flat_map(|(idx, c)| {
             [
                 if c.is_ascii_uppercase() && idx != 0 { '_' } else { 0 as char },
                 c.to_ascii_lowercase(),
             ]
         })
-        .flatten()
         .filter(|c| c != &(0 as char))
         .collect();
     module_name_str.push_str("_ext");
 
     let module_name = TokenStream::from_str(&module_name_str)?;
-    let trait_impl_name = TokenStream::from_str(&proxy_name)?;
+    let trait_impl_name = TokenStream::from_str(proxy_name)?;
     let interface_name = TokenStream::from_str(&interface_name_str)?;
     Ok(quote! {
         impl crate::#module_name::#interface_name for #trait_impl_name<'_> {
@@ -97,10 +96,10 @@ pub fn create_ext_error_trait_impl(proxy_name: &str, blocking: bool) -> Result<T
 }
 
 pub fn create_atspi_proxy_trait_impl(proxy_name: &str) -> Result<TokenStream, Error> {
-    let mut interface_name_str = proxy_name.to_owned().clone();
+    let mut interface_name_str = proxy_name.to_owned();
     interface_name_str = interface_name_str.replace("ProxyBlocking", "");
     interface_name_str = interface_name_str.replace("Proxy", "");
-    let trait_impl_name = TokenStream::from_str(&proxy_name)?;
+    let trait_impl_name = TokenStream::from_str(proxy_name)?;
     let interface_name = TokenStream::from_str(&interface_name_str)?;
     Ok(quote! {
         impl crate::AtspiProxy for #trait_impl_name<'_> {
