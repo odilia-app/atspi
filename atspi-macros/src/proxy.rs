@@ -579,7 +579,7 @@ fn gen_proxy_trait_method_impl(
                 let object_pair = self.#method(#body)#wait?;
                 let conn = self.connection().clone();
                 #proxy::builder(&conn)
-                    .path(OwnedObjectPath::try_from(object_pair.1)?)?
+                    .path(zbus::zvariant::OwnedObjectPath::try_from(object_pair.1)?)?
                     .destination(object_pair.0)?
                     .build()
                     #wait
@@ -597,7 +597,7 @@ fn gen_proxy_trait_method_impl(
                     let mut proxies = Vec::new();
                     for object_pair in raw_relation_set.1 {
                         let proxy = #proxy::builder(&conn)
-                            .path(OwnedObjectPath::try_from(object_pair.1)?)?
+                            .path(zbus::zvariant::OwnedObjectPath::try_from(object_pair.1)?)?
                             .destination(object_pair.0)?
                             .build()
                             #wait?;
@@ -617,7 +617,7 @@ fn gen_proxy_trait_method_impl(
                 let conn = self.connection().clone();
                 for object_pair in vec_of_object_pairs {
                     let proxy = #proxy::builder(&conn)
-                        .path(OwnedObjectPath::try_from(object_pair.1)?)?
+                        .path(zbus::zvariant::OwnedObjectPath::try_from(object_pair.1)?)?
                         .destination(object_pair.0)?
                         .build()
                         #wait?;
@@ -757,7 +757,7 @@ fn gen_proxy_trait_impl_property(
                 let object_pair = self.#method()#wait?;
                 let conn = self.connection().clone();
                 #proxy::builder(&conn)
-                    .path(OwnedObjectPath::try_from(object_pair.1)?)?
+                    .path(zbus::zvariant::OwnedObjectPath::try_from(object_pair.1)?)?
                     .destination(object_pair.0)?
                     .build()
                     #wait

@@ -1,35 +1,21 @@
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
+#[cfg(feature = "unstable_atspi_proxy_macro")]
 mod proxy;
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
+#[cfg(feature = "unstable_atspi_proxy_macro")]
 mod utils;
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
+#[cfg(feature = "unstable_atspi_proxy_macro")]
 mod zbus_proxy;
 
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
+#[cfg(feature = "unstable_atspi_proxy_macro")]
 use syn::ItemTrait;
 
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
-use zbus::xml::*;
-
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
-use zvariant::{
-    Basic, ObjectPath, Signature, ARRAY_SIGNATURE_CHAR, DICT_ENTRY_SIG_END_CHAR,
-    DICT_ENTRY_SIG_START_CHAR, STRUCT_SIG_END_CHAR, STRUCT_SIG_START_CHAR, VARIANT_SIGNATURE_CHAR,
-};
-
 use proc_macro::TokenStream;
-use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
-    parse_macro_input, AttributeArgs, DeriveInput, Ident, ItemStruct, Lit, Meta,
+    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta,
     MetaNameValue, NestedMeta, Type,
 };
 
-use std::{
-    convert::{TryFrom, TryInto},
-    iter::FromIterator,
-    str::FromStr,
-};
+use std::convert::TryFrom;
 
 enum FromZbusMessageParam {
     Invalid,
@@ -164,104 +150,8 @@ impl TryFrom<usize> for AtspiEventInnerName {
     }
 }
 
-// taken from zbus_xmlgen: https://gitlab.freedesktop.org/dbus/zbus/-/blob/main/zbus_xmlgen/src/gen.rs
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
-fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
-    // can't haz recursive closure, yet
-    fn iter_to_rust_type(
-        it: &mut std::iter::Peekable<std::slice::Iter<'_, u8>>,
-        input: bool,
-        as_ref: bool,
-    ) -> String {
-        let c = it.next().unwrap();
-        match *c as char {
-            u8::SIGNATURE_CHAR => "u8".into(),
-            bool::SIGNATURE_CHAR => "bool".into(),
-            i16::SIGNATURE_CHAR => "i16".into(),
-            u16::SIGNATURE_CHAR => "u16".into(),
-            i32::SIGNATURE_CHAR => "i32".into(),
-            u32::SIGNATURE_CHAR => "u32".into(),
-            i64::SIGNATURE_CHAR => "i64".into(),
-            u64::SIGNATURE_CHAR => "u64".into(),
-            f64::SIGNATURE_CHAR => "f64".into(),
-            // xmlgen accepts 'h' on Windows, only for code generation
-            'h' => (if input { "zbus::zvariant::Fd" } else { "zbus::zvariant::OwnedFd" }).into(),
-            <&str>::SIGNATURE_CHAR => (if input || as_ref { "&str" } else { "String" }).into(),
-            ObjectPath::SIGNATURE_CHAR => (if input {
-                if as_ref {
-                    "&zbus::zvariant::ObjectPath<'_>"
-                } else {
-                    "zbus::zvariant::ObjectPath<'_>"
-                }
-            } else {
-                "zbus::zvariant::OwnedObjectPath"
-            })
-            .into(),
-            Signature::SIGNATURE_CHAR => (if input {
-                if as_ref {
-                    "&zbus::zvariant::Signature<'_>"
-                } else {
-                    "zbus::zvariant::Signature<'_>"
-                }
-            } else {
-                "zbus::zvariant::OwnedSignature"
-            })
-            .into(),
-            VARIANT_SIGNATURE_CHAR => (if input {
-                if as_ref {
-                    "&zbus::zvariant::Value<'_>"
-                } else {
-                    "zbus::zvariant::Value<'_>"
-                }
-            } else {
-                "zbus::zvariant::OwnedValue"
-            })
-            .into(),
-            ARRAY_SIGNATURE_CHAR => {
-                let c = it.peek().unwrap();
-                match **c as char {
-                    '{' => format!(
-                        "std::collections::HashMap<{}>",
-                        iter_to_rust_type(it, input, false)
-                    ),
-                    _ => {
-                        let ty = iter_to_rust_type(it, input, false);
-                        if input {
-                            format!("&[{ty}]")
-                        } else {
-                            format!("{}Vec<{}>", if as_ref { "&" } else { "" }, ty)
-                        }
-                    }
-                }
-            }
-            c @ STRUCT_SIG_START_CHAR | c @ DICT_ENTRY_SIG_START_CHAR => {
-                let dict = c == '{';
-                let mut vec = vec![];
-                loop {
-                    let c = it.peek().unwrap();
-                    match **c as char {
-                        STRUCT_SIG_END_CHAR | DICT_ENTRY_SIG_END_CHAR => break,
-                        _ => vec.push(iter_to_rust_type(it, input, false)),
-                    }
-                }
-                if dict {
-                    vec.join(", ")
-                } else if vec.len() > 1 {
-                    format!("{}({})", if as_ref { "&" } else { "" }, vec.join(", "))
-                } else {
-                    vec[0].to_string()
-                }
-            }
-            _ => unimplemented!(),
-        }
-    }
-
-    let mut it = ty.as_bytes().iter().peekable();
-    iter_to_rust_type(&mut it, input, as_ref)
-}
-
 #[proc_macro_attribute]
-#[cfg(feature = "unstable_atspi_proxy_codegen")]
+#[cfg(feature = "unstable_atspi_proxy_macro")]
 pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as AttributeArgs);
     let input = parse_macro_input!(item as ItemTrait);
@@ -273,17 +163,6 @@ pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
     #atspi_part
         }
     .into()
-}
-/// When the `traits` feature is not enabled, we alias `atspi_proxy` to [`zbus_macros::dbus_proxy`].
-#[proc_macro_attribute]
-#[cfg(not(feature = "unstable_atspi_proxy_codegen"))]
-pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let args = TokenStream2::from_str(&format!("#[zbus::dbus_proxy({})]", attr)).unwrap();
-    let trait_fns = TokenStream2::from_str(&format!("{}", item)).unwrap();
-		quote! {
-#args
-#trait_fns
-		}.into()
 }
 
 #[proc_macro_attribute]
