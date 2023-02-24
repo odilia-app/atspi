@@ -1,6 +1,6 @@
 [package]
 name = "atspi-macros"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Luuk van der Duim <luukvanderduim@gmail.com>", "Tait Hoyem <tait@tait.tech>"]
 description = "Macros to assist in various impl blocks for the `atspi` crate."
