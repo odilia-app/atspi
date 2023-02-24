@@ -8,7 +8,6 @@ use crate::{
 	accessible::{ObjectPair, Role},
 	InterfaceSet, StateSet,
 };
-use async_trait::async_trait;
 use atspi_macros::atspi_proxy;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{OwnedObjectPath, Type};

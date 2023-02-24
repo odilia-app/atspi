@@ -10,7 +10,6 @@
 //! section of the zbus documentation.
 //!
 
-use async_trait::async_trait;
 use atspi_macros::atspi_proxy;
 use zbus::names::OwnedBusName;
 

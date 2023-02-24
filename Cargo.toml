@@ -21,6 +21,7 @@ default = ["async-io"]
 async-io = ["atspi-macros/async-io", "zbus/async-io"]
 gvariant = ["zbus/gvariant"]
 tokio = ["atspi-macros/tokio", "zbus/tokio"]
+unstable_traits = ["atspi-macros/unstable_atspi_proxy_codegen"]
 
 [dependencies]
 atspi-macros = { version = "0.2.0", path = "atspi-macros" }

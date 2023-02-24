@@ -13,16 +13,14 @@ keywords = ["macros", "helper"]
 proc_macro = true
 
 [features]
-default = ["async-io"]
-async-io = ["zbus/async-io"]
-tokio = ["zbus/tokio"]
+unstable_atspi_proxy_codegen = ["dep:zbus", "dep:zvariant"]
 
 [dependencies]
 proc-macro2 = "1.0"
 syn = { version = "1.0", features = ["extra-traits", "fold", "full"] }
 quote = "1.0.21"
-zbus = { version = "3.0.0", default-features = false, features = ["xml"] }
+zbus = { version = "3.0.0", default-features = false, features = ["xml", "tokio"], optional = true }
+zvariant = { version = "3.9.0", optional = true }
 serde = "1.0"
-zvariant = "3.9.0"
 proc-macro-crate = "1.2.1"
 regex = "1.6.0"

@@ -11,7 +11,6 @@
 //!
 
 use crate::CoordType;
-use async_trait::async_trait;
 use atspi_macros::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Image", assume_defaults = true)]

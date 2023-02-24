@@ -18,12 +18,12 @@ use crate::{
 	value::{Value, ValueBlocking, ValueProxy, ValueProxyBlocking},
 	AtspiProxy,
 };
-use async_trait::async_trait;
 use std::ops::Deref;
 use zbus::{
 	blocking::Proxy as ProxyBlocking, blocking::ProxyBuilder as ProxyBuilderBlocking,
 	CacheProperties, Error, Proxy, ProxyBuilder, ProxyDefault,
 };
+use async_trait::async_trait;
 
 #[allow(clippy::module_name_repetitions)]
 #[async_trait]

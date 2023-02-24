@@ -45,10 +45,10 @@ pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
 
                 #blocking_impl
 
-                #[async_trait]
+                #[async_trait::async_trait]
         #async_trait
 
-                #[async_trait]
+                #[async_trait::async_trait]
                 #async_impl
 
                 #atspi_proxy_impl

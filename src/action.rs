@@ -10,7 +10,6 @@
 //! section of the zbus documentation.
 //!
 
-use async_trait::async_trait;
 use atspi_macros::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
