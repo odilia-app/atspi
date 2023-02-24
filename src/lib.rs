@@ -85,9 +85,9 @@ pub mod value_ext;
 
 // Hand-written connection module
 #[cfg(feature = "client-accessories")]
-mod connection;
+mod accessibility_connection;
 #[cfg(feature = "client-accessories")]
-pub use connection::*;
+pub use accessibility_connection::*;
 
 mod interfaces;
 pub use interfaces::*;

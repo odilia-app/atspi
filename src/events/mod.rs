@@ -6,6 +6,24 @@ pub mod object;
 pub mod terminal;
 pub mod window;
 
+// Event body signatures: These outline the event specific deserialized event types.
+// Safety: These are evaluated at compile time.
+// ----
+// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
+// -  Cache : RemoveAccessible
+// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
+//
+// ATSPI- and QSPI both describe the generic events. These can be converted into
+// specific signal types with TryFrom implementations. See crate::[`identify`]
+//  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
+//  CACHE_ADD and *_REMOVE have very different types
+pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
+pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
+pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
+pub const CACHE_ADD: Signature<'_> =
+	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+
 use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
@@ -291,14 +309,14 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct EventListener {
+pub struct EventListeners {
 	pub bus_name: OwnedUniqueName,
 	pub path: String,
 }
 
 #[test]
 fn test_event_listener_signature() {
-	assert_eq!(EventListener::signature(), "(ss)");
+	assert_eq!(EventListeners::signature(), "(ss)");
 }
 
 /// Covers both `EventListener` events.
@@ -312,18 +330,18 @@ pub enum EventListenerEvents {
 /// An event that is emitted by the regostry daemon to signal that an event has been deregistered
 /// to no longer listen for.
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body = "EventListener")]
+#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerDeregisteredEvent {
 	pub(crate) message: Arc<Message>,
-	pub body: EventListener,
+	pub body: EventListeners,
 }
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug, GenericEvent)]
-#[try_from_zbus_message(body = "EventListener")]
+#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerRegisteredEvent {
 	pub(crate) message: Arc<Message>,
-	pub body: EventListener,
+	pub body: EventListeners,
 }
 
 /// An event that is emitted when the registry daemon has started.
@@ -410,6 +428,14 @@ pub trait GenericEvent {
 	/// - when deserializeing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<UniqueName>, AtspiError>;
+}
+
+pub trait HasMatchRule {
+	const MATCH_RULE_STRING: &'static str;
+}
+
+pub trait HasRegistryEventString {
+	const REGISTRY_EVENT_STRING: &'static str;
 }
 
 impl AtspiEvent {
