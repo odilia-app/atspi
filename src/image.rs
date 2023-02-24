@@ -11,7 +11,7 @@
 //!
 
 use crate::CoordType;
-use atspi_macros::atspi_proxy;
+use crate::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Image", assume_defaults = true)]
 trait Image {

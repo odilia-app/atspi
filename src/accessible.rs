@@ -11,9 +11,9 @@
 //!
 
 use crate::{accessible_id::HasAccessibleId, AccessibleId, AtspiError, InterfaceSet, StateSet};
-use atspi_macros::atspi_proxy;
 use serde::{Deserialize, Serialize};
-use zbus::zvariant::{OwnedObjectPath, Type};
+use zbus::zvariant::Type;
+use crate::atspi_proxy;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 /// An accessible object role.

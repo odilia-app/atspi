@@ -12,7 +12,7 @@
 #![allow(clippy::too_many_arguments)]
 // this allow zbus to change the number of parameters in a function without setting off clippy
 
-use atspi_macros::atspi_proxy;
+use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 

@@ -10,7 +10,7 @@
 //! section of the zbus documentation.
 //!
 
-use atspi_macros::atspi_proxy;
+use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 

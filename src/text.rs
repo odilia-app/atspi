@@ -12,7 +12,7 @@
 #![allow(clippy::too_many_arguments)]
 // this is to silience clippy due to zbus expanding parameter expressions
 
-use atspi_macros::atspi_proxy;
+use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 
