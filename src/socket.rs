@@ -10,9 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
+use crate::atspi_proxy;
 
-#[dbus_proxy(
+#[atspi_proxy(
 	interface = "org.a11y.atspi.Socket",
 	default_path = "/org/a11y/atspi/accessible/root",
 	default_service = "org.a11y.atspi.Registry"
@@ -30,8 +30,4 @@ trait Socket {
 	/// Available signal
 	#[dbus_proxy(signal)]
 	fn available(&self, socket: (&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for SocketProxy<'a> {
-	const INTERFACE: Interface = Interface::Socket;
 }

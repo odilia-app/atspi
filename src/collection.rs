@@ -12,8 +12,9 @@
 #![allow(clippy::too_many_arguments)]
 // this allow zbus to change the number of parameters in a function without setting off clippy
 
+use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
-use zbus::{dbus_proxy, zvariant::Type};
+use zbus::zvariant::Type;
 
 pub type MatchArgs<'a> = (
 	&'a [i32],
@@ -60,7 +61,7 @@ pub enum MatchType {
 	LastDefined,
 }
 
-#[dbus_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
 	/// GetActiveDescendant method
 	fn get_active_descendant(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
@@ -107,8 +108,4 @@ trait Collection {
 		count: i32,
 		traverse: bool,
 	) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for CollectionProxy<'a> {
-	const INTERFACE: Interface = Interface::Collection;
 }

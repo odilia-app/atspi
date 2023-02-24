@@ -10,9 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
+use crate::atspi_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
 trait Hyperlink {
 	/// GetObject method
 	fn get_object(&self, i: i32) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
@@ -34,8 +34,4 @@ trait Hyperlink {
 	/// StartIndex property
 	#[dbus_proxy(property)]
 	fn start_index(&self) -> zbus::Result<i32>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for HyperlinkProxy<'a> {
-	const INTERFACE: Interface = Interface::Hyperlink;
 }

@@ -10,13 +10,15 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
+use crate::atspi_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Value", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Value", assume_defaults = true)]
 trait Value {
 	/// CurrentValue property
 	#[dbus_proxy(property)]
 	fn current_value(&self) -> zbus::Result<f64>;
+
+	/// Set CurrentValue property
 	#[dbus_proxy(property)]
 	fn set_current_value(&self, value: f64) -> zbus::Result<()>;
 
@@ -31,8 +33,4 @@ trait Value {
 	/// MinimumValue property
 	#[dbus_proxy(property)]
 	fn minimum_value(&self) -> zbus::Result<f64>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ValueProxy<'a> {
-	const INTERFACE: Interface = Interface::Value;
 }

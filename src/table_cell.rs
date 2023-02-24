@@ -10,9 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
+use crate::atspi_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 trait TableCell {
 	/// GetRowColumnSpan method
 	fn get_row_column_span(&self) -> zbus::Result<(bool, i32, i32, i32, i32)>;
@@ -32,8 +32,4 @@ trait TableCell {
 	/// Table property
 	#[dbus_proxy(property)]
 	fn table(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for TableCellProxy<'a> {
-	const INTERFACE: Interface = Interface::TableCell;
 }

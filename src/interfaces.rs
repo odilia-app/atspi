@@ -308,9 +308,9 @@ impl TryFrom<&str> for Interface {
 		}
 	}
 }
-impl ToString for Interface {
-	fn to_string(&self) -> String {
-		match self {
+impl std::fmt::Display for Interface {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		let interface_string = match self {
 			Interface::Accessible => "org.a11y.atspi.Accessible",
 			Interface::Action => "org.a11y.atspi.Action",
 			Interface::Application => "org.a11y.atspi.Application",
@@ -332,6 +332,7 @@ impl ToString for Interface {
 			Interface::DeviceEventController => "org.a11y.atspi.DeviceEventController",
 			Interface::DeviceEventListener => "org.a11y.atspi.DeviceEventListener",
 		}
-		.to_string()
+		.to_string();
+		write!(f, "{interface_string}")
 	}
 }

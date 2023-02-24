@@ -10,9 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
+use crate::atspi_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
 trait Table {
 	/// AddColumnSelection method
 	fn add_column_selection(&self, column: i32) -> zbus::Result<bool>;
@@ -107,8 +107,4 @@ trait Table {
 	/// Summary property
 	#[dbus_proxy(property)]
 	fn summary(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for TableProxy<'a> {
-	const INTERFACE: Interface = Interface::Table;
 }

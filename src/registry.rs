@@ -10,9 +10,10 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::{dbus_proxy, names::OwnedBusName};
+use crate::atspi_proxy;
+use zbus::names::OwnedBusName;
 
-#[dbus_proxy(
+#[atspi_proxy(
 	interface = "org.a11y.atspi.Registry",
 	default_service = "org.a11y.atspi.Registry",
 	default_path = "/org/a11y/atspi/registry"

@@ -45,6 +45,12 @@ pub enum AtspiError {
 
 	/// Std i/o error variant.
 	IO(std::io::Error),
+
+	/// Failed to convert an integer into another type of integer (usually i32 -> usize).
+	IntConversionError(std::num::TryFromIntError),
+
+	/// An infallible error; this is just something to satisfy the compiler.
+	Infallible,
 }
 
 impl std::error::Error for AtspiError {}
@@ -70,7 +76,22 @@ impl std::fmt::Display for AtspiError {
 				f.write_str(&format!("ID cannot be extracted from the path: {e}"))
 			}
 			Self::IO(e) => f.write_str(&format!("std IO Error: {e}")),
+			Self::IntConversionError(e) => f.write_str(&format!("Integer conversion error: {e}")),
+			Self::Infallible => {
+				f.write_str("Infallible; only to trick the compiler. This should never happen.")
+			}
 		}
+	}
+}
+
+impl From<std::convert::Infallible> for AtspiError {
+	fn from(_e: std::convert::Infallible) -> Self {
+		Self::Infallible
+	}
+}
+impl From<std::num::TryFromIntError> for AtspiError {
+	fn from(e: std::num::TryFromIntError) -> Self {
+		Self::IntConversionError(e)
 	}
 }
 

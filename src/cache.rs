@@ -4,9 +4,12 @@
 //! Source: `Cache.xml`.
 //!
 
-use crate::{accessible::Role, InterfaceSet, StateSet};
+use crate::atspi_proxy;
+use crate::{
+	accessible::{ObjectPair, Role},
+	InterfaceSet, StateSet,
+};
 use serde::{Deserialize, Serialize};
-use zbus::dbus_proxy;
 use zbus::zvariant::{OwnedObjectPath, Type};
 
 /// The item type provided by `Cache:Add` signals
@@ -14,11 +17,11 @@ use zbus::zvariant::{OwnedObjectPath, Type};
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct CacheItem {
 	/// The accessible object (within the application)   (so)
-	pub object: (String, OwnedObjectPath),
+	pub object: ObjectPair,
 	/// The application (root object(?)    (so)
-	pub app: (String, OwnedObjectPath),
+	pub app: ObjectPair,
 	/// The parent object.  (so)
-	pub parent: (String, OwnedObjectPath),
+	pub parent: ObjectPair,
 	/// The accessbile index in parent.  i
 	pub index: i32,
 	/// Child count of the accessible  i
@@ -52,7 +55,7 @@ fn zvariant_type_signature_of_cache_item() {
 // }
 //
 
-#[dbus_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
+#[atspi_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {
 	/// GetItems method
 	fn get_items(&self) -> zbus::Result<Vec<CacheItem>>;
@@ -64,8 +67,4 @@ trait Cache {
 	/// RemoveAccessible signal
 	#[dbus_proxy(signal)]
 	fn remove_accessible(&self, node_removed: (String, OwnedObjectPath)) -> zbus::Result<()>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for CacheProxy<'a> {
-	const INTERFACE: Interface = Interface::Cache;
 }

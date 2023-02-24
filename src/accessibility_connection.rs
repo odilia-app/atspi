@@ -9,12 +9,12 @@ use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
 
 /// A connection to the at-spi bus
-pub struct AccessibilityBus {
+pub struct AccessibilityConnection {
 	registry: RegistryProxy<'static>,
 	dbus_proxy: DBusProxy<'static>,
 }
 
-impl AccessibilityBus {
+impl AccessibilityConnection {
 	/// Open a new connection to the bus
 	#[tracing::instrument]
 	pub async fn open() -> zbus::Result<Self> {
@@ -35,7 +35,7 @@ impl AccessibilityBus {
 		Self::connect(addr).await
 	}
 
-	/// Returns an [`AccessibilityBus`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
+	/// Returns an [`AccessibilityConnection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
 	/// on the accessibility bus.
 	///
 	/// You may want to call this if you have the accessibility bus address and want a connection with
@@ -82,7 +82,7 @@ impl AccessibilityBus {
 	/// # }
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
-	///     let atspi = atspi::AccessibilityBus::open().await?;
+	///     let atspi = atspi::AccessibilityConnection::open().await?;
 	///     atspi.register_event::<ObjectEvents>().await?;
 	///
 	///     let events = atspi.event_stream();
@@ -145,7 +145,7 @@ impl AccessibilityBus {
 	/// ```rust
 	/// use atspi::identify::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.register_event::<StateChangedEvent>().await.unwrap();
 	/// # })
 	/// ```
@@ -163,7 +163,7 @@ impl AccessibilityBus {
 	/// ```rust
 	/// use atspi::identify::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_match_rule::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -185,7 +185,7 @@ impl AccessibilityBus {
 	/// ```rust
 	/// use atspi::identify::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -209,7 +209,7 @@ impl AccessibilityBus {
 	/// ```rust
 	/// use atspi::identify::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityBus::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -254,7 +254,7 @@ impl AccessibilityBus {
 	}
 }
 
-impl Deref for AccessibilityBus {
+impl Deref for AccessibilityConnection {
 	type Target = RegistryProxy<'static>;
 
 	fn deref(&self) -> &Self::Target {

@@ -10,9 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
+use crate::atspi_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
 trait Action {
 	/// DoAction method
 	fn do_action(&self, index: i32) -> zbus::Result<bool>;
@@ -35,8 +35,4 @@ trait Action {
 	/// NActions property
 	#[dbus_proxy(property)]
 	fn nactions(&self) -> zbus::Result<i32>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ActionProxy<'a> {
-	const INTERFACE: Interface = Interface::Action;
 }

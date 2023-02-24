@@ -10,9 +10,10 @@
 //! section of the zbus documentation.
 //!
 
-use crate::{InterfaceSet, StateSet};
+use crate::atspi_proxy;
+use crate::{accessible_id::HasAccessibleId, AccessibleId, AtspiError, InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
-use zbus::{dbus_proxy, zvariant::Type};
+use zbus::zvariant::Type;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 /// An accessible object role.
@@ -287,24 +288,24 @@ pub enum RelationType {
 	ErrorMessage,
 	ErrorFor,
 }
-pub type RelationSet = Vec<(RelationType, Vec<(String, zbus::zvariant::OwnedObjectPath)>)>;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
+/// A pair of (`sender`, `object path with id`) which constitutes the fundemental parts of an Accessible object in `atspi`.
+/// NOTE: If you update the name of this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
+pub type ObjectPair = (String, AccessibleId);
+
+#[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
 	/// GetApplication method
-	fn get_application(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn get_application(&self) -> zbus::Result<ObjectPair>;
 
 	/// GetAttributes method
 	fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
 	/// GetChildAtIndex method
-	fn get_child_at_index(
-		&self,
-		index: i32,
-	) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn get_child_at_index(&self, index: i32) -> zbus::Result<ObjectPair>;
 
 	/// GetChildren method
-	fn get_children(&self) -> zbus::Result<Vec<(String, zbus::zvariant::OwnedObjectPath)>>;
+	fn get_children(&self) -> zbus::Result<Vec<ObjectPair>>;
 
 	/// GetIndexInParent method; this will give an index between 0 and n, where n is the number of children in the parent.
 	fn get_index_in_parent(&self) -> zbus::Result<i32>;
@@ -316,7 +317,7 @@ trait Accessible {
 	fn get_localized_role_name(&self) -> zbus::Result<String>;
 
 	/// GetRelationSet method
-	fn get_relation_set(&self) -> zbus::Result<RelationSet>;
+	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<ObjectPair>)>>;
 
 	/// GetRole method
 	fn get_role(&self) -> zbus::Result<Role>;
@@ -329,7 +330,7 @@ trait Accessible {
 
 	/// AccessibleId property
 	#[dbus_proxy(property)]
-	fn accessible_id(&self) -> zbus::Result<String>;
+	fn accessible_id(&self) -> zbus::Result<AccessibleId>;
 
 	/// ChildCount property
 	#[dbus_proxy(property)]
@@ -349,7 +350,14 @@ trait Accessible {
 
 	/// Parent property
 	#[dbus_proxy(property)]
-	fn parent(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn parent(&self) -> zbus::Result<ObjectPair>;
+}
+
+impl TryFrom<AccessibleProxy<'_>> for ObjectPair {
+	type Error = AtspiError;
+	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectPair, Self::Error> {
+		Ok((proxy.destination().to_string(), proxy.path().to_string().try_into()?))
+	}
 }
 
 impl PartialEq for AccessibleProxy<'_> {
@@ -358,7 +366,11 @@ impl PartialEq for AccessibleProxy<'_> {
 	}
 }
 impl Eq for AccessibleProxy<'_> {}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for AccessibleProxy<'a> {
-	const INTERFACE: Interface = Interface::Accessible;
+impl HasAccessibleId for AccessibleProxy<'_> {
+	type Error = zbus::zvariant::Error;
+
+	fn id(&self) -> Result<AccessibleId, Self::Error> {
+		let path = self.path();
+		path.try_into()
+	}
 }

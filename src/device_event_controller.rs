@@ -10,8 +10,9 @@
 //! section of the zbus documentation.
 //!
 
+use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
-use zbus::{dbus_proxy, zvariant::Type};
+use zbus::zvariant::Type;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -68,7 +69,7 @@ pub struct KeyDefinition<'a> {
 	pub unused: i32,
 }
 
-#[dbus_proxy(
+#[atspi_proxy(
 	interface = "org.a11y.atspi.DeviceEventController",
 	default_path = "/org/a11y/atspi/registry/deviceeventcontroller",
 	default_service = "org.a11y.atspi.Registry"
@@ -123,8 +124,4 @@ trait DeviceEventController {
 		type_: &[EventType],
 		mode: &EventListenerMode,
 	) -> zbus::Result<bool>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for DeviceEventControllerProxy<'a> {
-	const INTERFACE: Interface = Interface::DeviceEventController;
 }

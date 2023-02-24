@@ -10,8 +10,9 @@
 //! section of the zbus documentation.
 //!
 
+use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
-use zbus::{dbus_proxy, zvariant::Type};
+use zbus::zvariant::Type;
 
 /// Indicates relative stacking order of a [`ComponentProxy`] with respect to the
 /// onscreen visual representation of the UI.
@@ -65,7 +66,7 @@ pub enum ScrollType {
 
 use crate::CoordType;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
 trait Component {
 	/// Contains method
 	fn contains(&self, x: i32, y: i32, coord_type: CoordType) -> zbus::Result<bool>;
@@ -120,8 +121,4 @@ trait Component {
 
 	/// SetSize method
 	fn set_size(&self, width: i32, height: i32) -> zbus::Result<bool>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for ComponentProxy<'a> {
-	const INTERFACE: Interface = Interface::Component;
 }

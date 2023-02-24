@@ -10,9 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::dbus_proxy;
+use crate::atspi_proxy;
 
-#[dbus_proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
+#[atspi_proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
 trait Document {
 	/// GetAttributeValue method
 	fn get_attribute_value(&self, attributename: &str) -> zbus::Result<String>;
@@ -30,8 +30,4 @@ trait Document {
 	/// PageCount property
 	#[dbus_proxy(property)]
 	fn page_count(&self) -> zbus::Result<i32>;
-}
-use crate::{AtspiProxy, Interface};
-impl<'a> AtspiProxy for DocumentProxy<'a> {
-	const INTERFACE: Interface = Interface::Document;
 }
