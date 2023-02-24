@@ -10,10 +10,10 @@
 //! section of the zbus documentation.
 //!
 
+use crate::atspi_proxy;
 use crate::{accessible_id::HasAccessibleId, AccessibleId, AtspiError, InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
-use crate::atspi_proxy;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 /// An accessible object role.

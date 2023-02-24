@@ -70,10 +70,10 @@ pub mod selection_ext;
 pub mod socket;
 #[cfg(feature = "unstable-traits")]
 pub mod socket_ext;
+pub mod table;
 pub mod table_cell;
 #[cfg(feature = "unstable-traits")]
 pub mod table_cell_ext;
-pub mod table;
 #[cfg(feature = "unstable-traits")]
 pub mod table_ext;
 pub mod text;

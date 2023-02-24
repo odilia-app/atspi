@@ -9,7 +9,10 @@
 use crate::events::{AtspiEvent, GenericEvent};
 use std::collections::HashMap;
 use std::sync::Arc;
-use zbus::{names::{MemberName, InterfaceName}, zvariant, Message};
+use zbus::{
+	names::{InterfaceName, MemberName},
+	zvariant, Message,
+};
 use zvariant::OwnedValue;
 
 /// All Atspi / Qspi event types encapsulate `AtspiEvent`.

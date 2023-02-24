@@ -4,11 +4,11 @@
 //! Source: `Cache.xml`.
 //!
 
+use crate::atspi_proxy;
 use crate::{
 	accessible::{ObjectPair, Role},
 	InterfaceSet, StateSet,
 };
-use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{OwnedObjectPath, Type};
 

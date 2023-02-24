@@ -10,8 +10,8 @@
 //! section of the zbus documentation.
 //!
 
-use crate::CoordType;
 use crate::atspi_proxy;
+use crate::CoordType;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Image", assume_defaults = true)]
 trait Image {
