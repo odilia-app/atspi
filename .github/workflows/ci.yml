@@ -28,7 +28,7 @@ jobs:
         with:
           command: clippy
           # "-- -D warnings" will make the job fail if their are clippy warnings
-          args: --workspace --no-deps -- -D warnings
+          args: --workspace --no-deps -- -D warnings --all-features
   tests:
     runs-on: ubuntu-latest
     steps:
@@ -58,6 +58,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --all-features
   rustfmt:
     runs-on: ubuntu-latest
     steps:
@@ -73,7 +74,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all --check
+          args: --all --check --all-features
   rustdoc:
     runs-on: ubuntu-latest
     steps:
@@ -100,6 +101,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
+          args: --all-features
   semver:
     runs-on: ubuntu-latest
     steps:
