@@ -74,7 +74,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all --check --all-features
+          args: --all --check
   rustdoc:
     runs-on: ubuntu-latest
     steps:
