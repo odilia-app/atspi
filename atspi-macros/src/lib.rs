@@ -11,8 +11,8 @@ use syn::ItemTrait;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta, MetaNameValue,
-    NestedMeta, Type,
+	parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta, MetaNameValue,
+	NestedMeta, Type,
 };
 
 use std::convert::TryFrom;
@@ -76,80 +76,80 @@ fn make_into_params<T>(items: AttributeArgs) -> Vec<T>
 where
 	T: From<(String, String)>,
 {
-    items
-        .into_iter()
-        .filter_map(|nm| match nm {
-            // Only select certain tokens
-            NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                path,
-                eq_token: _,
-                lit: Lit::Str(lstr),
-            })) => Some(
-                // Convert the segment of the path to a string
-                (
-                    path.segments
-                        .into_iter()
-                        .map(|seg| seg.ident.to_string())
-                        .collect::<Vec<String>>()
-                        .swap_remove(0),
-                    // get the raw value of the LitStr
-                    lstr.value(),
-                ),
-            ),
-            _ => None,
-        })
-        // convert the (String, LitStr) tuple to a custom type which only accepts certain key/value pairs
-        .map(|(k, v)| T::from((k, v)))
-        .collect()
+	items
+		.into_iter()
+		.filter_map(|nm| match nm {
+			// Only select certain tokens
+			NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+				path,
+				eq_token: _,
+				lit: Lit::Str(lstr),
+			})) => Some(
+				// Convert the segment of the path to a string
+				(
+					path.segments
+						.into_iter()
+						.map(|seg| seg.ident.to_string())
+						.collect::<Vec<String>>()
+						.swap_remove(0),
+					// get the raw value of the LitStr
+					lstr.value(),
+				),
+			),
+			_ => None,
+		})
+		// convert the (String, LitStr) tuple to a custom type which only accepts certain key/value pairs
+		.map(|(k, v)| T::from((k, v)))
+		.collect()
 }
 
 enum AtspiEventInnerName {
-    Detail1,
-    Detail2,
-    AnyData,
+	Detail1,
+	Detail2,
+	AnyData,
 }
 impl ToString for AtspiEventInnerName {
-    fn to_string(&self) -> String {
-        match self {
-            Self::Detail1 => "detail1",
-            Self::Detail2 => "detail2",
-            Self::AnyData => "any_data",
-        }
-        .to_string()
-    }
+	fn to_string(&self) -> String {
+		match self {
+			Self::Detail1 => "detail1",
+			Self::Detail2 => "detail2",
+			Self::AnyData => "any_data",
+		}
+		.to_string()
+	}
 }
 enum ConversionError {
-    FunctionAlreadyCreatedFor,
-    UnknownItem,
+	FunctionAlreadyCreatedFor,
+	UnknownItem,
 }
 impl TryFrom<usize> for AtspiEventInnerName {
-    type Error = ConversionError;
+	type Error = ConversionError;
 
-    fn try_from(from: usize) -> Result<Self, Self::Error> {
-        match from {
-            0 => Err(ConversionError::FunctionAlreadyCreatedFor),
-            1 => Ok(Self::Detail1),
-            2 => Ok(Self::Detail2),
-            3 => Ok(Self::AnyData),
-            4 => Err(ConversionError::FunctionAlreadyCreatedFor),
-            _ => Err(ConversionError::UnknownItem),
-        }
-    }
+	fn try_from(from: usize) -> Result<Self, Self::Error> {
+		match from {
+			0 => Err(ConversionError::FunctionAlreadyCreatedFor),
+			1 => Ok(Self::Detail1),
+			2 => Ok(Self::Detail2),
+			3 => Ok(Self::AnyData),
+			4 => Err(ConversionError::FunctionAlreadyCreatedFor),
+			_ => Err(ConversionError::UnknownItem),
+		}
+	}
 }
 
 #[proc_macro_attribute]
 #[cfg(feature = "unstable_atspi_proxy_macro")]
 pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(attr as AttributeArgs);
-    let input = parse_macro_input!(item as ItemTrait);
-    let zbus_part =
-        zbus_proxy::expand(args, input.clone()).unwrap_or_else(|err| err.into_compile_error());
-    let atspi_part = proxy::expand(input).unwrap_or_else(|err| err.into_compile_error());
-    quote! {
-    #zbus_part
-    #atspi_part
-        }
-    .into()
+	let args = parse_macro_input!(attr as AttributeArgs);
+	let input = parse_macro_input!(item as ItemTrait);
+	let zbus_part =
+		zbus_proxy::expand(args, input.clone()).unwrap_or_else(|err| err.into_compile_error());
+	let atspi_part = proxy::expand(input).unwrap_or_else(|err| err.into_compile_error());
+	quote! {
+	#zbus_part
+	#atspi_part
+		}
+	.into()
 }
 
 #[proc_macro_attribute]
