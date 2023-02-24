@@ -11,8 +11,8 @@ use syn::ItemTrait;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta,
-    MetaNameValue, NestedMeta, Type,
+    parse_macro_input, AttributeArgs, DeriveInput, ItemStruct, Lit, Meta, MetaNameValue,
+    NestedMeta, Type,
 };
 
 use std::convert::TryFrom;
