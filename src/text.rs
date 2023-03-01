@@ -32,6 +32,15 @@ pub enum Granularity {
 	Paragraph,
 }
 
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[repr(u32)]
+pub enum ClipType {
+	Neither,
+	Min,
+	Max,
+	Both,
+}
+
 #[atspi_proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
 trait Text {
 	/// AddSelection method
@@ -61,8 +70,8 @@ trait Text {
 		width: i32,
 		height: i32,
 		coord_type: CoordType,
-		x_clip_type: u32,
-		y_clip_type: u32,
+		x_clip_type: ClipType,
+		y_clip_type: ClipType,
 	) -> zbus::Result<Vec<(i32, i32, String, zbus::zvariant::OwnedValue)>>;
 
 	/// GetCharacterAtOffset method
