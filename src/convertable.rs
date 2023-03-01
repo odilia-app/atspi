@@ -206,7 +206,7 @@ pub trait ConvertableBlocking {
 async fn convert_to_new_type<
 	'a,
 	'b,
-	T: From<Proxy<'b>> + ProxyDefault,
+	T: From<Proxy<'b>> + ProxyDefault + AtspiProxy,
 	U: Deref<Target = Proxy<'a>> + ProxyDefault + AtspiProxy,
 >(
 	from: &U,
@@ -222,7 +222,7 @@ async fn convert_to_new_type<
 	if !accessible
 		.get_interfaces()
 		.await?
-		.contains(<U as AtspiProxy>::INTERFACE)
+		.contains(<T as AtspiProxy>::INTERFACE)
 	{
 		return Err(Error::InterfaceNotFound);
 	}
@@ -242,8 +242,8 @@ async fn convert_to_new_type<
 fn convert_to_new_type_blocking<
 	'a,
 	'b,
-	T: From<Proxy<'b>> + ProxyDefault,
-	U: Deref<Target = ProxyBlocking<'a>> + ProxyDefault + AtspiProxy,
+	T: From<Proxy<'b>> + ProxyDefault + AtspiProxy,
+	U: Deref<Target = ProxyBlocking<'a>> + ProxyDefault,
 >(
 	from: &U,
 ) -> zbus::Result<T> {
@@ -254,7 +254,7 @@ fn convert_to_new_type_blocking<
 		.path(from.path())?
 		.build()?;
 	// if the interface we're trying to convert to is not available as an interface; this can be problematic because the interface we're passing in could potentially be different from what we're converting to.
-	if !accessible.get_interfaces()?.contains(<U as AtspiProxy>::INTERFACE) {
+	if !accessible.get_interfaces()?.contains(<T as AtspiProxy>::INTERFACE) {
 		return Err(Error::InterfaceNotFound);
 	}
 	// otherwise, make a new Proxy with the related type.
