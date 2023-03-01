@@ -12,7 +12,7 @@
 #![allow(clippy::too_many_arguments)]
 // this is to silience clippy due to zbus expanding parameter expressions
 
-use crate::atspi_proxy;
+use crate::{atspi_proxy, CoordType};
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 
@@ -60,7 +60,7 @@ trait Text {
 		y: i32,
 		width: i32,
 		height: i32,
-		coord_type: u32,
+		coord_type: CoordType,
 		x_clip_type: u32,
 		y_clip_type: u32,
 	) -> zbus::Result<Vec<(i32, i32, String, zbus::zvariant::OwnedValue)>>;
@@ -72,7 +72,7 @@ trait Text {
 	fn get_character_extents(
 		&self,
 		offset: i32,
-		coord_type: u32,
+		coord_type: CoordType,
 	) -> zbus::Result<(i32, i32, i32, i32)>;
 
 	/// GetDefaultAttributeSet method
@@ -85,14 +85,14 @@ trait Text {
 	fn get_nselections(&self) -> zbus::Result<i32>;
 
 	/// GetOffsetAtPoint method
-	fn get_offset_at_point(&self, x: i32, y: i32, coord_type: u32) -> zbus::Result<i32>;
+	fn get_offset_at_point(&self, x: i32, y: i32, coord_type: CoordType) -> zbus::Result<i32>;
 
 	/// GetRangeExtents method
 	fn get_range_extents(
 		&self,
 		start_offset: i32,
 		end_offset: i32,
-		coord_type: u32,
+		coord_type: CoordType,
 	) -> zbus::Result<(i32, i32, i32, i32)>;
 
 	/// GetSelection method
