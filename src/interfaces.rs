@@ -222,6 +222,14 @@ impl std::ops::BitXor for InterfaceSet {
 	}
 }
 
+impl std::ops::BitOr for InterfaceSet {
+	type Output = InterfaceSet;
+
+	fn bitor(self, other: Self) -> Self::Output {
+		InterfaceSet(self.0 | other.0)
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
