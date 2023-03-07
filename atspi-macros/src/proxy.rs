@@ -205,6 +205,7 @@ pub fn create_proxy_trait_impl(
 	Ok(quote! {
 			impl<'c> #trait_impl_name for #proxy_name<'c> {
 				type Error = zbus::Error;
+				type ReturnType = Self;
 				#methods
 			}
 	})
@@ -287,6 +288,7 @@ pub fn create_trait(
 	Ok(quote! {
 			pub trait #trait_name {
 				type Error: std::error::Error;
+				type ReturnType: Sized;
 				#trait_methods
 			}
 	})
@@ -302,8 +304,9 @@ fn genericize_method_return_type(rt: &ReturnType) -> TokenStream {
 	let mut generic_result = original.replace("zbus :: Result", "std :: result :: Result");
 	let end_of_str = generic_result.len();
 	generic_result.insert_str(end_of_str - 2, ", Self :: Error");
-	let mut generic_impl = generic_result.replace(OBJECT_PAIR_NAME, "Self");
-	generic_impl.push_str(" where Self: Sized");
+	let mut generic_impl = generic_result.replace(OBJECT_PAIR_NAME, "Self :: ReturnType");
+	generic_impl.push_str("where Self::ReturnType: Sized");
+
 	TokenStream::from_str(&generic_impl).expect("Could not genericize zbus method/property/signal. Attempted to turn \"{generic_result}\" into a TokenStream.")
 }
 
@@ -572,7 +575,7 @@ fn gen_proxy_trait_method_impl(
 	let output_str = format!("{output}");
 	let proxy = TokenStream::from_str(proxy_name)
 		.expect("Could not create token stream from \"{proxy_name}\"");
-	if output_str.contains("Result < Self") {
+	if output_str.contains("Result < Self :: ReturnType") {
 		quote! {
 			#(#other_attrs)*
 			#usage #signature {
@@ -586,7 +589,7 @@ fn gen_proxy_trait_method_impl(
 			}
 		}
 	// this is only one function: get_relation_set
-	} else if output_str.contains("RelationType, Vec < Self") {
+	} else if output_str.contains("RelationType, Vec < Self :: ReturnType") {
 		quote! {
 			#(#other_attrs)*
 			#usage #signature {
@@ -608,7 +611,7 @@ fn gen_proxy_trait_method_impl(
 				Ok(relation_sets)
 			}
 		}
-	} else if output_str.contains("< Vec < Self") {
+	} else if output_str.contains("< Vec < Self :: ReturnType") {
 		quote! {
 			#(#other_attrs)*
 			#usage #signature {
@@ -752,7 +755,7 @@ fn gen_proxy_trait_impl_property(
 					&(#(#args),*)
 			}
 		};
-		let body = if output_str.contains("Result < Self,") {
+		let body = if output_str.contains("Result < Self :: ReturnType,") {
 			quote! {
 				let object_pair = self.#method()#wait?;
 				let conn = self.connection().clone();

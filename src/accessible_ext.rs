@@ -18,7 +18,8 @@ pub type MatcherArgs =
 #[async_trait]
 pub trait AccessibleExt {
 	type Error: std::error::Error;
-	async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error>
+	type ReturnType: Sized;
+	async fn get_parent_ext<'a>(&self) -> Result<Self::ReturnType, Self::Error>
 	where
 		Self: Sized;
 	async fn get_children_ext<'a>(&self) -> Result<Vec<Self>, Self::Error>
@@ -90,11 +91,10 @@ pub trait AccessibleBlockingExtError: AccessibleBlocking + ConvertableBlocking {
 }
 
 #[async_trait]
-impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleExt for T {
+impl<T: Accessible<ReturnType=Self> + Convertable + AccessibleExtError + Send + Sync> AccessibleExt for T {
 	type Error = <T as AccessibleExtError>::Error;
-	async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error>
-	where
-		Self: Sized,
+	type ReturnType = <T as Accessible>::ReturnType;
+	async fn get_parent_ext<'a>(&self) -> Result<Self::ReturnType, Self::Error>
 	{
 		Ok(self.parent().await?)
 	}
@@ -105,9 +105,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 		}
 		Ok(indexes)
 	}
-	async fn get_children_ext<'a>(&self) -> Result<Vec<Self>, Self::Error>
-	where
-		Self: Sized,
+	async fn get_children_ext<'a>(&self) -> Result<Vec<Self::ReturnType>, Self::Error>
 	{
 		Ok(self.get_children().await?)
 		/*
@@ -125,9 +123,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 		Ok(children)
 				*/
 	}
-	async fn get_siblings<'a>(&self) -> Result<Vec<Self>, Self::Error>
-	where
-		Self: Sized,
+	async fn get_siblings<'a>(&self) -> Result<Vec<Self::ReturnType>, Self::Error>
 	{
 		let parent = self.parent().await?;
 		let index = self.get_index_in_parent().await?.try_into()?;
@@ -142,9 +138,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 			.collect();
 		Ok(children)
 	}
-	async fn get_siblings_before<'a>(&self) -> Result<Vec<Self>, Self::Error>
-	where
-		Self: Sized,
+	async fn get_siblings_before<'a>(&self) -> Result<Vec<Self::ReturnType>, Self::Error>
 	{
 		let parent = self.parent().await?;
 		let index = self.get_index_in_parent().await?.try_into()?;
@@ -157,9 +151,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 			.collect();
 		Ok(children)
 	}
-	async fn get_siblings_after<'a>(&self) -> Result<Vec<Self>, Self::Error>
-	where
-		Self: Sized,
+	async fn get_siblings_after<'a>(&self) -> Result<Vec<Self::ReturnType>, Self::Error>
 	{
 		let parent = self.parent().await?;
 		let index = self.get_index_in_parent().await?.try_into()?;
@@ -172,9 +164,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 			.collect();
 		Ok(children)
 	}
-	async fn get_children_caret<'a>(&self, backward: bool) -> Result<Vec<Self>, Self::Error>
-	where
-		Self: Sized,
+	async fn get_children_caret<'a>(&self, backward: bool) -> Result<Vec<Self::ReturnType>, Self::Error>
 	{
 		let mut children_after_before = Vec::new();
 		let text_iface = self.to_text().await?;
@@ -198,9 +188,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 		&self,
 		matcher_args: &MatcherArgs,
 		backward: bool,
-	) -> Result<Option<Self>, Self::Error>
-	where
-		Self: Sized,
+	) -> Result<Option<Self::ReturnType>, Self::Error>
 	{
 		// TODO if backwards, check here
 		let caret_children = self.get_children_caret(backward).await?;
@@ -230,9 +218,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 	}
 	async fn get_relation_set_ext<'a>(
 		&self,
-	) -> Result<HashMap<RelationType, Vec<Self>>, Self::Error>
-	where
-		Self: Sized,
+	) -> Result<HashMap<RelationType, Vec<Self::ReturnType>>, Self::Error>
 	{
 		let raw_relations = self.get_relation_set().await?;
 		let mut relations = HashMap::new();
@@ -251,7 +237,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 		matcher_args: &MatcherArgs,
 		backward: bool,
 		recur: bool,
-	) -> Result<Option<Self>, <Self as AccessibleExt>::Error>
+	) -> Result<Option<Self::ReturnType>, <Self as AccessibleExt>::Error>
 	where
 		Self: Sized,
 	{
