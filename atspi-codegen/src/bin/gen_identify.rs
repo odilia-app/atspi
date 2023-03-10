@@ -360,7 +360,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> Stri
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let events = atspi.event_stream();
     /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
-    ///     tokio::pin!(events);
+    ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
     /// #       let Ok(ev) = ev else {{ break }};
@@ -558,7 +558,7 @@ fn generate_enum_associated_example(iface_name: &str) -> String {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let events = atspi.event_stream();
     /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
-    ///     tokio::pin!(events);
+    ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
     /// #       let Ok(ev) = ev else {{ break }};

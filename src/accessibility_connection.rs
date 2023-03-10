@@ -85,8 +85,8 @@ impl AccessibilityConnection {
 	///     let atspi = atspi::AccessibilityConnection::open().await?;
 	///     atspi.register_event::<ObjectEvents>().await?;
 	///
-	///     let events = atspi.event_stream();
-	///     futures_lite::pin!(events);
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
 	/// #       .arg("call")
