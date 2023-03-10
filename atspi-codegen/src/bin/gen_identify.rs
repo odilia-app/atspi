@@ -358,12 +358,10 @@ fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> Stri
     /// #[tokio::main]
     /// async fn main() {{
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
-    /// #       let Ok(ev) = ev else {{ break }};
     ///         let Ok(event)  = {signal_name}::try_from(ev) else {{ continue }};
     ///     }}
     /// }}
@@ -556,12 +554,10 @@ fn generate_enum_associated_example(iface_name: &str) -> String {
     /// #[tokio::main]
     /// async fn main() {{
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
-    /// #       let Ok(ev) = ev else {{ break }};
     ///          let Event::Interfaces(EventInterfaces::{iface_name}(_event)) = ev else {{ continue }};
     ///     }}
     /// }}

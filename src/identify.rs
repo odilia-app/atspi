@@ -34,12 +34,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///          let Event::Interfaces(EventInterfaces::Object(_event)) = ev else { continue };
     ///     }
     /// }
@@ -71,12 +69,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = PropertyChangeEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -103,12 +99,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = BoundsChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -135,12 +129,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = LinkSelectedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -167,12 +159,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = StateChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -199,12 +189,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -231,12 +219,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -263,12 +249,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = SelectionChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -295,12 +279,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ModelChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -327,12 +309,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -359,12 +339,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = AnnouncementEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -391,12 +369,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = AttributesChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -423,12 +399,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = RowInsertedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -455,12 +429,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = RowReorderedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -487,12 +459,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = RowDeletedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -519,12 +489,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -551,12 +519,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -583,12 +549,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -615,12 +579,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -647,12 +609,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -679,12 +639,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = TextChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -711,12 +669,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -743,12 +699,10 @@ pub mod object {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1382,12 +1336,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///          let Event::Interfaces(EventInterfaces::Window(_event)) = ev else { continue };
     ///     }
     /// }
@@ -1419,12 +1371,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = PropertyChangeEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1451,12 +1401,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = MinimizeEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1483,12 +1431,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = MaximizeEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1515,12 +1461,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = RestoreEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1547,12 +1491,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = CloseEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1579,12 +1521,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = CreateEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1611,12 +1551,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ReparentEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1643,12 +1581,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = DesktopCreateEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1675,12 +1611,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1707,12 +1641,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = DestroyEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1739,12 +1671,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ActivateEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1771,12 +1701,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = DeactivateEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1803,12 +1731,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = RaiseEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1835,12 +1761,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = LowerEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1867,12 +1791,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = MoveEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1899,12 +1821,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ResizeEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1931,12 +1851,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ShadeEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1963,12 +1881,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = UUshadeEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -1995,12 +1911,10 @@ pub mod window {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = RestyleEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -2496,12 +2410,10 @@ pub mod mouse {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///          let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
     ///     }
     /// }
@@ -2533,12 +2445,10 @@ pub mod mouse {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = AbsEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -2565,12 +2475,10 @@ pub mod mouse {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = RelEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -2597,12 +2505,10 @@ pub mod mouse {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ButtonEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -2775,12 +2681,10 @@ pub mod keyboard {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///          let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev else { continue };
     ///     }
     /// }
@@ -2812,12 +2716,10 @@ pub mod keyboard {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ModifiersEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -2914,12 +2816,10 @@ pub mod terminal {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///          let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev else { continue };
     ///     }
     /// }
@@ -2951,12 +2851,10 @@ pub mod terminal {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = LineChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -2983,12 +2881,10 @@ pub mod terminal {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3015,12 +2911,10 @@ pub mod terminal {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = LineCountChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3047,12 +2941,10 @@ pub mod terminal {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3079,12 +2971,10 @@ pub mod terminal {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3258,12 +3148,10 @@ pub mod document {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///          let Event::Interfaces(EventInterfaces::Document(_event)) = ev else { continue };
     ///     }
     /// }
@@ -3295,12 +3183,10 @@ pub mod document {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = LoadCompleteEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3327,12 +3213,10 @@ pub mod document {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ReloadEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3359,12 +3243,10 @@ pub mod document {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = LoadStoppedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3391,12 +3273,10 @@ pub mod document {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = ContentChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3423,12 +3303,10 @@ pub mod document {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = AttributesChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3455,12 +3333,10 @@ pub mod document {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = PageChangedEvent::try_from(ev) else { continue };
     ///     }
     /// }
@@ -3657,12 +3533,10 @@ pub mod focus {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///          let Event::Interfaces(EventInterfaces::Focus(_event)) = ev else { continue };
     ///     }
     /// }
@@ -3694,12 +3568,10 @@ pub mod focus {
     /// #[tokio::main]
     /// async fn main() {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let events = atspi.event_stream();
-    /// # let events = tokio_stream::StreamExt::timeout(events, Duration::from_secs(1));
+    ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    /// #       let Ok(ev) = ev else { break };
     ///         let Ok(event)  = FocusEvent::try_from(ev) else { continue };
     ///     }
     /// }
