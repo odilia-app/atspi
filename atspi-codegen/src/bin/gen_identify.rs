@@ -359,6 +359,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str, s
     /// async fn main() {{
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
+		/// #   atspi.register_event::<{signal_event_name}>().await.unwrap();
     ///     std::pin::pin!(&mut events);
     /// #   let output = std::process::Command::new(\"busctl\")
     /// #       .arg(\"--user\")
