@@ -339,7 +339,7 @@ fn iface_to_enum_name(interface: &Interface) -> String {
         .to_string()
 }
 
-fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> String {
+fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str, signal_name: &str, interface: &str) -> String {
     format!(
         "{STRIPPER_IGNORE_START}
     /// # Example
@@ -351,7 +351,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> Stri
     ///
     /// ```
     /// use atspi::{{events::EventInterfaces, Event}};
-    /// use atspi::identify::{mod_name}::{signal_name};
+    /// use atspi::identify::{mod_name}::{signal_event_name};
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
     ///
@@ -360,9 +360,43 @@ fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> Stri
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new(\"busctl\")
+    /// #       .arg(\"--user\")
+    /// #       .arg(\"call\")
+    /// #       .arg(\"org.a11y.Bus\")
+    /// #       .arg(\"/org/a11y/bus\")
+    /// #       .arg(\"org.a11y.Bus\")
+    /// #       .arg(\"GetAddress\")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix(\"s \\\"\")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('\"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new(\"busctl\");
+    /// #   let thing = base_cmd
+    /// #       .arg(\"--address\")
+    /// #       .arg(addr_str)
+    /// #       .arg(\"emit\")
+    /// #       .arg(\"/org/a11y/atspi/accessible/null\")
+    /// #       .arg(\"{interface}\")
+    /// #       .arg(\"{signal_name}\")
+    /// #       .arg(\"siiva{{sv}}\")
+    /// #       .arg(\"\")
+    /// #       .arg(\"0\")
+    /// #       .arg(\"0\")
+    /// #       .arg(\"i\")
+    /// #       .arg(\"0\")
+    /// #       .arg(\"0\")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
-    ///         let Ok(event)  = {signal_name}::try_from(ev) else {{ continue }};
+    ///         //let Ok(event)  = {signal_event_name}::try_from(ev) else {{ break }};
+    ///         break;
     ///     }}
     /// }}
     /// ```
@@ -370,9 +404,10 @@ fn generate_signal_associated_example(mod_name: &str, signal_name: &str) -> Stri
     )
 }
 
-fn generate_struct_from_signal(mod_name: &str, signal: &Signal) -> String {
+fn generate_struct_from_signal(mod_name: &str, signal: &Signal, iface: &Interface) -> String {
     let sig_name_event = event_ident(signal.name());
-    let example = generate_signal_associated_example(mod_name, &sig_name_event);
+    let interface_name = iface.name();
+    let example = generate_signal_associated_example(mod_name, &sig_name_event, &signal.name(), &interface_name);
     format!(
         "
     {example}
@@ -483,7 +518,7 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
     let structs = iface
         .signals()
         .iter()
-        .map(|signal| generate_struct_from_signal(&mod_name, signal))
+        .map(|signal| generate_struct_from_signal(&mod_name, signal, &iface))
         .collect::<Vec<String>>()
         .join("\n");
     let impls = iface
@@ -557,9 +592,9 @@ fn generate_enum_associated_example(iface_name: &str) -> String {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {{
-    ///          let Event::Interfaces(EventInterfaces::{iface_name}(_event)) = ev else {{ continue }};
-    ///     }}
+    ///     //while let Some(Ok(ev)) = events.next().await {{
+    ///          //let Event::Interfaces(EventInterfaces::{iface_name}(_event)) = ev else {{ continue }};
+    ///     //}}
     /// }}
     /// ```
     {STRIPPER_IGNORE_STOP}"

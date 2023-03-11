@@ -37,9 +37,9 @@ pub mod object {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///          let Event::Interfaces(EventInterfaces::Object(_event)) = ev else { continue };
-    ///     }
+    ///     //while let Some(Ok(ev)) = events.next().await {
+    ///          //let Event::Interfaces(EventInterfaces::Object(_event)) = ev else { continue };
+    ///     //}
     /// }
     /// ```
     // IgnoreBlock stop
@@ -71,9 +71,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("PropertyChange")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = PropertyChangeEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -101,9 +135,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("BoundsChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = BoundsChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = BoundsChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -131,9 +199,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("LinkSelected")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = LinkSelectedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = LinkSelectedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -161,9 +263,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("StateChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = StateChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = StateChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -191,9 +327,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("ChildrenChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -221,9 +391,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("VisibleDataChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -251,9 +455,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("SelectionChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = SelectionChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = SelectionChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -281,9 +519,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("ModelChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ModelChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ModelChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -311,9 +583,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("ActiveDescendantChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -341,9 +647,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("Announcement")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = AnnouncementEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = AnnouncementEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -371,9 +711,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("AttributesChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = AttributesChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -401,9 +775,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("RowInserted")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = RowInsertedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = RowInsertedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -431,9 +839,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("RowReordered")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = RowReorderedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = RowReorderedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -461,9 +903,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("RowDeleted")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = RowDeletedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = RowDeletedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -491,9 +967,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("ColumnInserted")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -521,9 +1031,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("ColumnReordered")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -551,9 +1095,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("ColumnDeleted")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -581,9 +1159,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("TextBoundsChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -611,9 +1223,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("TextSelectionChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -641,9 +1287,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("TextChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = TextChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = TextChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -671,9 +1351,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("TextAttributesChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -701,9 +1415,43 @@ pub mod object {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Object")
+    /// #       .arg("TextCaretMoved")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1339,9 +2087,9 @@ pub mod window {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///          let Event::Interfaces(EventInterfaces::Window(_event)) = ev else { continue };
-    ///     }
+    ///     //while let Some(Ok(ev)) = events.next().await {
+    ///          //let Event::Interfaces(EventInterfaces::Window(_event)) = ev else { continue };
+    ///     //}
     /// }
     /// ```
     // IgnoreBlock stop
@@ -1373,9 +2121,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("PropertyChange")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = PropertyChangeEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1403,9 +2185,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Minimize")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = MinimizeEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = MinimizeEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1433,9 +2249,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Maximize")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = MaximizeEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = MaximizeEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1463,9 +2313,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Restore")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = RestoreEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = RestoreEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1493,9 +2377,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Close")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = CloseEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = CloseEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1523,9 +2441,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Create")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = CreateEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = CreateEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1553,9 +2505,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Reparent")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ReparentEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ReparentEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1583,9 +2569,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("DesktopCreate")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = DesktopCreateEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = DesktopCreateEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1613,9 +2633,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("DesktopDestroy")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1643,9 +2697,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Destroy")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = DestroyEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = DestroyEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1673,9 +2761,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Activate")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ActivateEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ActivateEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1703,9 +2825,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Deactivate")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = DeactivateEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = DeactivateEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1733,9 +2889,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Raise")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = RaiseEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = RaiseEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1763,9 +2953,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Lower")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = LowerEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = LowerEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1793,9 +3017,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Move")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = MoveEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = MoveEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1823,9 +3081,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Resize")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ResizeEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ResizeEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1853,9 +3145,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Shade")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ShadeEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ShadeEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1883,9 +3209,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("uUshade")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = UUshadeEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = UUshadeEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -1913,9 +3273,43 @@ pub mod window {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Window")
+    /// #       .arg("Restyle")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = RestyleEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = RestyleEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2413,9 +3807,9 @@ pub mod mouse {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///          let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
-    ///     }
+    ///     //while let Some(Ok(ev)) = events.next().await {
+    ///          //let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
+    ///     //}
     /// }
     /// ```
     // IgnoreBlock stop
@@ -2447,9 +3841,43 @@ pub mod mouse {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Mouse")
+    /// #       .arg("Abs")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = AbsEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = AbsEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2477,9 +3905,43 @@ pub mod mouse {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Mouse")
+    /// #       .arg("Rel")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = RelEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = RelEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2507,9 +3969,43 @@ pub mod mouse {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Mouse")
+    /// #       .arg("Button")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ButtonEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ButtonEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2684,9 +4180,9 @@ pub mod keyboard {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///          let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev else { continue };
-    ///     }
+    ///     //while let Some(Ok(ev)) = events.next().await {
+    ///          //let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev else { continue };
+    ///     //}
     /// }
     /// ```
     // IgnoreBlock stop
@@ -2718,9 +4214,43 @@ pub mod keyboard {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Keyboard")
+    /// #       .arg("Modifiers")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ModifiersEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ModifiersEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2819,9 +4349,9 @@ pub mod terminal {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///          let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev else { continue };
-    ///     }
+    ///     //while let Some(Ok(ev)) = events.next().await {
+    ///          //let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev else { continue };
+    ///     //}
     /// }
     /// ```
     // IgnoreBlock stop
@@ -2853,9 +4383,43 @@ pub mod terminal {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Terminal")
+    /// #       .arg("LineChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = LineChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = LineChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2883,9 +4447,43 @@ pub mod terminal {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Terminal")
+    /// #       .arg("ColumncountChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2913,9 +4511,43 @@ pub mod terminal {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Terminal")
+    /// #       .arg("LinecountChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = LineCountChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = LineCountChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2943,9 +4575,43 @@ pub mod terminal {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Terminal")
+    /// #       .arg("ApplicationChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -2973,9 +4639,43 @@ pub mod terminal {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Terminal")
+    /// #       .arg("CharwidthChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -3151,9 +4851,9 @@ pub mod document {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///          let Event::Interfaces(EventInterfaces::Document(_event)) = ev else { continue };
-    ///     }
+    ///     //while let Some(Ok(ev)) = events.next().await {
+    ///          //let Event::Interfaces(EventInterfaces::Document(_event)) = ev else { continue };
+    ///     //}
     /// }
     /// ```
     // IgnoreBlock stop
@@ -3185,9 +4885,43 @@ pub mod document {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Document")
+    /// #       .arg("LoadComplete")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = LoadCompleteEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = LoadCompleteEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -3215,9 +4949,43 @@ pub mod document {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Document")
+    /// #       .arg("Reload")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ReloadEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ReloadEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -3245,9 +5013,43 @@ pub mod document {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Document")
+    /// #       .arg("LoadStopped")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = LoadStoppedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = LoadStoppedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -3275,9 +5077,43 @@ pub mod document {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Document")
+    /// #       .arg("ContentChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = ContentChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = ContentChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -3305,9 +5141,43 @@ pub mod document {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Document")
+    /// #       .arg("AttributesChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = AttributesChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -3335,9 +5205,43 @@ pub mod document {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Document")
+    /// #       .arg("PageChanged")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = PageChangedEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = PageChangedEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
@@ -3536,9 +5440,9 @@ pub mod focus {
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
     ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///          let Event::Interfaces(EventInterfaces::Focus(_event)) = ev else { continue };
-    ///     }
+    ///     //while let Some(Ok(ev)) = events.next().await {
+    ///          //let Event::Interfaces(EventInterfaces::Focus(_event)) = ev else { continue };
+    ///     //}
     /// }
     /// ```
     // IgnoreBlock stop
@@ -3570,9 +5474,43 @@ pub mod focus {
     ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
     ///     let mut events = atspi.event_stream();
     ///     std::pin::pin!(&mut events);
+    /// #   let output = std::process::Command::new("busctl")
+    /// #       .arg("--user")
+    /// #       .arg("call")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("/org/a11y/bus")
+    /// #       .arg("org.a11y.Bus")
+    /// #       .arg("GetAddress")
+    /// #       .output()
+    /// #       .unwrap();
+    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+    /// #    let addr_str = addr_string
+    /// #        .strip_prefix("s \"")
+    /// #        .unwrap()
+    /// #        .trim()
+    /// #        .strip_suffix('"')
+    /// #        .unwrap();
+    /// #   let mut base_cmd = std::process::Command::new("busctl");
+    /// #   let thing = base_cmd
+    /// #       .arg("--address")
+    /// #       .arg(addr_str)
+    /// #       .arg("emit")
+    /// #       .arg("/org/a11y/atspi/accessible/null")
+    /// #       .arg("org.a11y.atspi.Event.Focus")
+    /// #       .arg("Focus")
+    /// #       .arg("siiva{sv}")
+    /// #       .arg("")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .arg("i")
+    /// #       .arg("0")
+    /// #       .arg("0")
+    /// #       .output()
+    /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {
-    ///         let Ok(event)  = FocusEvent::try_from(ev) else { continue };
+    ///         //let Ok(event)  = FocusEvent::try_from(ev) else { break };
+    ///         break;
     ///     }
     /// }
     /// ```
