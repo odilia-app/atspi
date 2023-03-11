@@ -125,8 +125,8 @@ impl AccessibilityConnection {
 	///         // Handle Object events
 	///        if let Ok(event) = StateChangedEvent::try_from(ev) {
 	/// #        break;
-	///					 // do something else here
-	///				 } else { continue }
+	///          // do something else here
+	///        } else { continue }
 	///     }
 	/// #    Ok(())
 	/// # }
