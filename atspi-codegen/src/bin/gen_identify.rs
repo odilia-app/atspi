@@ -396,8 +396,10 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str, s
     /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
-    ///         //let Ok(event)  = {signal_event_name}::try_from(ev) else {{ break }};
-    ///         break;
+    ///         if let Ok(event) = {signal_event_name}::try_from(ev) {{
+		/// #          break;
+		///            // do something with the specific event you've received
+		///         }} else {{ continue }};
     ///     }}
     /// }}
     /// ```

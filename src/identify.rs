@@ -126,8 +126,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -190,8 +192,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = BoundsChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = BoundsChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -254,8 +258,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LinkSelectedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LinkSelectedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -318,8 +324,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = StateChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = StateChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -382,8 +390,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ChildrenChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -446,8 +456,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = VisibleDataChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -510,8 +522,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = SelectionChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = SelectionChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -574,8 +588,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ModelChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ModelChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -638,8 +654,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ActiveDescendantChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -702,8 +720,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AnnouncementEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = AnnouncementEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -766,8 +786,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -830,8 +852,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RowInsertedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RowInsertedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -894,8 +918,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RowReorderedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RowReorderedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -958,8 +984,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RowDeletedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RowDeletedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1022,8 +1050,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnInsertedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1086,8 +1116,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnReorderedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1150,8 +1182,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnDeletedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1214,8 +1248,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextBoundsChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1278,8 +1314,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextSelectionChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1342,8 +1380,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1406,8 +1446,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextAttributesChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1470,8 +1512,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextCaretMovedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2126,8 +2170,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2190,8 +2236,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = MinimizeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = MinimizeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2254,8 +2302,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = MaximizeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = MaximizeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2318,8 +2368,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RestoreEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RestoreEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2382,8 +2434,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = CloseEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = CloseEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2446,8 +2500,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = CreateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = CreateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2510,8 +2566,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ReparentEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ReparentEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2574,8 +2632,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DesktopCreateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DesktopCreateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2638,8 +2698,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DesktopDestroyEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2702,8 +2764,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DestroyEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DestroyEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2766,8 +2830,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ActivateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ActivateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2830,8 +2896,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DeactivateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DeactivateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2894,8 +2962,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RaiseEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RaiseEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2958,8 +3028,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LowerEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LowerEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3022,8 +3094,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = MoveEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = MoveEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3086,8 +3160,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ResizeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ResizeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3150,8 +3226,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ShadeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ShadeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3214,8 +3292,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = UUshadeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = UUshadeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3278,8 +3358,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RestyleEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RestyleEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3790,8 +3872,10 @@ pub mod mouse {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AbsEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = AbsEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3854,8 +3938,10 @@ pub mod mouse {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RelEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RelEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3918,8 +4004,10 @@ pub mod mouse {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ButtonEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ButtonEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4144,8 +4232,10 @@ pub mod keyboard {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ModifiersEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ModifiersEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4310,8 +4400,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LineChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LineChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4374,8 +4466,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnCountChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4438,8 +4532,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LineCountChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LineCountChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4502,8 +4598,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ApplicationChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4566,8 +4664,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = CharWidthChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4809,8 +4909,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LoadCompleteEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LoadCompleteEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4873,8 +4975,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ReloadEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ReloadEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4937,8 +5041,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LoadStoppedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LoadStoppedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -5001,8 +5107,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ContentChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ContentChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -5065,8 +5173,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -5129,8 +5239,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = PageChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = PageChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -5381,8 +5493,10 @@ pub mod focus {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = FocusEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = FocusEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```

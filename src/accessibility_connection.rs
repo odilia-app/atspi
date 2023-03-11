@@ -70,7 +70,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi::events::EventInterfaces;
 	/// use enumflags2::BitFlag;
-	/// use atspi::identify::object::ObjectEvents;
+	/// use atspi::identify::object::{ObjectEvents, StateChangedEvent};
 	/// use atspi::signify::Signified;
 	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
 	/// use atspi::Event;
@@ -122,8 +122,11 @@ impl AccessibilityConnection {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         // Handle Objject events
-	///        break;
+	///         // Handle Object events
+	///        if let Ok(event) = StateChangedEvent::try_from(ev) {
+	/// #        break;
+	///					 // do something else here
+	///				 } else { continue }
 	///     }
 	/// #    Ok(())
 	/// # }
