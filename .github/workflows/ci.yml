@@ -45,7 +45,6 @@ jobs:
       - name: Install ${{ matrix.toolchain }}
         uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           components: clippy
           toolchain: ${{ matrix.toolchain }}
       - name: Run tests
