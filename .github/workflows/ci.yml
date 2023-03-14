@@ -28,7 +28,7 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: [stable, beta]
+          toolchain: beta
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
