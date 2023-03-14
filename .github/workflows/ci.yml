@@ -152,7 +152,7 @@ jobs:
         # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
         run: cargo install cargo-semver-checks --no-default-features
       - name: Check Semver Compliance
-        run: cargo run semver-checks check-release -p atspi
+        run: cargo semver-checks check-release -p atspi
   msrv-compliance:
     runs-on: ubuntu-latest
     steps:
