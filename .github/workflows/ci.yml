@@ -30,7 +30,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-cargo-home
         with:
@@ -56,7 +56,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-cargo-home
         with:
@@ -95,7 +95,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-cargo-home
         with:
@@ -119,7 +119,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-cargo-home
         with:
@@ -145,7 +145,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-cargo-home
         with:
@@ -172,7 +172,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-cargo-home
         with:
