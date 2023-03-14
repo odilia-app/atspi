@@ -3,6 +3,7 @@
 [![crates.io badge](https://img.shields.io/crates/v/atspi)](https://crates.io/crates/atspi)
 [![docs.rs badge](https://docs.rs/atspi/badge.svg)](https://docs.rs/atspi)
 [![CI badge](https://github.com/odilia-app/atspi/actions/workflows/ci.yml/badge.svg)](https://github.com/odilia-app/atspi/actions/workflows/ci.yml)
+[![Code coverage badge](https://codecov.io/gh/odilia-app/atspi/branch/main/graph/badge.svg?token=MQ1BBEZ3UC)](https://codecov.io/gh/odilia-app/atspi)
 
 Higher level, asynchronous, pure Rust [AT-SPI2](https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/) protocol implementation using
 [zbus](https://crates.io/crates/zbus).
