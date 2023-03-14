@@ -89,10 +89,7 @@ jobs:
           toolchain: stable
           components: rustfmt
       - name: Run formatter
-        uses: dtolnay/rust-toolchain@master
-        with:
-          command: fmt
-          args: --all --check
+        run: cargo fmt --all --check
   rustdoc:
     runs-on: ubuntu-latest
     steps:
