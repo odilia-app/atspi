@@ -1,1476 +1,1470 @@
+use crate::AtspiError;
 
-    use crate::AtspiError;
-    
-
-    
 #[allow(clippy::module_name_repetitions)]
 // IgnoreBlock start
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 // IgnoreBlock stop
 pub mod object {
-	use atspi_macros::TrySignify;
 	use crate::{
-        Event,
 		error::AtspiError,
-		events::{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
+		Event,
 	};
+	use atspi_macros::TrySignify;
 	use zbus;
 	use zbus::zvariant::OwnedValue;
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that this example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    ///
-    ///     //while let Some(Ok(ev)) = events.next().await {
-    ///          //let Event::Interfaces(EventInterfaces::Object(_event)) = ev else { continue };
-    ///     //}
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that this example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	///
+	///     //while let Some(Ok(ev)) = events.next().await {
+	///          //let Event::Interfaces(EventInterfaces::Object(_event)) = ev else { continue };
+	///     //}
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Clone, Debug)]
 	pub enum ObjectEvents {
-		PropertyChange(PropertyChangeEvent),		BoundsChanged(BoundsChangedEvent),		LinkSelected(LinkSelectedEvent),		StateChanged(StateChangedEvent),		ChildrenChanged(ChildrenChangedEvent),		VisibleDataChanged(VisibleDataChangedEvent),		SelectionChanged(SelectionChangedEvent),		ModelChanged(ModelChangedEvent),		ActiveDescendantChanged(ActiveDescendantChangedEvent),		Announcement(AnnouncementEvent),		AttributesChanged(AttributesChangedEvent),		RowInserted(RowInsertedEvent),		RowReordered(RowReorderedEvent),		RowDeleted(RowDeletedEvent),		ColumnInserted(ColumnInsertedEvent),		ColumnReordered(ColumnReorderedEvent),		ColumnDeleted(ColumnDeletedEvent),		TextBoundsChanged(TextBoundsChangedEvent),		TextSelectionChanged(TextSelectionChangedEvent),		TextChanged(TextChangedEvent),		TextAttributesChanged(TextAttributesChangedEvent),		TextCaretMoved(TextCaretMovedEvent),
+		PropertyChange(PropertyChangeEvent),
+		BoundsChanged(BoundsChangedEvent),
+		LinkSelected(LinkSelectedEvent),
+		StateChanged(StateChangedEvent),
+		ChildrenChanged(ChildrenChangedEvent),
+		VisibleDataChanged(VisibleDataChangedEvent),
+		SelectionChanged(SelectionChangedEvent),
+		ModelChanged(ModelChangedEvent),
+		ActiveDescendantChanged(ActiveDescendantChangedEvent),
+		Announcement(AnnouncementEvent),
+		AttributesChanged(AttributesChangedEvent),
+		RowInserted(RowInsertedEvent),
+		RowReordered(RowReorderedEvent),
+		RowDeleted(RowDeletedEvent),
+		ColumnInserted(ColumnInsertedEvent),
+		ColumnReordered(ColumnReorderedEvent),
+		ColumnDeleted(ColumnDeletedEvent),
+		TextBoundsChanged(TextBoundsChangedEvent),
+		TextSelectionChanged(TextSelectionChangedEvent),
+		TextChanged(TextChangedEvent),
+		TextAttributesChanged(TextAttributesChangedEvent),
+		TextCaretMoved(TextCaretMovedEvent),
 	}
-	
-		impl HasMatchRule for ObjectEvents {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
+
+	impl HasMatchRule for ObjectEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object'";
 	}
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::PropertyChangeEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("PropertyChange")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::PropertyChangeEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("PropertyChange")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::BoundsChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("BoundsChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = BoundsChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::BoundsChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("BoundsChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = BoundsChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct BoundsChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::LinkSelectedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("LinkSelected")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = LinkSelectedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::LinkSelectedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("LinkSelected")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = LinkSelectedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct LinkSelectedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::StateChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("StateChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = StateChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::StateChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("StateChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = StateChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct StateChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::ChildrenChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("ChildrenChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::ChildrenChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("ChildrenChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ChildrenChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::VisibleDataChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("VisibleDataChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::VisibleDataChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("VisibleDataChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct VisibleDataChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::SelectionChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("SelectionChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = SelectionChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::SelectionChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("SelectionChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = SelectionChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct SelectionChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::ModelChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("ModelChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ModelChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::ModelChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("ModelChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ModelChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ModelChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::ActiveDescendantChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("ActiveDescendantChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::ActiveDescendantChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("ActiveDescendantChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ActiveDescendantChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::AnnouncementEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("Announcement")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = AnnouncementEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::AnnouncementEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("Announcement")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = AnnouncementEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct AnnouncementEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::AttributesChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("AttributesChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::AttributesChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("AttributesChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::RowInsertedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("RowInserted")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = RowInsertedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::RowInsertedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("RowInserted")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = RowInsertedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct RowInsertedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::RowReorderedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("RowReordered")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = RowReorderedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::RowReorderedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("RowReordered")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = RowReorderedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct RowReorderedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::RowDeletedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("RowDeleted")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = RowDeletedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::RowDeletedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("RowDeleted")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = RowDeletedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct RowDeletedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::ColumnInsertedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("ColumnInserted")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::ColumnInsertedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("ColumnInserted")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ColumnInsertedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::ColumnReorderedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("ColumnReordered")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::ColumnReorderedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("ColumnReordered")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ColumnReorderedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::ColumnDeletedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("ColumnDeleted")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::ColumnDeletedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("ColumnDeleted")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ColumnDeletedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::TextBoundsChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("TextBoundsChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::TextBoundsChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("TextBoundsChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct TextBoundsChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::TextSelectionChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("TextSelectionChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::TextSelectionChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("TextSelectionChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct TextSelectionChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::TextChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("TextChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = TextChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::TextChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("TextChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = TextChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct TextChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::TextAttributesChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("TextAttributesChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::TextAttributesChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("TextAttributesChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct TextAttributesChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::object::TextCaretMovedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Object")
-    /// #       .arg("TextCaretMoved")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::TextCaretMovedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("TextCaretMoved")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct TextCaretMovedEvent(pub(crate) AtspiEvent);
-	
-	
-    
+
 	impl PropertyChangeEvent {
-		
 		#[must_use]
 		pub fn value(&self) -> &zbus::zvariant::Value<'_> {
 			self.0.any_data()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for PropertyChangeEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1481,12 +1475,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for BoundsChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1497,12 +1487,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for LinkSelectedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1513,20 +1499,15 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
 	impl StateChangedEvent {
-		
 		#[must_use]
 		pub fn enabled(&self) -> i32 {
 			self.0.detail1()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for StateChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1537,27 +1518,20 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
 	impl ChildrenChangedEvent {
-		
 		#[must_use]
 		pub fn index_in_parent(&self) -> i32 {
 			self.0.detail1()
 		}
-	
-
 
 		#[must_use]
 		pub fn child(&self) -> &zbus::zvariant::Value<'_> {
 			self.0.any_data()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ChildrenChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1568,12 +1542,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for VisibleDataChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1584,12 +1554,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for SelectionChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1600,12 +1566,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ModelChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1616,20 +1578,15 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
 	impl ActiveDescendantChangedEvent {
-		
 		#[must_use]
 		pub fn child(&self) -> &zbus::zvariant::Value<'_> {
 			self.0.any_data()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ActiveDescendantChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1640,12 +1597,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for AnnouncementEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1656,12 +1609,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for AttributesChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1672,12 +1621,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for RowInsertedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1688,12 +1633,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for RowReorderedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1704,12 +1645,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for RowDeletedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1720,12 +1657,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ColumnInsertedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1736,12 +1669,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ColumnReorderedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1752,12 +1681,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ColumnDeletedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1768,12 +1693,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for TextBoundsChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1784,12 +1705,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for TextSelectionChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1800,34 +1717,25 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
 	impl TextChangedEvent {
-		
 		#[must_use]
 		pub fn start_pos(&self) -> i32 {
 			self.0.detail1()
 		}
-	
-
 
 		#[must_use]
 		pub fn length(&self) -> i32 {
 			self.0.detail2()
 		}
-	
-
 
 		#[must_use]
 		pub fn text(&self) -> &zbus::zvariant::Value<'_> {
 			self.0.any_data()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for TextChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1838,12 +1746,8 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for TextAttributesChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1854,20 +1758,15 @@ pub mod object {
 			}
 		}
 	}
-    
-    
 
-    
 	impl TextCaretMovedEvent {
-		
 		#[must_use]
 		pub fn position(&self) -> i32 {
 			self.0.detail1()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for TextCaretMovedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -1878,9 +1777,7 @@ pub mod object {
 			}
 		}
 	}
-    
-    
-	
+
 	impl TryFrom<AtspiEvent> for ObjectEvents {
 		type Error = AtspiError;
 
@@ -1892,95 +1789,128 @@ pub mod object {
 				"LinkSelected" => Ok(ObjectEvents::LinkSelected(LinkSelectedEvent(ev))),
 				"StateChanged" => Ok(ObjectEvents::StateChanged(StateChangedEvent(ev))),
 				"ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ChildrenChangedEvent(ev))),
-				"VisibleDataChanged" => Ok(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev))),
+				"VisibleDataChanged" => {
+					Ok(ObjectEvents::VisibleDataChanged(VisibleDataChangedEvent(ev)))
+				}
 				"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(SelectionChangedEvent(ev))),
 				"ModelChanged" => Ok(ObjectEvents::ModelChanged(ModelChangedEvent(ev))),
-				"ActiveDescendantChanged" => Ok(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev))),
+				"ActiveDescendantChanged" => {
+					Ok(ObjectEvents::ActiveDescendantChanged(ActiveDescendantChangedEvent(ev)))
+				}
 				"Announcement" => Ok(ObjectEvents::Announcement(AnnouncementEvent(ev))),
-				"AttributesChanged" => Ok(ObjectEvents::AttributesChanged(AttributesChangedEvent(ev))),
+				"AttributesChanged" => {
+					Ok(ObjectEvents::AttributesChanged(AttributesChangedEvent(ev)))
+				}
 				"RowInserted" => Ok(ObjectEvents::RowInserted(RowInsertedEvent(ev))),
 				"RowReordered" => Ok(ObjectEvents::RowReordered(RowReorderedEvent(ev))),
 				"RowDeleted" => Ok(ObjectEvents::RowDeleted(RowDeletedEvent(ev))),
 				"ColumnInserted" => Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent(ev))),
 				"ColumnReordered" => Ok(ObjectEvents::ColumnReordered(ColumnReorderedEvent(ev))),
 				"ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent(ev))),
-				"TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev))),
-				"TextSelectionChanged" => Ok(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev))),
+				"TextBoundsChanged" => {
+					Ok(ObjectEvents::TextBoundsChanged(TextBoundsChangedEvent(ev)))
+				}
+				"TextSelectionChanged" => {
+					Ok(ObjectEvents::TextSelectionChanged(TextSelectionChangedEvent(ev)))
+				}
 				"TextChanged" => Ok(ObjectEvents::TextChanged(TextChangedEvent(ev))),
-				"TextAttributesChanged" => Ok(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev))),
+				"TextAttributesChanged" => {
+					Ok(ObjectEvents::TextAttributesChanged(TextAttributesChangedEvent(ev)))
+				}
 				"TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent(ev))),
 				_ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
 			}
 		}
 	}
-	
-		impl HasMatchRule for PropertyChangeEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
+
+	impl HasMatchRule for PropertyChangeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
 	}
 	impl HasMatchRule for BoundsChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'";
 	}
 	impl HasMatchRule for LinkSelectedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
 	}
 	impl HasMatchRule for StateChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'";
 	}
 	impl HasMatchRule for ChildrenChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
 	}
 	impl HasMatchRule for VisibleDataChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'";
 	}
 	impl HasMatchRule for SelectionChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'";
 	}
 	impl HasMatchRule for ModelChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
 	}
 	impl HasMatchRule for ActiveDescendantChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
+		const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
 	}
 	impl HasMatchRule for AnnouncementEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'";
 	}
 	impl HasMatchRule for AttributesChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'";
 	}
 	impl HasMatchRule for RowInsertedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
 	}
 	impl HasMatchRule for RowReorderedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'";
 	}
 	impl HasMatchRule for RowDeletedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
 	}
 	impl HasMatchRule for ColumnInsertedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'";
 	}
 	impl HasMatchRule for ColumnReorderedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
 	}
 	impl HasMatchRule for ColumnDeletedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'";
 	}
 	impl HasMatchRule for TextBoundsChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'";
 	}
 	impl HasMatchRule for TextSelectionChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
 	}
 	impl HasMatchRule for TextChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
 	}
 	impl HasMatchRule for TextAttributesChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
 	}
 	impl HasMatchRule for TextCaretMovedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'";
 	}
-  	impl HasRegistryEventString for PropertyChangeEvent {
+	impl HasRegistryEventString for PropertyChangeEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Object:PropertyChange";
 	}
 	impl HasRegistryEventString for BoundsChangedEvent {
@@ -2046,1281 +1976,1277 @@ pub mod object {
 	impl HasRegistryEventString for TextCaretMovedEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Object:TextCaretMoved";
 	}
-  	impl HasRegistryEventString for ObjectEvents {
+	impl HasRegistryEventString for ObjectEvents {
 		const REGISTRY_EVENT_STRING: &'static str = "Object:";
 	}
 }
-	
-
 
 #[allow(clippy::module_name_repetitions)]
 // IgnoreBlock start
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 // IgnoreBlock stop
 pub mod window {
-	use atspi_macros::TrySignify;
 	use crate::{
-        Event,
 		error::AtspiError,
-		events::{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
+		Event,
 	};
+	use atspi_macros::TrySignify;
 	use zbus;
 	use zbus::zvariant::OwnedValue;
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that this example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    ///
-    ///     //while let Some(Ok(ev)) = events.next().await {
-    ///          //let Event::Interfaces(EventInterfaces::Window(_event)) = ev else { continue };
-    ///     //}
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that this example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	///
+	///     //while let Some(Ok(ev)) = events.next().await {
+	///          //let Event::Interfaces(EventInterfaces::Window(_event)) = ev else { continue };
+	///     //}
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Clone, Debug)]
 	pub enum WindowEvents {
-		PropertyChange(PropertyChangeEvent),		Minimize(MinimizeEvent),		Maximize(MaximizeEvent),		Restore(RestoreEvent),		Close(CloseEvent),		Create(CreateEvent),		Reparent(ReparentEvent),		DesktopCreate(DesktopCreateEvent),		DesktopDestroy(DesktopDestroyEvent),		Destroy(DestroyEvent),		Activate(ActivateEvent),		Deactivate(DeactivateEvent),		Raise(RaiseEvent),		Lower(LowerEvent),		Move(MoveEvent),		Resize(ResizeEvent),		Shade(ShadeEvent),		UUshade(UUshadeEvent),		Restyle(RestyleEvent),
+		PropertyChange(PropertyChangeEvent),
+		Minimize(MinimizeEvent),
+		Maximize(MaximizeEvent),
+		Restore(RestoreEvent),
+		Close(CloseEvent),
+		Create(CreateEvent),
+		Reparent(ReparentEvent),
+		DesktopCreate(DesktopCreateEvent),
+		DesktopDestroy(DesktopDestroyEvent),
+		Destroy(DestroyEvent),
+		Activate(ActivateEvent),
+		Deactivate(DeactivateEvent),
+		Raise(RaiseEvent),
+		Lower(LowerEvent),
+		Move(MoveEvent),
+		Resize(ResizeEvent),
+		Shade(ShadeEvent),
+		UUshade(UUshadeEvent),
+		Restyle(RestyleEvent),
 	}
-	
-		impl HasMatchRule for WindowEvents {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window'";
+
+	impl HasMatchRule for WindowEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window'";
 	}
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::PropertyChangeEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("PropertyChange")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::PropertyChangeEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("PropertyChange")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct PropertyChangeEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::MinimizeEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Minimize")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = MinimizeEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::MinimizeEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Minimize")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = MinimizeEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct MinimizeEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::MaximizeEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Maximize")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = MaximizeEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::MaximizeEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Maximize")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = MaximizeEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct MaximizeEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::RestoreEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Restore")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = RestoreEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::RestoreEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Restore")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = RestoreEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct RestoreEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::CloseEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Close")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = CloseEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::CloseEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Close")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = CloseEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct CloseEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::CreateEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Create")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = CreateEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::CreateEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Create")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = CreateEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct CreateEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::ReparentEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Reparent")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ReparentEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::ReparentEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Reparent")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ReparentEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ReparentEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::DesktopCreateEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("DesktopCreate")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = DesktopCreateEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::DesktopCreateEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("DesktopCreate")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = DesktopCreateEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct DesktopCreateEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::DesktopDestroyEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("DesktopDestroy")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::DesktopDestroyEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("DesktopDestroy")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct DesktopDestroyEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::DestroyEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Destroy")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = DestroyEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::DestroyEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Destroy")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = DestroyEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct DestroyEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::ActivateEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Activate")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ActivateEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::ActivateEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Activate")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ActivateEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ActivateEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::DeactivateEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Deactivate")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = DeactivateEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::DeactivateEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Deactivate")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = DeactivateEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct DeactivateEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::RaiseEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Raise")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = RaiseEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::RaiseEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Raise")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = RaiseEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct RaiseEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::LowerEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Lower")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = LowerEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::LowerEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Lower")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = LowerEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct LowerEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::MoveEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Move")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = MoveEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::MoveEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Move")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = MoveEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct MoveEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::ResizeEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Resize")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ResizeEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::ResizeEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Resize")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ResizeEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ResizeEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::ShadeEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Shade")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ShadeEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::ShadeEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Shade")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ShadeEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ShadeEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::UUshadeEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("uUshade")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = UUshadeEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::UUshadeEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("uUshade")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = UUshadeEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct UUshadeEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::window::RestyleEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Window")
-    /// #       .arg("Restyle")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = RestyleEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::RestyleEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("Restyle")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = RestyleEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct RestyleEvent(pub(crate) AtspiEvent);
-	
-	
-    
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for PropertyChangeEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3331,12 +3257,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for MinimizeEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3347,12 +3269,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for MaximizeEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3363,12 +3281,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for RestoreEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3379,12 +3293,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for CloseEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3395,12 +3305,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for CreateEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3411,12 +3317,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ReparentEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3427,12 +3329,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for DesktopCreateEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3443,12 +3341,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for DesktopDestroyEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3459,12 +3353,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for DestroyEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3475,12 +3365,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ActivateEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3491,12 +3377,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for DeactivateEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3507,12 +3389,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for RaiseEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3523,12 +3401,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for LowerEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3539,12 +3413,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for MoveEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3555,12 +3425,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ResizeEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3571,12 +3437,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ShadeEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3587,12 +3449,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for UUshadeEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3603,12 +3461,8 @@ pub mod window {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for RestyleEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -3619,9 +3473,7 @@ pub mod window {
 			}
 		}
 	}
-    
-    
-	
+
 	impl TryFrom<AtspiEvent> for WindowEvents {
 		type Error = AtspiError;
 
@@ -3651,65 +3503,84 @@ pub mod window {
 			}
 		}
 	}
-	
-		impl HasMatchRule for PropertyChangeEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
+
+	impl HasMatchRule for PropertyChangeEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
 	}
 	impl HasMatchRule for MinimizeEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
 	}
 	impl HasMatchRule for MaximizeEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
 	}
 	impl HasMatchRule for RestoreEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
 	}
 	impl HasMatchRule for CloseEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
 	}
 	impl HasMatchRule for CreateEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
 	}
 	impl HasMatchRule for ReparentEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
 	}
 	impl HasMatchRule for DesktopCreateEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
 	}
 	impl HasMatchRule for DesktopDestroyEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
 	}
 	impl HasMatchRule for DestroyEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
 	}
 	impl HasMatchRule for ActivateEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
 	}
 	impl HasMatchRule for DeactivateEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
 	}
 	impl HasMatchRule for RaiseEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
 	}
 	impl HasMatchRule for LowerEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
 	}
 	impl HasMatchRule for MoveEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
 	}
 	impl HasMatchRule for ResizeEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
 	}
 	impl HasMatchRule for ShadeEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
 	}
 	impl HasMatchRule for UUshadeEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
 	}
 	impl HasMatchRule for RestyleEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
 	}
-  	impl HasRegistryEventString for PropertyChangeEvent {
+	impl HasRegistryEventString for PropertyChangeEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Window:PropertyChange";
 	}
 	impl HasRegistryEventString for MinimizeEvent {
@@ -3766,272 +3637,265 @@ pub mod window {
 	impl HasRegistryEventString for RestyleEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Window:Restyle";
 	}
-  	impl HasRegistryEventString for WindowEvents {
+	impl HasRegistryEventString for WindowEvents {
 		const REGISTRY_EVENT_STRING: &'static str = "Window:";
 	}
 }
-	
-
 
 #[allow(clippy::module_name_repetitions)]
 // IgnoreBlock start
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 // IgnoreBlock stop
 pub mod mouse {
-	use atspi_macros::TrySignify;
 	use crate::{
-        Event,
 		error::AtspiError,
-		events::{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
+		Event,
 	};
+	use atspi_macros::TrySignify;
 	use zbus;
 	use zbus::zvariant::OwnedValue;
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that this example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    ///
-    ///     //while let Some(Ok(ev)) = events.next().await {
-    ///          //let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
-    ///     //}
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that this example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	///
+	///     //while let Some(Ok(ev)) = events.next().await {
+	///          //let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
+	///     //}
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Clone, Debug)]
 	pub enum MouseEvents {
-		Abs(AbsEvent),		Rel(RelEvent),		Button(ButtonEvent),
+		Abs(AbsEvent),
+		Rel(RelEvent),
+		Button(ButtonEvent),
 	}
-	
-		impl HasMatchRule for MouseEvents {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
+
+	impl HasMatchRule for MouseEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse'";
 	}
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::mouse::AbsEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Mouse")
-    /// #       .arg("Abs")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = AbsEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::mouse::AbsEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Mouse")
+	/// #       .arg("Abs")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = AbsEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct AbsEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::mouse::RelEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Mouse")
-    /// #       .arg("Rel")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = RelEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::mouse::RelEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Mouse")
+	/// #       .arg("Rel")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = RelEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct RelEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::mouse::ButtonEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Mouse")
-    /// #       .arg("Button")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ButtonEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::mouse::ButtonEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Mouse")
+	/// #       .arg("Button")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ButtonEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ButtonEvent(pub(crate) AtspiEvent);
-	
-	
-    
+
 	impl AbsEvent {
-		
 		#[must_use]
 		pub fn x(&self) -> i32 {
 			self.0.detail1()
 		}
-	
-
 
 		#[must_use]
 		pub fn y(&self) -> i32 {
 			self.0.detail2()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for AbsEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4042,27 +3906,20 @@ pub mod mouse {
 			}
 		}
 	}
-    
-    
 
-    
 	impl RelEvent {
-		
 		#[must_use]
 		pub fn x(&self) -> i32 {
 			self.0.detail1()
 		}
-	
-
 
 		#[must_use]
 		pub fn y(&self) -> i32 {
 			self.0.detail2()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for RelEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4073,27 +3930,20 @@ pub mod mouse {
 			}
 		}
 	}
-    
-    
 
-    
 	impl ButtonEvent {
-		
 		#[must_use]
 		pub fn mouse_x(&self) -> i32 {
 			self.0.detail1()
 		}
-	
-
 
 		#[must_use]
 		pub fn mouse_y(&self) -> i32 {
 			self.0.detail2()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ButtonEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4104,9 +3954,7 @@ pub mod mouse {
 			}
 		}
 	}
-    
-    
-	
+
 	impl TryFrom<AtspiEvent> for MouseEvents {
 		type Error = AtspiError;
 
@@ -4120,17 +3968,20 @@ pub mod mouse {
 			}
 		}
 	}
-	
-		impl HasMatchRule for AbsEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
+
+	impl HasMatchRule for AbsEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
 	}
 	impl HasMatchRule for RelEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
 	}
 	impl HasMatchRule for ButtonEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
 	}
-  	impl HasRegistryEventString for AbsEvent {
+	impl HasRegistryEventString for AbsEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Abs";
 	}
 	impl HasRegistryEventString for RelEvent {
@@ -4139,144 +3990,137 @@ pub mod mouse {
 	impl HasRegistryEventString for ButtonEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Mouse:Button";
 	}
-  	impl HasRegistryEventString for MouseEvents {
+	impl HasRegistryEventString for MouseEvents {
 		const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 	}
 }
-	
-
 
 #[allow(clippy::module_name_repetitions)]
 // IgnoreBlock start
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 // IgnoreBlock stop
 pub mod keyboard {
-	use atspi_macros::TrySignify;
 	use crate::{
-        Event,
 		error::AtspiError,
-		events::{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
+		Event,
 	};
+	use atspi_macros::TrySignify;
 	use zbus;
 	use zbus::zvariant::OwnedValue;
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that this example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    ///
-    ///     //while let Some(Ok(ev)) = events.next().await {
-    ///          //let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev else { continue };
-    ///     //}
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that this example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	///
+	///     //while let Some(Ok(ev)) = events.next().await {
+	///          //let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev else { continue };
+	///     //}
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Clone, Debug)]
 	pub enum KeyboardEvents {
 		Modifiers(ModifiersEvent),
 	}
-	
-		impl HasMatchRule for KeyboardEvents {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Keyboard'";
+
+	impl HasMatchRule for KeyboardEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 	}
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::keyboard::ModifiersEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Keyboard")
-    /// #       .arg("Modifiers")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ModifiersEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::keyboard::ModifiersEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Keyboard")
+	/// #       .arg("Modifiers")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ModifiersEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ModifiersEvent(pub(crate) AtspiEvent);
-	
-	
-    
+
 	impl ModifiersEvent {
-		
 		#[must_use]
 		pub fn previous_modifiers(&self) -> i32 {
 			self.0.detail1()
 		}
-	
-
 
 		#[must_use]
 		pub fn current_modifiers(&self) -> i32 {
 			self.0.detail2()
 		}
-	
 	}
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ModifiersEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4287,9 +4131,7 @@ pub mod keyboard {
 			}
 		}
 	}
-    
-    
-	
+
 	impl TryFrom<AtspiEvent> for KeyboardEvents {
 		type Error = AtspiError;
 
@@ -4301,392 +4143,389 @@ pub mod keyboard {
 			}
 		}
 	}
-	
-		impl HasMatchRule for ModifiersEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
+
+	impl HasMatchRule for ModifiersEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
 	}
-  	impl HasRegistryEventString for ModifiersEvent {
+	impl HasRegistryEventString for ModifiersEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Keyboard:Modifiers";
 	}
-  	impl HasRegistryEventString for KeyboardEvents {
+	impl HasRegistryEventString for KeyboardEvents {
 		const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 	}
 }
-	
-
 
 #[allow(clippy::module_name_repetitions)]
 // IgnoreBlock start
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 // IgnoreBlock stop
 pub mod terminal {
-	use atspi_macros::TrySignify;
 	use crate::{
-        Event,
 		error::AtspiError,
-		events::{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
+		Event,
 	};
+	use atspi_macros::TrySignify;
 	use zbus;
 	use zbus::zvariant::OwnedValue;
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that this example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    ///
-    ///     //while let Some(Ok(ev)) = events.next().await {
-    ///          //let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev else { continue };
-    ///     //}
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that this example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	///
+	///     //while let Some(Ok(ev)) = events.next().await {
+	///          //let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev else { continue };
+	///     //}
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Clone, Debug)]
 	pub enum TerminalEvents {
-		LineChanged(LineChangedEvent),		ColumnCountChanged(ColumnCountChangedEvent),		LineCountChanged(LineCountChangedEvent),		ApplicationChanged(ApplicationChangedEvent),		CharWidthChanged(CharWidthChangedEvent),
+		LineChanged(LineChangedEvent),
+		ColumnCountChanged(ColumnCountChangedEvent),
+		LineCountChanged(LineCountChangedEvent),
+		ApplicationChanged(ApplicationChangedEvent),
+		CharWidthChanged(CharWidthChangedEvent),
 	}
-	
-		impl HasMatchRule for TerminalEvents {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal'";
+
+	impl HasMatchRule for TerminalEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 	}
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::terminal::LineChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Terminal")
-    /// #       .arg("LineChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = LineChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::terminal::LineChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Terminal")
+	/// #       .arg("LineChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = LineChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct LineChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::terminal::ColumnCountChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Terminal")
-    /// #       .arg("ColumncountChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::terminal::ColumnCountChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Terminal")
+	/// #       .arg("ColumncountChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ColumnCountChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::terminal::LineCountChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Terminal")
-    /// #       .arg("LinecountChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = LineCountChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::terminal::LineCountChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Terminal")
+	/// #       .arg("LinecountChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = LineCountChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct LineCountChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::terminal::ApplicationChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Terminal")
-    /// #       .arg("ApplicationChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::terminal::ApplicationChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Terminal")
+	/// #       .arg("ApplicationChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ApplicationChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::terminal::CharWidthChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Terminal")
-    /// #       .arg("CharwidthChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::terminal::CharWidthChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Terminal")
+	/// #       .arg("CharwidthChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct CharWidthChangedEvent(pub(crate) AtspiEvent);
-	
-	
-    
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for LineChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4697,12 +4536,8 @@ pub mod terminal {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ColumnCountChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4713,12 +4548,8 @@ pub mod terminal {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for LineCountChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4729,12 +4560,8 @@ pub mod terminal {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ApplicationChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4745,12 +4572,8 @@ pub mod terminal {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for CharWidthChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -4761,9 +4584,7 @@ pub mod terminal {
 			}
 		}
 	}
-    
-    
-	
+
 	impl TryFrom<AtspiEvent> for TerminalEvents {
 		type Error = AtspiError;
 
@@ -4771,31 +4592,44 @@ pub mod terminal {
 			let Some(member) = ev.member() else { return Err(AtspiError::MemberMatch("Event w/o member".into())); };
 			match member.as_str() {
 				"LineChanged" => Ok(TerminalEvents::LineChanged(LineChangedEvent(ev))),
-				"ColumncountChanged" => Ok(TerminalEvents::ColumnCountChanged(ColumnCountChangedEvent(ev))),
-				"LinecountChanged" => Ok(TerminalEvents::LineCountChanged(LineCountChangedEvent(ev))),
-				"ApplicationChanged" => Ok(TerminalEvents::ApplicationChanged(ApplicationChangedEvent(ev))),
-				"CharwidthChanged" => Ok(TerminalEvents::CharWidthChanged(CharWidthChangedEvent(ev))),
+				"ColumncountChanged" => {
+					Ok(TerminalEvents::ColumnCountChanged(ColumnCountChangedEvent(ev)))
+				}
+				"LinecountChanged" => {
+					Ok(TerminalEvents::LineCountChanged(LineCountChangedEvent(ev)))
+				}
+				"ApplicationChanged" => {
+					Ok(TerminalEvents::ApplicationChanged(ApplicationChangedEvent(ev)))
+				}
+				"CharwidthChanged" => {
+					Ok(TerminalEvents::CharWidthChanged(CharWidthChangedEvent(ev)))
+				}
 				_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
 			}
 		}
 	}
-	
-		impl HasMatchRule for LineChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
+
+	impl HasMatchRule for LineChangedEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
 	}
 	impl HasMatchRule for ColumnCountChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
 	}
 	impl HasMatchRule for LineCountChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
 	}
 	impl HasMatchRule for ApplicationChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
 	}
 	impl HasMatchRule for CharWidthChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
 	}
-  	impl HasRegistryEventString for LineChangedEvent {
+	impl HasRegistryEventString for LineChangedEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Terminal:LineChanged";
 	}
 	impl HasRegistryEventString for ColumnCountChangedEvent {
@@ -4810,449 +4644,445 @@ pub mod terminal {
 	impl HasRegistryEventString for CharWidthChangedEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Terminal:CharwidthChanged";
 	}
-  	impl HasRegistryEventString for TerminalEvents {
+	impl HasRegistryEventString for TerminalEvents {
 		const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 	}
 }
-	
-
 
 #[allow(clippy::module_name_repetitions)]
 // IgnoreBlock start
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 // IgnoreBlock stop
 pub mod document {
-	use atspi_macros::TrySignify;
 	use crate::{
-        Event,
 		error::AtspiError,
-		events::{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
+		Event,
 	};
+	use atspi_macros::TrySignify;
 	use zbus;
 	use zbus::zvariant::OwnedValue;
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that this example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    ///
-    ///     //while let Some(Ok(ev)) = events.next().await {
-    ///          //let Event::Interfaces(EventInterfaces::Document(_event)) = ev else { continue };
-    ///     //}
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that this example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	///
+	///     //while let Some(Ok(ev)) = events.next().await {
+	///          //let Event::Interfaces(EventInterfaces::Document(_event)) = ev else { continue };
+	///     //}
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Clone, Debug)]
 	pub enum DocumentEvents {
-		LoadComplete(LoadCompleteEvent),		Reload(ReloadEvent),		LoadStopped(LoadStoppedEvent),		ContentChanged(ContentChangedEvent),		AttributesChanged(AttributesChangedEvent),		PageChanged(PageChangedEvent),
+		LoadComplete(LoadCompleteEvent),
+		Reload(ReloadEvent),
+		LoadStopped(LoadStoppedEvent),
+		ContentChanged(ContentChangedEvent),
+		AttributesChanged(AttributesChangedEvent),
+		PageChanged(PageChangedEvent),
 	}
-	
-		impl HasMatchRule for DocumentEvents {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document'";
+
+	impl HasMatchRule for DocumentEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document'";
 	}
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::document::LoadCompleteEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Document")
-    /// #       .arg("LoadComplete")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = LoadCompleteEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::document::LoadCompleteEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Document")
+	/// #       .arg("LoadComplete")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = LoadCompleteEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct LoadCompleteEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::document::ReloadEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Document")
-    /// #       .arg("Reload")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ReloadEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::document::ReloadEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Document")
+	/// #       .arg("Reload")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ReloadEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ReloadEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::document::LoadStoppedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Document")
-    /// #       .arg("LoadStopped")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = LoadStoppedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::document::LoadStoppedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Document")
+	/// #       .arg("LoadStopped")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = LoadStoppedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct LoadStoppedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::document::ContentChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Document")
-    /// #       .arg("ContentChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = ContentChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::document::ContentChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Document")
+	/// #       .arg("ContentChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = ContentChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct ContentChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::document::AttributesChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Document")
-    /// #       .arg("AttributesChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::document::AttributesChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Document")
+	/// #       .arg("AttributesChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct AttributesChangedEvent(pub(crate) AtspiEvent);
-	
 
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::document::PageChangedEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Document")
-    /// #       .arg("PageChanged")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = PageChangedEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::document::PageChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Document")
+	/// #       .arg("PageChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = PageChangedEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct PageChangedEvent(pub(crate) AtspiEvent);
-	
-	
-    
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for LoadCompleteEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -5263,12 +5093,8 @@ pub mod document {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ReloadEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -5279,12 +5105,8 @@ pub mod document {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for LoadStoppedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -5295,12 +5117,8 @@ pub mod document {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for ContentChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -5311,12 +5129,8 @@ pub mod document {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for AttributesChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -5327,12 +5141,8 @@ pub mod document {
 			}
 		}
 	}
-    
-    
 
-    
-
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for PageChangedEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -5343,9 +5153,7 @@ pub mod document {
 			}
 		}
 	}
-    
-    
-	
+
 	impl TryFrom<AtspiEvent> for DocumentEvents {
 		type Error = AtspiError;
 
@@ -5356,32 +5164,40 @@ pub mod document {
 				"Reload" => Ok(DocumentEvents::Reload(ReloadEvent(ev))),
 				"LoadStopped" => Ok(DocumentEvents::LoadStopped(LoadStoppedEvent(ev))),
 				"ContentChanged" => Ok(DocumentEvents::ContentChanged(ContentChangedEvent(ev))),
-				"AttributesChanged" => Ok(DocumentEvents::AttributesChanged(AttributesChangedEvent(ev))),
+				"AttributesChanged" => {
+					Ok(DocumentEvents::AttributesChanged(AttributesChangedEvent(ev)))
+				}
 				"PageChanged" => Ok(DocumentEvents::PageChanged(PageChangedEvent(ev))),
 				_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 			}
 		}
 	}
-	
-		impl HasMatchRule for LoadCompleteEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'";
+
+	impl HasMatchRule for LoadCompleteEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'";
 	}
 	impl HasMatchRule for ReloadEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
 	}
 	impl HasMatchRule for LoadStoppedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'";
 	}
 	impl HasMatchRule for ContentChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
 	}
 	impl HasMatchRule for AttributesChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'";
 	}
 	impl HasMatchRule for PageChangedEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
 	}
-  	impl HasRegistryEventString for LoadCompleteEvent {
+	impl HasRegistryEventString for LoadCompleteEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Document:LoadComplete";
 	}
 	impl HasRegistryEventString for ReloadEvent {
@@ -5399,129 +5215,125 @@ pub mod document {
 	impl HasRegistryEventString for PageChangedEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Document:PageChanged";
 	}
-  	impl HasRegistryEventString for DocumentEvents {
+	impl HasRegistryEventString for DocumentEvents {
 		const REGISTRY_EVENT_STRING: &'static str = "Document:";
 	}
 }
-	
-
 
 #[allow(clippy::module_name_repetitions)]
 // IgnoreBlock start
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 // IgnoreBlock stop
 pub mod focus {
-	use atspi_macros::TrySignify;
 	use crate::{
-        Event,
 		error::AtspiError,
-		events::{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString},
+		events::{AtspiEvent, EventInterfaces, GenericEvent, HasMatchRule, HasRegistryEventString},
 		signify::Signified,
+		Event,
 	};
+	use atspi_macros::TrySignify;
 	use zbus;
 	use zbus::zvariant::OwnedValue;
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that this example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    ///
-    ///     //while let Some(Ok(ev)) = events.next().await {
-    ///          //let Event::Interfaces(EventInterfaces::Focus(_event)) = ev else { continue };
-    ///     //}
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that this example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	///
+	///     //while let Some(Ok(ev)) = events.next().await {
+	///          //let Event::Interfaces(EventInterfaces::Focus(_event)) = ev else { continue };
+	///     //}
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Clone, Debug)]
 	pub enum FocusEvents {
 		Focus(FocusEvent),
 	}
-	
-		impl HasMatchRule for FocusEvents {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
+
+	impl HasMatchRule for FocusEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Focus'";
 	}
-	
-    // IgnoreBlock start
-    /// # Example
-    ///
-    /// Even though this example employs `Tokio`, any runtime will do.
-    ///
-    /// Note that the example is minimized for rhe sake of brevity.
-    /// More complete examples may be found in the `examples/` directory.
-    ///
-    /// ```
-    /// use atspi::{events::EventInterfaces, Event};
-    /// use atspi::identify::focus::FocusEvent;
-    /// # use std::time::Duration;
-    /// use tokio_stream::StreamExt;
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-    ///     let mut events = atspi.event_stream();
-    ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new("busctl")
-    /// #       .arg("--user")
-    /// #       .arg("call")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("/org/a11y/bus")
-    /// #       .arg("org.a11y.Bus")
-    /// #       .arg("GetAddress")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix("s \"")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new("busctl");
-    /// #   let thing = base_cmd
-    /// #       .arg("--address")
-    /// #       .arg(addr_str)
-    /// #       .arg("emit")
-    /// #       .arg("/org/a11y/atspi/accessible/null")
-    /// #       .arg("org.a11y.atspi.Event.Focus")
-    /// #       .arg("Focus")
-    /// #       .arg("siiva{sv}")
-    /// #       .arg("")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .arg("i")
-    /// #       .arg("0")
-    /// #       .arg("0")
-    /// #       .output()
-    /// #       .unwrap();
-    ///
-    ///     while let Some(Ok(ev)) = events.next().await {
-    ///         //let Ok(event)  = FocusEvent::try_from(ev) else { break };
-    ///         break;
-    ///     }
-    /// }
-    /// ```
-    // IgnoreBlock stop
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::focus::FocusEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Focus")
+	/// #       .arg("Focus")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         //let Ok(event)  = FocusEvent::try_from(ev) else { break };
+	///         break;
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
 	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
 	pub struct FocusEvent(pub(crate) AtspiEvent);
-	
-	
-    
 
-    #[rustfmt::skip]
+	#[rustfmt::skip]
     impl TryFrom<Event> for FocusEvent {
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {
@@ -5532,9 +5344,7 @@ pub mod focus {
 			}
 		}
 	}
-    
-    
-	
+
 	impl TryFrom<AtspiEvent> for FocusEvents {
 		type Error = AtspiError;
 
@@ -5546,19 +5356,20 @@ pub mod focus {
 			}
 		}
 	}
-	
-		impl HasMatchRule for FocusEvent {
-      const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
+
+	impl HasMatchRule for FocusEvent {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
 	}
-  	impl HasRegistryEventString for FocusEvent {
+	impl HasRegistryEventString for FocusEvent {
 		const REGISTRY_EVENT_STRING: &'static str = "Focus:Focus";
 	}
-  	impl HasRegistryEventString for FocusEvents {
+	impl HasRegistryEventString for FocusEvents {
 		const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 	}
 }
-	use crate::Event;
-use crate::events::{AddAccessibleEvent,RemoveAccessibleEvent,CacheEvents};
+use crate::events::{AddAccessibleEvent, CacheEvents, RemoveAccessibleEvent};
+use crate::Event;
 #[rustfmt::skip]
     impl TryFrom<Event> for AddAccessibleEvent {
 	type Error = AtspiError;
@@ -5570,7 +5381,7 @@ use crate::events::{AddAccessibleEvent,RemoveAccessibleEvent,CacheEvents};
 			}
 		}
 	}
-    
+
 #[rustfmt::skip]
     impl TryFrom<Event> for RemoveAccessibleEvent {
 	type Error = AtspiError;
@@ -5582,8 +5393,10 @@ use crate::events::{AddAccessibleEvent,RemoveAccessibleEvent,CacheEvents};
 			}
 		}
 	}
-    
-use crate::events::{EventListenerRegisteredEvent,EventListenerDeregisteredEvent,EventListenerEvents};
+
+use crate::events::{
+	EventListenerDeregisteredEvent, EventListenerEvents, EventListenerRegisteredEvent,
+};
 #[rustfmt::skip]
     impl TryFrom<Event> for EventListenerRegisteredEvent {
 	type Error = AtspiError;
@@ -5595,7 +5408,7 @@ use crate::events::{EventListenerRegisteredEvent,EventListenerDeregisteredEvent,
 			}
 		}
 	}
-    
+
 #[rustfmt::skip]
     impl TryFrom<Event> for EventListenerDeregisteredEvent {
 	type Error = AtspiError;
@@ -5607,8 +5420,8 @@ use crate::events::{EventListenerRegisteredEvent,EventListenerDeregisteredEvent,
 			}
 		}
 	}
-    
-use crate::events::{AvailableEvent};
+
+use crate::events::AvailableEvent;
 #[rustfmt::skip]
     impl TryFrom<Event> for AvailableEvent {
 	type Error = AtspiError;
@@ -5620,4 +5433,3 @@ use crate::events::{AvailableEvent};
 			}
 		}
 	}
-    
