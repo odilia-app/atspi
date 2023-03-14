@@ -148,11 +148,11 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: Check Semver Compatibility
-        uses: obi1kenobi/cargo-semver-checks-action@v1
-        with:
-          crate-name: atspi
-          version-tag-prefix: v
+      - name: Install Semver Checks
+        # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
+        run: cargo install cargo-semver-checks --no-default-features
+      - name: Check Semver Compliance
+        run: cargo run semver-checks check-release -p atspi
   msrv-compliance:
     runs-on: ubuntu-latest
     steps:
