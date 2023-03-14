@@ -25,6 +25,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::object::PropertyChangeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
 	///
@@ -32,11 +33,48 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Object")
+	/// #       .arg("PropertyChange")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
 	///
-	///     //while let Some(Ok(ev)) = events.next().await {
-	///          //let Event::Interfaces(EventInterfaces::Object(_event)) = ev else { continue };
-	///     //}
+	///     while let Some(Ok(ev)) = events.next().await {
+	///          if let Event::Interfaces(EventInterfaces::Object(_event)) = ev {
+	/// #            break;
+	///              // do things with your event here
+	///          }  else { continue };
+	///     }
 	/// }
 	/// ```
 	// IgnoreBlock stop
@@ -89,6 +127,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -125,8 +164,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -152,6 +193,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<BoundsChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -188,8 +230,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = BoundsChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = BoundsChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -215,6 +259,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LinkSelectedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -251,8 +296,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LinkSelectedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LinkSelectedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -278,6 +325,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<StateChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -314,8 +362,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = StateChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = StateChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -341,6 +391,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ChildrenChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -377,8 +428,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ChildrenChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ChildrenChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -404,6 +457,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<VisibleDataChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -440,8 +494,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = VisibleDataChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = VisibleDataChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -467,6 +523,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<SelectionChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -503,8 +560,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = SelectionChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = SelectionChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -530,6 +589,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ModelChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -566,8 +626,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ModelChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ModelChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -593,6 +655,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ActiveDescendantChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -629,8 +692,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ActiveDescendantChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ActiveDescendantChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -656,6 +721,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<AnnouncementEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -692,8 +758,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AnnouncementEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = AnnouncementEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -719,6 +787,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<AttributesChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -755,8 +824,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -782,6 +853,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<RowInsertedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -818,8 +890,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RowInsertedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RowInsertedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -845,6 +919,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<RowReorderedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -881,8 +956,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RowReorderedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RowReorderedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -908,6 +985,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<RowDeletedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -944,8 +1022,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RowDeletedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RowDeletedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -971,6 +1051,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ColumnInsertedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1007,8 +1088,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnInsertedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnInsertedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1034,6 +1117,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ColumnReorderedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1070,8 +1154,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnReorderedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnReorderedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1097,6 +1183,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ColumnDeletedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1133,8 +1220,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnDeletedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnDeletedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1160,6 +1249,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<TextBoundsChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1196,8 +1286,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextBoundsChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextBoundsChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1223,6 +1315,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<TextSelectionChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1259,8 +1352,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextSelectionChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextSelectionChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1286,6 +1381,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<TextChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1322,8 +1418,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1349,6 +1447,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<TextAttributesChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1385,8 +1484,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextAttributesChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextAttributesChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -1412,6 +1513,7 @@ pub mod object {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<TextCaretMovedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -1448,8 +1550,10 @@ pub mod object {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = TextCaretMovedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = TextCaretMovedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2006,6 +2110,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::window::PropertyChangeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
 	///
@@ -2013,11 +2118,48 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Window")
+	/// #       .arg("PropertyChange")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
 	///
-	///     //while let Some(Ok(ev)) = events.next().await {
-	///          //let Event::Interfaces(EventInterfaces::Window(_event)) = ev else { continue };
-	///     //}
+	///     while let Some(Ok(ev)) = events.next().await {
+	///          if let Event::Interfaces(EventInterfaces::Window(_event)) = ev {
+	/// #            break;
+	///              // do things with your event here
+	///          }  else { continue };
+	///     }
 	/// }
 	/// ```
 	// IgnoreBlock stop
@@ -2067,6 +2209,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2103,8 +2246,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = PropertyChangeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2130,6 +2275,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<MinimizeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2166,8 +2312,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = MinimizeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = MinimizeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2193,6 +2341,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<MaximizeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2229,8 +2378,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = MaximizeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = MaximizeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2256,6 +2407,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<RestoreEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2292,8 +2444,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RestoreEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RestoreEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2319,6 +2473,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<CloseEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2355,8 +2510,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = CloseEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = CloseEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2382,6 +2539,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<CreateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2418,8 +2576,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = CreateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = CreateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2445,6 +2605,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ReparentEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2481,8 +2642,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ReparentEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ReparentEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2508,6 +2671,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<DesktopCreateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2544,8 +2708,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DesktopCreateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DesktopCreateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2571,6 +2737,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<DesktopDestroyEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2607,8 +2774,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DesktopDestroyEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DesktopDestroyEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2634,6 +2803,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<DestroyEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2670,8 +2840,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DestroyEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DestroyEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2697,6 +2869,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ActivateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2733,8 +2906,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ActivateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ActivateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2760,6 +2935,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<DeactivateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2796,8 +2972,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = DeactivateEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = DeactivateEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2823,6 +3001,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<RaiseEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2859,8 +3038,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RaiseEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RaiseEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2886,6 +3067,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LowerEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2922,8 +3104,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LowerEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LowerEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -2949,6 +3133,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<MoveEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -2985,8 +3170,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = MoveEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = MoveEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3012,6 +3199,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ResizeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -3048,8 +3236,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ResizeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ResizeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3075,6 +3265,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ShadeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -3111,8 +3302,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ShadeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ShadeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3138,6 +3331,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<UUshadeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -3174,8 +3368,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = UUshadeEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = UUshadeEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3201,6 +3397,7 @@ pub mod window {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<RestyleEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -3237,8 +3434,10 @@ pub mod window {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RestyleEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RestyleEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3667,43 +3866,6 @@ pub mod mouse {
 	///
 	/// ```
 	/// use atspi::{events::EventInterfaces, Event};
-	/// # use std::time::Duration;
-	/// use tokio_stream::StreamExt;
-	///
-	/// #[tokio::main]
-	/// async fn main() {
-	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-	///     let mut events = atspi.event_stream();
-	///     std::pin::pin!(&mut events);
-	///
-	///     //while let Some(Ok(ev)) = events.next().await {
-	///          //let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev else { continue };
-	///     //}
-	/// }
-	/// ```
-	// IgnoreBlock stop
-	#[derive(Clone, Debug)]
-	pub enum MouseEvents {
-		Abs(AbsEvent),
-		Rel(RelEvent),
-		Button(ButtonEvent),
-	}
-
-	impl HasMatchRule for MouseEvents {
-		const MATCH_RULE_STRING: &'static str =
-			"type='signal',interface='org.a11y.atspi.Event.Mouse'";
-	}
-
-	// IgnoreBlock start
-	/// # Example
-	///
-	/// Even though this example employs `Tokio`, any runtime will do.
-	///
-	/// Note that the example is minimized for rhe sake of brevity.
-	/// More complete examples may be found in the `examples/` directory.
-	///
-	/// ```
-	/// use atspi::{events::EventInterfaces, Event};
 	/// use atspi::identify::mouse::AbsEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3712,6 +3874,7 @@ pub mod mouse {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<AbsEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -3748,8 +3911,85 @@ pub mod mouse {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AbsEvent::try_from(ev) else { break };
-	///         break;
+	///          if let Event::Interfaces(EventInterfaces::Mouse(_event)) = ev {
+	/// #            break;
+	///              // do things with your event here
+	///          }  else { continue };
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
+	#[derive(Clone, Debug)]
+	pub enum MouseEvents {
+		Abs(AbsEvent),
+		Rel(RelEvent),
+		Button(ButtonEvent),
+	}
+
+	impl HasMatchRule for MouseEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Mouse'";
+	}
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::mouse::AbsEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<AbsEvent>().await.unwrap();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Mouse")
+	/// #       .arg("Abs")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         if let Ok(event) = AbsEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3775,6 +4015,7 @@ pub mod mouse {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<RelEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -3811,8 +4052,10 @@ pub mod mouse {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = RelEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = RelEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -3838,6 +4081,7 @@ pub mod mouse {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ButtonEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -3874,8 +4118,10 @@ pub mod mouse {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ButtonEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ButtonEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4020,41 +4266,6 @@ pub mod keyboard {
 	///
 	/// ```
 	/// use atspi::{events::EventInterfaces, Event};
-	/// # use std::time::Duration;
-	/// use tokio_stream::StreamExt;
-	///
-	/// #[tokio::main]
-	/// async fn main() {
-	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-	///     let mut events = atspi.event_stream();
-	///     std::pin::pin!(&mut events);
-	///
-	///     //while let Some(Ok(ev)) = events.next().await {
-	///          //let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev else { continue };
-	///     //}
-	/// }
-	/// ```
-	// IgnoreBlock stop
-	#[derive(Clone, Debug)]
-	pub enum KeyboardEvents {
-		Modifiers(ModifiersEvent),
-	}
-
-	impl HasMatchRule for KeyboardEvents {
-		const MATCH_RULE_STRING: &'static str =
-			"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
-	}
-
-	// IgnoreBlock start
-	/// # Example
-	///
-	/// Even though this example employs `Tokio`, any runtime will do.
-	///
-	/// Note that the example is minimized for rhe sake of brevity.
-	/// More complete examples may be found in the `examples/` directory.
-	///
-	/// ```
-	/// use atspi::{events::EventInterfaces, Event};
 	/// use atspi::identify::keyboard::ModifiersEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -4063,6 +4274,7 @@ pub mod keyboard {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ModifiersEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4099,8 +4311,83 @@ pub mod keyboard {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ModifiersEvent::try_from(ev) else { break };
-	///         break;
+	///          if let Event::Interfaces(EventInterfaces::Keyboard(_event)) = ev {
+	/// #            break;
+	///              // do things with your event here
+	///          }  else { continue };
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
+	#[derive(Clone, Debug)]
+	pub enum KeyboardEvents {
+		Modifiers(ModifiersEvent),
+	}
+
+	impl HasMatchRule for KeyboardEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
+	}
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::keyboard::ModifiersEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ModifiersEvent>().await.unwrap();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Keyboard")
+	/// #       .arg("Modifiers")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         if let Ok(event) = ModifiersEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4181,45 +4468,6 @@ pub mod terminal {
 	///
 	/// ```
 	/// use atspi::{events::EventInterfaces, Event};
-	/// # use std::time::Duration;
-	/// use tokio_stream::StreamExt;
-	///
-	/// #[tokio::main]
-	/// async fn main() {
-	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-	///     let mut events = atspi.event_stream();
-	///     std::pin::pin!(&mut events);
-	///
-	///     //while let Some(Ok(ev)) = events.next().await {
-	///          //let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev else { continue };
-	///     //}
-	/// }
-	/// ```
-	// IgnoreBlock stop
-	#[derive(Clone, Debug)]
-	pub enum TerminalEvents {
-		LineChanged(LineChangedEvent),
-		ColumnCountChanged(ColumnCountChangedEvent),
-		LineCountChanged(LineCountChangedEvent),
-		ApplicationChanged(ApplicationChangedEvent),
-		CharWidthChanged(CharWidthChangedEvent),
-	}
-
-	impl HasMatchRule for TerminalEvents {
-		const MATCH_RULE_STRING: &'static str =
-			"type='signal',interface='org.a11y.atspi.Event.Terminal'";
-	}
-
-	// IgnoreBlock start
-	/// # Example
-	///
-	/// Even though this example employs `Tokio`, any runtime will do.
-	///
-	/// Note that the example is minimized for rhe sake of brevity.
-	/// More complete examples may be found in the `examples/` directory.
-	///
-	/// ```
-	/// use atspi::{events::EventInterfaces, Event};
 	/// use atspi::identify::terminal::LineChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -4228,6 +4476,7 @@ pub mod terminal {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LineChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4264,8 +4513,87 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LineChangedEvent::try_from(ev) else { break };
-	///         break;
+	///          if let Event::Interfaces(EventInterfaces::Terminal(_event)) = ev {
+	/// #            break;
+	///              // do things with your event here
+	///          }  else { continue };
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
+	#[derive(Clone, Debug)]
+	pub enum TerminalEvents {
+		LineChanged(LineChangedEvent),
+		ColumnCountChanged(ColumnCountChangedEvent),
+		LineCountChanged(LineCountChangedEvent),
+		ApplicationChanged(ApplicationChangedEvent),
+		CharWidthChanged(CharWidthChangedEvent),
+	}
+
+	impl HasMatchRule for TerminalEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Terminal'";
+	}
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::terminal::LineChangedEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LineChangedEvent>().await.unwrap();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Terminal")
+	/// #       .arg("LineChanged")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         if let Ok(event) = LineChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4291,6 +4619,7 @@ pub mod terminal {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ColumnCountChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4327,8 +4656,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ColumnCountChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ColumnCountChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4354,6 +4685,7 @@ pub mod terminal {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LineCountChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4390,8 +4722,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LineCountChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LineCountChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4417,6 +4751,7 @@ pub mod terminal {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ApplicationChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4453,8 +4788,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ApplicationChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ApplicationChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4480,6 +4817,7 @@ pub mod terminal {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<CharWidthChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4516,8 +4854,10 @@ pub mod terminal {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = CharWidthChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = CharWidthChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4674,46 +5014,6 @@ pub mod document {
 	///
 	/// ```
 	/// use atspi::{events::EventInterfaces, Event};
-	/// # use std::time::Duration;
-	/// use tokio_stream::StreamExt;
-	///
-	/// #[tokio::main]
-	/// async fn main() {
-	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-	///     let mut events = atspi.event_stream();
-	///     std::pin::pin!(&mut events);
-	///
-	///     //while let Some(Ok(ev)) = events.next().await {
-	///          //let Event::Interfaces(EventInterfaces::Document(_event)) = ev else { continue };
-	///     //}
-	/// }
-	/// ```
-	// IgnoreBlock stop
-	#[derive(Clone, Debug)]
-	pub enum DocumentEvents {
-		LoadComplete(LoadCompleteEvent),
-		Reload(ReloadEvent),
-		LoadStopped(LoadStoppedEvent),
-		ContentChanged(ContentChangedEvent),
-		AttributesChanged(AttributesChangedEvent),
-		PageChanged(PageChangedEvent),
-	}
-
-	impl HasMatchRule for DocumentEvents {
-		const MATCH_RULE_STRING: &'static str =
-			"type='signal',interface='org.a11y.atspi.Event.Document'";
-	}
-
-	// IgnoreBlock start
-	/// # Example
-	///
-	/// Even though this example employs `Tokio`, any runtime will do.
-	///
-	/// Note that the example is minimized for rhe sake of brevity.
-	/// More complete examples may be found in the `examples/` directory.
-	///
-	/// ```
-	/// use atspi::{events::EventInterfaces, Event};
 	/// use atspi::identify::document::LoadCompleteEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -4722,6 +5022,7 @@ pub mod document {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LoadCompleteEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4758,8 +5059,88 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LoadCompleteEvent::try_from(ev) else { break };
-	///         break;
+	///          if let Event::Interfaces(EventInterfaces::Document(_event)) = ev {
+	/// #            break;
+	///              // do things with your event here
+	///          }  else { continue };
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
+	#[derive(Clone, Debug)]
+	pub enum DocumentEvents {
+		LoadComplete(LoadCompleteEvent),
+		Reload(ReloadEvent),
+		LoadStopped(LoadStoppedEvent),
+		ContentChanged(ContentChangedEvent),
+		AttributesChanged(AttributesChangedEvent),
+		PageChanged(PageChangedEvent),
+	}
+
+	impl HasMatchRule for DocumentEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Document'";
+	}
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::document::LoadCompleteEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LoadCompleteEvent>().await.unwrap();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Document")
+	/// #       .arg("LoadComplete")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         if let Ok(event) = LoadCompleteEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4785,6 +5166,7 @@ pub mod document {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ReloadEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4821,8 +5203,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ReloadEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ReloadEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4848,6 +5232,7 @@ pub mod document {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<LoadStoppedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4884,8 +5269,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = LoadStoppedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = LoadStoppedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4911,6 +5298,7 @@ pub mod document {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<ContentChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -4947,8 +5335,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = ContentChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = ContentChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -4974,6 +5364,7 @@ pub mod document {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<AttributesChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -5010,8 +5401,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = AttributesChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -5037,6 +5430,7 @@ pub mod document {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<PageChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -5073,8 +5467,10 @@ pub mod document {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = PageChangedEvent::try_from(ev) else { break };
-	///         break;
+	///         if let Ok(event) = PageChangedEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
@@ -5245,41 +5641,6 @@ pub mod focus {
 	///
 	/// ```
 	/// use atspi::{events::EventInterfaces, Event};
-	/// # use std::time::Duration;
-	/// use tokio_stream::StreamExt;
-	///
-	/// #[tokio::main]
-	/// async fn main() {
-	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
-	///     let mut events = atspi.event_stream();
-	///     std::pin::pin!(&mut events);
-	///
-	///     //while let Some(Ok(ev)) = events.next().await {
-	///          //let Event::Interfaces(EventInterfaces::Focus(_event)) = ev else { continue };
-	///     //}
-	/// }
-	/// ```
-	// IgnoreBlock stop
-	#[derive(Clone, Debug)]
-	pub enum FocusEvents {
-		Focus(FocusEvent),
-	}
-
-	impl HasMatchRule for FocusEvents {
-		const MATCH_RULE_STRING: &'static str =
-			"type='signal',interface='org.a11y.atspi.Event.Focus'";
-	}
-
-	// IgnoreBlock start
-	/// # Example
-	///
-	/// Even though this example employs `Tokio`, any runtime will do.
-	///
-	/// Note that the example is minimized for rhe sake of brevity.
-	/// More complete examples may be found in the `examples/` directory.
-	///
-	/// ```
-	/// use atspi::{events::EventInterfaces, Event};
 	/// use atspi::identify::focus::FocusEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5288,6 +5649,7 @@ pub mod focus {
 	/// async fn main() {
 	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<FocusEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
@@ -5324,8 +5686,83 @@ pub mod focus {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         //let Ok(event)  = FocusEvent::try_from(ev) else { break };
-	///         break;
+	///          if let Event::Interfaces(EventInterfaces::Focus(_event)) = ev {
+	/// #            break;
+	///              // do things with your event here
+	///          }  else { continue };
+	///     }
+	/// }
+	/// ```
+	// IgnoreBlock stop
+	#[derive(Clone, Debug)]
+	pub enum FocusEvents {
+		Focus(FocusEvent),
+	}
+
+	impl HasMatchRule for FocusEvents {
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Event.Focus'";
+	}
+
+	// IgnoreBlock start
+	/// # Example
+	///
+	/// Even though this example employs `Tokio`, any runtime will do.
+	///
+	/// Note that the example is minimized for rhe sake of brevity.
+	/// More complete examples may be found in the `examples/` directory.
+	///
+	/// ```
+	/// use atspi::{events::EventInterfaces, Event};
+	/// use atspi::identify::focus::FocusEvent;
+	/// # use std::time::Duration;
+	/// use tokio_stream::StreamExt;
+	///
+	/// #[tokio::main]
+	/// async fn main() {
+	///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+	///     let mut events = atspi.event_stream();
+	/// #   atspi.register_event::<FocusEvent>().await.unwrap();
+	///     std::pin::pin!(&mut events);
+	/// #   let output = std::process::Command::new("busctl")
+	/// #       .arg("--user")
+	/// #       .arg("call")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("/org/a11y/bus")
+	/// #       .arg("org.a11y.Bus")
+	/// #       .arg("GetAddress")
+	/// #       .output()
+	/// #       .unwrap();
+	/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
+	/// #    let addr_str = addr_string
+	/// #        .strip_prefix("s \"")
+	/// #        .unwrap()
+	/// #        .trim()
+	/// #        .strip_suffix('"')
+	/// #        .unwrap();
+	/// #   let mut base_cmd = std::process::Command::new("busctl");
+	/// #   let thing = base_cmd
+	/// #       .arg("--address")
+	/// #       .arg(addr_str)
+	/// #       .arg("emit")
+	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("org.a11y.atspi.Event.Focus")
+	/// #       .arg("Focus")
+	/// #       .arg("siiva{sv}")
+	/// #       .arg("")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .arg("i")
+	/// #       .arg("0")
+	/// #       .arg("0")
+	/// #       .output()
+	/// #       .unwrap();
+	///
+	///     while let Some(Ok(ev)) = events.next().await {
+	///         if let Ok(event) = FocusEvent::try_from(ev) {
+	/// #          break;
+	///            // do something with the specific event you've received
+	///         } else { continue };
 	///     }
 	/// }
 	/// ```
