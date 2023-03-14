@@ -185,8 +185,9 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Install stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: nightly
           components: llvm-tools-preview
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
@@ -197,7 +198,7 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: cargo llvm-cov
-        run: cargo llvm-cov --locked --features=unstable-traits --lcov --output-path lcov.info
+        run: cargo llvm-cov --doctest --locked --features=unstable-traits --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
