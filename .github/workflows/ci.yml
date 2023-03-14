@@ -9,11 +9,12 @@ on:
 jobs:
   hack:
     runs-on: ubuntu-latest
-    name: ubuntu / stable / features
     steps:
       - uses: actions/checkout@v3
       - name: Install stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
       - name: cargo install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - name: cargo hack
@@ -27,7 +28,7 @@ jobs:
             toolchain: [stable, beta]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -42,13 +43,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install ${{ matrix.toolchain }}
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           profile: minimal
           components: clippy
           toolchain: ${{ matrix.toolchain }}
       - name: Run tests
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: clippy
           # "-- -D warnings" will make the job fail if their are clippy warnings
@@ -57,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -72,14 +73,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
       - name: Install Dependencies
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: Run Tests
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: test
           args: --features=unstable-traits
@@ -87,15 +88,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           profile: minimal
           toolchain: stable
           components: rustfmt
       - name: Run formatter
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: fmt
           args: --all --check
@@ -103,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -118,11 +119,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
       - name: Generate Documentation
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: doc
           args: --all-features --no-deps
@@ -130,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -145,23 +146,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
       - name: Install Cargo Machete
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: install
           args: cargo-machete
       - name: Check For Unused Depdencies
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: machete
   semver-compliance:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -176,7 +177,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
       - name: Check Semver Compatibility
@@ -188,7 +189,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache cargo home
         uses: actions/cache@v2
         env:
@@ -203,16 +204,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
       - name: Install Cargo MSRV Verifier
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: install
           args: cargo-msrv
       - name: Check MSRV Compliance
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           command: msrv
           args: verify
