@@ -102,12 +102,12 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
       - name: Generate Documentation
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --all-features
+          args: --all-features --no-deps
   no-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
