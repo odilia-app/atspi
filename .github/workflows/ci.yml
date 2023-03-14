@@ -193,6 +193,9 @@ jobs:
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         run: cargo generate-lockfile
+      - name: Install Dependencies
+        run: |
+          sudo apt -y install at-spi2-core systemd
       - name: cargo llvm-cov
         run: cargo llvm-cov --locked --features=unstable-traits --lcov --output-path lcov.info
       - name: Upload to codecov.io
