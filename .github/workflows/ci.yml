@@ -49,11 +49,7 @@ jobs:
           components: clippy
           toolchain: ${{ matrix.toolchain }}
       - name: Run tests
-        uses: dtolnay/rust-toolchain@master
-        with:
-          command: clippy
-          # "-- -D warnings" will make the job fail if their are clippy warnings
-          args: --workspace --no-deps -- -D warnings
+        run: cargo clippy --workspace --no-deps -- -D warnings 
   tests:
     runs-on: ubuntu-latest
     steps:
@@ -80,10 +76,7 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: Run Tests
-        uses: dtolnay/rust-toolchain@master
-        with:
-          command: test
-          args: --features=unstable-traits
+        run: cargo test --features=unstable-traits
   rustfmt:
     runs-on: ubuntu-latest
     steps:
@@ -123,10 +116,7 @@ jobs:
         with:
           toolchain: nightly
       - name: Generate Documentation
-        uses: dtolnay/rust-toolchain@master
-        with:
-          command: doc
-          args: --all-features --no-deps
+        run: cargo doc --all-features --no-deps
   no-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
@@ -155,9 +145,7 @@ jobs:
           command: install
           args: cargo-machete
       - name: Check For Unused Depdencies
-        uses: dtolnay/rust-toolchain@master
-        with:
-          command: machete
+        run: cargo machete
   semver-compliance:
     runs-on: ubuntu-latest
     steps:
@@ -208,12 +196,6 @@ jobs:
         with:
           toolchain: stable
       - name: Install Cargo MSRV Verifier
-        uses: dtolnay/rust-toolchain@master
-        with:
-          command: install
-          args: cargo-msrv
+        run: cargo install cargo-msrv
       - name: Check MSRV Compliance
-        uses: dtolnay/rust-toolchain@master
-        with:
-          command: msrv
-          args: verify
+        run: cargo msrv verify
