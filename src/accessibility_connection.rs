@@ -70,7 +70,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi::events::EventInterfaces;
 	/// use enumflags2::BitFlag;
-	/// use atspi::identify::object::ObjectEvents;
+	/// use atspi::identify::object::{ObjectEvents, StateChangedEvent};
 	/// use atspi::signify::Signified;
 	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
 	/// use atspi::Event;
@@ -85,8 +85,8 @@ impl AccessibilityConnection {
 	///     let atspi = atspi::AccessibilityConnection::open().await?;
 	///     atspi.register_event::<ObjectEvents>().await?;
 	///
-	///     let events = atspi.event_stream();
-	///     futures_lite::pin!(events);
+	///     let mut events = atspi.event_stream();
+	///     std::pin::pin!(&mut events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
 	/// #       .arg("call")
@@ -122,8 +122,11 @@ impl AccessibilityConnection {
 	/// #       .unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
-	///         // Handle Objject events
-	///        break;
+	///         // Handle Object events
+	///        if let Ok(event) = StateChangedEvent::try_from(ev) {
+	/// #        break;
+	///          // do something else here
+	///        } else { continue }
 	///     }
 	/// #    Ok(())
 	/// # }
