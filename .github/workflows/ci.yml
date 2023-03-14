@@ -41,7 +41,7 @@ jobs:
         with:
           command: clippy
           # "-- -D warnings" will make the job fail if their are clippy warnings
-          args: +${{ matrix.toolchain }} --workspace --no-deps -- -D warnings
+          args: --workspace --no-deps -- -D warnings
   tests:
     runs-on: ubuntu-latest
     steps:
