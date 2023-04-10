@@ -15,8 +15,6 @@ use zbus::dbus_proxy as atspi_proxy;
 pub mod accessible;
 #[cfg(feature = "unstable-traits")]
 pub mod accessible_ext;
-pub mod accessible_id;
-pub use accessible_id::*;
 
 pub mod action;
 #[cfg(feature = "unstable-traits")]
