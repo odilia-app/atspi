@@ -486,3 +486,14 @@ impl PartialEq for AccessibleProxy<'_> {
 	}
 }
 impl Eq for AccessibleProxy<'_> {}
+
+#[cfg(test)]
+mod tests {
+	use crate::accessible::Role;
+
+	#[test]
+	fn test_output_of_role_name() {
+		assert_eq!(Role::Invalid.name(), "invalid");
+		assert_eq!(Role::PushButtonMenu.name(), "push button menu");
+	}
+}
