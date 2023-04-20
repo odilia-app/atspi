@@ -38,7 +38,6 @@ pub enum SortOrder {
 	ReverseCanonical,
 	ReverseFlow,
 	ReverseTab,
-	LastDefined,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -47,7 +46,6 @@ pub enum TreeTraversalType {
 	RestrictChildren,
 	RestrictSibling,
 	Inorder,
-	LastDefined,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -58,7 +56,6 @@ pub enum MatchType {
 	Any,
 	NA,
 	Empty,
-	LastDefined,
 }
 
 #[atspi_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]

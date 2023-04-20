@@ -233,7 +233,6 @@ pub enum Role {
 	Mark,
 	Suggestion,
 	PushButtonMenu,
-	LastDefined,
 }
 
 const ROLE_NAMES: &[&str] = &[
