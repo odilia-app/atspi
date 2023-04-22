@@ -520,14 +520,20 @@ impl GenericEvent for AtspiEvent {
 mod tests {
 	use crate::identify::object::PropertyChangeEvent;
 	use crate::events::{
-		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent,
+		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem
 	};
 	use tokio::time::timeout;
-	use crate::AccessibilityConnection;
+	use crate::{AccessibilityConnection, InterfaceSet, StateSet, accessible::Role};
 	use atspi_test::{cmd, addr_via_cmd};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap,time::Duration};
-	use zbus::zvariant::{ObjectPath, Value};
+	use zbus::zvariant::{ObjectPath, Value, OwnedObjectPath};
+	use zbus::{
+		names::UniqueName,
+		Message,
+		MessageBuilder,
+	};
+
 	fn gen_event_body_qt() -> EventBodyQT {
 		EventBodyQT {
 			kind: "remove".to_string(),
@@ -588,31 +594,27 @@ mod tests {
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 		std::pin::pin!(&mut events);
 		let addr_str = addr_via_cmd!();
-		let out = cmd!(
-			"busctl",
-			"--address",
-			addr_str,
-			"emit",
+		let unique_bus_name = atspi.connection().unique_name();
+		let msg = MessageBuilder::signal(
 			"/org/a11y/atspi/accessible/null",
 			"org.a11y.atspi.Cache",
 			"AddAccessible",
-			"((so)(so)(so)iiassusau)",
-			":1.1",
-			"/org/a11y/atspi/accessible/object",
-			":1.1",
-			"/org/a11y/atspi/accessible/application",
-			":1.1",
-			"/org/a11y/atspi/accessible/parent",
-			"0",
-			"0",
-			"0",
-			"",
-			"0",
-			"",
-			"2",
-			"0",
-			"0"
-		);
+		).expect("Could not create signal")
+			.sender(unique_bus_name.unwrap())
+			.expect("Could not set sender to {unique_bus_name:?}")
+			.build(&(CacheItem {
+				object: (":1.1".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap()),
+				app: (":1.1".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap()),
+				parent: (":1.1".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap()),
+				index: 0,
+				children: 0,
+				ifaces: InterfaceSet::empty(),
+				short_name: "".to_string(),
+				role: Role::Application,
+				name: "Hi".to_string(),
+				states: StateSet::empty(),
+			},));
+		let x = atspi.connection().send_message(msg.unwrap()).await;
 		let to = timeout(Duration::from_secs(1), events.next());
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
@@ -625,6 +627,10 @@ mod tests {
 				println!("{:?}", another_event);
 				panic!("The wrong event was sent");
 			},
+			Ok(Some(Err(e))) => {
+				println!("{:?}", e);
+				panic!("An error occured destructuring the body");
+			}
 			Ok(e) => {
 				println!("{:?}", e);
 				panic!("Something else happened");
