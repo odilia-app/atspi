@@ -15,13 +15,14 @@ pub mod window;
 //
 // ATSPI- and QSPI both describe the generic events. These can be converted into
 // specific signal types with TryFrom implementations. See crate::[`identify`]
-//  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
-//  CACHE_ADD and *_REMOVE have very different types
-pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
-pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
-pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-pub const CACHE_ADD: Signature<'_> =
+//  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
+//  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
+pub const ATSPI_EVENT_SIGNATURE: Signature<'_> =
+	Signature::from_static_str_unchecked("(siiva{sv})");
+pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiv(so))");
+pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
+pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
 use std::{collections::HashMap, sync::Arc};
@@ -133,6 +134,13 @@ pub struct AddAccessibleEvent {
 	pub(crate) message: Arc<Message>,
 	pub(crate) body: CacheItem,
 }
+impl HasRegistryEventString for AddAccessibleEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
+}
+impl HasMatchRule for AddAccessibleEvent {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
+}
 
 impl AddAccessibleEvent {
 	/// When an object in an application is added, this may evoke a `CacheAdd` event,
@@ -156,6 +164,13 @@ impl AddAccessibleEvent {
 pub struct RemoveAccessibleEvent {
 	pub(crate) message: Arc<Message>,
 	pub(crate) body: Accessible,
+}
+impl HasRegistryEventString for RemoveAccessibleEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
+}
+impl HasMatchRule for RemoveAccessibleEvent {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
 }
 
 impl RemoveAccessibleEvent {
@@ -278,7 +293,7 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 
 	fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
 		let signature = message.body_signature()?;
-		let body = if signature == QSPI_EVENT {
+		let body = if signature == QSPI_EVENT_SIGNATURE {
 			EventBodyOwned::from(message.body::<EventBodyQT>()?)
 		} else {
 			message.body::<EventBodyOwned>()?
@@ -499,5 +514,159 @@ impl GenericEvent for AtspiEvent {
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
 		Ok(self.message.header()?.sender()?.cloned())
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::events::{
+		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
+		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
+		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
+	};
+	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
+	use futures_lite::StreamExt;
+	use std::{collections::HashMap, time::Duration};
+	use tokio::time::timeout;
+	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+	use zbus::MessageBuilder;
+
+	#[test]
+	fn check_event_body_qt_signature() {
+		assert_eq!(<EventBodyQT as Type>::signature(), QSPI_EVENT_SIGNATURE);
+	}
+
+	#[test]
+	fn check_event_body_signature() {
+		assert_eq!(<EventBodyOwned as Type>::signature(), ATSPI_EVENT_SIGNATURE);
+	}
+
+	fn gen_event_body_qt() -> EventBodyQT {
+		EventBodyQT {
+			kind: "remove".to_string(),
+			detail1: 0,
+			detail2: 0,
+			any_data: Value::U8(0u8).into(),
+			properties: ("".to_string(), ObjectPath::try_from("/").unwrap().into()),
+		}
+	}
+
+	#[test]
+	fn test_event_body_qt_to_event_body_owned_conversion() {
+		let event_body: EventBodyOwned = gen_event_body_qt().into();
+		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
+		assert_eq!(event_body.properties, props);
+	}
+	#[tokio::test]
+	async fn test_recv_remove_accessible() {
+		let atspi = AccessibilityConnection::open().await.unwrap();
+		let mut events = atspi.event_stream();
+		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
+		std::pin::pin!(&mut events);
+		let to = timeout(Duration::from_secs(1), events.next());
+		let unique_bus_name = atspi.connection().unique_name();
+		let msg = MessageBuilder::signal(
+			"/org/a11y/atspi/accessible/null",
+			"org.a11y.atspi.Cache",
+			"RemoveAccessible",
+		)
+		.expect("Could not create signal")
+		.sender(unique_bus_name.unwrap())
+		.expect("Could not set sender to {unique_bus_name:?}")
+		.build(
+			&(((
+				":69.420".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
+			),)),
+		)
+		.unwrap();
+		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
+		atspi.connection().send_message(msg).await.unwrap();
+		match to.await {
+			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
+				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
+				assert_eq!(
+					event.as_accessible().path.as_str(),
+					"/org/a11y/atspi/accessible/remove"
+				);
+				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
+			}
+			Ok(Some(Ok(another_event))) => {
+				println!("{:?}", another_event);
+				panic!("The wrong event was sent");
+			}
+			Ok(e) => {
+				println!("{:?}", e);
+				panic!("Something else happened");
+			}
+			Err(e) => {
+				panic!("An error occured: {:?}", e);
+			}
+		}
+	}
+	#[tokio::test]
+	async fn test_recv_add_accessible() {
+		let atspi = AccessibilityConnection::open().await.unwrap();
+		let mut events = atspi.event_stream();
+		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
+		std::pin::pin!(&mut events);
+		let unique_bus_name = atspi.connection().unique_name();
+		let msg = MessageBuilder::signal(
+			"/org/a11y/atspi/accessible/null",
+			"org.a11y.atspi.Cache",
+			"AddAccessible",
+		)
+		.expect("Could not create signal")
+		.sender(unique_bus_name.unwrap())
+		.expect("Could not set sender to {unique_bus_name:?}")
+		.build(&(CacheItem {
+			object: (
+				":1.1".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+			),
+			app: (
+				":1.1".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+			),
+			parent: (
+				":1.1".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
+			),
+			index: 0,
+			children: 0,
+			ifaces: InterfaceSet::empty(),
+			short_name: "".to_string(),
+			role: Role::Application,
+			name: "Hi".to_string(),
+			states: StateSet::empty(),
+		},))
+		.unwrap();
+		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
+		atspi.connection().send_message(msg).await.unwrap();
+		let to = timeout(Duration::from_secs(1), events.next());
+		match to.await {
+			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
+				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
+				let cache_item = event.item();
+				assert_eq!(cache_item.object.1.as_str(), "/org/a11y/atspi/accessible/object");
+				assert_eq!(cache_item.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
+				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
+			}
+			Ok(Some(Ok(another_event))) => {
+				println!("{:?}", another_event);
+				panic!("The wrong event was sent");
+			}
+			Ok(Some(Err(e))) => {
+				println!("{:?}", e);
+				panic!("An error occured destructuring the body");
+			}
+			Ok(e) => {
+				println!("{:?}", e);
+				panic!("Something else happened");
+			}
+			Err(e) => {
+				panic!("An error occured: {:?}", e);
+			}
+		}
 	}
 }
