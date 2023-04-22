@@ -38,7 +38,9 @@ async-trait = { version = "^0.1.59", optional = true }
 
 [dev-dependencies]
 byteorder = "1.4"
+atspi-test = { path = "./atspi-test/" }
 serde_plain = "1.0.1"
+lazy_static = "1.0"
 tokio-stream = "0.1"
 tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
 async-std = { version = "1", features = ["attributes"] }

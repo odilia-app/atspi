@@ -133,6 +133,13 @@ pub struct AddAccessibleEvent {
 	pub(crate) message: Arc<Message>,
 	pub(crate) body: CacheItem,
 }
+impl HasRegistryEventString for AddAccessibleEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
+}
+impl HasMatchRule for AddAccessibleEvent {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
+}
 
 impl AddAccessibleEvent {
 	/// When an object in an application is added, this may evoke a `CacheAdd` event,
@@ -156,6 +163,13 @@ impl AddAccessibleEvent {
 pub struct RemoveAccessibleEvent {
 	pub(crate) message: Arc<Message>,
 	pub(crate) body: Accessible,
+}
+impl HasRegistryEventString for RemoveAccessibleEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
+}
+impl HasMatchRule for RemoveAccessibleEvent {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
 }
 
 impl RemoveAccessibleEvent {
@@ -499,5 +513,125 @@ impl GenericEvent for AtspiEvent {
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
 		Ok(self.message.header()?.sender()?.cloned())
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::identify::object::PropertyChangeEvent;
+	use crate::events::{
+		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent,
+	};
+	use tokio::time::timeout;
+	use crate::AccessibilityConnection;
+	use atspi_test::{cmd, addr_via_cmd};
+	use futures_lite::StreamExt;
+	use std::{collections::HashMap,time::Duration};
+	use zbus::zvariant::{ObjectPath, Value};
+	fn gen_event_body_qt() -> EventBodyQT {
+		EventBodyQT {
+			kind: "remove".to_string(),
+			detail1: 0,
+			detail2: 0,
+			any_data: Value::U8(0u8).into(),
+			properties: ("".to_string(), ObjectPath::try_from("/").unwrap().into()),
+		}
+	}
+
+	#[test]
+	fn test_event_body_qt_to_event_body_owned_conversion() {
+		let event_body: EventBodyOwned = gen_event_body_qt().into();
+		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
+		assert_eq!(event_body.properties, props);
+	}
+	#[tokio::test]
+	async fn test_recv_remove_accessible() {
+		let atspi = AccessibilityConnection::open().await.unwrap();
+		let mut events = atspi.event_stream();
+		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
+		std::pin::pin!(&mut events);
+		let addr_str = addr_via_cmd!();
+		cmd!(
+			"busctl",
+			"--address",
+			addr_str,
+			"emit",
+			"/org/a11y/atspi/accessible/null",
+			"org.a11y.atspi.Cache",
+			"RemoveAccessible",
+			"(so)",
+			":1.1",
+			"/org/a11y/atspi/accessible/1"
+		);
+		let to = timeout(Duration::from_secs(1), events.next());
+		match to.await {
+			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
+				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
+			},
+			Ok(Some(Ok(another_event))) => {
+				println!("{:?}", another_event);
+				panic!("The wrong event was sent");
+			},
+			Ok(e) => {
+				println!("{:?}", e);
+				panic!("Something else happened");
+			}
+			Err(_) => {
+				panic!("An error occured");
+			}
+		}
+	}
+	#[tokio::test]
+	async fn test_recv_add_accessible() {
+		let atspi = AccessibilityConnection::open().await.unwrap();
+		let mut events = atspi.event_stream();
+		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
+		std::pin::pin!(&mut events);
+		let addr_str = addr_via_cmd!();
+		let out = cmd!(
+			"busctl",
+			"--address",
+			addr_str,
+			"emit",
+			"/org/a11y/atspi/accessible/null",
+			"org.a11y.atspi.Cache",
+			"AddAccessible",
+			"((so)(so)(so)iiassusau)",
+			":1.1",
+			"/org/a11y/atspi/accessible/object",
+			":1.1",
+			"/org/a11y/atspi/accessible/application",
+			":1.1",
+			"/org/a11y/atspi/accessible/parent",
+			"0",
+			"0",
+			"0",
+			"",
+			"0",
+			"",
+			"2",
+			"0",
+			"0"
+		);
+		let to = timeout(Duration::from_secs(1), events.next());
+		match to.await {
+			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
+				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
+				assert_eq!(event.body.object.1.as_str(), "/org/a11y/atspi/accessible/object");
+				assert_eq!(event.body.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
+				assert_eq!(event.body.app.1.as_str(), "/org/a11y/atspi/accessible/application");
+			},
+			Ok(Some(Ok(another_event))) => {
+				println!("{:?}", another_event);
+				panic!("The wrong event was sent");
+			},
+			Ok(e) => {
+				println!("{:?}", e);
+				panic!("Something else happened");
+			}
+			Err(e) => {
+				panic!("An error occured: {:?}", e);
+			}
+		}
 	}
 }
