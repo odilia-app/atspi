@@ -519,13 +519,14 @@ impl GenericEvent for AtspiEvent {
 #[cfg(test)]
 mod tests {
 	use crate::events::{
-		CacheEvents, Event, EventBodyOwned, EventBodyQT, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem, ACCESSIBLE_PAIR_SIGNATURE, CACHE_ADD_SIGNATURE,
+		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
+		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, CACHE_ADD_SIGNATURE,
 	};
-	use tokio::time::timeout;
-	use crate::{AccessibilityConnection, InterfaceSet, StateSet, accessible::Role};
+	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
-	use std::{collections::HashMap,time::Duration};
-	use zbus::zvariant::{ObjectPath, Value, OwnedObjectPath};
+	use std::{collections::HashMap, time::Duration};
+	use tokio::time::timeout;
+	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Value};
 	use zbus::MessageBuilder;
 
 	fn gen_event_body_qt() -> EventBodyQT {
@@ -556,25 +557,32 @@ mod tests {
 			"/org/a11y/atspi/accessible/null",
 			"org.a11y.atspi.Cache",
 			"RemoveAccessible",
-		).expect("Could not create signal")
-			.sender(unique_bus_name.unwrap())
-			.expect("Could not set sender to {unique_bus_name:?}")
-			.build(&(
-				((":69.420".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap()),)
-			),)
-			.unwrap();
+		)
+		.expect("Could not create signal")
+		.sender(unique_bus_name.unwrap())
+		.expect("Could not set sender to {unique_bus_name:?}")
+		.build(
+			&(((
+				":69.420".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
+			),)),
+		)
+		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
 				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
-				assert_eq!(event.as_accessible().path.as_str(), "/org/a11y/atspi/accessible/remove");
+				assert_eq!(
+					event.as_accessible().path.as_str(),
+					"/org/a11y/atspi/accessible/remove"
+				);
 				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
-			},
+			}
 			Ok(Some(Ok(another_event))) => {
 				println!("{:?}", another_event);
 				panic!("The wrong event was sent");
-			},
+			}
 			Ok(e) => {
 				println!("{:?}", e);
 				panic!("Something else happened");
@@ -595,22 +603,32 @@ mod tests {
 			"/org/a11y/atspi/accessible/null",
 			"org.a11y.atspi.Cache",
 			"AddAccessible",
-		).expect("Could not create signal")
-			.sender(unique_bus_name.unwrap())
-			.expect("Could not set sender to {unique_bus_name:?}")
-			.build(&(CacheItem {
-				object: (":1.1".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap()),
-				app: (":1.1".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap()),
-				parent: (":1.1".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap()),
-				index: 0,
-				children: 0,
-				ifaces: InterfaceSet::empty(),
-				short_name: "".to_string(),
-				role: Role::Application,
-				name: "Hi".to_string(),
-				states: StateSet::empty(),
-			},))
-			.unwrap();
+		)
+		.expect("Could not create signal")
+		.sender(unique_bus_name.unwrap())
+		.expect("Could not set sender to {unique_bus_name:?}")
+		.build(&(CacheItem {
+			object: (
+				":1.1".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+			),
+			app: (
+				":1.1".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+			),
+			parent: (
+				":1.1".to_string(),
+				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
+			),
+			index: 0,
+			children: 0,
+			ifaces: InterfaceSet::empty(),
+			short_name: "".to_string(),
+			role: Role::Application,
+			name: "Hi".to_string(),
+			states: StateSet::empty(),
+		},))
+		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 		let to = timeout(Duration::from_secs(1), events.next());
@@ -621,11 +639,11 @@ mod tests {
 				assert_eq!(cache_item.object.1.as_str(), "/org/a11y/atspi/accessible/object");
 				assert_eq!(cache_item.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
-			},
+			}
 			Ok(Some(Ok(another_event))) => {
 				println!("{:?}", another_event);
 				panic!("The wrong event was sent");
-			},
+			}
 			Ok(Some(Err(e))) => {
 				println!("{:?}", e);
 				panic!("An error occured destructuring the body");
