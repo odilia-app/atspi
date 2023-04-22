@@ -19,7 +19,7 @@ pub mod window;
 //  CACHE_ADD and *_REMOVE have very different types
 pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
 pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const ACCESSIBLE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const ACCESSIBLE_PAIR: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
@@ -520,7 +520,7 @@ impl GenericEvent for AtspiEvent {
 mod tests {
 	use crate::identify::object::PropertyChangeEvent;
 	use crate::events::{
-		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem
+		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem, ACCESSIBLE_PAIR, CACHE_ADD,
 	};
 	use tokio::time::timeout;
 	use crate::{AccessibilityConnection, InterfaceSet, StateSet, accessible::Role};
@@ -556,23 +556,26 @@ mod tests {
 		let mut events = atspi.event_stream();
 		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 		std::pin::pin!(&mut events);
-		let addr_str = addr_via_cmd!();
-		cmd!(
-			"busctl",
-			"--address",
-			addr_str,
-			"emit",
+		let to = timeout(Duration::from_secs(1), events.next());
+		let unique_bus_name = atspi.connection().unique_name();
+		let msg = MessageBuilder::signal(
 			"/org/a11y/atspi/accessible/null",
 			"org.a11y.atspi.Cache",
 			"RemoveAccessible",
-			"(so)",
-			":1.1",
-			"/org/a11y/atspi/accessible/1"
-		);
-		let to = timeout(Duration::from_secs(1), events.next());
+		).expect("Could not create signal")
+			.sender(unique_bus_name.unwrap())
+			.expect("Could not set sender to {unique_bus_name:?}")
+			.build(&(
+				((":69.420".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap()),)
+			),)
+			.unwrap();
+		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR);
+		atspi.connection().send_message(msg).await;
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
 				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
+				assert_eq!(event.as_accessible().path.as_str(), "/org/a11y/atspi/accessible/remove");
+				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 			},
 			Ok(Some(Ok(another_event))) => {
 				println!("{:?}", another_event);
@@ -582,8 +585,8 @@ mod tests {
 				println!("{:?}", e);
 				panic!("Something else happened");
 			}
-			Err(_) => {
-				panic!("An error occured");
+			Err(e) => {
+				panic!("An error occured: {:?}", e);
 			}
 		}
 	}
@@ -613,15 +616,18 @@ mod tests {
 				role: Role::Application,
 				name: "Hi".to_string(),
 				states: StateSet::empty(),
-			},));
-		let x = atspi.connection().send_message(msg.unwrap()).await;
+			},))
+			.unwrap();
+		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD);
+		atspi.connection().send_message(msg).await;
 		let to = timeout(Duration::from_secs(1), events.next());
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
 				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
-				assert_eq!(event.body.object.1.as_str(), "/org/a11y/atspi/accessible/object");
-				assert_eq!(event.body.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
-				assert_eq!(event.body.app.1.as_str(), "/org/a11y/atspi/accessible/application");
+				let cache_item = event.item();
+				assert_eq!(cache_item.object.1.as_str(), "/org/a11y/atspi/accessible/object");
+				assert_eq!(cache_item.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
+				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
 			},
 			Ok(Some(Ok(another_event))) => {
 				println!("{:?}", another_event);
