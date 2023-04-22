@@ -17,7 +17,8 @@ pub mod window;
 // specific signal types with TryFrom implementations. See crate::[`identify`]
 //  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
 //  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
-pub const ATSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiva{sv})");
+pub const ATSPI_EVENT_SIGNATURE: Signature<'_> =
+	Signature::from_static_str_unchecked("(siiva{sv})");
 pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiv(so))");
 pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
@@ -519,14 +520,15 @@ impl GenericEvent for AtspiEvent {
 #[cfg(test)]
 mod tests {
 	use crate::events::{
-		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT, EventBody,
-		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, CACHE_ADD_SIGNATURE, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
+		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
+		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
+		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
 	use tokio::time::timeout;
-	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Value, Type};
+	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 	use zbus::MessageBuilder;
 
 	#[test]
