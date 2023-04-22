@@ -15,13 +15,13 @@ pub mod window;
 //
 // ATSPI- and QSPI both describe the generic events. These can be converted into
 // specific signal types with TryFrom implementations. See crate::[`identify`]
-//  EVENT_LISTENER is a type signature used to notify when events are registered or deregistered.
-//  CACHE_ADD and *_REMOVE have very different types
-pub const ATSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
-pub const QSPI_EVENT: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
-pub const ACCESSIBLE_PAIR: Signature<'_> = Signature::from_static_str_unchecked("(so)");
-pub const EVENT_LISTENER: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-pub const CACHE_ADD: Signature<'_> =
+//  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
+//  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
+pub const ATSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("siiva{sv}");
+pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("siiv(so)");
+pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
+pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
 use std::{collections::HashMap, sync::Arc};
@@ -292,7 +292,7 @@ impl TryFrom<Arc<Message>> for AtspiEvent {
 
 	fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
 		let signature = message.body_signature()?;
-		let body = if signature == QSPI_EVENT {
+		let body = if signature == QSPI_EVENT_SIGNATURE {
 			EventBodyOwned::from(message.body::<EventBodyQT>()?)
 		} else {
 			message.body::<EventBodyOwned>()?
@@ -520,7 +520,7 @@ impl GenericEvent for AtspiEvent {
 mod tests {
 	use crate::identify::object::PropertyChangeEvent;
 	use crate::events::{
-		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem, ACCESSIBLE_PAIR, CACHE_ADD,
+		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem, ACCESSIBLE_PAIR_SIGNATURE, CACHE_ADD_SIGNATURE,
 	};
 	use tokio::time::timeout;
 	use crate::{AccessibilityConnection, InterfaceSet, StateSet, accessible::Role};
@@ -569,7 +569,7 @@ mod tests {
 				((":69.420".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap()),)
 			),)
 			.unwrap();
-		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR);
+		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await;
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
@@ -618,7 +618,7 @@ mod tests {
 				states: StateSet::empty(),
 			},))
 			.unwrap();
-		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD);
+		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await;
 		let to = timeout(Duration::from_secs(1), events.next());
 		match to.await {
