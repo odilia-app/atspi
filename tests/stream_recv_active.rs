@@ -7,7 +7,6 @@ use atspi::Event;
 use futures_lite::future::{block_on, race};
 use futures_lite::pin;
 use futures_lite::StreamExt;
-use zbus::{fdo::DBusProxy, MatchRule, MessageType};
 
 use crate::common::{a11y_bus_address, create_command, timeout};
 

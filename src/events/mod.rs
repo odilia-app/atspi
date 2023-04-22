@@ -518,21 +518,15 @@ impl GenericEvent for AtspiEvent {
 
 #[cfg(test)]
 mod tests {
-	use crate::identify::object::PropertyChangeEvent;
 	use crate::events::{
-		CacheEvents, Event, EventBodyOwned, EventBodyQT, EventInterfaces, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem, ACCESSIBLE_PAIR_SIGNATURE, CACHE_ADD_SIGNATURE,
+		CacheEvents, Event, EventBodyOwned, EventBodyQT, RemoveAccessibleEvent, GenericEvent, AddAccessibleEvent, CacheItem, ACCESSIBLE_PAIR_SIGNATURE, CACHE_ADD_SIGNATURE,
 	};
 	use tokio::time::timeout;
 	use crate::{AccessibilityConnection, InterfaceSet, StateSet, accessible::Role};
-	use atspi_test::{cmd, addr_via_cmd};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap,time::Duration};
 	use zbus::zvariant::{ObjectPath, Value, OwnedObjectPath};
-	use zbus::{
-		names::UniqueName,
-		Message,
-		MessageBuilder,
-	};
+	use zbus::MessageBuilder;
 
 	fn gen_event_body_qt() -> EventBodyQT {
 		EventBodyQT {
@@ -570,7 +564,7 @@ mod tests {
 			),)
 			.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
-		atspi.connection().send_message(msg).await;
+		atspi.connection().send_message(msg).await.unwrap();
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
 				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
@@ -596,7 +590,6 @@ mod tests {
 		let mut events = atspi.event_stream();
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 		std::pin::pin!(&mut events);
-		let addr_str = addr_via_cmd!();
 		let unique_bus_name = atspi.connection().unique_name();
 		let msg = MessageBuilder::signal(
 			"/org/a11y/atspi/accessible/null",
@@ -619,7 +612,7 @@ mod tests {
 			},))
 			.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
-		atspi.connection().send_message(msg).await;
+		atspi.connection().send_message(msg).await.unwrap();
 		let to = timeout(Duration::from_secs(1), events.next());
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
