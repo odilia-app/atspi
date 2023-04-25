@@ -261,7 +261,7 @@ const ROLE_NAMES: &[&str] = &[
 	"font chooser",
 	"frame",
 	"glass pane",
-	"HTML container",
+	"html container",
 	"icon",
 	"image",
 	"internal frame",
@@ -370,7 +370,7 @@ const ROLE_NAMES: &[&str] = &[
 
 impl Role {
 	#[must_use]
-	pub fn name(&self) -> &str {
+	pub fn name(&self) -> &'static str {
 		ROLE_NAMES[*self as usize]
 	}
 }
