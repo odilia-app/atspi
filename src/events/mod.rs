@@ -652,13 +652,13 @@ mod tests {
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
 			}
 			Ok(Some(Ok(another_event))) => {
-				eprintln!("The wrong event was sent: {:?}", m);
+				eprintln!("The wrong event was sent: {:?}", another_event);
 			}
 			Ok(Some(Err(e))) => {
-				eprintln!("An error occured destructoring the body {:?}", m);
+				eprintln!("An error occured destructoring the body {:?}", e);
 			}
 			Ok(e) => {
-				eprintln!("An error occured destrucring the DBus message {:?}", m);
+				eprintln!("An error occured destrucring the DBus message {:?}", e);
 			}
 			Err(e) => {
 				panic!("An error occured: {:?}", e);
