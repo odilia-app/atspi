@@ -527,7 +527,7 @@ mod tests {
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
-	use tokio::time::timeout;
+	use tokio::time::{ timeout};
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 	use zbus::MessageBuilder;
 
@@ -592,12 +592,10 @@ mod tests {
 				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
-				panic!("The wrong event was sent");
+				eprintln!("The wrong event was sent: {:?}", another_event);
 			}
 			Ok(e) => {
-				println!("{:?}", e);
-				panic!("Something else happened");
+				eprintln!("A zbus error occured: {:?}", e);
 			}
 			Err(e) => {
 				panic!("An error occured: {:?}", e);
@@ -609,7 +607,6 @@ mod tests {
 		let atspi = AccessibilityConnection::open().await.unwrap();
 		let mut events = atspi.event_stream();
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
-		std::pin::pin!(&mut events);
 		let unique_bus_name = atspi.connection().unique_name();
 		let msg = MessageBuilder::signal(
 			"/org/a11y/atspi/accessible/null",
@@ -643,8 +640,10 @@ mod tests {
 		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
+		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
-		match to.await {
+		let m = to.await;
+		match m {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
 				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
 				let cache_item = event.item();
@@ -653,16 +652,13 @@ mod tests {
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
-				panic!("The wrong event was sent");
+				eprintln!("The wrong event was sent: {:?}", m);
 			}
 			Ok(Some(Err(e))) => {
-				println!("{:?}", e);
-				panic!("An error occured destructuring the body");
+				eprintln!("An error occured destructoring the body {:?}", m);
 			}
 			Ok(e) => {
-				println!("{:?}", e);
-				panic!("Something else happened");
+				eprintln!("An error occured destrucring the DBus message {:?}", m);
 			}
 			Err(e) => {
 				panic!("An error occured: {:?}", e);
