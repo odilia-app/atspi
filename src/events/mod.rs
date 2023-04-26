@@ -30,7 +30,7 @@ use std::{collections::HashMap, sync::Arc};
 use serde::{Deserialize, Serialize};
 use zbus::{
 	names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
-	zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value},
+	zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value, ObjectPath},
 	Message,
 };
 
@@ -64,13 +64,14 @@ impl<T> Type for EventBody<'_, T> {
 
 // Signature:  "siiv(so)",
 #[derive(Debug, Serialize, Deserialize, Type)]
-pub struct EventBodyQT {
+pub struct EventBodyQT<'a> {
 	#[serde(rename = "type")]
-	pub kind: String,
+	pub kind: &'a str,
 	pub detail1: i32,
 	pub detail2: i32,
-	pub any_data: OwnedValue,
-	pub properties: (String, OwnedObjectPath),
+	pub any_data: Value<'a>,
+	#[serde(borrow)]
+	pub properties: (&'a str, ObjectPath<'a>),
 }
 
 // Signature (siiva{sv}),
@@ -84,19 +85,19 @@ pub struct EventBodyOwned {
 	pub properties: HashMap<String, OwnedValue>,
 }
 
-impl From<EventBodyQT> for EventBodyOwned {
+impl From<EventBodyQT<'_>> for EventBodyOwned {
 	fn from(body: EventBodyQT) -> Self {
 		let mut props = HashMap::new();
 		props.insert(
 			body.properties.0,
-			Value::ObjectPath(body.properties.1.into_inner()).to_owned(),
+			Value::ObjectPath(body.properties.1.into_owned()).to_owned(),
 		);
 		Self {
-			kind: body.kind,
+			kind: body.kind.to_string(),
 			detail1: body.detail1,
 			detail2: body.detail2,
-			any_data: body.any_data,
-			properties: props,
+			any_data: body.any_data.into(),
+			properties: props.into_iter().map(|(borrowed_key, value)| (borrowed_key.to_string(), value)).collect()
 		}
 	}
 }
@@ -210,6 +211,14 @@ pub struct Accessible {
 #[test]
 fn test_accessible_signature() {
 	assert_eq!(Accessible::signature(), "(so)");
+}
+#[test]
+fn test_qt_body_signature() {
+	assert_eq!(EventBodyQT::signature(), QSPI_EVENT_SIGNATURE);
+}
+#[test]
+fn test_atspi_body_signature() {
+	assert_eq!(EventBody::<String>::signature(), ATSPI_EVENT_SIGNATURE);
 }
 
 /// Offers events, grouped-by Interface.
@@ -380,7 +389,7 @@ impl TryFrom<Arc<Message>> for Event {
 				_ => Err(AtspiError::UnknownSignal),
 			},
 			// Atspi / Qspi signature
-			"siiva{sv}" | "siiv(so)" => {
+			"(siiva{sv})" | "(siiv(so))" => {
 				let ev = AtspiEvent::try_from(msg)?;
 				let event_interfaces: EventInterfaces = ev.try_into()?;
 				Ok(Event::Interfaces(event_interfaces))
@@ -521,9 +530,10 @@ impl GenericEvent for AtspiEvent {
 mod tests {
 	use crate::events::{
 		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
-		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
-		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
+		EventInterfaces, GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE,
+		ATSPI_EVENT_SIGNATURE, CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
+	use crate::identify::object::{ObjectEvents, TextChangedEvent};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
@@ -541,13 +551,13 @@ mod tests {
 		assert_eq!(<EventBodyOwned as Type>::signature(), ATSPI_EVENT_SIGNATURE);
 	}
 
-	fn gen_event_body_qt() -> EventBodyQT {
+	fn gen_event_body_qt() -> EventBodyQT<'static> {
 		EventBodyQT {
-			kind: "remove".to_string(),
+			kind: "remove",
 			detail1: 0,
 			detail2: 0,
 			any_data: Value::U8(0u8).into(),
-			properties: ("".to_string(), ObjectPath::try_from("/").unwrap().into()),
+			properties: ("", ObjectPath::try_from("/").unwrap()),
 		}
 	}
 
@@ -557,6 +567,52 @@ mod tests {
 		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
+	#[tokio::test]
+	async fn test_recv_qt_event() {
+		let atspi = AccessibilityConnection::open().await.unwrap();
+		let unique_bus_name = atspi.connection().unique_name();
+		let mut events = atspi.event_stream();
+		atspi.register_event::<TextChangedEvent>().await.unwrap();
+		std::pin::pin!(&mut events);
+		let to = timeout(Duration::from_secs(1), events.next());
+		let msg = MessageBuilder::signal(
+			"/org/a11y/atspi/accessible/null",
+			"org.a11y.atspi.Event.Object",
+			"TextChanged",
+		)
+		.expect("Could not create signal")
+		.sender(unique_bus_name.unwrap())
+		.expect("Could not set sender to {unique_bus_name:?}")
+		.build(&((
+			"add",
+			1,
+			2,
+			Value::U8(0),
+			("".to_string(), OwnedObjectPath::try_from("/org/a11y/atspi/accessible/beep").unwrap()),
+		),))
+		.unwrap();
+		assert_eq!(msg.body_signature().unwrap(), QSPI_EVENT_SIGNATURE);
+		atspi.connection().send_message(msg).await.unwrap();
+		match to.await {
+			Ok(Some(Ok(Event::Interfaces(EventInterfaces::Object(
+				ObjectEvents::TextChanged(event),
+			))))) => {
+				assert_eq!(event.path().unwrap().as_str(), "/org/a11y/atspi/accessible/null");
+				assert_eq!(event.start_pos(), 1,);
+				assert_eq!(event.length(), 2,);
+			}
+			Ok(Some(Ok(another_event))) => {
+				panic!("The wrong event was sent: {:?}", another_event);
+			}
+			Ok(e) => {
+				panic!("A zbus error occured: {:?}", e);
+			}
+			Err(e) => {
+				panic!("An error occured: {:?}", e);
+			}
+		}
+	}
+
 	#[tokio::test]
 	async fn test_recv_remove_accessible() {
 		let atspi = AccessibilityConnection::open().await.unwrap();
@@ -592,10 +648,10 @@ mod tests {
 				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 			}
 			Ok(Some(Ok(another_event))) => {
-				eprintln!("The wrong event was sent: {:?}", another_event);
+				panic!("The wrong event was sent: {:?}", another_event);
 			}
 			Ok(e) => {
-				eprintln!("A zbus error occured: {:?}", e);
+				panic!("A zbus error occured: {:?}", e);
 			}
 			Err(e) => {
 				panic!("An error occured: {:?}", e);
@@ -643,7 +699,6 @@ mod tests {
 		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
 		let m = to.await;
-		eprintln!("Future result: {:?}", m);
 		match m {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
 				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
@@ -653,13 +708,13 @@ mod tests {
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
 			}
 			Ok(Some(Ok(another_event))) => {
-				eprintln!("The wrong event was sent: {:?}", another_event);
+				panic!("The wrong event was sent: {:?}", another_event);
 			}
 			Ok(Some(Err(e))) => {
-				eprintln!("An error occured destructoring the body {:?}", e);
+				panic!("An error occured destructoring the body {:?}", e);
 			}
 			Ok(e) => {
-				eprintln!("An error occured destrucring the DBus message {:?}", e);
+				panic!("An error occured destrucring the DBus message {:?}", e);
 			}
 			Err(e) => {
 				panic!("An error occured: {:?}", e);
