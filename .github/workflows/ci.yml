@@ -63,9 +63,9 @@ jobs:
           toolchain: stable
       - name: Install Dependencies
         run: |
-          sudo apt -y install at-spi2-core systemd
+          sudo apt -y install at-spi2-core systemd mold
       - name: Run Tests
-        run: cargo test --features=unstable-traits
+        run: RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=$(which mold)" cargo test --features=unstable-traits
   rustfmt:
     runs-on: ubuntu-latest
     steps:
@@ -198,9 +198,9 @@ jobs:
         run: cargo generate-lockfile
       - name: Install Dependencies
         run: |
-          sudo apt -y install at-spi2-core systemd
+          sudo apt -y install at-spi2-core systemd mold
       - name: cargo llvm-cov
-        run: cargo llvm-cov --doctests --locked --features=unstable-traits --lcov --output-path lcov.info
+        run: RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=$(which mold)" cargo llvm-cov --doctests --locked --features=unstable-traits --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
