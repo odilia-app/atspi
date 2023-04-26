@@ -527,7 +527,7 @@ mod tests {
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
-	use tokio::time::{ timeout};
+	use tokio::time::timeout;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 	use zbus::MessageBuilder;
 
@@ -643,7 +643,7 @@ mod tests {
 		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
 		let m = to.await;
-		println!("Future result: {:?}", m);
+		eprintln!("Future result: {:?}", m);
 		match m {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
 				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
