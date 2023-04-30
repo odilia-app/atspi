@@ -71,7 +71,6 @@ impl AccessibilityConnection {
 	/// use atspi::events::EventInterfaces;
 	/// use enumflags2::BitFlag;
 	/// use atspi::identify::object::{ObjectEvents, StateChangedEvent};
-	/// use atspi::signify::Signified;
 	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
 	/// use atspi::Event;
 	/// # use futures_lite::StreamExt;
