@@ -22,6 +22,13 @@ enum AtspiEventInnerName {
     Detail2,
     AnyData,
 }
+enum AtspiEventInnerName2 {
+    Kind,
+    Detail1,
+    Detail2,
+    AnyData,
+    Properties,
+}
 
 impl ToString for AtspiEventInnerName {
     fn to_string(&self) -> String {
@@ -33,11 +40,37 @@ impl ToString for AtspiEventInnerName {
         .to_string()
     }
 }
+impl ToString for AtspiEventInnerName2 {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Kind => "kind",
+            Self::Detail1 => "detail1",
+            Self::Detail2 => "detail2",
+            Self::AnyData => "any_data",
+            Self::Properties => "properties",
+        }
+        .to_string()
+    }
+}
 
 #[derive(Debug)]
 enum ConversionError {
     FunctionAlreadyCreatedFor,
     UnknownItem,
+}
+impl TryFrom<usize> for AtspiEventInnerName2 {
+    type Error = ConversionError;
+
+    fn try_from(from: usize) -> Result<Self, Self::Error> {
+        match from {
+            0 => Ok(Self::Kind),
+            1 => Ok(Self::Detail1),
+            2 => Ok(Self::Detail2),
+            3 => Ok(Self::AnyData),
+            4 => Ok(Self::Properties),
+            _ => Err(ConversionError::UnknownItem),
+        }
+    }
 }
 
 impl TryFrom<usize> for AtspiEventInnerName {
@@ -76,7 +109,7 @@ fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
             f64::SIGNATURE_CHAR => "f64".into(),
             // xmlgen accepts 'h' on Windows, only for code generation
             'h' => (if input { "zbus::zvariant::Fd" } else { "zbus::zvariant::OwnedFd" }).into(),
-            <&str>::SIGNATURE_CHAR => (if input || as_ref { "&str" } else { "String" }).into(),
+            <&str>::SIGNATURE_CHAR => (if input || as_ref { "String" } else { "String" }).into(),
             ObjectPath::SIGNATURE_CHAR => (if input {
                 if as_ref {
                     "&zbus::zvariant::ObjectPath<'_>"
@@ -99,9 +132,9 @@ fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
             .into(),
             VARIANT_SIGNATURE_CHAR => (if input {
                 if as_ref {
-                    "&zbus::zvariant::Value<'_>"
+                    "zbus::zvariant::OwnedValue"
                 } else {
-                    "zbus::zvariant::Value<'_>"
+                    "zbus::zvariant::OwnedValue"
                 }
             } else {
                 "zbus::zvariant::OwnedValue"
@@ -195,23 +228,26 @@ where
     into_rust_enum_str(sig_name_event_str)
 }
 
-fn generate_fn_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName) -> String {
+fn generate_struct_literal_conversion_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName2) -> String {
+    if signal_item.name().is_none() {
+        return String::new();
+    }
+    // unwrap is safe due to check
+    let field_name = signal_item.name().expect("No name for arg");
+    let msg_field_name = inner_event_name.to_string();
+
+    format!("{field_name}: ev.body.{msg_field_name}")
+}
+fn generate_field_for_signal_item(signal_item: &Arg) -> String {
     if signal_item.name().is_none() {
         return String::new();
     }
     // unwrap is safe due to check
     let function_name = signal_item.name().expect("No name for arg");
-    let inner_name = inner_event_name.to_string();
     let rust_type = to_rust_type(signal_item.ty(), true, true);
 
-    format!(
-        "
-		#[must_use]
-		pub fn {function_name}(&self) -> {rust_type} {{
-			self.0.{inner_name}()
-		}}
-	"
-    )
+    format!("   pub {function_name}: {rust_type},
+")
 }
 
 fn generate_enum_variant_from_interface(interface: &Interface) -> String {
@@ -275,44 +311,13 @@ fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> Strin
     )
 }
 
-// Does not generate empty impls.
-fn generate_generic_impl_from_signal(signal: &Signal) -> Option<String> {
-    let sig_name_event = event_ident(signal.name());
-    let functions = signal
-        .args()
-        .iter()
-        .enumerate()
-        .filter_map(|(i, arg)| {
-            let func_name = i.try_into();
-            let arg_name = arg.name();
-            match (func_name, arg_name) {
-                (Ok(func), Some(_)) => Some(generate_fn_for_signal_item(arg, func)),
-                _ => None,
-            }
-        })
-        .collect::<Vec<String>>()
-        .join("\n\n");
-
-    if functions.trim().is_empty() {
-        return None;
-    }
-
-    Some(format!(
-        "
-	impl {sig_name_event} {{
-		{functions}
-	}}"
-    ))
-}
-
 fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
-    let generic_event_impl = generate_generic_impl_from_signal(signal).unwrap_or_default();
     let try_from_event_impl = generate_try_from_event_impl(signal, interface);
+    let generic_event_impl = generate_generic_event_impl(signal, interface);
 
     format!(
         "
     {generic_event_impl}
-
     {try_from_event_impl}
     "
     )
@@ -411,11 +416,22 @@ fn generate_struct_from_signal(mod_name: &str, signal: &Signal, iface: &Interfac
     let sig_name_event = event_ident(signal.name());
     let interface_name = iface.name();
     let example = generate_signal_associated_example(mod_name, &sig_name_event, &signal.name(), &interface_name);
+    let fields = signal
+        .args()
+        .iter()
+        .map(|arg| {
+            generate_field_for_signal_item(arg)
+        })
+        .collect::<Vec<String>>()
+        .join("");
     format!(
         "
     {example}
-	#[derive(Debug, PartialEq, Eq, Clone, TrySignify)]
-	pub struct {sig_name_event}(pub(crate) AtspiEvent);
+	#[derive(Debug, PartialEq, Clone)]
+	pub struct {sig_name_event} {{
+    pub item: crate::events::Accessible,
+{fields}
+}}
 	"
     )
 }
@@ -431,8 +447,24 @@ fn match_arm_for_signal(iface_name: &str, signal: &Signal) -> String {
     let enum_signal_name = into_rust_enum_str(raw_signal_name);
     let enum_name = events_ident(iface_name);
     let signal_struct_name = event_ident(raw_signal_name);
+    // TODO: let signal_conversion_literal = generate_struct_literal_conversion_for_signal_item
+    let signal_conversion_lit = signal
+        .args()
+        .iter()
+        .enumerate()
+        .filter_map(|(i, arg)| {
+            if arg.name().is_none() {
+              return None;
+            }
+            let Ok(field_name) = i.try_into() else {
+              return None;
+            };
+            Some(generate_struct_literal_conversion_for_signal_item(arg, field_name))
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
     format!(
-        "				\"{raw_signal_name}\" => Ok({enum_name}::{enum_signal_name}({signal_struct_name}(ev))),"
+        "				\"{raw_signal_name}\" => Ok({enum_name}::{enum_signal_name}({signal_struct_name}{{ item: crate::events::Accessible {{ name: ev.message.header().unwrap().sender().unwrap().unwrap().to_owned().into(), path: ev.message.path().unwrap().into() }}, {signal_conversion_lit} }})),"
     )
 }
 
@@ -447,10 +479,10 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
         .collect::<Vec<String>>()
         .join("\n");
     format!("
-	impl TryFrom<AtspiEvent> for {impl_for_name} {{
+	impl TryFrom<AnyEvent> for {impl_for_name} {{
 		type Error = AtspiError;
 
-		fn try_from(ev: AtspiEvent) -> Result<Self, Self::Error> {{
+		fn try_from(ev: AnyEvent) -> Result<Self, Self::Error> {{
 			let Some(member) = ev.member() else {{ return Err(AtspiError::MemberMatch(\"Event w/o member\".into())); }};
 			match member.as_str() {{
 {member_conversions}
@@ -492,9 +524,9 @@ fn generate_registry_event_impl(signal: &Signal, interface: &Interface) -> Strin
     let member_string = signal.name();
     let iface_prefix = iface_name(interface);
     format!(
-        "	impl HasRegistryEventString for {sig_name_event} {{
+        "	/*impl HasRegistryEventString for {sig_name_event} {{
 		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:{member_string}\";
-	}}"
+	}}*/"
     )
 }
 
@@ -509,8 +541,37 @@ fn generate_match_rule_impl(signal: &Signal, interface: &Interface) -> String {
 				.build();
     let match_rule_str = match_rule.to_string();
     format!(
-        "	impl HasMatchRule for {sig_name_event} {{
+        "	/*impl HasMatchRule for {sig_name_event} {{
       const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
+	}}*/"
+    )
+}
+// TODO
+fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String {
+    let iface_prefix = iface_name(interface);
+    let sig_name_event = event_ident(signal.name());
+    let member_string = signal.name();
+    let iface_long_name = interface.name();
+    let match_rule = zbus::MatchRule::builder()
+				.msg_type(zbus::MessageType::Signal)
+				.interface(iface_long_name).expect("Unable to use an interface: {iface_long_name}")
+				.member(member_string).expect("Unable to use a member: {member_string}")
+				.build();
+    let match_rule_str = match_rule.to_string();
+    let raw_member_name = signal.name();
+    let raw_interface_name = interface.name();
+    format!(
+        "	impl GenericEvent for {sig_name_event} {{
+      const DBUS_MEMBER: &'static str = \"{raw_member_name}\";
+      const DBUS_INTERFACE: &'static str = \"{raw_interface_name}\";
+      const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
+      const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:\";
+    fn sender(&self) -> UniqueName<'_> {{
+      self.item.name.clone().into()
+    }}
+    fn path<'a>(&self) -> ObjectPath<'_> {{
+      self.item.path.clone().into()
+    }}
 	}}"
     )
 }
@@ -552,15 +613,14 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 {STRIPPER_IGNORE_STOP}
 pub mod {mod_name} {{
-	use atspi_macros::TrySignify;
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{AtspiEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString}},
-		signify::Signified,
+		events::{{AnyEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString}},
 	}};
 	use zbus;
-	use zbus::zvariant::OwnedValue;
+	use zbus::zvariant::ObjectPath;
+  use zbus::names::UniqueName;
 	{enums}
 	{match_rule_vec_impl}
 	{structs}
