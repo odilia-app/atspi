@@ -30,20 +30,20 @@ use std::{collections::HashMap, sync::Arc};
 use serde::{Deserialize, Serialize};
 use zbus::{
 	names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
-	zvariant::{self, OwnedObjectPath, OwnedValue, Signature, Type, Value, ObjectPath},
+	zvariant::{self, ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
 	Message,
 };
 
 use crate::{
 	cache::CacheItem,
+	error::ObjectPathConversionError,
 	identify::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
 		object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 	},
-  error::ObjectPathConversionError,
 	AtspiError,
 };
-use atspi_macros::{try_from_zbus_message};
+use atspi_macros::try_from_zbus_message;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
@@ -131,22 +131,22 @@ pub enum CacheEvents {
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone)]
 pub struct AddAccessibleEvent {
-  pub item: Accessible,
-  pub node_added: CacheItem,
+	pub item: Accessible,
+	pub node_added: CacheItem,
 }
 impl GenericEvent for AddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-  const DBUS_MEMBER: &'static str = "AddAccessible";
-  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+	const DBUS_MEMBER: &'static str = "AddAccessible";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-  fn sender(&self) -> UniqueName<'_> {
-    self.item.name.clone().into()
-  }
-  fn path(&self) -> ObjectPath<'_> {
-    self.item.path.clone().into()
-  }
+	fn sender(&self) -> UniqueName<'_> {
+		self.item.name.clone().into()
+	}
+	fn path(&self) -> ObjectPath<'_> {
+		self.item.path.clone().into()
+	}
 }
 impl<T: GenericEvent> HasMatchRule for T {
 	const MATCH_RULE_STRING: &'static str = <T as GenericEvent>::MATCH_RULE_STRING;
@@ -155,54 +155,64 @@ impl<T: GenericEvent> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as GenericEvent>::REGISTRY_EVENT_STRING;
 }
 impl TryFrom<Arc<Message>> for AddAccessibleEvent {
-  type Error = AtspiError;
+	type Error = AtspiError;
 
-  fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
-    Ok(AddAccessibleEvent {
-      item: Accessible {
-        name: msg.header()?.sender()?.ok_or(ObjectPathConversionError::NoIdAvailable)?.to_owned().into(),
-        path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-      },
-      node_added: msg.body::<CacheItem>()?,
-    })
-  }
+	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+		Ok(AddAccessibleEvent {
+			item: Accessible {
+				name: msg
+					.header()?
+					.sender()?
+					.ok_or(ObjectPathConversionError::NoIdAvailable)?
+					.to_owned()
+					.into(),
+				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
+			},
+			node_added: msg.body::<CacheItem>()?,
+		})
+	}
 }
 
 #[derive(Debug, Clone)]
 pub struct RemoveAccessibleEvent {
-  pub item: Accessible,
-  pub node_removed: Accessible,
+	pub item: Accessible,
+	pub node_removed: Accessible,
 }
 impl GenericEvent for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
-  const DBUS_MEMBER: &'static str = "RemoveAccessible";
-  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+	const DBUS_MEMBER: &'static str = "RemoveAccessible";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-  fn sender(&self) -> UniqueName<'_> {
-    self.item.name.clone().into()
-  }
-  fn path(&self) -> ObjectPath<'_> {
-    self.item.path.clone().into()
-  }
+	fn sender(&self) -> UniqueName<'_> {
+		self.item.name.clone().into()
+	}
+	fn path(&self) -> ObjectPath<'_> {
+		self.item.path.clone().into()
+	}
 }
 impl TryFrom<Arc<Message>> for RemoveAccessibleEvent {
-  type Error = AtspiError;
+	type Error = AtspiError;
 
-  fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
-    let opair = msg.body::<(String, OwnedObjectPath)>()?;
-    Ok(RemoveAccessibleEvent {
-      item: Accessible {
-        name: msg.header()?.sender()?.ok_or(ObjectPathConversionError::NoIdAvailable)?.to_owned().into(),
-        path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-      },
-      node_removed: Accessible {
-        name: OwnedUniqueName::try_from(opair.0)?,
-        path: OwnedObjectPath::try_from(opair.1)?,
-      },
-    })
-  }
+	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+		let opair = msg.body::<(String, OwnedObjectPath)>()?;
+		Ok(RemoveAccessibleEvent {
+			item: Accessible {
+				name: msg
+					.header()?
+					.sender()?
+					.ok_or(ObjectPathConversionError::NoIdAvailable)?
+					.to_owned()
+					.into(),
+				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
+			},
+			node_removed: Accessible {
+				name: OwnedUniqueName::try_from(opair.0)?,
+				path: OwnedObjectPath::try_from(opair.1)?,
+			},
+		})
+	}
 }
 
 // TODO: Try to make borrowed versions work,
@@ -387,8 +397,8 @@ impl TryFrom<Arc<Message>> for Event {
 
 /// Shared behavior of bus `Signal` events.
 pub trait GenericEvent {
-  const DBUS_MEMBER: &'static str;
-  const DBUS_INTERFACE: &'static str;
+	const DBUS_MEMBER: &'static str;
+	const DBUS_INTERFACE: &'static str;
 	const MATCH_RULE_STRING: &'static str;
 	const REGISTRY_EVENT_STRING: &'static str;
 
@@ -458,14 +468,14 @@ impl AnyEvent {
 	pub fn properties(&self) -> &HashMap<String, zvariant::OwnedValue> {
 		&self.body.properties
 	}
-  #[must_use]
-  pub fn interface(&self) -> Option<InterfaceName<'_>> {
-    self.message.interface()
-  }
-  #[must_use]
-  pub fn member(&self) -> Option<MemberName<'_>> {
-    self.message.member()
-  }
+	#[must_use]
+	pub fn interface(&self) -> Option<InterfaceName<'_>> {
+		self.message.interface()
+	}
+	#[must_use]
+	pub fn member(&self) -> Option<MemberName<'_>> {
+		self.message.member()
+	}
 }
 
 #[cfg(test)]
@@ -536,10 +546,7 @@ mod tests {
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
 				assert_eq!(event.path(), "/org/a11y/atspi/accessible/null");
-				assert_eq!(
-					event.node_removed.path.as_str(),
-					"/org/a11y/atspi/accessible/remove"
-				);
+				assert_eq!(event.node_removed.path.as_str(), "/org/a11y/atspi/accessible/remove");
 				assert_eq!(event.node_removed.name.as_str(), ":69.420");
 			}
 			Ok(Some(Ok(another_event))) => {
