@@ -31,7 +31,7 @@ use serde::{Deserialize, Serialize};
 use zbus::{
 	names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
 	zvariant::{self, ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
-	Message,
+	Message, MessageBuilder,
 };
 
 use crate::{
@@ -43,7 +43,7 @@ use crate::{
 	},
 	AtspiError,
 };
-use atspi_macros::try_from_zbus_message;
+//use atspi_macros::try_from_zbus_message;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
@@ -159,15 +159,7 @@ impl TryFrom<Arc<Message>> for AddAccessibleEvent {
 
 	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
 		Ok(AddAccessibleEvent {
-			item: Accessible {
-				name: msg
-					.header()?
-					.sender()?
-					.ok_or(ObjectPathConversionError::NoIdAvailable)?
-					.to_owned()
-					.into(),
-				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-			},
+			item: Arc::clone(&msg).try_into()?,
 			node_added: msg.body::<CacheItem>()?,
 		})
 	}
@@ -214,6 +206,19 @@ impl TryFrom<Arc<Message>> for RemoveAccessibleEvent {
 		})
 	}
 }
+impl TryFrom<RemoveAccessibleEvent> for Message {
+	type Error = AtspiError;
+
+	fn try_from(event: RemoveAccessibleEvent) -> Result<Self, AtspiError> {
+		Ok(MessageBuilder::signal(
+			event.item.path,
+			<RemoveAccessibleEvent as GenericEvent>::DBUS_INTERFACE,
+			<RemoveAccessibleEvent as GenericEvent>::DBUS_MEMBER,
+		)?
+		.sender(event.item.name)?
+		.build(&(event.node_removed,))?)
+	}
+}
 
 // TODO: Try to make borrowed versions work,
 // check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
@@ -225,6 +230,57 @@ impl TryFrom<Arc<Message>> for RemoveAccessibleEvent {
 pub struct Accessible {
 	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
+}
+impl TryFrom<Arc<Message>> for Accessible {
+  type Error = AtspiError;
+  fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+    Ok(Accessible {
+      name: message
+        .header()?
+        .sender()?
+        .ok_or(ObjectPathConversionError::NoIdAvailable)?
+        .to_owned()
+        .into(),
+      path: message
+        .path()
+        .ok_or(ObjectPathConversionError::NoIdAvailable)?
+        .into()
+    })
+  }
+}
+impl TryFrom<&Arc<Message>> for Accessible {
+  type Error = AtspiError;
+  fn try_from(message: &Arc<Message>) -> Result<Self, Self::Error> {
+    Ok(Accessible {
+      name: message
+        .header()?
+        .sender()?
+        .ok_or(ObjectPathConversionError::NoIdAvailable)?
+        .to_owned()
+        .into(),
+      path: message
+        .path()
+        .ok_or(ObjectPathConversionError::NoIdAvailable)?
+        .into()
+    })
+  }
+}
+impl TryFrom<&Message> for Accessible {
+  type Error = AtspiError;
+  fn try_from(message: &Message) -> Result<Self, Self::Error> {
+    Ok(Accessible {
+      name: message
+        .header()?
+        .sender()?
+        .ok_or(ObjectPathConversionError::NoIdAvailable)?
+        .to_owned()
+        .into(),
+      path: message
+        .path()
+        .ok_or(ObjectPathConversionError::NoIdAvailable)?
+        .into()
+    })
+  }
 }
 
 #[test]
@@ -245,10 +301,10 @@ pub enum EventInterfaces {
 	Window(WindowEvents),
 }
 
-impl TryFrom<AnyEvent> for EventInterfaces {
+impl TryFrom<AnyEvent<EventBodyOwned>> for EventInterfaces {
 	type Error = AtspiError;
 
-	fn try_from(ev: AnyEvent) -> Result<Self, Self::Error> {
+	fn try_from(ev: AnyEvent<EventBodyOwned>) -> Result<Self, Self::Error> {
 		let Some(interface) = ev.interface() else {  return Err(AtspiError::MissingInterface);  };
 		match interface.as_str() {
 			"org.a11y.atspi.Event.Document" => {
@@ -272,14 +328,21 @@ impl TryFrom<AnyEvent> for EventInterfaces {
 		}
 	}
 }
-
-#[derive(Debug, Clone)]
-pub struct AnyEvent {
-	pub(crate) message: Arc<Message>,
-	pub(crate) body: EventBodyOwned,
+impl<T: Type> TryFrom<&AnyEvent<T>> for Accessible {
+  type Error = AtspiError;
+  fn try_from(any_event: &AnyEvent<T>) -> Result<Self, Self::Error> {
+    Ok((&any_event.message).try_into()?)
+  }
 }
 
-impl TryFrom<Arc<Message>> for AnyEvent {
+#[derive(Debug, Clone)]
+pub struct AnyEvent<T: Type> {
+	pub(crate) message: Arc<Message>,
+	pub(crate) body: T,
+}
+
+// if impl. Into<AnyEvent>, then impl Into<Message>
+impl TryFrom<Arc<Message>> for AnyEvent<EventBodyOwned> {
 	type Error = AtspiError;
 
 	fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
@@ -317,32 +380,121 @@ pub enum EventListenerEvents {
 /// An event that is emitted by the regostry daemon to signal that an event has been deregistered
 /// to no longer listen for.
 #[derive(Clone, Debug)]
-#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerDeregisteredEvent {
-	pub(crate) message: Arc<Message>,
-	pub body: EventListeners,
+  pub item: Accessible,
+  pub deregistered_event: EventListeners,
+}
+impl TryFrom<Arc<Message>> for EventListenerDeregisteredEvent {
+	type Error = AtspiError;
+
+	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+    let deregistered_event = msg.body::<EventListeners>()?;
+		Ok(EventListenerDeregisteredEvent {
+			item: Accessible {
+				name: msg
+					.header()?
+					.sender()?
+					.ok_or(ObjectPathConversionError::NoIdAvailable)?
+					.to_owned()
+					.into(),
+				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
+			},
+			deregistered_event,
+		})
+	}
+}
+impl GenericEvent for  EventListenerDeregisteredEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
+  const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
+  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+
+	fn sender(&self) -> UniqueName<'_> {
+		self.item.name.clone().into()
+	}
+	fn path(&self) -> ObjectPath<'_> {
+		self.item.path.clone().into()
+	}
 }
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug)]
-#[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerRegisteredEvent {
-	pub(crate) message: Arc<Message>,
-	pub body: EventListeners,
+  pub item: Accessible,
+	pub registered_event: EventListeners,
+}
+impl TryFrom<Arc<Message>> for EventListenerRegisteredEvent {
+	type Error = AtspiError;
+
+	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+    let registered_event = msg.body::<EventListeners>()?;
+		Ok(EventListenerRegisteredEvent {
+			item: Accessible {
+				name: msg
+					.header()?
+					.sender()?
+					.ok_or(ObjectPathConversionError::NoIdAvailable)?
+					.to_owned()
+					.into(),
+				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
+			},
+			registered_event,
+		})
+	}
+}
+impl GenericEvent for  EventListenerRegisteredEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
+  const DBUS_MEMBER: &'static str = "EventListenerRegistered";
+  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+
+	fn sender(&self) -> UniqueName<'_> {
+		self.item.name.clone().into()
+	}
+	fn path(&self) -> ObjectPath<'_> {
+		self.item.path.clone().into()
+	}
 }
 
 /// An event that is emitted when the registry daemon has started.
 #[derive(Clone, Debug)]
-#[try_from_zbus_message(body = "Accessible")]
 pub struct AvailableEvent {
-	pub(crate) message: Arc<Message>,
-	pub(crate) body: Accessible,
+  pub item: Accessible,
+  pub socket: Accessible,
 }
+impl TryFrom<Arc<Message>> for AvailableEvent {
+	type Error = AtspiError;
 
-impl AvailableEvent {
-	#[must_use]
-	pub fn registry(&self) -> &Accessible {
-		&self.body
+	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+    let socket = msg.body::<Accessible>()?;
+		Ok(AvailableEvent {
+			item: Accessible {
+				name: msg
+					.header()?
+					.sender()?
+					.ok_or(ObjectPathConversionError::NoIdAvailable)?
+					.to_owned()
+					.into(),
+				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
+			},
+			socket,
+		})
+	}
+}
+impl GenericEvent for  AvailableEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
+  const DBUS_MEMBER: &'static str = "Available";
+  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
+
+	fn sender(&self) -> UniqueName<'_> {
+		self.item.name.clone().into()
+	}
+	fn path(&self) -> ObjectPath<'_> {
+		self.item.path.clone().into()
 	}
 }
 
@@ -377,7 +529,7 @@ impl TryFrom<Arc<Message>> for Event {
 				Ok(Event::Interfaces(event_interfaces))
 			}
 			"(ss)" => {
-				if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg.clone()) {
+				if let Ok(ev) = EventListenerRegisteredEvent::try_from(Arc::clone(&msg)) {
 					return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
 				}
 				if let Ok(ev) = EventListenerDeregisteredEvent::try_from(msg) {
@@ -421,7 +573,7 @@ pub trait HasRegistryEventString {
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
-impl AnyEvent {
+impl AnyEvent<EventBodyOwned> {
 	/// Deserialized signal body type.
 	#[must_use]
 	pub fn body(&self) -> &EventBodyOwned {
@@ -478,19 +630,21 @@ impl AnyEvent {
 	}
 }
 
+// if you can turn an event into AnyEvent<EventBodyOwned>, then also allow it to be converted to a zbus message.
+
 #[cfg(test)]
 mod tests {
 	use crate::events::{
 		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
 		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
-		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
+		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE, Accessible,
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
 	use tokio::time::timeout;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
-	use zbus::MessageBuilder;
+	use zbus::{MessageBuilder, Message};
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -519,28 +673,24 @@ mod tests {
 		assert_eq!(event_body.properties, props);
 	}
 	#[tokio::test]
-	async fn test_recv_remove_accessible() {
+	async fn test_recv_remove_accessible() -> Result<(), Box<dyn std::error::Error>> {
 		let atspi = AccessibilityConnection::open().await.unwrap();
 		let mut events = atspi.event_stream();
 		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
 		let unique_bus_name = atspi.connection().unique_name();
-		let msg = MessageBuilder::signal(
-			"/org/a11y/atspi/accessible/null",
-			"org.a11y.atspi.Cache",
-			"RemoveAccessible",
-		)
-		.expect("Could not create signal")
-		.sender(unique_bus_name.unwrap())
-		.expect("Could not set sender to {unique_bus_name:?}")
-		.build(
-			&(((
-				":69.420".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
-			),)),
-		)
-		.unwrap();
+    let remove_accessible = RemoveAccessibleEvent {
+      item: Accessible {
+        path: "/org/a11y/atspi/accessible/null".try_into()?,
+        name: ":1.1".try_into()?,
+      },
+      node_removed: Accessible {
+        path: "/org/a11y/atspi/accessible/remove".try_into()?,
+        name: ":69.420".try_into()?,
+      },
+    };
+		let msg: Message = remove_accessible.try_into()?;
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 		match to.await {
@@ -560,7 +710,8 @@ mod tests {
 			Err(e) => {
 				panic!("An error occured: {:?}", e);
 			}
-		}
+		};
+    Ok(())
 	}
 	#[tokio::test]
 	async fn test_recv_add_accessible() {
