@@ -21,6 +21,9 @@ pub enum AtspiError {
 	/// No interface on event.
 	MissingInterface,
 
+	/// No name on bus.
+	MissingName,
+
 	/// The signal that was encountered is unknown.
 	UnknownSignal,
 
@@ -77,6 +80,7 @@ impl std::fmt::Display for AtspiError {
 			}
 			Self::IO(e) => f.write_str(&format!("std IO Error: {e}")),
 			Self::IntConversionError(e) => f.write_str(&format!("Integer conversion error: {e}")),
+			Self::MissingName => f.write_str("Missing name for a bus."),
 			Self::Infallible => {
 				f.write_str("Infallible; only to trick the compiler. This should never happen.")
 			}

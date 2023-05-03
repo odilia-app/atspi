@@ -253,6 +253,16 @@ impl AccessibilityConnection {
 	pub fn connection(&self) -> &zbus::Connection {
 		self.registry.connection()
 	}
+	/// Send an event over the accessibility bus.
+	/// This converts the event into a [`zbus::Message`] using the [`GenericEvnet`] trait.
+	/// 
+	/// # Errors
+	/// 
+	/// This will only fail if:
+	/// 1. [`zbus::MessageBuilder`] fails at any point, or
+	/// 2. sending the event fails for some reason.
+	///
+	/// Both of these conditions should never happen as long as you have a valid event.
 	pub async fn send_event<T>(&self, event: T) -> Result<u32, AtspiError>
 	where
 		T: for<'a> GenericEvent<'a>,
@@ -263,7 +273,7 @@ impl AccessibilityConnection {
 			<T as GenericEvent>::DBUS_INTERFACE,
 			<T as GenericEvent>::DBUS_MEMBER,
 		)?
-		.sender(conn.unique_name().unwrap())?
+		.sender(conn.unique_name().ok_or(AtspiError::MissingName)?)?
 		// this re-encodes the entire body; it's not great..., but you can't replace a sender once a message a created.
 		.build(&((event.body()),))?;
 		Ok(conn.send_message(new_message).await?)

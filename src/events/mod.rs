@@ -33,7 +33,7 @@ use serde::{Deserialize, Serialize};
 use zbus::{
 	names::{OwnedUniqueName, UniqueName},
 	zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
-	Message, MessageBuilder,
+	Message,
 };
 
 use crate::{
@@ -393,10 +393,6 @@ impl TryFrom<&Message> for Event {
 			.member()
 			.ok_or(AtspiError::MemberMatch("signal w/o member".to_string()))?;
 		let message_member = signal_member.as_str();
-
-		println!("MSG SIG: {:?}", message_signature);
-		println!("Member: {:?}", message_member);
-		println!("Msg: {:?}", msg);
 		match message_signature {
 			// Accessible signature
 			"(so)" => match message_member {
