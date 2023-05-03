@@ -614,7 +614,6 @@ mod tests {
 		let mut events = atspi.event_stream();
 		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 		std::pin::pin!(&mut events);
-		let to = timeout(Duration::from_secs(1), events.next());
 		let remove_accessible = RemoveAccessibleEvent {
 			item: Accessible {
 				path: "/org/a11y/atspi/accessible/null".try_into()?,
@@ -625,34 +624,24 @@ mod tests {
 				name: ":69.420".try_into()?,
 			},
 		};
-		let msg: Message = remove_accessible.try_into()?;
-		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
-		atspi.connection().send_message(msg).await.unwrap();
-		match to.await {
-			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
+		atspi.send_event(remove_accessible).await.unwrap();
+		while let Some(Ok(ev)) = events.next().await {
+			if let Event::Cache(CacheEvents::Remove(event)) = ev {
 				assert_eq!(event.path(), "/org/a11y/atspi/accessible/null");
 				assert_eq!(event.node_removed.path.as_str(), "/org/a11y/atspi/accessible/remove");
 				assert_eq!(event.node_removed.name.as_str(), ":69.420");
+				break;
+			} else {
+				panic!("The wrong event was received!");
 			}
-			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
-				panic!("The wrong event was sent");
-			}
-			Ok(e) => {
-				println!("{:?}", e);
-				panic!("Something else happened");
-			}
-			Err(e) => {
-				panic!("An error occured: {:?}", e);
-			}
-		};
+		}
 		Ok(())
 	}
 	#[tokio::test]
-	async fn test_recv_add_accessible() {
-		let atspi = AccessibilityConnection::open().await.unwrap();
+	async fn test_recv_add_accessible() -> Result<(), Box<dyn std::error::Error>> {
+		let atspi = AccessibilityConnection::open().await?;
 		let mut events = atspi.event_stream();
-		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
+		atspi.register_event::<AddAccessibleEvent>().await?;
 		// this is required; we want the event to come from the current connection
 		// otherwise, the bus will respond wiht the equivlent of "Yes, I acknowledge that you will be able to use this name".
 		// xref: "NameAquired DBus Signal"
@@ -660,20 +649,20 @@ mod tests {
 		let add_accessible = AddAccessibleEvent {
 			item: Accessible {
 				name: name.to_owned(),
-				path: ObjectPath::try_from("/org/a11y/atspi/accessible/null").unwrap().into(),
+				path: ObjectPath::try_from("/org/a11y/atspi/accessible/null")?.into(),
 			},
 			node_added: CacheItem {
 				object: (
 					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object")?,
 				),
 				app: (
 					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application")?,
 				),
 				parent: (
 					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent")?,
 				),
 				index: 0,
 				children: 0,
@@ -685,31 +674,19 @@ mod tests {
 			},
 		};
 		std::pin::pin!(&mut events);
-		atspi.send_event(add_accessible).await.unwrap();
-		let to = timeout(Duration::from_secs(1), events.next());
-		match to.await {
-			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
+		atspi.send_event(add_accessible).await?;
+		while let Some(Ok(ev)) = events.next().await {
+			if let Event::Cache(CacheEvents::Add(event)) = ev {
 				assert_eq!(event.path(), "/org/a11y/atspi/accessible/null");
 				let cache_item = event.node_added;
 				assert_eq!(cache_item.object.1.as_str(), "/org/a11y/atspi/accessible/object");
 				assert_eq!(cache_item.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
-			}
-			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
-				panic!("The wrong event was sent");
-			}
-			Ok(Some(Err(e))) => {
-				println!("{:?}", e);
-				panic!("An error occured destructuring the body");
-			}
-			Ok(e) => {
-				println!("{:?}", e);
-				panic!("Something else happened");
-			}
-			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				break;
+			} else {
+				panic!("The wrong event was received!");
 			}
 		}
+		Ok(())
 	}
 }

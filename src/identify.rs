@@ -75,7 +75,8 @@ pub mod object {
     ///          if let Event::Object(_event) = ev {
 		/// #            break;
 		///              // do things with your event here
-		///          }  else { continue };
+		///          }
+		/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
     ///     }
     /// }
     /// ```
@@ -2945,7 +2946,8 @@ pub mod window {
     ///          if let Event::Window(_event) = ev {
 		/// #            break;
 		///              // do things with your event here
-		///          }  else { continue };
+		///          }
+		/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
     ///     }
     /// }
     /// ```
@@ -5394,7 +5396,8 @@ pub mod mouse {
     ///          if let Event::Mouse(_event) = ev {
 		/// #            break;
 		///              // do things with your event here
-		///          }  else { continue };
+		///          }
+		/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
     ///     }
     /// }
     /// ```
@@ -5881,7 +5884,8 @@ pub mod keyboard {
     ///          if let Event::Keyboard(_event) = ev {
 		/// #            break;
 		///              // do things with your event here
-		///          }  else { continue };
+		///          }
+		/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
     ///     }
     /// }
     /// ```
@@ -6117,7 +6121,8 @@ pub mod terminal {
     ///          if let Event::Terminal(_event) = ev {
 		/// #            break;
 		///              // do things with your event here
-		///          }  else { continue };
+		///          }
+		/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
     ///     }
     /// }
     /// ```
@@ -6843,7 +6848,8 @@ pub mod document {
     ///          if let Event::Document(_event) = ev {
 		/// #            break;
 		///              // do things with your event here
-		///          }  else { continue };
+		///          }
+		/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
     ///     }
     /// }
     /// ```
@@ -7692,7 +7698,8 @@ pub mod focus {
     ///          if let Event::Focus(_event) = ev {
 		/// #            break;
 		///              // do things with your event here
-		///          }  else { continue };
+		///          }
+		/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
     ///     }
     /// }
     /// ```

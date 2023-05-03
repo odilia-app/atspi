@@ -812,7 +812,8 @@ fn generate_enum_associated_example(mod_name: &str, signal_event_name: &str, sig
     ///          if let Event::{enum_event_name}(_event) = ev {{
 		/// #            break;
 		///              // do things with your event here
-		///          }}  else {{ continue }};
+		///          }}
+		/// #        else {{ panic!(\"Something went wrong receiving the event. Usually this means the wrong event was received.\") }};
     ///     }}
     /// }}
     /// ```
