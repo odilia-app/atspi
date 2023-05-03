@@ -463,7 +463,6 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
 	}}
 	impl TryFrom<&zbus::Message> for {impl_for_name} {{
 		type Error = AtspiError;
-
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {{
 			let member = ev.member()
 				.ok_or(AtspiError::MemberMatch(\"Event without member\".into()))?;
@@ -550,21 +549,8 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
 			Event::{iface_variant}(specific_event.into())
 		}}
 	}}
-  impl TryFrom<{impl_for_name}> for zbus::Message {{
-    type Error = AtspiError;
-    fn try_from(event: {impl_for_name}) -> Result<Self, Self::Error> {{
-      Ok(zbus::MessageBuilder::signal(
-						event.item.path,
-						<{impl_for_name} as GenericEvent>::DBUS_INTERFACE,
-						<{impl_for_name} as GenericEvent>::DBUS_MEMBER,
-					)?
-					.sender(event.item.name)?
-					.build(&((EventBodyOwned {{
-					{reverse_signal_conversion_lit}
-					}}),))?
-      )
-    }}
-  }}
+	crate::events::macros::impl_to_dbus_message!({impl_for_name});
+	crate::events::macros::impl_from_dbus_message!({impl_for_name});
 	impl From<{impl_for_name}> for EventBodyOwned {{
 		fn from(event: {impl_for_name}) -> Self {{
 			EventBodyOwned {{
@@ -572,14 +558,6 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
 			}}
 		}}
 	}}
-  impl TryFrom<&zbus::Message> for {impl_for_name} {{
-    type Error = AtspiError;
-    fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {{
-			let body = msg.body::<EventBodyOwned>()?;
-			let item = msg.try_into()?;
-      Ok(Self {{ item, {signal_conversion_lit} }})
-    }}
-  }}
 	")
 }
 
@@ -650,6 +628,19 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
     let match_rule_str = match_rule.to_string();
     let raw_member_name = signal.name();
     let raw_interface_name = interface.name();
+    let signal_conversion_lit = signal
+        .args()
+        .iter()
+        .enumerate()
+        .filter_map(|(i, arg)| {
+						arg.name()?;
+            let Ok(field_name) = i.try_into() else {
+              return None;
+            };
+            Some(generate_struct_literal_conversion_for_signal_item(arg, field_name))
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
     format!(
         "	impl GenericEvent<'_> for {sig_name_event} {{
       const DBUS_MEMBER: &'static str = \"{raw_member_name}\";
@@ -659,6 +650,12 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
 			
 			type Body = EventBodyOwned;
 
+		fn build(item: Accessible, body: Self::Body) -> Self {{
+			Self {{
+				item,
+				{signal_conversion_lit}	
+			}}
+		}}
     fn sender(&self) -> UniqueName<'_> {{
       self.item.name.clone().into()
     }}
@@ -732,7 +729,7 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
+		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned, Accessible}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;
