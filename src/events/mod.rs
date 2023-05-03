@@ -259,30 +259,16 @@ fn test_accessible_signature() {
 	assert_eq!(Accessible::signature(), "(so)");
 }
 
-impl<T: Type> TryFrom<&AnyEvent<T>> for Accessible {
-  type Error = AtspiError;
-  fn try_from(any_event: &AnyEvent<T>) -> Result<Self, Self::Error> {
-    Ok((&any_event.message).try_into()?)
-  }
-}
-
-#[derive(Debug, Clone)]
-pub struct AnyEvent<T: Type> {
-	pub(crate) message: Message,
-	pub(crate) body: T,
-}
-
-impl TryFrom<Message> for AnyEvent<EventBodyOwned> {
+impl TryFrom<Message> for EventBodyOwned {
 	type Error = AtspiError;
 
 	fn try_from(message: Message) -> Result<Self, Self::Error> {
 		let signature = message.body_signature()?;
-		let body = if signature == QSPI_EVENT_SIGNATURE {
-			EventBodyOwned::from(message.body::<EventBodyQT>()?)
+		if signature == QSPI_EVENT_SIGNATURE {
+			Ok(EventBodyOwned::from(message.body::<EventBodyQT>()?))
 		} else {
-			message.body::<EventBodyOwned>()?
-		};
-		Ok(Self { message, body })
+			Ok(message.body::<EventBodyOwned>()?)
+		}
 	}
 }
 
@@ -454,24 +440,34 @@ impl TryFrom<&Message> for Event {
 			},
 			// Atspi / Qspi signature
 			"siiva{sv}" | "siiv(so)" => {
-				let ev = AnyEvent::try_from(msg)?;
-				let Some(interface) = ev.interface() else {  return Err(AtspiError::MissingInterface);  };
+				let Some(interface) = msg.interface() else {  return Err(AtspiError::MissingInterface);  };
 				match interface.as_str() {
 					"org.a11y.atspi.Event.Document" => {
+						let ev = DocumentEvents::try_from(msg)?;
 						Ok(Event::Document(DocumentEvents::try_from(ev)?))
 					}
-					"org.a11y.atspi.Event.Focus" => Ok(Event::Focus(FocusEvents::try_from(ev)?)),
+					"org.a11y.atspi.Event.Focus" => {
+						let ev = FocusEvents::try_from(msg)?;
+						Ok(Event::Focus(FocusEvents::try_from(ev)?))
+					}
 					"org.a11y.atspi.Event.Keyboard" => {
+						let ev = KeyboardEvents::try_from(msg)?;
 						Ok(Event::Keyboard(KeyboardEvents::try_from(ev)?))
 					}
-					"org.a11y.atspi.Event.Mouse" => Ok(Event::Mouse(MouseEvents::try_from(ev)?)),
+					"org.a11y.atspi.Event.Mouse" => {
+						let ev = MouseEvents::try_from(msg)?;
+						Ok(Event::Mouse(MouseEvents::try_from(ev)?))
+					}
 					"org.a11y.atspi.Event.Object" => {
+						let ev = ObjectEvents::try_from(msg)?;
 						Ok(Event::Object(ObjectEvents::try_from(ev)?))
 					}
 					"org.a11y.atspi.Event.Terminal" => {
+						let ev = TerminalEvents::try_from(msg)?;
 						Ok(Event::Terminal(TerminalEvents::try_from(ev)?))
 					}
 					"org.a11y.atspi.Event.Window" => {
+						let ev = WindowEvents::try_from(msg)?;
 						Ok(Event::Window(WindowEvents::try_from(ev)?))
 					}
 					_ => Err(AtspiError::UnknownInterface),
@@ -521,65 +517,6 @@ pub trait HasMatchRule {
 pub trait HasRegistryEventString {
 	const REGISTRY_EVENT_STRING: &'static str;
 }
-
-impl AnyEvent<EventBodyOwned> {
-	/// Deserialized signal body type.
-	#[must_use]
-	pub fn body(&self) -> &EventBodyOwned {
-		&self.body
-	}
-
-	/// Returns the atspi event string for this event type (E.G. "Object:StateChanged:Focused").
-	///
-	/// This should not be used for matching on events as it needlessly allocates and copies the 3
-	/// components of the event type. It is meant for logging, etc.
-	#[must_use]
-	pub fn event_string(&self) -> String {
-		let interface = self.message.interface().expect("Event should have an interface");
-		let interface = interface.rsplit('.').next().expect("Interface should contain a '.'");
-		let member = self.message.member().expect("Event should have a member");
-		let kind = self.kind();
-		format!("{interface}:{member}:{kind}")
-	}
-
-	#[must_use]
-	pub fn kind(&self) -> &str {
-		&self.body.kind
-	}
-
-	/// Event dependant detail.
-	#[must_use]
-	pub fn detail1(&self) -> i32 {
-		self.body.detail1
-	}
-
-	/// Event dependant detail.
-	#[must_use]
-	pub fn detail2(&self) -> i32 {
-		self.body.detail2
-	}
-
-	/// Event dependant generic `Value`.
-	#[must_use]
-	pub fn any_data(&self) -> &zvariant::OwnedValue {
-		&self.body.any_data
-	}
-
-	#[must_use]
-	pub fn properties(&self) -> &HashMap<String, zvariant::OwnedValue> {
-		&self.body.properties
-	}
-	#[must_use]
-	pub fn interface(&self) -> Option<InterfaceName<'_>> {
-		self.message.interface()
-	}
-	#[must_use]
-	pub fn member(&self) -> Option<MemberName<'_>> {
-		self.message.member()
-	}
-}
-
-// if you can turn an event into AnyEvent<EventBodyOwned>, then also allow it to be converted to a zbus message.
 
 #[cfg(test)]
 mod tests {
