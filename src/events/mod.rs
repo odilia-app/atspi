@@ -534,7 +534,7 @@ mod tests {
 	use std::{collections::HashMap, time::Duration};
 	use tokio::time::timeout;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
-	use zbus::{Message, MessageBuilder};
+	use zbus::{Message, MessageBuilder, names::UniqueName};
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -607,15 +607,13 @@ mod tests {
 		let atspi = AccessibilityConnection::open().await.unwrap();
 		let mut events = atspi.event_stream();
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
-		std::pin::pin!(&mut events);
-		let unique_bus_name = atspi.connection().unique_name();
 		let msg = MessageBuilder::signal(
 			"/org/a11y/atspi/accessible/null",
 			"org.a11y.atspi.Cache",
 			"AddAccessible",
 		)
 		.expect("Could not create signal")
-		.sender(unique_bus_name.unwrap())
+		.sender(UniqueName::try_from(":0.0").unwrap())
 		.expect("Could not set sender to {unique_bus_name:?}")
 		.build(&(CacheItem {
 			object: (
@@ -641,6 +639,7 @@ mod tests {
 		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
+		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
