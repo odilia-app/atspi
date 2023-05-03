@@ -182,7 +182,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct BoundsChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -221,7 +221,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct LinkSelectedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -260,7 +260,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct StateChangedEvent {
 		pub item: crate::events::Accessible,
 		pub state: String,
@@ -343,7 +343,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct VisibleDataChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -382,7 +382,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct SelectionChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -421,7 +421,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ModelChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -500,7 +500,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct AnnouncementEvent {
 		pub item: crate::events::Accessible,
 		pub text: String,
@@ -540,7 +540,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct AttributesChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -579,7 +579,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct RowInsertedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -618,7 +618,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct RowReorderedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -657,7 +657,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct RowDeletedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -696,7 +696,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ColumnInsertedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -735,7 +735,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ColumnReorderedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -774,7 +774,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ColumnDeletedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -813,7 +813,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct TextBoundsChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -852,7 +852,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct TextSelectionChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -934,7 +934,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct TextAttributesChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -973,7 +973,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct TextCaretMovedEvent {
 		pub item: crate::events::Accessible,
 		pub position: i32,
@@ -1525,6 +1525,52 @@ pub mod object {
 				Ok(inner_event)
 			} else {
 				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
+
+	impl Default for PropertyChangeEvent {
+		fn default() -> Self {
+			PropertyChangeEvent {
+				item: crate::events::Accessible::default(),
+				property: String::default(),
+				value: zbus::zvariant::Value::U8(0).into(),
+				properties: std::collections::HashMap::new(),
+			}
+		}
+	}
+
+	impl Default for ChildrenChangedEvent {
+		fn default() -> Self {
+			ChildrenChangedEvent {
+				item: crate::events::Accessible::default(),
+				operation: String::default(),
+				index_in_parent: i32::default(),
+				child: zbus::zvariant::Value::U8(0).into(),
+				properties: std::collections::HashMap::new(),
+			}
+		}
+	}
+
+	impl Default for ActiveDescendantChangedEvent {
+		fn default() -> Self {
+			ActiveDescendantChangedEvent {
+				item: crate::events::Accessible::default(),
+				child: zbus::zvariant::Value::U8(0).into(),
+				properties: std::collections::HashMap::new(),
+			}
+		}
+	}
+
+	impl Default for TextChangedEvent {
+		fn default() -> Self {
+			TextChangedEvent {
+				item: crate::events::Accessible::default(),
+				detail: String::default(),
+				start_pos: i32::default(),
+				length: i32::default(),
+				text: zbus::zvariant::Value::U8(0).into(),
+				properties: std::collections::HashMap::new(),
 			}
 		}
 	}
@@ -2678,7 +2724,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct PropertyChangeEvent {
 		pub item: crate::events::Accessible,
 		pub property: String,
@@ -2718,7 +2764,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct MinimizeEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -2757,7 +2803,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct MaximizeEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -2796,7 +2842,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct RestoreEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -2835,7 +2881,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct CloseEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -2874,7 +2920,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct CreateEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -2913,7 +2959,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ReparentEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -2952,7 +2998,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct DesktopCreateEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -2991,7 +3037,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct DesktopDestroyEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3030,7 +3076,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct DestroyEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3069,7 +3115,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ActivateEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3108,7 +3154,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct DeactivateEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3147,7 +3193,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct RaiseEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3186,7 +3232,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct LowerEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3225,7 +3271,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct MoveEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3264,7 +3310,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ResizeEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3303,7 +3349,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ShadeEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3342,7 +3388,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct UUshadeEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -3381,7 +3427,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct RestyleEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -4843,7 +4889,7 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct AbsEvent {
 		pub item: crate::events::Accessible,
 		pub x: i32,
@@ -4884,7 +4930,7 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct RelEvent {
 		pub item: crate::events::Accessible,
 		pub x: i32,
@@ -4925,7 +4971,7 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ButtonEvent {
 		pub item: crate::events::Accessible,
 		pub detail: String,
@@ -5290,7 +5336,7 @@ pub mod keyboard {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ModifiersEvent {
 		pub item: crate::events::Accessible,
 		pub previous_modifiers: i32,
@@ -5519,7 +5565,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct LineChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -5558,7 +5604,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ColumnCountChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -5597,7 +5643,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct LineCountChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -5636,7 +5682,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ApplicationChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -5675,7 +5721,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct CharWidthChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -6174,7 +6220,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct LoadCompleteEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -6213,7 +6259,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ReloadEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -6252,7 +6298,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct LoadStoppedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -6291,7 +6337,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ContentChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -6330,7 +6376,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct AttributesChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -6369,7 +6415,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct PageChangedEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
@@ -6932,7 +6978,7 @@ pub mod focus {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct FocusEvent {
 		pub item: crate::events::Accessible,
 		pub properties: std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
