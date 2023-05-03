@@ -565,6 +565,13 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
       )
     }}
   }}
+	impl From<{impl_for_name}> for EventBodyOwned {{
+		fn from(event: {impl_for_name}) -> Self {{
+			EventBodyOwned {{
+				{reverse_signal_conversion_lit}
+			}}
+		}}
+	}}
   impl TryFrom<&zbus::Message> for {impl_for_name} {{
     type Error = AtspiError;
     fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {{
@@ -609,10 +616,7 @@ fn generate_registry_event_impl(signal: &Signal, interface: &Interface) -> Strin
     format!(
         "	/*impl HasRegistryEventString for {sig_name_event} {{
 		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:{member_string}\";
-	}}*/
-	impl HasBody<'_> for {sig_name_event} {{
-		type Body = EventBodyOwned;
-	}}"
+	}}*/"
     )
 }
 
@@ -647,18 +651,26 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
     let raw_member_name = signal.name();
     let raw_interface_name = interface.name();
     format!(
-        "	impl GenericEvent for {sig_name_event} {{
+        "	impl GenericEvent<'_> for {sig_name_event} {{
       const DBUS_MEMBER: &'static str = \"{raw_member_name}\";
       const DBUS_INTERFACE: &'static str = \"{raw_interface_name}\";
       const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
       const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:\";
+			
+			type Body = EventBodyOwned;
+
     fn sender(&self) -> UniqueName<'_> {{
       self.item.name.clone().into()
     }}
     fn path<'a>(&self) -> ObjectPath<'_> {{
       self.item.path.clone().into()
     }}
-	}}"
+		fn body(&self) -> Self::Body {{
+			let copy = self.clone();
+			copy.into()
+		}}
+	}}
+	"
     )
 }
 
@@ -720,7 +732,7 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned, HasBody}},
+		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;

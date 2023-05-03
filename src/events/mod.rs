@@ -139,15 +139,14 @@ pub struct AddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: CacheItem,
 }
-impl HasBody<'_> for AddAccessibleEvent {
-	type Body = CacheItem;
-}
-impl GenericEvent for AddAccessibleEvent {
+impl GenericEvent<'_> for AddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
 	const DBUS_MEMBER: &'static str = "AddAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+
+	type Body = CacheItem;
 
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -155,11 +154,14 @@ impl GenericEvent for AddAccessibleEvent {
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
 	}
+	fn body(&self) -> Self::Body {
+		self.node_added.clone()
+	}
 }
-impl<T: GenericEvent> HasMatchRule for T {
+impl<'a, T: GenericEvent<'a>> HasMatchRule for T {
 	const MATCH_RULE_STRING: &'static str = <T as GenericEvent>::MATCH_RULE_STRING;
 }
-impl<T: GenericEvent> HasRegistryEventString for T {
+impl<'a, T: GenericEvent<'a>> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as GenericEvent>::REGISTRY_EVENT_STRING;
 }
 impl TryFrom<&Message> for AddAccessibleEvent {
@@ -190,18 +192,23 @@ pub struct RemoveAccessibleEvent {
 	pub item: Accessible,
 	pub node_removed: Accessible,
 }
-impl GenericEvent for RemoveAccessibleEvent {
+impl GenericEvent<'_> for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
 	const DBUS_MEMBER: &'static str = "RemoveAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
+	type Body = Accessible;
+
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
+	}
+	fn body(&self) -> Self::Body {
+		self.node_removed.clone()
 	}
 }
 impl TryFrom<&Message> for RemoveAccessibleEvent {
@@ -349,18 +356,23 @@ impl TryFrom<&Message> for EventListenerDeregisteredEvent {
 		})
 	}
 }
-impl GenericEvent for EventListenerDeregisteredEvent {
+impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
 	const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 
+	type Body = EventListeners;
+
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
+	}
+	fn body(&self) -> Self::Body {
+		self.deregistered_event.clone()
 	}
 }
 
@@ -389,18 +401,23 @@ impl TryFrom<&Message> for EventListenerRegisteredEvent {
 		})
 	}
 }
-impl GenericEvent for EventListenerRegisteredEvent {
+impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
 	const DBUS_MEMBER: &'static str = "EventListenerRegistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 
+	type Body = EventListeners;
+
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
+	}
+	fn body(&self) -> Self::Body {
+		self.registered_event.clone()
 	}
 }
 
@@ -429,18 +446,23 @@ impl TryFrom<&Message> for AvailableEvent {
 		})
 	}
 }
-impl GenericEvent for AvailableEvent {
+impl GenericEvent<'_> for AvailableEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
 	const DBUS_MEMBER: &'static str = "Available";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
 
+	type Body = Accessible;
+
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
+	}
+	fn body(&self) -> Self::Body {
+		self.socket.clone()
 	}
 }
 
@@ -515,11 +537,14 @@ impl TryFrom<&Message> for Event {
 }
 
 /// Shared behavior of bus `Signal` events.
-pub trait GenericEvent {
+pub trait GenericEvent<'a> {
 	const DBUS_MEMBER: &'static str;
 	const DBUS_INTERFACE: &'static str;
 	const MATCH_RULE_STRING: &'static str;
 	const REGISTRY_EVENT_STRING: &'static str;
+
+	/// What is the body type of this event.
+	type Body: Type + Serialize + Deserialize<'a>;
 
 	/// Path of the signalling object.
 	fn path(&self) -> ObjectPath<'_>;
@@ -530,11 +555,11 @@ pub trait GenericEvent {
 	/// - when deserializeing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> UniqueName<'_>;
+
+	/// The body of the object.
+	fn body(&self) -> Self::Body;
 }
 
-pub trait HasBody<'a> {
-	type Body: Type + Serialize + Deserialize<'a>;
-}
 pub trait HasMatchRule {
 	const MATCH_RULE_STRING: &'static str;
 }
