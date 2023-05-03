@@ -385,8 +385,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -
 		/// #   atspi.register_event::<{signal_event_name}>().await.unwrap();
     ///     std::pin::pin!(&mut events);
 		/// #   let event_struct = {signal_event_name}::default();
-		/// #   let msg_from_event = event_struct.try_into().unwrap();
-		/// #   atspi.connection().send_message(msg_from_event).await.unwrap();
+		/// #   atspi.send_event(event_struct).await.unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
     ///         if let Ok(event) = {signal_event_name}::try_from(ev) {{
@@ -610,7 +609,10 @@ fn generate_registry_event_impl(signal: &Signal, interface: &Interface) -> Strin
     format!(
         "	/*impl HasRegistryEventString for {sig_name_event} {{
 		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:{member_string}\";
-	}}*/"
+	}}*/
+	impl HasBody<'_> for {sig_name_event} {{
+		type Body = EventBodyOwned;
+	}}"
     )
 }
 
@@ -718,7 +720,7 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
+		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned, HasBody}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;

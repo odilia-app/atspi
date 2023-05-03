@@ -139,6 +139,9 @@ pub struct AddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: CacheItem,
 }
+impl HasBody<'_> for AddAccessibleEvent {
+	type Body = CacheItem;
+}
 impl GenericEvent for AddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
@@ -164,6 +167,21 @@ impl TryFrom<&Message> for AddAccessibleEvent {
 
 	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
 		Ok(AddAccessibleEvent { item: msg.try_into()?, node_added: msg.body::<CacheItem>()? })
+	}
+}
+impl TryFrom<AddAccessibleEvent> for zbus::Message {
+	type Error = AtspiError;
+
+	fn try_from(event: AddAccessibleEvent) -> Result<Self, Self::Error> {
+		Ok(
+			zbus::MessageBuilder::signal(
+					event.item.path,
+					<AddAccessibleEvent as GenericEvent>::DBUS_INTERFACE,
+					<AddAccessibleEvent as GenericEvent>::DBUS_MEMBER,
+				)?
+				.sender(event.item.name)?
+				.build(&((event.node_added),))?
+		)
 	}
 }
 
@@ -514,6 +532,9 @@ pub trait GenericEvent {
 	fn sender(&self) -> UniqueName<'_>;
 }
 
+pub trait HasBody<'a> {
+	type Body: Type + Serialize + Deserialize<'a>;
+}
 pub trait HasMatchRule {
 	const MATCH_RULE_STRING: &'static str;
 }
@@ -607,39 +628,39 @@ mod tests {
 		let atspi = AccessibilityConnection::open().await.unwrap();
 		let mut events = atspi.event_stream();
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
-		let msg = MessageBuilder::signal(
-			"/org/a11y/atspi/accessible/null",
-			"org.a11y.atspi.Cache",
-			"AddAccessible",
-		)
-		.expect("Could not create signal")
-		.sender(UniqueName::try_from(":0.0").unwrap())
-		.expect("Could not set sender to {unique_bus_name:?}")
-		.build(&(CacheItem {
-			object: (
-				":1.1".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
-			),
-			app: (
-				":1.1".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
-			),
-			parent: (
-				":1.1".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
-			),
-			index: 0,
-			children: 0,
-			ifaces: InterfaceSet::empty(),
-			short_name: "".to_string(),
-			role: Role::Application,
-			name: "Hi".to_string(),
-			states: StateSet::empty(),
-		},))
-		.unwrap();
-		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
-		atspi.connection().send_message(msg).await.unwrap();
+		// this is required; we want the event to come from the current connection
+		// otherwise, the bus will respond wiht the equivlent of "Yes, I acknowledge that you will be able to use this name".
+		// xref: "NameAquired DBus Signal"
+		let name = atspi.connection().unique_name().unwrap();
+		let add_accessible = AddAccessibleEvent {
+			item: Accessible {
+				name: name.to_owned(),
+				path: ObjectPath::try_from("/org/a11y/atspi/accessible/null").unwrap().into(),
+			},
+			node_added: CacheItem {
+				object: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+				),
+				app: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+				),
+				parent: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
+				),
+				index: 0,
+				children: 0,
+				ifaces: InterfaceSet::empty(),
+				short_name: "".to_string(),
+				role: Role::Application,
+				name: "Hi".to_string(),
+				states: StateSet::empty(),
+			},
+		};
 		std::pin::pin!(&mut events);
+		atspi.send_event(add_accessible).await.unwrap();
 		let to = timeout(Duration::from_secs(1), events.next());
 		match to.await {
 			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
