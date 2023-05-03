@@ -137,7 +137,7 @@ impl AccessibilityConnection {
 				Err(e) => return Some(Err(e.into())),
 			};
 			match msg.message_type() {
-				MessageType::Signal => Some(Event::try_from(msg)),
+				MessageType::Signal => Some(Event::try_from(&*msg)),
 				_ => None,
 			}
 		})
