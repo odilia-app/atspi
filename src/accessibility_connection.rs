@@ -1,6 +1,6 @@
 use crate::{
 	bus::BusProxy,
-	events::{Event, HasMatchRule, HasRegistryEventString},
+	events::{Event, HasMatchRule, HasRegistryEventString, HasBody},
 	registry::RegistryProxy,
 	AtspiError,
 };
@@ -252,6 +252,22 @@ impl AccessibilityConnection {
 	#[must_use]
 	pub fn connection(&self) -> &zbus::Connection {
 		self.registry.connection()
+	}
+	pub async fn send_event<T>(&self, event: T) -> Result<u32, AtspiError> 
+	where AtspiError: From<<T as TryInto<zbus::Message>>::Error>,
+				T: TryInto<zbus::Message>,
+				T: for <'a> HasBody<'a> {
+		let original_msg: zbus::Message = event.try_into()?;
+		let conn = self.connection();
+		let new_message = zbus::MessageBuilder::signal(
+			original_msg.path().unwrap(),
+			original_msg.interface().unwrap(),
+			original_msg.member().unwrap(),
+		)?
+		.sender(conn.unique_name().unwrap())?
+		// this re-encodes the entire body; it's not great..., but you can't replace a sender once a message a created.
+		.build(&((original_msg.body::<<T as HasBody>::Body>().unwrap()),))?;
+		Ok(conn.send_message(new_message).await?)
 	}
 }
 
