@@ -236,6 +236,25 @@ pub struct Accessible {
 	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
 }
+impl Default for Accessible {
+	fn default() -> Self {
+		Accessible {
+			name: UniqueName::from_static_str(":0.0").unwrap().into(),
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap().into()
+		}
+	}
+}
+#[cfg(test)]
+pub mod accessible_tests {
+	use super::Accessible;
+
+	#[test]
+	fn test_accessible_default_doesnt_panic() {
+		let acc = Accessible::default();
+		assert_eq!(acc.name.as_str(), ":0.0");
+		assert_eq!(acc.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+}
 impl TryFrom<&Message> for Accessible {
   type Error = AtspiError;
   fn try_from(message: &Message) -> Result<Self, Self::Error> {
