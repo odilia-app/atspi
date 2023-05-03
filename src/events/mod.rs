@@ -25,12 +25,12 @@ pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_u
 pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use zbus::{
-	names::{InterfaceName, MemberName, OwnedUniqueName, UniqueName},
-	zvariant::{self, ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
+	names::{OwnedUniqueName, UniqueName},
+	zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
 	Message, MessageBuilder,
 };
 
@@ -206,7 +206,7 @@ impl TryFrom<&Message> for RemoveAccessibleEvent {
 			},
 			node_removed: Accessible {
 				name: OwnedUniqueName::try_from(opair.0)?,
-				path: OwnedObjectPath::try_from(opair.1)?,
+				path: opair.1,
 			},
 		})
 	}
@@ -462,32 +462,25 @@ impl TryFrom<&Message> for Event {
 				let Some(interface) = msg.interface() else {  return Err(AtspiError::MissingInterface);  };
 				match interface.as_str() {
 					"org.a11y.atspi.Event.Document" => {
-						let ev = DocumentEvents::try_from(msg)?;
-						Ok(Event::Document(DocumentEvents::try_from(ev)?))
+						Ok(Event::Document(DocumentEvents::try_from(msg)?))
 					}
 					"org.a11y.atspi.Event.Focus" => {
-						let ev = FocusEvents::try_from(msg)?;
-						Ok(Event::Focus(FocusEvents::try_from(ev)?))
+						Ok(Event::Focus(FocusEvents::try_from(msg)?))
 					}
 					"org.a11y.atspi.Event.Keyboard" => {
-						let ev = KeyboardEvents::try_from(msg)?;
-						Ok(Event::Keyboard(KeyboardEvents::try_from(ev)?))
+						Ok(Event::Keyboard(KeyboardEvents::try_from(msg)?))
 					}
 					"org.a11y.atspi.Event.Mouse" => {
-						let ev = MouseEvents::try_from(msg)?;
-						Ok(Event::Mouse(MouseEvents::try_from(ev)?))
+						Ok(Event::Mouse(MouseEvents::try_from(msg)?))
 					}
 					"org.a11y.atspi.Event.Object" => {
-						let ev = ObjectEvents::try_from(msg)?;
-						Ok(Event::Object(ObjectEvents::try_from(ev)?))
+						Ok(Event::Object(ObjectEvents::try_from(msg)?))
 					}
 					"org.a11y.atspi.Event.Terminal" => {
-						let ev = TerminalEvents::try_from(msg)?;
-						Ok(Event::Terminal(TerminalEvents::try_from(ev)?))
+						Ok(Event::Terminal(TerminalEvents::try_from(msg)?))
 					}
 					"org.a11y.atspi.Event.Window" => {
-						let ev = WindowEvents::try_from(msg)?;
-						Ok(Event::Window(WindowEvents::try_from(ev)?))
+						Ok(Event::Window(WindowEvents::try_from(msg)?))
 					}
 					_ => Err(AtspiError::UnknownInterface),
 				}

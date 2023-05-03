@@ -109,7 +109,7 @@ fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
             f64::SIGNATURE_CHAR => "f64".into(),
             // xmlgen accepts 'h' on Windows, only for code generation
             'h' => (if input { "zbus::zvariant::Fd" } else { "zbus::zvariant::OwnedFd" }).into(),
-            <&str>::SIGNATURE_CHAR => (if input || as_ref { "String" } else { "String" }).into(),
+            <&str>::SIGNATURE_CHAR => "String".into(),
             ObjectPath::SIGNATURE_CHAR => (if input {
                 if as_ref {
                     "&zbus::zvariant::ObjectPath<'_>"
@@ -130,15 +130,7 @@ fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
                 "zbus::zvariant::OwnedSignature"
             })
             .into(),
-            VARIANT_SIGNATURE_CHAR => (if input {
-                if as_ref {
-                    "zbus::zvariant::OwnedValue"
-                } else {
-                    "zbus::zvariant::OwnedValue"
-                }
-            } else {
-                "zbus::zvariant::OwnedValue"
-            })
+            VARIANT_SIGNATURE_CHAR => "zbus::zvariant::OwnedValue"
             .into(),
             ARRAY_SIGNATURE_CHAR => {
                 let c = it.peek().unwrap();
@@ -242,7 +234,7 @@ fn generate_reverse_struct_literal_conversion_for_signal_item(signal_item: &Arg,
     let rust_type = to_rust_type(signal_item.ty(), true, true);
     let value = if signal_item.name().is_none() {
       if rust_type == "zbus::zvariant::OwnedValue" {
-        format!("zbus::zvariant::Value::U8(0).into()")
+        "zbus::zvariant::Value::U8(0).into()".to_string()
       } else {
         format!("{rust_type}::default()")
       }
@@ -255,15 +247,15 @@ fn generate_reverse_struct_literal_conversion_for_signal_item(signal_item: &Arg,
 
     format!("{msg_field_name}: {value}")
 }
-fn default_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName2) -> String {
+fn default_for_signal_item(signal_item: &Arg) -> String {
     let rust_type = to_rust_type(signal_item.ty(), true, true);
 		let Some(field_name) = signal_item.name() else {
 			return String::new();
 		};
 		let value = if rust_type == "zbus::zvariant::OwnedValue" {
-			format!("zbus::zvariant::Value::U8(0).into()")
+			"zbus::zvariant::Value::U8(0).into()".to_string()
 		} else if rust_type.starts_with("std::collections::HashMap") {
-			format!("HashMap::new()")
+			"HashMap::new()".to_string()
 		} else {
 			format!("{rust_type}::default()")
 		};
@@ -286,20 +278,17 @@ fn generate_enum_variant_from_interface(interface: &Interface) -> String {
     // or "Cache" in `org.a11y.atspi.Cache`.
     let last_after_period = iface_name(interface);
     match last_after_period.as_str() {
-        "Cache" => "Cache".to_string(),
-        "Socket" => "Available".to_string(),
-        "Registry" => "Listener".to_string(),
+        "Cache" => "Cache",
+        "Socket" => "Available",
+        "Registry" => "Listener",
         // this covers all other cases like Document, Object, etc.
-        generic_event => format!("{generic_event}"),
-    }
+        generic_event => generic_event,
+    }.to_string()
 }
 
 fn generate_try_from_event_impl_match_statement(signal: &Signal, interface: &Interface) -> String {
-    let mod_name = iface_name(interface);
     let event_variant = generate_enum_variant_from_interface(interface);
     let sub_enum = generate_sub_enum_from_interface(interface);
-    let name_ident = iface_to_enum_name(interface);
-    let name_ident_plural = events_ident(name_ident);
     let sig_name = into_rust_enum_str(signal.name());
     let interface_name = iface_name(interface);
     match interface_name.as_str() {
@@ -373,7 +362,7 @@ fn iface_to_enum_name(interface: &Interface) -> String {
         .to_string()
 }
 
-fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str, signal_name: &str, interface: &str) -> String {
+fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -> String {
     format!(
         "{STRIPPER_IGNORE_START}
     /// # Example
@@ -411,10 +400,16 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str, s
     )
 }
 
-fn generate_struct_from_signal(mod_name: &str, signal: &Signal, iface: &Interface) -> String {
+fn generate_struct_from_signal(mod_name: &str, signal: &Signal, derive_default: bool) -> String {
     let sig_name_event = event_ident(signal.name());
-    let interface_name = iface.name();
-    let example = generate_signal_associated_example(mod_name, &sig_name_event, &signal.name(), &interface_name);
+    let example = generate_signal_associated_example(mod_name, &sig_name_event);
+		let derives = {
+			let mut derive_types = vec!["Debug", "PartialEq", "Clone"];
+			if derive_default {
+				derive_types.push("Default");
+			}
+			derive_types
+		}.join(",");
     let fields = signal
         .args()
         .iter()
@@ -426,7 +421,7 @@ fn generate_struct_from_signal(mod_name: &str, signal: &Signal, iface: &Interfac
     format!(
         "
     {example}
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive({derives})]
 	pub struct {sig_name_event} {{
     pub item: crate::events::Accessible,
 {fields}
@@ -445,7 +440,6 @@ fn match_arm_for_signal(iface_name: &str, signal: &Signal) -> String {
     let raw_signal_name = signal.name();
     let enum_signal_name = into_rust_enum_str(raw_signal_name);
     let enum_name = events_ident(iface_name);
-    let signal_struct_name = event_ident(raw_signal_name);
     format!(
         "				\"{raw_signal_name}\" => Ok({enum_name}::{enum_signal_name}(ev.try_into()?)),"
     )
@@ -482,9 +476,40 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
 	}}
 	")
 }
+fn can_derive_default(iface: &Interface, signal: &Signal) -> bool {
+	signal.args()
+		.iter()
+		.filter_map(|arg| {
+			if default_for_signal_item(arg).contains("default()") { None } else { Some(false) }
+		})
+		.collect::<Vec<bool>>()
+		.is_empty()
+}
+fn generate_default_for_signal(iface: &Interface, signal: &Signal) -> String {
+    let iname = signal.name();
+    let impl_for_name = event_ident(iname);
+    let default_struct_lit = signal
+        .args()
+        .iter()
+        .filter_map(|arg| {
+						arg.name()?;
+            Some(default_for_signal_item(arg))
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
+	format!("
+	impl Default for {impl_for_name} {{
+		fn default() -> Self {{
+			{impl_for_name} {{
+				item: crate::events::Accessible::default(),
+				{default_struct_lit}
+			}}
+		}}
+	}}
+	")
+}
 fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
     let iname = signal.name();
-    let error_str = format!("No matching member for {iname}");
     let impl_for_name = event_ident(iname);
 		let iface_variant = iface_name(iface);
 		let enum_variant = events_ident(iface_variant.clone());
@@ -506,9 +531,7 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
         .iter()
         .enumerate()
         .filter_map(|(i, arg)| {
-            if arg.name().is_none() {
-              return None;
-            }
+						arg.name()?;
             let Ok(field_name) = i.try_into() else {
               return None;
             };
@@ -516,30 +539,7 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
         })
         .collect::<Vec<String>>()
         .join(", ");
-    let default_struct_lit = signal
-        .args()
-        .iter()
-        .enumerate()
-        .filter_map(|(i, arg)| {
-            if arg.name().is_none() {
-              return None;
-            }
-            let Ok(field_name) = i.try_into() else {
-              return None;
-            };
-            Some(default_for_signal_item(arg, field_name))
-        })
-        .collect::<Vec<String>>()
-        .join(", ");
     format!("
-	impl Default for {impl_for_name} {{
-		fn default() -> Self {{
-			{impl_for_name} {{
-				item: crate::events::Accessible::default(),
-				{default_struct_lit}
-			}}
-		}}
-	}}
 	impl From<{impl_for_name}> for {enum_variant} {{
 		fn from(specific_event: {impl_for_name}) -> Self {{
 			{enum_variant}::{event_variant}(specific_event)
@@ -659,13 +659,17 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
     )
 }
 
+
 fn generate_mod_from_iface(iface: &Interface) -> String {
     let mod_name = iface_name(iface).to_lowercase();
     let enums = generate_enum_from_iface(iface);
-    let structs = iface
-        .signals()
-        .iter()
-        .map(|signal| generate_struct_from_signal(&mod_name, signal, &iface))
+		let derive_default = iface
+				.signals()
+				.iter()
+				.map(|signal| can_derive_default(iface, signal))
+				.collect::<Vec<bool>>();
+    let structs = std::iter::zip(derive_default.iter(), iface.signals())
+        .map(|(derive_default, signal)| generate_struct_from_signal(&mod_name, signal, *derive_default))
         .collect::<Vec<String>>()
         .join("\n");
     let impls = iface
@@ -679,6 +683,14 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .signals()
         .iter()
         .map(|signal| generate_try_from_event_body(iface, signal))
+        .collect::<Vec<String>>()
+        .join("\n");
+		let default_event_body = std::iter::zip(derive_default.iter(), iface.signals())
+        .filter_map(|(derive, signal)| if !derive {
+					Some(generate_default_for_signal(iface, signal))
+				} else {
+					None 
+				})
         .collect::<Vec<String>>()
         .join("\n");
     let registry_event_enum_impl = generate_registry_event_enum_impl(iface);
@@ -702,11 +714,10 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 {STRIPPER_IGNORE_STOP}
 pub mod {mod_name} {{
-	use std::collections::HashMap;
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned, Accessible}},
+		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;
@@ -799,7 +810,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
 		let signal = iface.signals().into_iter().next().expect("Could not get a signal to create example code.");
 		let sig_name_event = event_ident(signal.name());
 		let interface_name = iface.name();
-    let example = generate_enum_associated_example(&mod_name, &sig_name_event, &signal.name(), &interface_name, &name_ident);
+    let example = generate_enum_associated_example(&mod_name, &sig_name_event, signal.name(), interface_name, &name_ident);
     let name_ident_plural = events_ident(name_ident);
     let signal_quotes = iface
         .signals()
