@@ -437,6 +437,7 @@ impl TryFrom<&Message> for Event {
 			.ok_or(AtspiError::MemberMatch("signal w/o member".to_string()))?;
 		let message_member = signal_member.as_str();
 
+		println!("MSG SIG: {:?}", message_signature);
 		match message_signature {
 			// Accessible signature
 			"(so)" => match message_member {
