@@ -236,7 +236,7 @@ fn generate_struct_literal_conversion_for_signal_item(signal_item: &Arg, inner_e
     let field_name = signal_item.name().expect("No name for arg");
     let msg_field_name = inner_event_name.to_string();
 
-    format!("{field_name}: event.body.{msg_field_name}")
+    format!("{field_name}: body.{msg_field_name}")
 }
 fn generate_reverse_struct_literal_conversion_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName2) -> String {
     let rust_type = to_rust_type(signal_item.ty(), true, true);
@@ -484,11 +484,12 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
         Event::{enum_name}(event_enum)
 		}}
 	}}
-	impl TryFrom<AnyEvent<EventBodyOwned>> for {impl_for_name} {{
+	impl TryFrom<&zbus::Message> for {impl_for_name} {{
 		type Error = AtspiError;
 
-		fn try_from(ev: AnyEvent<EventBodyOwned>) -> Result<Self, Self::Error> {{
-			let Some(member) = ev.member() else {{ return Err(AtspiError::MemberMatch(\"Event w/o member\".into())); }};
+		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {{
+			let member = ev.member()
+				.ok_or(AtspiError::MemberMatch(\"Event without member\".into()))?;
 			match member.as_str() {{
 {member_conversions}
 				_ => Err(AtspiError::MemberMatch(\"{error_str}\".into())),
@@ -534,7 +535,7 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
     format!("
 	impl From<{impl_for_name}> for {enum_variant} {{
 		fn from(specific_event: {impl_for_name}) -> Self {{
-		{enum_variant}::{event_variant}(specific_event)
+			{enum_variant}::{event_variant}(specific_event)
 		}}
 	}}
 	impl From<{impl_for_name}> for Event {{
@@ -542,28 +543,27 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
 			Event::{iface_variant}(specific_event.into())
 		}}
 	}}
-  impl TryFrom<{impl_for_name}> for AnyEvent<EventBodyOwned> {{
+  impl TryFrom<{impl_for_name}> for zbus::Message {{
     type Error = AtspiError;
     fn try_from(event: {impl_for_name}) -> Result<Self, Self::Error> {{
-      let event_body_owned = EventBodyOwned {{
-        {reverse_signal_conversion_lit}
-      }};
-      Ok(Self {{
-        message: zbus::MessageBuilder::signal(
+      Ok(zbus::MessageBuilder::signal(
 						event.item.path,
 						<{impl_for_name} as GenericEvent>::DBUS_INTERFACE,
 						<{impl_for_name} as GenericEvent>::DBUS_MEMBER,
 					)?
 					.sender(event.item.name)?
-					.build(&((event_body_owned.clone()),))?,
-        body: event_body_owned
-      }})
+					.build(&((EventBodyOwned {{
+					{reverse_signal_conversion_lit}
+					}}),))?
+      )
     }}
   }}
-  impl TryFrom<AnyEvent<EventBodyOwned>> for {impl_for_name} {{
+  impl TryFrom<&zbus::Message> for {impl_for_name} {{
     type Error = AtspiError;
-    fn try_from(event: AnyEvent<EventBodyOwned>) -> Result<Self, Self::Error> {{
-      Ok(Self {{ item: (&event).try_into()?, {signal_conversion_lit} }})
+    fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {{
+			let body = msg.body::<EventBodyOwned>()?;
+			let item = msg.try_into()?;
+      Ok(Self {{ item, {signal_conversion_lit} }})
     }}
   }}
 	")
@@ -698,7 +698,7 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{AnyEvent, GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
+		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;
@@ -774,7 +774,7 @@ fn generate_enum_associated_example(mod_name: &str, signal_event_name: &str, sig
     /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
-    ///          if let Event::Interfaces(EventInterfaces::{iface_name}(_event)) = ev {{
+    ///          if let Ok(event) = {iface_name}::try_from(ev) {{
 		/// #            break;
 		///              // do things with your event here
 		///          }}  else {{ continue }};
