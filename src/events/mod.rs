@@ -5,6 +5,8 @@ pub mod mouse;
 pub mod object;
 pub mod terminal;
 pub mod window;
+#[macro_use]
+pub mod macros;
 
 // Event body signatures: These outline the event specific deserialized event types.
 // Safety: These are evaluated at compile time.
@@ -148,6 +150,10 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 
 	type Body = CacheItem;
 
+	fn build(item: Accessible, body: Self::Body) -> Self {
+		Self { item, node_added: body }
+	}
+
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
@@ -164,28 +170,8 @@ impl<'a, T: GenericEvent<'a>> HasMatchRule for T {
 impl<'a, T: GenericEvent<'a>> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as GenericEvent>::REGISTRY_EVENT_STRING;
 }
-impl TryFrom<&Message> for AddAccessibleEvent {
-	type Error = AtspiError;
-
-	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-		Ok(AddAccessibleEvent { item: msg.try_into()?, node_added: msg.body::<CacheItem>()? })
-	}
-}
-impl TryFrom<AddAccessibleEvent> for zbus::Message {
-	type Error = AtspiError;
-
-	fn try_from(event: AddAccessibleEvent) -> Result<Self, Self::Error> {
-		Ok(
-			zbus::MessageBuilder::signal(
-					event.item.path,
-					<AddAccessibleEvent as GenericEvent>::DBUS_INTERFACE,
-					<AddAccessibleEvent as GenericEvent>::DBUS_MEMBER,
-				)?
-				.sender(event.item.name)?
-				.build(&((event.node_added),))?
-		)
-	}
-}
+impl_from_dbus_message!(AddAccessibleEvent);
+impl_to_dbus_message!(AddAccessibleEvent);
 
 #[derive(Debug, Clone)]
 pub struct RemoveAccessibleEvent {
@@ -201,6 +187,9 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 
 	type Body = Accessible;
 
+	fn build(item: Accessible, body: Self::Body) -> Self {
+		Self { item, node_removed: body }
+	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
@@ -211,38 +200,8 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 		self.node_removed.clone()
 	}
 }
-impl TryFrom<&Message> for RemoveAccessibleEvent {
-	type Error = AtspiError;
-
-	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-		let opair = msg.body::<(String, OwnedObjectPath)>()?;
-		Ok(RemoveAccessibleEvent {
-			item: Accessible {
-				name: msg
-					.header()?
-					.sender()?
-					.ok_or(ObjectPathConversionError::NoIdAvailable)?
-					.to_owned()
-					.into(),
-				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-			},
-			node_removed: Accessible { name: OwnedUniqueName::try_from(opair.0)?, path: opair.1 },
-		})
-	}
-}
-impl TryFrom<RemoveAccessibleEvent> for Message {
-	type Error = AtspiError;
-
-	fn try_from(event: RemoveAccessibleEvent) -> Result<Self, AtspiError> {
-		Ok(MessageBuilder::signal(
-			event.item.path,
-			<RemoveAccessibleEvent as GenericEvent>::DBUS_INTERFACE,
-			<RemoveAccessibleEvent as GenericEvent>::DBUS_MEMBER,
-		)?
-		.sender(event.item.name)?
-		.build(&(event.node_removed,))?)
-	}
-}
+impl_from_dbus_message!(RemoveAccessibleEvent);
+impl_to_dbus_message!(RemoveAccessibleEvent);
 
 // TODO: Try to make borrowed versions work,
 // check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
@@ -337,25 +296,6 @@ pub struct EventListenerDeregisteredEvent {
 	pub item: Accessible,
 	pub deregistered_event: EventListeners,
 }
-impl TryFrom<&Message> for EventListenerDeregisteredEvent {
-	type Error = AtspiError;
-
-	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-		let deregistered_event = msg.body::<EventListeners>()?;
-		Ok(EventListenerDeregisteredEvent {
-			item: Accessible {
-				name: msg
-					.header()?
-					.sender()?
-					.ok_or(ObjectPathConversionError::NoIdAvailable)?
-					.to_owned()
-					.into(),
-				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-			},
-			deregistered_event,
-		})
-	}
-}
 impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
 	const MATCH_RULE_STRING: &'static str =
@@ -365,6 +305,9 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 
 	type Body = EventListeners;
 
+	fn build(item: Accessible, body: Self::Body) -> Self {
+		Self { item, deregistered_event: body }
+	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
@@ -375,31 +318,14 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 		self.deregistered_event.clone()
 	}
 }
+impl_from_dbus_message!(EventListenerDeregisteredEvent);
+impl_to_dbus_message!(EventListenerDeregisteredEvent);
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug)]
 pub struct EventListenerRegisteredEvent {
 	pub item: Accessible,
 	pub registered_event: EventListeners,
-}
-impl TryFrom<&Message> for EventListenerRegisteredEvent {
-	type Error = AtspiError;
-
-	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-		let registered_event = msg.body::<EventListeners>()?;
-		Ok(EventListenerRegisteredEvent {
-			item: Accessible {
-				name: msg
-					.header()?
-					.sender()?
-					.ok_or(ObjectPathConversionError::NoIdAvailable)?
-					.to_owned()
-					.into(),
-				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-			},
-			registered_event,
-		})
-	}
 }
 impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
@@ -410,6 +336,9 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 
 	type Body = EventListeners;
 
+	fn build(item: Accessible, body: Self::Body) -> Self {
+		Self { item, registered_event: body }
+	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
@@ -420,31 +349,14 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 		self.registered_event.clone()
 	}
 }
+impl_from_dbus_message!(EventListenerRegisteredEvent);
+impl_to_dbus_message!(EventListenerRegisteredEvent);
 
 /// An event that is emitted when the registry daemon has started.
 #[derive(Clone, Debug)]
 pub struct AvailableEvent {
 	pub item: Accessible,
 	pub socket: Accessible,
-}
-impl TryFrom<&Message> for AvailableEvent {
-	type Error = AtspiError;
-
-	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-		let socket = msg.body::<Accessible>()?;
-		Ok(AvailableEvent {
-			item: Accessible {
-				name: msg
-					.header()?
-					.sender()?
-					.ok_or(ObjectPathConversionError::NoIdAvailable)?
-					.to_owned()
-					.into(),
-				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-			},
-			socket,
-		})
-	}
 }
 impl GenericEvent<'_> for AvailableEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
@@ -455,6 +367,9 @@ impl GenericEvent<'_> for AvailableEvent {
 
 	type Body = Accessible;
 
+	fn build(item: Accessible, body: Self::Body) -> Self {
+		Self { item, socket: body }
+	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
 	}
@@ -465,6 +380,8 @@ impl GenericEvent<'_> for AvailableEvent {
 		self.socket.clone()
 	}
 }
+impl_from_dbus_message!(AvailableEvent);
+impl_to_dbus_message!(AvailableEvent);
 
 impl TryFrom<&Message> for Event {
 	type Error = AtspiError;
@@ -545,6 +462,9 @@ pub trait GenericEvent<'a> {
 
 	/// What is the body type of this event.
 	type Body: Type + Serialize + Deserialize<'a>;
+
+	/// Build the event from the object pair (Accessible and the Body).
+	fn build(item: Accessible, body: Self::Body) -> Self;
 
 	/// Path of the signalling object.
 	fn path(&self) -> ObjectPath<'_>;
