@@ -272,13 +272,12 @@ fn generate_enum_variant_from_interface(interface: &Interface) -> String {
     // or "Cache" in `org.a11y.atspi.Cache`.
     let last_after_period = iface_name(interface);
     match last_after_period.as_str() {
-        "Cache" => "Cache",
-        "Socket" => "Available",
-        "Registry" => "Listener",
+        "Cache" => "Cache".to_string(),
+        "Socket" => "Available".to_string(),
+        "Registry" => "Listener".to_string(),
         // this covers all other cases like Document, Object, etc.
-        _ => "Interfaces",
+        generic_event => format!("{generic_event}"),
     }
-    .to_string()
 }
 
 fn generate_try_from_event_impl_match_statement(signal: &Signal, interface: &Interface) -> String {
@@ -305,7 +304,7 @@ fn generate_try_from_event_impl_match_statement(signal: &Signal, interface: &Int
     "Socket" => {
       format!("if let Event::{event_variant}(inner_event) = event {{")
     },
-    _ => format!("if let Event::{event_variant}({sub_enum}::{mod_name}({name_ident_plural}::{sig_name}(inner_event))) = event {{")
+    _ => format!("if let Event::{event_variant}({sub_enum}::{sig_name}(inner_event)) = event {{")
   }
 }
 
@@ -343,13 +342,12 @@ fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
 fn generate_sub_enum_from_interface(interface: &Interface) -> String {
     let last_after_period = iface_name(interface);
     match last_after_period.as_str() {
-        "Cache" => "CacheEvents",
-        "Socket" => "AvailableEvent",
-        "Registry" => "EventListenerEvents",
+        "Cache" => "CacheEvents".to_string(),
+        "Socket" => "AvailableEvent".to_string(),
+        "Registry" => "EventListenerEvents".to_string(),
         // this covers all other cases like Document, Object, etc.
-        _ => "EventInterfaces",
+        generic_event => format!("{generic_event}Events"),
     }
-    .to_string()
 }
 
 fn iface_to_enum_name(interface: &Interface) -> String {
@@ -372,7 +370,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str, s
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::{{events::EventInterfaces, Event}};
+    /// use atspi::Event;
     /// use atspi::identify::{mod_name}::{signal_event_name};
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -483,7 +481,7 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
     format!("
 	impl From<{impl_for_name}> for Event {{
 		fn from(event_enum: {impl_for_name}) -> Self {{
-        Event::Interfaces(EventInterfaces::{enum_name}(event_enum))
+        Event::{enum_name}(event_enum)
 		}}
 	}}
 	impl TryFrom<AnyEvent<EventBodyOwned>> for {impl_for_name} {{
@@ -539,14 +537,9 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
 		{enum_variant}::{event_variant}(specific_event)
 		}}
 	}}
-	impl From<{impl_for_name}> for EventInterfaces {{
-		fn from(specific_event: {impl_for_name}) -> Self {{
-			EventInterfaces::{iface_variant}(specific_event.into())
-		}}
-	}}
 	impl From<{impl_for_name}> for Event {{
 		fn from(specific_event: {impl_for_name}) -> Self {{
-			Event::Interfaces(specific_event.into())
+			Event::{iface_variant}(specific_event.into())
 		}}
 	}}
   impl TryFrom<{impl_for_name}> for AnyEvent<EventBodyOwned> {{
@@ -705,7 +698,7 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{AnyEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
+		events::{{AnyEvent, GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;
@@ -735,7 +728,7 @@ fn generate_enum_associated_example(mod_name: &str, signal_event_name: &str, sig
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::{{events::EventInterfaces, Event}};
+    /// use atspi::Event;
     /// use atspi::identify::{mod_name}::{signal_event_name};
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -1549,7 +1542,7 @@ mod tests {
         /// # Examples
         ///
         /// ```
-        /// use atspi::{events::EventInterfaces, Event};
+        /// use atspi::Event;
         /// # use std::time::Duration;
         /// use tokio_stream::StreamExt;
         ///
