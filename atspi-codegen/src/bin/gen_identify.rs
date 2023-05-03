@@ -503,6 +503,9 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
     let iname = signal.name();
     let error_str = format!("No matching member for {iname}");
     let impl_for_name = event_ident(iname);
+		let iface_variant = iface_name(iface);
+		let enum_variant = events_ident(iface_variant.clone());
+		let event_variant = into_rust_enum_str(iname);
     let reverse_signal_conversion_lit = signal
         .args()
         .iter()
@@ -531,6 +534,21 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
         .collect::<Vec<String>>()
         .join(", ");
     format!("
+	impl From<{impl_for_name}> for {enum_variant} {{
+		fn from(specific_event: {impl_for_name}) -> Self {{
+		{enum_variant}::{event_variant}(specific_event)
+		}}
+	}}
+	impl From<{impl_for_name}> for EventInterfaces {{
+		fn from(specific_event: {impl_for_name}) -> Self {{
+			EventInterfaces::{iface_variant}(specific_event.into())
+		}}
+	}}
+	impl From<{impl_for_name}> for Event {{
+		fn from(specific_event: {impl_for_name}) -> Self {{
+			Event::Interfaces(specific_event.into())
+		}}
+	}}
   impl TryFrom<{impl_for_name}> for AnyEvent<EventBodyOwned> {{
     type Error = AtspiError;
     fn try_from(event: {impl_for_name}) -> Result<Self, Self::Error> {{
