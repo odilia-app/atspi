@@ -163,10 +163,7 @@ impl TryFrom<&Message> for AddAccessibleEvent {
 	type Error = AtspiError;
 
 	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-		Ok(AddAccessibleEvent {
-			item: msg.try_into()?,
-			node_added: msg.body::<CacheItem>()?,
-		})
+		Ok(AddAccessibleEvent { item: msg.try_into()?, node_added: msg.body::<CacheItem>()? })
 	}
 }
 
@@ -204,10 +201,7 @@ impl TryFrom<&Message> for RemoveAccessibleEvent {
 					.into(),
 				path: msg.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
 			},
-			node_removed: Accessible {
-				name: OwnedUniqueName::try_from(opair.0)?,
-				path: opair.1,
-			},
+			node_removed: Accessible { name: OwnedUniqueName::try_from(opair.0)?, path: opair.1 },
 		})
 	}
 }
@@ -240,7 +234,9 @@ impl Default for Accessible {
 	fn default() -> Self {
 		Accessible {
 			name: UniqueName::from_static_str(":0.0").unwrap().into(),
-			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap().into()
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
+				.unwrap()
+				.into(),
 		}
 	}
 }
@@ -256,21 +252,18 @@ pub mod accessible_tests {
 	}
 }
 impl TryFrom<&Message> for Accessible {
-  type Error = AtspiError;
-  fn try_from(message: &Message) -> Result<Self, Self::Error> {
-    Ok(Accessible {
-      name: message
-        .header()?
-        .sender()?
-        .ok_or(ObjectPathConversionError::NoIdAvailable)?
-        .to_owned()
-        .into(),
-      path: message
-        .path()
-        .ok_or(ObjectPathConversionError::NoIdAvailable)?
-        .into()
-    })
-  }
+	type Error = AtspiError;
+	fn try_from(message: &Message) -> Result<Self, Self::Error> {
+		Ok(Accessible {
+			name: message
+				.header()?
+				.sender()?
+				.ok_or(ObjectPathConversionError::NoIdAvailable)?
+				.to_owned()
+				.into(),
+			path: message.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
+		})
+	}
 }
 
 #[test]
@@ -316,14 +309,14 @@ pub enum EventListenerEvents {
 /// to no longer listen for.
 #[derive(Clone, Debug)]
 pub struct EventListenerDeregisteredEvent {
-  pub item: Accessible,
-  pub deregistered_event: EventListeners,
+	pub item: Accessible,
+	pub deregistered_event: EventListeners,
 }
 impl TryFrom<&Message> for EventListenerDeregisteredEvent {
 	type Error = AtspiError;
 
 	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-    let deregistered_event = msg.body::<EventListeners>()?;
+		let deregistered_event = msg.body::<EventListeners>()?;
 		Ok(EventListenerDeregisteredEvent {
 			item: Accessible {
 				name: msg
@@ -338,12 +331,12 @@ impl TryFrom<&Message> for EventListenerDeregisteredEvent {
 		})
 	}
 }
-impl GenericEvent for  EventListenerDeregisteredEvent {
+impl GenericEvent for EventListenerDeregisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
-  const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
-  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+	const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -356,14 +349,14 @@ impl GenericEvent for  EventListenerDeregisteredEvent {
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug)]
 pub struct EventListenerRegisteredEvent {
-  pub item: Accessible,
+	pub item: Accessible,
 	pub registered_event: EventListeners,
 }
 impl TryFrom<&Message> for EventListenerRegisteredEvent {
 	type Error = AtspiError;
 
 	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-    let registered_event = msg.body::<EventListeners>()?;
+		let registered_event = msg.body::<EventListeners>()?;
 		Ok(EventListenerRegisteredEvent {
 			item: Accessible {
 				name: msg
@@ -378,12 +371,12 @@ impl TryFrom<&Message> for EventListenerRegisteredEvent {
 		})
 	}
 }
-impl GenericEvent for  EventListenerRegisteredEvent {
+impl GenericEvent for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
-  const DBUS_MEMBER: &'static str = "EventListenerRegistered";
-  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+	const DBUS_MEMBER: &'static str = "EventListenerRegistered";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -396,14 +389,14 @@ impl GenericEvent for  EventListenerRegisteredEvent {
 /// An event that is emitted when the registry daemon has started.
 #[derive(Clone, Debug)]
 pub struct AvailableEvent {
-  pub item: Accessible,
-  pub socket: Accessible,
+	pub item: Accessible,
+	pub socket: Accessible,
 }
 impl TryFrom<&Message> for AvailableEvent {
 	type Error = AtspiError;
 
 	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
-    let socket = msg.body::<Accessible>()?;
+		let socket = msg.body::<Accessible>()?;
 		Ok(AvailableEvent {
 			item: Accessible {
 				name: msg
@@ -418,12 +411,12 @@ impl TryFrom<&Message> for AvailableEvent {
 		})
 	}
 }
-impl GenericEvent for  AvailableEvent {
+impl GenericEvent for AvailableEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
-  const DBUS_MEMBER: &'static str = "Available";
-  const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
+	const DBUS_MEMBER: &'static str = "Available";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
 
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -464,15 +457,11 @@ impl TryFrom<&Message> for Event {
 					"org.a11y.atspi.Event.Document" => {
 						Ok(Event::Document(DocumentEvents::try_from(msg)?))
 					}
-					"org.a11y.atspi.Event.Focus" => {
-						Ok(Event::Focus(FocusEvents::try_from(msg)?))
-					}
+					"org.a11y.atspi.Event.Focus" => Ok(Event::Focus(FocusEvents::try_from(msg)?)),
 					"org.a11y.atspi.Event.Keyboard" => {
 						Ok(Event::Keyboard(KeyboardEvents::try_from(msg)?))
 					}
-					"org.a11y.atspi.Event.Mouse" => {
-						Ok(Event::Mouse(MouseEvents::try_from(msg)?))
-					}
+					"org.a11y.atspi.Event.Mouse" => Ok(Event::Mouse(MouseEvents::try_from(msg)?)),
 					"org.a11y.atspi.Event.Object" => {
 						Ok(Event::Object(ObjectEvents::try_from(msg)?))
 					}
@@ -533,16 +522,16 @@ pub trait HasRegistryEventString {
 #[cfg(test)]
 mod tests {
 	use crate::events::{
-		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
+		Accessible, AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
 		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
-		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE, Accessible,
+		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
 	use tokio::time::timeout;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
-	use zbus::{MessageBuilder, Message};
+	use zbus::{Message, MessageBuilder};
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -578,16 +567,16 @@ mod tests {
 		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
 		let unique_bus_name = atspi.connection().unique_name();
-    let remove_accessible = RemoveAccessibleEvent {
-      item: Accessible {
-        path: "/org/a11y/atspi/accessible/null".try_into()?,
-        name: ":1.1".try_into()?,
-      },
-      node_removed: Accessible {
-        path: "/org/a11y/atspi/accessible/remove".try_into()?,
-        name: ":69.420".try_into()?,
-      },
-    };
+		let remove_accessible = RemoveAccessibleEvent {
+			item: Accessible {
+				path: "/org/a11y/atspi/accessible/null".try_into()?,
+				name: ":1.1".try_into()?,
+			},
+			node_removed: Accessible {
+				path: "/org/a11y/atspi/accessible/remove".try_into()?,
+				name: ":69.420".try_into()?,
+			},
+		};
 		let msg: Message = remove_accessible.try_into()?;
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
@@ -609,7 +598,7 @@ mod tests {
 				panic!("An error occured: {:?}", e);
 			}
 		};
-    Ok(())
+		Ok(())
 	}
 	#[tokio::test]
 	async fn test_recv_add_accessible() {
