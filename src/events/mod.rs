@@ -569,7 +569,6 @@ mod tests {
 		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
-		let unique_bus_name = atspi.connection().unique_name();
 		let remove_accessible = RemoveAccessibleEvent {
 			item: Accessible {
 				path: "/org/a11y/atspi/accessible/null".try_into()?,
