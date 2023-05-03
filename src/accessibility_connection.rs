@@ -68,7 +68,6 @@ impl AccessibilityConnection {
 	/// Basic use:
 	///
 	/// ```rust
-	/// use atspi::events::EventInterfaces;
 	/// use enumflags2::BitFlag;
 	/// use atspi::identify::object::{ObjectEvents, StateChangedEvent};
 	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};

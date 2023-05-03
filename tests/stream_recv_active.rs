@@ -1,6 +1,5 @@
 mod common;
 
-use atspi::events::EventInterfaces;
 use atspi::identify::object::ObjectEvents;
 use atspi::Event;
 use futures_lite::future::{block_on, race};
@@ -31,7 +30,7 @@ fn recv_active_signal() {
 		);
 
 		while let Some(Ok(event)) = a11y_event_stream.next().await {
-			let  Event::Interfaces(EventInterfaces::Object(ObjectEvents::StateChanged(change))) = event else { continue };
+			let  Event::Object(ObjectEvents::StateChanged(change)) = event else { continue };
 			assert!(change.state == "active");
 			break;
 		}

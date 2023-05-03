@@ -717,7 +717,7 @@ pub mod {mod_name} {{
     )
 }
 
-fn generate_enum_associated_example(mod_name: &str, signal_event_name: &str, signal_name: &str, interface: &str, iface_name: &str) -> String {
+fn generate_enum_associated_example(mod_name: &str, signal_event_name: &str, signal_name: &str, interface: &str, enum_event_name: &str) -> String {
     format!(
   "{STRIPPER_IGNORE_START}
     /// # Example
@@ -774,7 +774,7 @@ fn generate_enum_associated_example(mod_name: &str, signal_event_name: &str, sig
     /// #       .unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
-    ///          if let Ok(event) = {iface_name}::try_from(ev) {{
+    ///          if let Event::{enum_event_name}(_event) = ev {{
 		/// #            break;
 		///              // do things with your event here
 		///          }}  else {{ continue }};
