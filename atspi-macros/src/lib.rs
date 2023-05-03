@@ -183,6 +183,18 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
 			type Error = AtspiError;
 
 			fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+        let item = Accessible {
+          name: message
+            .header()?
+            .sender()?
+            .ok_or(ObjectPathConversionError::NoIdAvailable)?
+            .to_owned()
+            .into(),
+          path: message
+            .path()
+            .ok_or(ObjectPathConversionError::NoIdAvailable)?
+            .into()
+        };
 				let message_member: MemberName = message
 					.member()
 					.ok_or(AtspiError::MemberMatch("message w/o member".to_string()))?;
@@ -194,10 +206,9 @@ pub fn try_from_zbus_message(attr: TokenStream, input: TokenStream) -> TokenStre
 					return Err(AtspiError::MemberMatch(error));
 				};
 				let body: #body_type = message.body()?;
-				Ok(Self { message, body })
+				Ok(Self { item, body })
 			}
 		}
-
 	};
 
 	// Return the expanded code as a token stream
