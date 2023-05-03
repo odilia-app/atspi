@@ -255,9 +255,9 @@ impl AccessibilityConnection {
 	}
 	/// Send an event over the accessibility bus.
 	/// This converts the event into a [`zbus::Message`] using the [`GenericEvnet`] trait.
-	/// 
+	///
 	/// # Errors
-	/// 
+	///
 	/// This will only fail if:
 	/// 1. [`zbus::MessageBuilder`] fails at any point, or
 	/// 2. sending the event fails for some reason.

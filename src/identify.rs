@@ -1,4 +1,3 @@
-
 use crate::AtspiError;
 
 #[allow(clippy::module_name_repetitions)]
