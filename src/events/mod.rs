@@ -500,7 +500,7 @@ mod tests {
 	use std::{collections::HashMap, time::Duration};
 	use tokio::time::timeout;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
-	use zbus::{Message, MessageBuilder, names::UniqueName};
+	use zbus::{names::UniqueName, Message, MessageBuilder};
 
 	#[test]
 	fn check_event_body_qt_signature() {

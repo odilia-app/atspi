@@ -1,6 +1,6 @@
 use crate::{
 	bus::BusProxy,
-	events::{Event, HasMatchRule, HasRegistryEventString, GenericEvent},
+	events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString},
 	registry::RegistryProxy,
 	AtspiError,
 };
@@ -253,8 +253,10 @@ impl AccessibilityConnection {
 	pub fn connection(&self) -> &zbus::Connection {
 		self.registry.connection()
 	}
-	pub async fn send_event<T>(&self, event: T) -> Result<u32, AtspiError> 
-	where T: for<'a> GenericEvent<'a> {
+	pub async fn send_event<T>(&self, event: T) -> Result<u32, AtspiError>
+	where
+		T: for<'a> GenericEvent<'a>,
+	{
 		let conn = self.connection();
 		let new_message = zbus::MessageBuilder::signal(
 			event.path(),
