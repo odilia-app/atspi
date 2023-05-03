@@ -254,7 +254,7 @@ impl AccessibilityConnection {
 		self.registry.connection()
 	}
 	/// Send an event over the accessibility bus.
-	/// This converts the event into a [`zbus::Message`] using the [`GenericEvnet`] trait.
+	/// This converts the event into a [`zbus::Message`] using the [`GenericEvent`] trait.
 	///
 	/// # Errors
 	///
