@@ -255,6 +255,20 @@ fn generate_reverse_struct_literal_conversion_for_signal_item(signal_item: &Arg,
 
     format!("{msg_field_name}: {value}")
 }
+fn default_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName2) -> String {
+    let rust_type = to_rust_type(signal_item.ty(), true, true);
+		let Some(field_name) = signal_item.name() else {
+			return String::new();
+		};
+		let value = if rust_type == "zbus::zvariant::OwnedValue" {
+			format!("zbus::zvariant::Value::U8(0).into()")
+		} else if rust_type.starts_with("std::collections::HashMap") {
+			format!("HashMap::new()")
+		} else {
+			format!("{rust_type}::default()")
+		};
+    format!("{field_name}: {value}")
+}
 fn generate_field_for_signal_item(signal_item: &Arg) -> String {
     if signal_item.name().is_none() {
         return String::new();
@@ -381,39 +395,9 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str, s
     ///     let mut events = atspi.event_stream();
 		/// #   atspi.register_event::<{signal_event_name}>().await.unwrap();
     ///     std::pin::pin!(&mut events);
-    /// #   let output = std::process::Command::new(\"busctl\")
-    /// #       .arg(\"--user\")
-    /// #       .arg(\"call\")
-    /// #       .arg(\"org.a11y.Bus\")
-    /// #       .arg(\"/org/a11y/bus\")
-    /// #       .arg(\"org.a11y.Bus\")
-    /// #       .arg(\"GetAddress\")
-    /// #       .output()
-    /// #       .unwrap();
-    /// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-    /// #    let addr_str = addr_string
-    /// #        .strip_prefix(\"s \\\"\")
-    /// #        .unwrap()
-    /// #        .trim()
-    /// #        .strip_suffix('\"')
-    /// #        .unwrap();
-    /// #   let mut base_cmd = std::process::Command::new(\"busctl\");
-    /// #   let thing = base_cmd
-    /// #       .arg(\"--address\")
-    /// #       .arg(addr_str)
-    /// #       .arg(\"emit\")
-    /// #       .arg(\"/org/a11y/atspi/accessible/null\")
-    /// #       .arg(\"{interface}\")
-    /// #       .arg(\"{signal_name}\")
-    /// #       .arg(\"siiva{{sv}}\")
-    /// #       .arg(\"\")
-    /// #       .arg(\"0\")
-    /// #       .arg(\"0\")
-    /// #       .arg(\"i\")
-    /// #       .arg(\"0\")
-    /// #       .arg(\"0\")
-    /// #       .output()
-    /// #       .unwrap();
+		/// #   let event_struct = {signal_event_name}::default();
+		/// #   let msg_from_event = event_struct.try_into().unwrap();
+		/// #   atspi.connection().send_message(msg_from_event).await.unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
     ///         if let Ok(event) = {signal_event_name}::try_from(ev) {{
@@ -532,7 +516,30 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
         })
         .collect::<Vec<String>>()
         .join(", ");
+    let default_struct_lit = signal
+        .args()
+        .iter()
+        .enumerate()
+        .filter_map(|(i, arg)| {
+            if arg.name().is_none() {
+              return None;
+            }
+            let Ok(field_name) = i.try_into() else {
+              return None;
+            };
+            Some(default_for_signal_item(arg, field_name))
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
     format!("
+	impl Default for {impl_for_name} {{
+		fn default() -> Self {{
+			{impl_for_name} {{
+				item: crate::events::Accessible::default(),
+				{default_struct_lit}
+			}}
+		}}
+	}}
 	impl From<{impl_for_name}> for {enum_variant} {{
 		fn from(specific_event: {impl_for_name}) -> Self {{
 			{enum_variant}::{event_variant}(specific_event)
@@ -695,10 +702,11 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 {STRIPPER_IGNORE_STOP}
 pub mod {mod_name} {{
+	use std::collections::HashMap;
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
+		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned, Accessible}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;
