@@ -473,6 +473,7 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
     let iname = iface_name(iface);
     let error_str = format!("No matching member for {iname}");
     let impl_for_name = events_ident(&iname);
+		let enum_name = iface_to_enum_name(iface);
     let member_conversions = iface
         .signals()
         .iter()
@@ -480,6 +481,11 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
         .collect::<Vec<String>>()
         .join("\n");
     format!("
+	impl From<{impl_for_name}> for Event {{
+		fn from(event_enum: {impl_for_name}) -> Self {{
+        Event::Interfaces(EventInterfaces::{enum_name}(event_enum))
+		}}
+	}}
 	impl TryFrom<AnyEvent<EventBodyOwned>> for {impl_for_name} {{
 		type Error = AtspiError;
 
@@ -532,15 +538,13 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
         {reverse_signal_conversion_lit}
       }};
       Ok(Self {{
-        message: std::sync::Arc::new(
-          zbus::MessageBuilder::signal(
-            event.item.path,
-            <{impl_for_name} as GenericEvent>::DBUS_INTERFACE,
-            <{impl_for_name} as GenericEvent>::DBUS_MEMBER,
-          )?
-          .sender(event.item.name)?
-          .build(&((event_body_owned.clone()),))?
-        ),
+        message: zbus::MessageBuilder::signal(
+						event.item.path,
+						<{impl_for_name} as GenericEvent>::DBUS_INTERFACE,
+						<{impl_for_name} as GenericEvent>::DBUS_MEMBER,
+					)?
+					.sender(event.item.name)?
+					.build(&((event_body_owned.clone()),))?,
         body: event_body_owned
       }})
     }}
