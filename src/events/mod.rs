@@ -438,6 +438,8 @@ impl TryFrom<&Message> for Event {
 		let message_member = signal_member.as_str();
 
 		println!("MSG SIG: {:?}", message_signature);
+		println!("Member: {:?}", message_member);
+		println!("Msg: {:?}", msg);
 		match message_signature {
 			// Accessible signature
 			"(so)" => match message_member {
