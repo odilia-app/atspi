@@ -154,12 +154,12 @@ impl<T: GenericEvent> HasMatchRule for T {
 impl<T: GenericEvent> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as GenericEvent>::REGISTRY_EVENT_STRING;
 }
-impl TryFrom<Arc<Message>> for AddAccessibleEvent {
+impl TryFrom<&Message> for AddAccessibleEvent {
 	type Error = AtspiError;
 
-	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
 		Ok(AddAccessibleEvent {
-			item: Arc::clone(&msg).try_into()?,
+			item: msg.try_into()?,
 			node_added: msg.body::<CacheItem>()?,
 		})
 	}
@@ -184,10 +184,10 @@ impl GenericEvent for RemoveAccessibleEvent {
 		self.item.path.clone().into()
 	}
 }
-impl TryFrom<Arc<Message>> for RemoveAccessibleEvent {
+impl TryFrom<&Message> for RemoveAccessibleEvent {
 	type Error = AtspiError;
 
-	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
 		let opair = msg.body::<(String, OwnedObjectPath)>()?;
 		Ok(RemoveAccessibleEvent {
 			item: Accessible {
@@ -230,40 +230,6 @@ impl TryFrom<RemoveAccessibleEvent> for Message {
 pub struct Accessible {
 	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
-}
-impl TryFrom<Arc<Message>> for Accessible {
-  type Error = AtspiError;
-  fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
-    Ok(Accessible {
-      name: message
-        .header()?
-        .sender()?
-        .ok_or(ObjectPathConversionError::NoIdAvailable)?
-        .to_owned()
-        .into(),
-      path: message
-        .path()
-        .ok_or(ObjectPathConversionError::NoIdAvailable)?
-        .into()
-    })
-  }
-}
-impl TryFrom<&Arc<Message>> for Accessible {
-  type Error = AtspiError;
-  fn try_from(message: &Arc<Message>) -> Result<Self, Self::Error> {
-    Ok(Accessible {
-      name: message
-        .header()?
-        .sender()?
-        .ok_or(ObjectPathConversionError::NoIdAvailable)?
-        .to_owned()
-        .into(),
-      path: message
-        .path()
-        .ok_or(ObjectPathConversionError::NoIdAvailable)?
-        .into()
-    })
-  }
 }
 impl TryFrom<&Message> for Accessible {
   type Error = AtspiError;
@@ -337,15 +303,15 @@ impl<T: Type> TryFrom<&AnyEvent<T>> for Accessible {
 
 #[derive(Debug, Clone)]
 pub struct AnyEvent<T: Type> {
-	pub(crate) message: Arc<Message>,
+	pub(crate) message: Message,
 	pub(crate) body: T,
 }
 
 // if impl. Into<AnyEvent>, then impl Into<Message>
-impl TryFrom<Arc<Message>> for AnyEvent<EventBodyOwned> {
+impl TryFrom<Message> for AnyEvent<EventBodyOwned> {
 	type Error = AtspiError;
 
-	fn try_from(message: Arc<Message>) -> Result<Self, Self::Error> {
+	fn try_from(message: Message) -> Result<Self, Self::Error> {
 		let signature = message.body_signature()?;
 		let body = if signature == QSPI_EVENT_SIGNATURE {
 			EventBodyOwned::from(message.body::<EventBodyQT>()?)
@@ -384,10 +350,10 @@ pub struct EventListenerDeregisteredEvent {
   pub item: Accessible,
   pub deregistered_event: EventListeners,
 }
-impl TryFrom<Arc<Message>> for EventListenerDeregisteredEvent {
+impl TryFrom<&Message> for EventListenerDeregisteredEvent {
 	type Error = AtspiError;
 
-	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
     let deregistered_event = msg.body::<EventListeners>()?;
 		Ok(EventListenerDeregisteredEvent {
 			item: Accessible {
@@ -424,10 +390,10 @@ pub struct EventListenerRegisteredEvent {
   pub item: Accessible,
 	pub registered_event: EventListeners,
 }
-impl TryFrom<Arc<Message>> for EventListenerRegisteredEvent {
+impl TryFrom<&Message> for EventListenerRegisteredEvent {
 	type Error = AtspiError;
 
-	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
     let registered_event = msg.body::<EventListeners>()?;
 		Ok(EventListenerRegisteredEvent {
 			item: Accessible {
@@ -464,10 +430,10 @@ pub struct AvailableEvent {
   pub item: Accessible,
   pub socket: Accessible,
 }
-impl TryFrom<Arc<Message>> for AvailableEvent {
+impl TryFrom<&Message> for AvailableEvent {
 	type Error = AtspiError;
 
-	fn try_from(msg: Arc<Message>) -> Result<Self, AtspiError> {
+	fn try_from(msg: &Message) -> Result<Self, AtspiError> {
     let socket = msg.body::<Accessible>()?;
 		Ok(AvailableEvent {
 			item: Accessible {
@@ -498,10 +464,10 @@ impl GenericEvent for  AvailableEvent {
 	}
 }
 
-impl TryFrom<Arc<Message>> for Event {
+impl TryFrom<&Message> for Event {
 	type Error = AtspiError;
 
-	fn try_from(msg: Arc<Message>) -> Result<Event, AtspiError> {
+	fn try_from(msg: &Message) -> Result<Event, AtspiError> {
 		let body_signature = msg.body_signature()?;
 		let message_signature = body_signature.as_str();
 		let signal_member = msg
@@ -529,7 +495,7 @@ impl TryFrom<Arc<Message>> for Event {
 				Ok(Event::Interfaces(event_interfaces))
 			}
 			"(ss)" => {
-				if let Ok(ev) = EventListenerRegisteredEvent::try_from(Arc::clone(&msg)) {
+				if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg) {
 					return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
 				}
 				if let Ok(ev) = EventListenerDeregisteredEvent::try_from(msg) {
