@@ -255,7 +255,7 @@ fn default_for_signal_item(signal_item: &Arg) -> String {
 		let value = if rust_type == "zbus::zvariant::OwnedValue" {
 			"zbus::zvariant::Value::U8(0).into()".to_string()
 		} else if rust_type.starts_with("std::collections::HashMap") {
-			"HashMap::new()".to_string()
+			"std::collections::HashMap::new()".to_string()
 		} else {
 			format!("{rust_type}::default()")
 		};
@@ -409,7 +409,7 @@ fn generate_struct_from_signal(mod_name: &str, signal: &Signal, derive_default: 
 				derive_types.push("Default");
 			}
 			derive_types
-		}.join(",");
+		}.join(", ");
     let fields = signal
         .args()
         .iter()
@@ -480,12 +480,13 @@ fn can_derive_default(iface: &Interface, signal: &Signal) -> bool {
 	signal.args()
 		.iter()
 		.filter_map(|arg| {
-			if default_for_signal_item(arg).contains("default()") { None } else { Some(false) }
+			if default_for_signal_item(arg).contains("Value") { Some(false) } else { None }
 		})
 		.collect::<Vec<bool>>()
 		.is_empty()
 }
 fn generate_default_for_signal(iface: &Interface, signal: &Signal) -> String {
+		println!("GENERATE DEFAULT FOR {}", signal.name());
     let iname = signal.name();
     let impl_for_name = event_ident(iname);
     let default_struct_lit = signal
@@ -685,7 +686,7 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .map(|signal| generate_try_from_event_body(iface, signal))
         .collect::<Vec<String>>()
         .join("\n");
-		let default_event_body = std::iter::zip(derive_default.iter(), iface.signals())
+		let default_impls = std::iter::zip(derive_default.iter(), iface.signals())
         .filter_map(|(derive, signal)| if !derive {
 					Some(generate_default_for_signal(iface, signal))
 				} else {
@@ -726,6 +727,7 @@ pub mod {mod_name} {{
 	{match_rule_vec_impl}
 	{structs}
 	{impls}
+	{default_impls}
 	{try_from_atspi}
   {from_event_body}
 	{match_rule_impls}
