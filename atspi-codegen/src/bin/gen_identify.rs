@@ -236,7 +236,24 @@ fn generate_struct_literal_conversion_for_signal_item(signal_item: &Arg, inner_e
     let field_name = signal_item.name().expect("No name for arg");
     let msg_field_name = inner_event_name.to_string();
 
-    format!("{field_name}: ev.body.{msg_field_name}")
+    format!("{field_name}: event.body.{msg_field_name}")
+}
+fn generate_reverse_struct_literal_conversion_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName2) -> String {
+    let rust_type = to_rust_type(signal_item.ty(), true, true);
+    let value = if signal_item.name().is_none() {
+      if rust_type == "zbus::zvariant::OwnedValue" {
+        format!("zbus::zvariant::Value::U8(0).into()")
+      } else {
+        format!("{rust_type}::default()")
+      }
+    } else {
+      let field_name = signal_item.name().expect("No name for arg");
+      format!("event.{field_name}")
+    };
+    // unwrap is safe due to check
+    let msg_field_name = inner_event_name.to_string();
+
+    format!("{msg_field_name}: {value}")
 }
 fn generate_field_for_signal_item(signal_item: &Arg) -> String {
     if signal_item.name().is_none() {
@@ -447,7 +464,51 @@ fn match_arm_for_signal(iface_name: &str, signal: &Signal) -> String {
     let enum_signal_name = into_rust_enum_str(raw_signal_name);
     let enum_name = events_ident(iface_name);
     let signal_struct_name = event_ident(raw_signal_name);
-    // TODO: let signal_conversion_literal = generate_struct_literal_conversion_for_signal_item
+    format!(
+        "				\"{raw_signal_name}\" => Ok({enum_name}::{enum_signal_name}(ev.try_into()?)),"
+    )
+}
+
+fn generate_try_from_atspi_event(iface: &Interface) -> String {
+    let iname = iface_name(iface);
+    let error_str = format!("No matching member for {iname}");
+    let impl_for_name = events_ident(&iname);
+    let member_conversions = iface
+        .signals()
+        .iter()
+        .map(|signal| match_arm_for_signal(&iname, signal))
+        .collect::<Vec<String>>()
+        .join("\n");
+    format!("
+	impl TryFrom<AnyEvent<EventBodyOwned>> for {impl_for_name} {{
+		type Error = AtspiError;
+
+		fn try_from(ev: AnyEvent<EventBodyOwned>) -> Result<Self, Self::Error> {{
+			let Some(member) = ev.member() else {{ return Err(AtspiError::MemberMatch(\"Event w/o member\".into())); }};
+			match member.as_str() {{
+{member_conversions}
+				_ => Err(AtspiError::MemberMatch(\"{error_str}\".into())),
+			}}
+		}}
+	}}
+	")
+}
+fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
+    let iname = signal.name();
+    let error_str = format!("No matching member for {iname}");
+    let impl_for_name = event_ident(iname);
+    let reverse_signal_conversion_lit = signal
+        .args()
+        .iter()
+        .enumerate()
+        .filter_map(|(i, arg)| {
+            let Ok(field_name) = i.try_into() else {
+              return None;
+            };
+            Some(generate_reverse_struct_literal_conversion_for_signal_item(arg, field_name))
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
     let signal_conversion_lit = signal
         .args()
         .iter()
@@ -463,33 +524,33 @@ fn match_arm_for_signal(iface_name: &str, signal: &Signal) -> String {
         })
         .collect::<Vec<String>>()
         .join(", ");
-    format!(
-        "				\"{raw_signal_name}\" => Ok({enum_name}::{enum_signal_name}({signal_struct_name}{{ item: crate::events::Accessible {{ name: ev.message.header().unwrap().sender().unwrap().unwrap().to_owned().into(), path: ev.message.path().unwrap().into() }}, {signal_conversion_lit} }})),"
-    )
-}
-
-fn generate_try_from_atspi_event(iface: &Interface) -> String {
-    let iname = iface_name(iface);
-    let error_str = format!("No matching member for {iname}");
-    let impl_for_name = events_ident(&iname);
-    let member_conversions = iface
-        .signals()
-        .iter()
-        .map(|signal| match_arm_for_signal(&iname, signal))
-        .collect::<Vec<String>>()
-        .join("\n");
     format!("
-	impl TryFrom<AnyEvent> for {impl_for_name} {{
-		type Error = AtspiError;
-
-		fn try_from(ev: AnyEvent) -> Result<Self, Self::Error> {{
-			let Some(member) = ev.member() else {{ return Err(AtspiError::MemberMatch(\"Event w/o member\".into())); }};
-			match member.as_str() {{
-{member_conversions}
-				_ => Err(AtspiError::MemberMatch(\"{error_str}\".into())),
-			}}
-		}}
-	}}
+  impl TryFrom<{impl_for_name}> for AnyEvent<EventBodyOwned> {{
+    type Error = AtspiError;
+    fn try_from(event: {impl_for_name}) -> Result<Self, Self::Error> {{
+      let event_body_owned = EventBodyOwned {{
+        {reverse_signal_conversion_lit}
+      }};
+      Ok(Self {{
+        message: std::sync::Arc::new(
+          zbus::MessageBuilder::signal(
+            event.item.path,
+            <{impl_for_name} as GenericEvent>::DBUS_INTERFACE,
+            <{impl_for_name} as GenericEvent>::DBUS_MEMBER,
+          )?
+          .sender(event.item.name)?
+          .build(&((event_body_owned.clone()),))?
+        ),
+        body: event_body_owned
+      }})
+    }}
+  }}
+  impl TryFrom<AnyEvent<EventBodyOwned>> for {impl_for_name} {{
+    type Error = AtspiError;
+    fn try_from(event: AnyEvent<EventBodyOwned>) -> Result<Self, Self::Error> {{
+      Ok(Self {{ item: (&event).try_into()?, {signal_conversion_lit} }})
+    }}
+  }}
 	")
 }
 
@@ -591,7 +652,13 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .map(|signal| generate_impl_from_signal(signal, iface))
         .collect::<Vec<String>>()
         .join("\n");
-    let try_froms = generate_try_from_atspi_event(iface);
+    let try_from_atspi = generate_try_from_atspi_event(iface);
+    let from_event_body = iface
+        .signals()
+        .iter()
+        .map(|signal| generate_try_from_event_body(iface, signal))
+        .collect::<Vec<String>>()
+        .join("\n");
     let registry_event_enum_impl = generate_registry_event_enum_impl(iface);
     let registry_event_impls = iface
         .signals()
@@ -616,7 +683,7 @@ pub mod {mod_name} {{
 	use crate::{{
         Event,
 		error::AtspiError,
-		events::{{AnyEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString}},
+		events::{{AnyEvent, GenericEvent, EventInterfaces, HasMatchRule, HasRegistryEventString, EventBodyOwned}},
 	}};
 	use zbus;
 	use zbus::zvariant::ObjectPath;
@@ -625,7 +692,8 @@ pub mod {mod_name} {{
 	{match_rule_vec_impl}
 	{structs}
 	{impls}
-	{try_froms}
+	{try_from_atspi}
+  {from_event_body}
 	{match_rule_impls}
   {registry_event_impls}
   {registry_event_enum_impl}
