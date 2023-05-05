@@ -495,7 +495,9 @@ pub trait GenericEvent<'a> {
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
 	/// It is not possible for this to error on most events, but on events whoes raw message [`Body`] type contains a [`zbus::zvariant::Value`], you may get errors when constructing the structure.
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> where Self: Sized;
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
 
 	/// Path of the signalling object.
 	fn path(&self) -> ObjectPath<'_>;
@@ -523,8 +525,7 @@ pub trait HasRegistryEventString {
 mod tests {
 	use crate::events::{
 		Accessible, AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
-		GenericEvent, RemoveAccessibleEvent, ATSPI_EVENT_SIGNATURE,
-		QSPI_EVENT_SIGNATURE,
+		GenericEvent, RemoveAccessibleEvent, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;

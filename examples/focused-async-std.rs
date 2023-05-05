@@ -1,7 +1,5 @@
 use async_std::prelude::*;
-use atspi::{
-	identify::object::{ObjectEvents, StateChangedEvent},
-};
+use atspi::identify::object::{ObjectEvents, StateChangedEvent};
 use std::error::Error;
 
 #[async_std::main]

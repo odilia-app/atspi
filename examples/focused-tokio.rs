@@ -1,6 +1,4 @@
-use atspi::{
-	identify::object::{ObjectEvents, StateChangedEvent},
-};
+use atspi::identify::object::{ObjectEvents, StateChangedEvent};
 use std::error::Error;
 use tokio_stream::StreamExt;
 
