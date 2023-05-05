@@ -1,8 +1,11 @@
+use atspi_types::{
+	events::Event,
+	errors::AtspiError,
+};
 use crate::{
 	bus::BusProxy,
-	events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString},
+	traits::{GenericEvent, HasMatchRule, HasRegistryEventString},
 	registry::RegistryProxy,
-	AtspiError,
 };
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
@@ -69,9 +72,9 @@ impl AccessibilityConnection {
 	///
 	/// ```rust
 	/// use enumflags2::BitFlag;
-	/// use atspi::identify::object::{ObjectEvents, StateChangedEvent};
+	/// use atspi_types::events::object::{ObjectEvents, StateChangedEvent};
 	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
-	/// use atspi::Event;
+	/// use atspi_types::events::Event;
 	/// # use futures_lite::StreamExt;
 	/// # use std::error::Error;
 	///
@@ -144,7 +147,7 @@ impl AccessibilityConnection {
 
 	/// Registers an events as defined in [`crate::identify`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.register_event::<StateChangedEvent>().await.unwrap();
@@ -155,14 +158,14 @@ impl AccessibilityConnection {
 	///
 	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
 	pub async fn add_match_rule<T: HasMatchRule>(&self) -> Result<(), AtspiError> {
-		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING)?;
-		self.dbus_proxy.add_match_rule(match_rule).await?;
+		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING).unwrap();
+		self.dbus_proxy.add_match_rule(match_rule).await.unwrap();
 		Ok(())
 	}
 
 	/// Deregisters an events as defined in [`crate::identify`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
@@ -175,7 +178,8 @@ impl AccessibilityConnection {
 	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
 	pub async fn remove_match_rule<T: HasMatchRule>(&self) -> Result<(), AtspiError> {
 		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING)?;
-		self.dbus_proxy.add_match_rule(match_rule).await?;
+		// TODO put it back
+		self.dbus_proxy.add_match_rule(match_rule).await.unwrap();
 		Ok(())
 	}
 
@@ -184,7 +188,7 @@ impl AccessibilityConnection {
 	/// This is called by [`Self::register_event`].
 	///
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
@@ -208,7 +212,7 @@ impl AccessibilityConnection {
 	/// It may be called like so:
 	///
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
