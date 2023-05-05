@@ -108,29 +108,29 @@ fn to_rust_type(ty: &str, input: bool, as_ref: bool) -> String {
             u64::SIGNATURE_CHAR => "u64".into(),
             f64::SIGNATURE_CHAR => "f64".into(),
             // xmlgen accepts 'h' on Windows, only for code generation
-            'h' => (if input { "zbus::zvariant::Fd" } else { "zbus::zvariant::OwnedFd" }).into(),
+            'h' => (if input { "zvariant::Fd" } else { "zvariant::OwnedFd" }).into(),
             <&str>::SIGNATURE_CHAR => "String".into(),
             ObjectPath::SIGNATURE_CHAR => (if input {
                 if as_ref {
-                    "&zbus::zvariant::ObjectPath<'_>"
+                    "&zvariant::ObjectPath<'_>"
                 } else {
-                    "zbus::zvariant::ObjectPath<'_>"
+                    "zvariant::ObjectPath<'_>"
                 }
             } else {
-                "zbus::zvariant::OwnedObjectPath"
+                "zvariant::OwnedObjectPath"
             })
             .into(),
             Signature::SIGNATURE_CHAR => (if input {
                 if as_ref {
-                    "&zbus::zvariant::Signature<'_>"
+                    "&zvariant::Signature<'_>"
                 } else {
-                    "zbus::zvariant::Signature<'_>"
+                    "zvariant::Signature<'_>"
                 }
             } else {
-                "zbus::zvariant::OwnedSignature"
+                "zvariant::OwnedSignature"
             })
             .into(),
-            VARIANT_SIGNATURE_CHAR => "zbus::zvariant::OwnedValue"
+            VARIANT_SIGNATURE_CHAR => "zvariant::OwnedValue"
             .into(),
             ARRAY_SIGNATURE_CHAR => {
                 let c = it.peek().unwrap();
@@ -233,8 +233,8 @@ fn generate_struct_literal_conversion_for_signal_item(signal_item: &Arg, inner_e
 fn generate_reverse_struct_literal_conversion_for_signal_item(signal_item: &Arg, inner_event_name: AtspiEventInnerName2) -> String {
     let rust_type = to_rust_type(signal_item.ty(), true, true);
     let value = if signal_item.name().is_none() {
-      if rust_type == "zbus::zvariant::OwnedValue" {
-        "zbus::zvariant::Value::U8(0).into()".to_string()
+      if rust_type == "zvariant::OwnedValue" {
+        "zvariant::Value::U8(0).into()".to_string()
       } else {
         format!("{rust_type}::default()")
       }
@@ -252,8 +252,8 @@ fn default_for_signal_item(signal_item: &Arg) -> String {
 		let Some(field_name) = signal_item.name() else {
 			return String::new();
 		};
-		let value = if rust_type == "zbus::zvariant::OwnedValue" {
-			"zbus::zvariant::Value::U8(0).into()".to_string()
+		let value = if rust_type == "zvariant::OwnedValue" {
+			"zvariant::Value::U8(0).into()".to_string()
 		} else if rust_type.starts_with("std::collections::HashMap") {
 			"std::collections::HashMap::new()".to_string()
 		} else {
@@ -315,11 +315,11 @@ fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> Strin
     let sig_name_event = event_ident(signal.name());
     let matcher = generate_try_from_event_impl_match_statement(signal, interface);
     format!(
-        "#[rustfmt::skip]
-    impl TryFrom<Event> for {sig_name_event} {{
-	type Error = AtspiError;
-	fn try_from(event: Event) -> Result<Self, Self::Error> {{
-       {matcher}
+        "
+	impl TryFrom<Event> for {sig_name_event} {{
+		type Error = AtspiError;
+		fn try_from(event: Event) -> Result<Self, Self::Error> {{
+				{matcher}
 				Ok(inner_event)
 			}} else {{
 				Err(AtspiError::Conversion(\"Invalid type\"))
@@ -373,8 +373,8 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::Event;
-    /// use atspi::identify::{mod_name}::{signal_event_name};
+    /// use atspi::events::Event;
+    /// use atspi_types::events::{mod_name}::{signal_event_name};
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
     ///
@@ -461,6 +461,7 @@ fn generate_try_from_atspi_event(iface: &Interface) -> String {
         Event::{enum_name}(event_enum)
 		}}
 	}}
+	#[cfg(feature = \"zbus\")]
 	impl TryFrom<&zbus::Message> for {impl_for_name} {{
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {{
@@ -721,19 +722,18 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
     let match_rule_vec_impl = generate_match_rule_vec_impl(iface);
     format!(
         "
-#[allow(clippy::module_name_repetitions)]
 {STRIPPER_IGNORE_START}
 // this is to stop clippy from complaining about the copying of module names in the types; since this is more organizational than logical, we're ok leaving it in
 {STRIPPER_IGNORE_STOP}
 pub mod {mod_name} {{
 	use crate::{{
-        Event,
-		error::AtspiError,
-		events::{{GenericEvent, HasMatchRule, HasRegistryEventString, EventBodyOwned, Accessible}},
+		errors::AtspiError,
+		accessible::Accessible,
+		events::{{Event, EventBodyOwned}},
+		traits::{{GenericEvent, HasMatchRule, HasRegistryEventString}},
 	}};
-	use zbus;
-	use zbus::zvariant::ObjectPath;
-  use zbus::names::UniqueName;
+	use zvariant::ObjectPath;
+  use zbus_names::UniqueName;
 	{enums}
 	{match_rule_vec_impl}
 	{structs}
@@ -760,8 +760,8 @@ fn generate_enum_associated_example(mod_name: &str, signal_event_name: &str, sig
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::Event;
-    /// use atspi::identify::{mod_name}::{signal_event_name};
+    /// use atspi_types::events::Event;
+    /// use atspi_types::events::{mod_name}::{signal_event_name};
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
     ///
@@ -903,7 +903,7 @@ pub fn create_events_from_xml(file_name: &str) -> String {
         .join("\n\n");
     format!(
         "
-    use crate::AtspiError;
+		use crate::{{events::Event, errors::AtspiError}};
     {module_level_doc}\n
     {iface_data}"
     )
@@ -1217,7 +1217,6 @@ fn load_saved_docvec_or_gather_new(
 fn generate_new_sources_main() -> String {
     let mut generated = String::new();
     generated.push_str(&create_events_from_xml("xml/Event.xml"));
-    generated.push_str("use crate::Event;\n");
     generated.push_str(&create_try_from_event_impl_from_xml("xml/Cache.xml"));
     generated.push_str(&create_try_from_event_impl_from_xml("xml/Registry.xml"));
     generated.push_str(&create_try_from_event_impl_from_xml("xml/Socket.xml"));
@@ -1249,12 +1248,12 @@ pub fn main() {
     let args: Args = argh::from_env();
 
     // File names:
-    let source_file_name = "identify.rs";
+    let source_file_name = "autogenerated.rs";
     let comments_file_name = "saved_manual_docs.ron";
 
     // Assumes being run from atspi crate root
     let crate_root = Path::new("./");
-    let src_path = Path::new("src/");
+    let src_path = Path::new("atspi-types/src/events/");
 
     // The program expects one argument at a time.
     match args {
