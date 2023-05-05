@@ -102,6 +102,20 @@ impl TryFrom<usize> for AtspiEventInnerName {
     }
 }
 
+/// Check if the member has any body, or if it's always blank.
+fn is_empty_body(signal: &Signal) -> bool {
+	signal.args()
+		.iter()
+		.enumerate()
+		.filter_map(|(i, arg)| {
+			arg.name()?;
+			TryInto::<AtspiEventInnerName2>::try_into(i).ok()?;
+			Some(true)
+		})
+		.collect::<Vec<bool>>()
+		.is_empty()
+}
+
 /// Override automatic types based on knowledge not encoded in the XML.
 fn auto_impl_type_override(iface: &Interface, signal: &Signal, field: &Arg) -> Option<&'static str> {
 	for (m_iface, m_member, m_field_name, m_type) in AUTO_IMPL_HELP {
@@ -372,7 +386,7 @@ fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> Strin
 
 fn generate_impl_from_signal(signal: &Signal, interface: &Interface) -> String {
     let try_from_event_impl = generate_try_from_event_impl(signal, interface);
-    let generic_event_impl = generate_generic_event_impl(signal, interface);
+    let generic_event_impl = generate_generic_event_impl(signal, interface, is_empty_body(signal));
 
     format!(
         "
@@ -550,7 +564,7 @@ fn generate_default_for_signal(iface: &Interface, signal: &Signal) -> String {
 	}}
 	")
 }
-fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
+fn generate_try_from_event_body(iface: &Interface, signal: &Signal, empty_body: bool) -> String {
     let iname = signal.name();
     let impl_for_name = event_ident(iname);
 		let iface_variant = iface_name(iface);
@@ -584,6 +598,11 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
         })
         .collect::<Vec<String>>()
         .join(", ");
+		let event_var_name = if empty_body {
+			"_event"
+		} else {
+			"event"
+		}.to_string();
     format!("
 	impl From<{impl_for_name}> for {enum_variant} {{
 		fn from(specific_event: {impl_for_name}) -> Self {{
@@ -598,7 +617,7 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
 	crate::events::macros::impl_to_dbus_message!({impl_for_name});
 	crate::events::macros::impl_from_dbus_message!({impl_for_name});
 	impl From<{impl_for_name}> for EventBodyOwned {{
-		fn from(event: {impl_for_name}) -> Self {{
+		fn from({event_var_name}: {impl_for_name}) -> Self {{
 			EventBodyOwned {{
 				properties: std::collections::HashMap::new(),
 				{reverse_signal_conversion_lit}
@@ -662,7 +681,7 @@ fn generate_match_rule_impl(signal: &Signal, interface: &Interface) -> String {
     )
 }
 // TODO
-fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String {
+fn generate_generic_event_impl(signal: &Signal, interface: &Interface, is_empty_body: bool) -> String {
     let iface_prefix = iface_name(interface);
     let sig_name_event = event_ident(signal.name());
     let member_string = signal.name();
@@ -688,6 +707,11 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
         })
         .collect::<Vec<String>>()
         .join(", ");
+		let body_var_name = if is_empty_body {
+			"_body"
+		} else {
+			"body"
+		}.to_string();
     format!(
         "	impl GenericEvent<'_> for {sig_name_event} {{
       const DBUS_MEMBER: &'static str = \"{raw_member_name}\";
@@ -697,7 +721,7 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {{
+		fn build(item: Accessible, {body_var_name}: Self::Body) -> Result<Self, AtspiError> {{
 			Ok(Self {{
 				item,
 				{signal_conversion_lit}	
@@ -722,6 +746,10 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
 fn generate_mod_from_iface(iface: &Interface) -> String {
     let mod_name = iface_name(iface).to_lowercase();
     let enums = generate_enum_from_iface(iface);
+		let empty_bodies = iface.signals()
+			.iter()
+			.map(|signal| is_empty_body(signal))
+			.collect::<Vec<bool>>();
 		let derive_default = iface
 				.signals()
 				.iter()
@@ -738,12 +766,10 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .collect::<Vec<String>>()
         .join("\n");
     let try_from_atspi = generate_try_from_atspi_event(iface);
-    let from_event_body = iface
-        .signals()
-        .iter()
-        .map(|signal| generate_try_from_event_body(iface, signal))
-        .collect::<Vec<String>>()
-        .join("\n");
+		let from_event_body = std::iter::zip(iface.signals(), empty_bodies.iter())
+			.map(|(signal, empty_body)| generate_try_from_event_body(iface, signal, *empty_body))
+			.collect::<Vec<String>>()
+			.join("\n");
 		let default_impls = std::iter::zip(derive_default.iter(), iface.signals())
         .filter_map(|(derive, signal)| if !derive {
 					Some(generate_default_for_signal(iface, signal))

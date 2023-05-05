@@ -1010,7 +1010,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1050,7 +1050,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1170,7 +1170,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1210,7 +1210,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1250,7 +1250,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1370,7 +1370,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1410,7 +1410,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1450,7 +1450,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1490,7 +1490,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1530,7 +1530,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1570,7 +1570,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1610,7 +1610,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1650,7 +1650,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1690,7 +1690,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1770,7 +1770,7 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -1917,7 +1917,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(BoundsChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(BoundsChangedEvent);
 	impl From<BoundsChangedEvent> for EventBodyOwned {
-		fn from(event: BoundsChangedEvent) -> Self {
+		fn from(_event: BoundsChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -1939,7 +1939,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(LinkSelectedEvent);
 	crate::events::macros::impl_from_dbus_message!(LinkSelectedEvent);
 	impl From<LinkSelectedEvent> for EventBodyOwned {
-		fn from(event: LinkSelectedEvent) -> Self {
+		fn from(_event: LinkSelectedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2005,7 +2005,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(VisibleDataChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(VisibleDataChangedEvent);
 	impl From<VisibleDataChangedEvent> for EventBodyOwned {
-		fn from(event: VisibleDataChangedEvent) -> Self {
+		fn from(_event: VisibleDataChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2027,7 +2027,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(SelectionChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(SelectionChangedEvent);
 	impl From<SelectionChangedEvent> for EventBodyOwned {
-		fn from(event: SelectionChangedEvent) -> Self {
+		fn from(_event: SelectionChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2049,7 +2049,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(ModelChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(ModelChangedEvent);
 	impl From<ModelChangedEvent> for EventBodyOwned {
-		fn from(event: ModelChangedEvent) -> Self {
+		fn from(_event: ModelChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2115,7 +2115,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(AttributesChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(AttributesChangedEvent);
 	impl From<AttributesChangedEvent> for EventBodyOwned {
-		fn from(event: AttributesChangedEvent) -> Self {
+		fn from(_event: AttributesChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2137,7 +2137,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(RowInsertedEvent);
 	crate::events::macros::impl_from_dbus_message!(RowInsertedEvent);
 	impl From<RowInsertedEvent> for EventBodyOwned {
-		fn from(event: RowInsertedEvent) -> Self {
+		fn from(_event: RowInsertedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2159,7 +2159,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(RowReorderedEvent);
 	crate::events::macros::impl_from_dbus_message!(RowReorderedEvent);
 	impl From<RowReorderedEvent> for EventBodyOwned {
-		fn from(event: RowReorderedEvent) -> Self {
+		fn from(_event: RowReorderedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2181,7 +2181,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(RowDeletedEvent);
 	crate::events::macros::impl_from_dbus_message!(RowDeletedEvent);
 	impl From<RowDeletedEvent> for EventBodyOwned {
-		fn from(event: RowDeletedEvent) -> Self {
+		fn from(_event: RowDeletedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2203,7 +2203,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(ColumnInsertedEvent);
 	crate::events::macros::impl_from_dbus_message!(ColumnInsertedEvent);
 	impl From<ColumnInsertedEvent> for EventBodyOwned {
-		fn from(event: ColumnInsertedEvent) -> Self {
+		fn from(_event: ColumnInsertedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2225,7 +2225,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(ColumnReorderedEvent);
 	crate::events::macros::impl_from_dbus_message!(ColumnReorderedEvent);
 	impl From<ColumnReorderedEvent> for EventBodyOwned {
-		fn from(event: ColumnReorderedEvent) -> Self {
+		fn from(_event: ColumnReorderedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2247,7 +2247,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(ColumnDeletedEvent);
 	crate::events::macros::impl_from_dbus_message!(ColumnDeletedEvent);
 	impl From<ColumnDeletedEvent> for EventBodyOwned {
-		fn from(event: ColumnDeletedEvent) -> Self {
+		fn from(_event: ColumnDeletedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2269,7 +2269,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(TextBoundsChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(TextBoundsChangedEvent);
 	impl From<TextBoundsChangedEvent> for EventBodyOwned {
-		fn from(event: TextBoundsChangedEvent) -> Self {
+		fn from(_event: TextBoundsChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2291,7 +2291,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(TextSelectionChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(TextSelectionChangedEvent);
 	impl From<TextSelectionChangedEvent> for EventBodyOwned {
-		fn from(event: TextSelectionChangedEvent) -> Self {
+		fn from(_event: TextSelectionChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -2335,7 +2335,7 @@ pub mod object {
 	crate::events::macros::impl_to_dbus_message!(TextAttributesChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(TextAttributesChangedEvent);
 	impl From<TextAttributesChangedEvent> for EventBodyOwned {
-		fn from(event: TextAttributesChangedEvent) -> Self {
+		fn from(_event: TextAttributesChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -3381,7 +3381,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3421,7 +3421,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3461,7 +3461,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3501,7 +3501,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3541,7 +3541,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3581,7 +3581,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3621,7 +3621,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3661,7 +3661,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3701,7 +3701,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3741,7 +3741,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3781,7 +3781,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3821,7 +3821,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3861,7 +3861,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3901,7 +3901,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3941,7 +3941,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -3981,7 +3981,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -4021,7 +4021,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -4061,7 +4061,7 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -4165,7 +4165,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(MinimizeEvent);
 	crate::events::macros::impl_from_dbus_message!(MinimizeEvent);
 	impl From<MinimizeEvent> for EventBodyOwned {
-		fn from(event: MinimizeEvent) -> Self {
+		fn from(_event: MinimizeEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4187,7 +4187,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(MaximizeEvent);
 	crate::events::macros::impl_from_dbus_message!(MaximizeEvent);
 	impl From<MaximizeEvent> for EventBodyOwned {
-		fn from(event: MaximizeEvent) -> Self {
+		fn from(_event: MaximizeEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4209,7 +4209,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(RestoreEvent);
 	crate::events::macros::impl_from_dbus_message!(RestoreEvent);
 	impl From<RestoreEvent> for EventBodyOwned {
-		fn from(event: RestoreEvent) -> Self {
+		fn from(_event: RestoreEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4231,7 +4231,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(CloseEvent);
 	crate::events::macros::impl_from_dbus_message!(CloseEvent);
 	impl From<CloseEvent> for EventBodyOwned {
-		fn from(event: CloseEvent) -> Self {
+		fn from(_event: CloseEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4253,7 +4253,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(CreateEvent);
 	crate::events::macros::impl_from_dbus_message!(CreateEvent);
 	impl From<CreateEvent> for EventBodyOwned {
-		fn from(event: CreateEvent) -> Self {
+		fn from(_event: CreateEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4275,7 +4275,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(ReparentEvent);
 	crate::events::macros::impl_from_dbus_message!(ReparentEvent);
 	impl From<ReparentEvent> for EventBodyOwned {
-		fn from(event: ReparentEvent) -> Self {
+		fn from(_event: ReparentEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4297,7 +4297,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(DesktopCreateEvent);
 	crate::events::macros::impl_from_dbus_message!(DesktopCreateEvent);
 	impl From<DesktopCreateEvent> for EventBodyOwned {
-		fn from(event: DesktopCreateEvent) -> Self {
+		fn from(_event: DesktopCreateEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4319,7 +4319,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(DesktopDestroyEvent);
 	crate::events::macros::impl_from_dbus_message!(DesktopDestroyEvent);
 	impl From<DesktopDestroyEvent> for EventBodyOwned {
-		fn from(event: DesktopDestroyEvent) -> Self {
+		fn from(_event: DesktopDestroyEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4341,7 +4341,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(DestroyEvent);
 	crate::events::macros::impl_from_dbus_message!(DestroyEvent);
 	impl From<DestroyEvent> for EventBodyOwned {
-		fn from(event: DestroyEvent) -> Self {
+		fn from(_event: DestroyEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4363,7 +4363,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(ActivateEvent);
 	crate::events::macros::impl_from_dbus_message!(ActivateEvent);
 	impl From<ActivateEvent> for EventBodyOwned {
-		fn from(event: ActivateEvent) -> Self {
+		fn from(_event: ActivateEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4385,7 +4385,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(DeactivateEvent);
 	crate::events::macros::impl_from_dbus_message!(DeactivateEvent);
 	impl From<DeactivateEvent> for EventBodyOwned {
-		fn from(event: DeactivateEvent) -> Self {
+		fn from(_event: DeactivateEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4407,7 +4407,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(RaiseEvent);
 	crate::events::macros::impl_from_dbus_message!(RaiseEvent);
 	impl From<RaiseEvent> for EventBodyOwned {
-		fn from(event: RaiseEvent) -> Self {
+		fn from(_event: RaiseEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4429,7 +4429,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(LowerEvent);
 	crate::events::macros::impl_from_dbus_message!(LowerEvent);
 	impl From<LowerEvent> for EventBodyOwned {
-		fn from(event: LowerEvent) -> Self {
+		fn from(_event: LowerEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4451,7 +4451,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(MoveEvent);
 	crate::events::macros::impl_from_dbus_message!(MoveEvent);
 	impl From<MoveEvent> for EventBodyOwned {
-		fn from(event: MoveEvent) -> Self {
+		fn from(_event: MoveEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4473,7 +4473,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(ResizeEvent);
 	crate::events::macros::impl_from_dbus_message!(ResizeEvent);
 	impl From<ResizeEvent> for EventBodyOwned {
-		fn from(event: ResizeEvent) -> Self {
+		fn from(_event: ResizeEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4495,7 +4495,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(ShadeEvent);
 	crate::events::macros::impl_from_dbus_message!(ShadeEvent);
 	impl From<ShadeEvent> for EventBodyOwned {
-		fn from(event: ShadeEvent) -> Self {
+		fn from(_event: ShadeEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4517,7 +4517,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(UUshadeEvent);
 	crate::events::macros::impl_from_dbus_message!(UUshadeEvent);
 	impl From<UUshadeEvent> for EventBodyOwned {
-		fn from(event: UUshadeEvent) -> Self {
+		fn from(_event: UUshadeEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -4539,7 +4539,7 @@ pub mod window {
 	crate::events::macros::impl_to_dbus_message!(RestyleEvent);
 	crate::events::macros::impl_from_dbus_message!(RestyleEvent);
 	impl From<RestyleEvent> for EventBodyOwned {
-		fn from(event: RestyleEvent) -> Self {
+		fn from(_event: RestyleEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -5621,7 +5621,7 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -5661,7 +5661,7 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -5701,7 +5701,7 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -5741,7 +5741,7 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -5781,7 +5781,7 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -5849,7 +5849,7 @@ pub mod terminal {
 	crate::events::macros::impl_to_dbus_message!(LineChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(LineChangedEvent);
 	impl From<LineChangedEvent> for EventBodyOwned {
-		fn from(event: LineChangedEvent) -> Self {
+		fn from(_event: LineChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -5871,7 +5871,7 @@ pub mod terminal {
 	crate::events::macros::impl_to_dbus_message!(ColumnCountChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(ColumnCountChangedEvent);
 	impl From<ColumnCountChangedEvent> for EventBodyOwned {
-		fn from(event: ColumnCountChangedEvent) -> Self {
+		fn from(_event: ColumnCountChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -5893,7 +5893,7 @@ pub mod terminal {
 	crate::events::macros::impl_to_dbus_message!(LineCountChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(LineCountChangedEvent);
 	impl From<LineCountChangedEvent> for EventBodyOwned {
-		fn from(event: LineCountChangedEvent) -> Self {
+		fn from(_event: LineCountChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -5915,7 +5915,7 @@ pub mod terminal {
 	crate::events::macros::impl_to_dbus_message!(ApplicationChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(ApplicationChangedEvent);
 	impl From<ApplicationChangedEvent> for EventBodyOwned {
-		fn from(event: ApplicationChangedEvent) -> Self {
+		fn from(_event: ApplicationChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -5937,7 +5937,7 @@ pub mod terminal {
 	crate::events::macros::impl_to_dbus_message!(CharWidthChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(CharWidthChangedEvent);
 	impl From<CharWidthChangedEvent> for EventBodyOwned {
-		fn from(event: CharWidthChangedEvent) -> Self {
+		fn from(_event: CharWidthChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -6311,7 +6311,7 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -6351,7 +6351,7 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -6391,7 +6391,7 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -6431,7 +6431,7 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -6471,7 +6471,7 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -6511,7 +6511,7 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -6580,7 +6580,7 @@ pub mod document {
 	crate::events::macros::impl_to_dbus_message!(LoadCompleteEvent);
 	crate::events::macros::impl_from_dbus_message!(LoadCompleteEvent);
 	impl From<LoadCompleteEvent> for EventBodyOwned {
-		fn from(event: LoadCompleteEvent) -> Self {
+		fn from(_event: LoadCompleteEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -6602,7 +6602,7 @@ pub mod document {
 	crate::events::macros::impl_to_dbus_message!(ReloadEvent);
 	crate::events::macros::impl_from_dbus_message!(ReloadEvent);
 	impl From<ReloadEvent> for EventBodyOwned {
-		fn from(event: ReloadEvent) -> Self {
+		fn from(_event: ReloadEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -6624,7 +6624,7 @@ pub mod document {
 	crate::events::macros::impl_to_dbus_message!(LoadStoppedEvent);
 	crate::events::macros::impl_from_dbus_message!(LoadStoppedEvent);
 	impl From<LoadStoppedEvent> for EventBodyOwned {
-		fn from(event: LoadStoppedEvent) -> Self {
+		fn from(_event: LoadStoppedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -6646,7 +6646,7 @@ pub mod document {
 	crate::events::macros::impl_to_dbus_message!(ContentChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(ContentChangedEvent);
 	impl From<ContentChangedEvent> for EventBodyOwned {
-		fn from(event: ContentChangedEvent) -> Self {
+		fn from(_event: ContentChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -6668,7 +6668,7 @@ pub mod document {
 	crate::events::macros::impl_to_dbus_message!(AttributesChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(AttributesChangedEvent);
 	impl From<AttributesChangedEvent> for EventBodyOwned {
-		fn from(event: AttributesChangedEvent) -> Self {
+		fn from(_event: AttributesChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -6690,7 +6690,7 @@ pub mod document {
 	crate::events::macros::impl_to_dbus_message!(PageChangedEvent);
 	crate::events::macros::impl_from_dbus_message!(PageChangedEvent);
 	impl From<PageChangedEvent> for EventBodyOwned {
-		fn from(event: PageChangedEvent) -> Self {
+		fn from(_event: PageChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()
@@ -6875,7 +6875,7 @@ pub mod focus {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 			Ok(Self {
 				item,
 					
@@ -6939,7 +6939,7 @@ pub mod focus {
 	crate::events::macros::impl_to_dbus_message!(FocusEvent);
 	crate::events::macros::impl_from_dbus_message!(FocusEvent);
 	impl From<FocusEvent> for EventBodyOwned {
-		fn from(event: FocusEvent) -> Self {
+		fn from(_event: FocusEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
 				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::U8(0).into()

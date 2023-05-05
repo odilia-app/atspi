@@ -1,5 +1,4 @@
 use atspi::{
-	events::GenericEvent,
 	identify::object::{ObjectEvents, StateChangedEvent},
 };
 use std::error::Error;

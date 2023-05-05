@@ -214,11 +214,10 @@ pub struct Accessible {
 	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
 }
-use std::ops::Deref;
 impl TryFrom<zbus::zvariant::OwnedValue> for Accessible {
 	type Error = zbus::Error;
 	fn try_from(value: zbus::zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		match value.deref() {
+		match &*value {
 			zbus::zvariant::Value::Structure(s) => {
 				if s.signature() != ACCESSIBLE_PAIR_SIGNATURE {
 					return Err(zbus::Error::Variant(zbus::zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str()))));
@@ -491,6 +490,11 @@ pub trait GenericEvent<'a> {
 	type Body: Type + Serialize + Deserialize<'a>;
 
 	/// Build the event from the object pair (Accessible and the Body).
+	///
+	/// # Errors
+	///
+	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
+	/// It is not possible for this to error on most events, but on events whoes raw message [`Body`] type contains a [`zbus::zvariant::Value`], you may get errors when constructing the structure.
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> where Self: Sized;
 
 	/// Path of the signalling object.
@@ -519,15 +523,13 @@ pub trait HasRegistryEventString {
 mod tests {
 	use crate::events::{
 		Accessible, AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
-		GenericEvent, RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
-		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
+		GenericEvent, RemoveAccessibleEvent, ATSPI_EVENT_SIGNATURE,
+		QSPI_EVENT_SIGNATURE,
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
-	use std::{collections::HashMap, time::Duration};
-	use tokio::time::timeout;
+	use std::collections::HashMap;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
-	use zbus::{names::UniqueName, Message, MessageBuilder};
 
 	#[test]
 	fn check_event_body_qt_signature() {

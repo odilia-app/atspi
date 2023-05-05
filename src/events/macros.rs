@@ -21,7 +21,7 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-				Ok(<$type>::build(msg.try_into()?, msg.body::<<$type as GenericEvent>::Body>()?)?)
+				<$type>::build(msg.try_into()?, msg.body::<<$type as GenericEvent>::Body>()?)
 			}
 		}
 	};
