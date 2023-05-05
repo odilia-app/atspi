@@ -13,5 +13,7 @@ pub mod cache;
 pub use cache::CacheItem;
 pub mod role;
 pub use role::Role;
+pub mod relations;
+pub use relations::RelationType;
 
 pub type ObjectPair = (String, zvariant::OwnedObjectPath);

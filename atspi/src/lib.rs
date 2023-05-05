@@ -85,8 +85,10 @@ mod accessibility_connection;
 pub use accessibility_connection::*;
 
 pub use atspi_types::*;
-pub use interfaces::*;
-pub use state::*;
+pub use interfaces::{InterfaceSet, Interface};
+pub use state::{StateSet, State};
+pub use role::Role;
+pub use relations::RelationType;
 pub use errors::AtspiError;
 
 pub use zbus;

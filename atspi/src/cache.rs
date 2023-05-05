@@ -6,7 +6,8 @@
 
 use crate::atspi_proxy;
 use crate::{
-	accessible::{ObjectPair, Role},
+	Role,
+	ObjectPair,
 	InterfaceSet, StateSet,
 };
 use serde::{Deserialize, Serialize};

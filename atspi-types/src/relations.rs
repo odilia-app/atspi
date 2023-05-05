@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use zvairant::Type;
+use zvariant::Type;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 pub enum RelationType {
