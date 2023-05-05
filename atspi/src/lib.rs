@@ -47,8 +47,6 @@ pub mod editable_text;
 #[cfg(feature = "unstable-traits")]
 pub mod editable_text_ext;
 pub mod events;
-pub mod identify;
-pub use events::{Event, EventBody};
 pub mod hyperlink;
 #[cfg(feature = "unstable-traits")]
 pub mod hyperlink_ext;
@@ -86,14 +84,10 @@ mod accessibility_connection;
 #[cfg(feature = "client-accessories")]
 pub use accessibility_connection::*;
 
-mod interfaces;
+pub use atspi_types::*;
 pub use interfaces::*;
-
-mod state;
 pub use state::*;
-
-pub mod error;
-pub use error::AtspiError;
+pub use errors::AtspiError;
 
 pub use zbus;
 use zbus::zvariant::Type;
