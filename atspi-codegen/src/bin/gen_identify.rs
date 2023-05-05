@@ -697,11 +697,11 @@ fn generate_generic_event_impl(signal: &Signal, interface: &Interface) -> String
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {{
-			Self {{
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {{
+			Ok(Self {{
 				item,
 				{signal_conversion_lit}	
-			}}
+			}})
 		}}
     fn sender(&self) -> UniqueName<'_> {{
       self.item.name.clone().into()

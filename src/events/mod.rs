@@ -150,8 +150,8 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 
 	type Body = CacheItem;
 
-	fn build(item: Accessible, body: Self::Body) -> Self {
-		Self { item, node_added: body }
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body })
 	}
 
 	fn sender(&self) -> UniqueName<'_> {
@@ -187,8 +187,8 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 
 	type Body = Accessible;
 
-	fn build(item: Accessible, body: Self::Body) -> Self {
-		Self { item, node_removed: body }
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_removed: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -213,6 +213,37 @@ impl_to_dbus_message!(RemoveAccessibleEvent);
 pub struct Accessible {
 	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
+}
+use std::ops::Deref;
+impl TryFrom<zbus::zvariant::OwnedValue> for Accessible {
+	type Error = zbus::Error;
+	fn try_from(value: zbus::zvariant::OwnedValue) -> Result<Self, Self::Error> {
+		match value.deref() {
+			zbus::zvariant::Value::Structure(s) => {
+				if s.signature() != ACCESSIBLE_PAIR_SIGNATURE {
+					return Err(zbus::Error::Variant(zbus::zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str()))));
+				}
+				let fields = s.fields();
+				let name_value: String = fields
+					.get(0)
+					.ok_or(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType))?
+					.try_into()?;
+				let path_value: String = fields
+					.get(1)
+					.ok_or(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType))?
+					.try_into()?;
+				let name = UniqueName::try_from(name_value)?.into();
+				let path = ObjectPath::try_from(path_value)?.into();
+				Ok(Accessible { name, path })
+			}
+			_ => Err(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType)),
+		}
+	}
+}
+impl From<Accessible> for zbus::zvariant::Structure<'_> {
+	fn from(accessible: Accessible) -> Self {
+		(accessible.name.as_str().to_string(), accessible.path).into()
+	}
 }
 impl Default for Accessible {
 	fn default() -> Self {
@@ -305,8 +336,8 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: Accessible, body: Self::Body) -> Self {
-		Self { item, deregistered_event: body }
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, deregistered_event: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -336,8 +367,8 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: Accessible, body: Self::Body) -> Self {
-		Self { item, registered_event: body }
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, registered_event: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -367,8 +398,8 @@ impl GenericEvent<'_> for AvailableEvent {
 
 	type Body = Accessible;
 
-	fn build(item: Accessible, body: Self::Body) -> Self {
-		Self { item, socket: body }
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, socket: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -460,7 +491,7 @@ pub trait GenericEvent<'a> {
 	type Body: Type + Serialize + Deserialize<'a>;
 
 	/// Build the event from the object pair (Accessible and the Body).
-	fn build(item: Accessible, body: Self::Body) -> Self;
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> where Self: Sized;
 
 	/// Path of the signalling object.
 	fn path(&self) -> ObjectPath<'_>;

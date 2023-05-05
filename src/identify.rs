@@ -122,11 +122,11 @@ pub mod object {
     /// }
     /// ```
     // IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct PropertyChangeEvent {
     pub item: crate::events::Accessible,
    pub property: String,
-   pub value: zbus::zvariant::OwnedValue,
+   pub value: String,
 
 }
 	
@@ -282,12 +282,12 @@ pub mod object {
     /// }
     /// ```
     // IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ChildrenChangedEvent {
     pub item: crate::events::Accessible,
    pub operation: String,
    pub index_in_parent: i32,
-   pub child: zbus::zvariant::OwnedValue,
+   pub child: Accessible,
 
 }
 	
@@ -441,10 +441,10 @@ pub mod object {
     /// }
     /// ```
     // IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct ActiveDescendantChangedEvent {
     pub item: crate::events::Accessible,
-   pub child: zbus::zvariant::OwnedValue,
+   pub child: Accessible,
 
 }
 	
@@ -872,13 +872,13 @@ pub mod object {
     /// }
     /// ```
     // IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone)]
+	#[derive(Debug, PartialEq, Clone, Default)]
 	pub struct TextChangedEvent {
     pub item: crate::events::Accessible,
    pub detail: String,
    pub start_pos: i32,
    pub length: i32,
-   pub text: zbus::zvariant::OwnedValue,
+   pub text: String,
 
 }
 	
@@ -970,11 +970,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
-				property: body.kind, value: body.any_data	
-			}
+				property: body.kind, value: body.any_data.try_into()?	
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1010,11 +1010,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1050,11 +1050,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1090,11 +1090,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				state: body.kind, enabled: body.detail1	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1130,11 +1130,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
-				operation: body.kind, index_in_parent: body.detail1, child: body.any_data	
-			}
+				operation: body.kind, index_in_parent: body.detail1, child: body.any_data.try_into()?	
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1170,11 +1170,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1210,11 +1210,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1250,11 +1250,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1290,11 +1290,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
-				child: body.any_data	
-			}
+				child: body.any_data.try_into()?	
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1330,11 +1330,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				text: body.kind	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1370,11 +1370,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1410,11 +1410,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1450,11 +1450,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1490,11 +1490,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1530,11 +1530,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1570,11 +1570,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1610,11 +1610,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1650,11 +1650,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1690,11 +1690,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1730,11 +1730,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
-				detail: body.kind, start_pos: body.detail1, length: body.detail2, text: body.any_data	
-			}
+				detail: body.kind, start_pos: body.detail1, length: body.detail2, text: body.any_data.try_into()?	
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1770,11 +1770,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1810,11 +1810,11 @@ pub mod object {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				position: body.detail1	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -1841,45 +1841,6 @@ pub mod object {
 	}
     
     
-	
-	impl Default for PropertyChangeEvent {
-		fn default() -> Self {
-			PropertyChangeEvent {
-				item: crate::events::Accessible::default(),
-				property: String::default(), value: zbus::zvariant::Value::U8(0).into()
-			}
-		}
-	}
-	
-
-	impl Default for ChildrenChangedEvent {
-		fn default() -> Self {
-			ChildrenChangedEvent {
-				item: crate::events::Accessible::default(),
-				operation: String::default(), index_in_parent: i32::default(), child: zbus::zvariant::Value::U8(0).into()
-			}
-		}
-	}
-	
-
-	impl Default for ActiveDescendantChangedEvent {
-		fn default() -> Self {
-			ActiveDescendantChangedEvent {
-				item: crate::events::Accessible::default(),
-				child: zbus::zvariant::Value::U8(0).into()
-			}
-		}
-	}
-	
-
-	impl Default for TextChangedEvent {
-		fn default() -> Self {
-			TextChangedEvent {
-				item: crate::events::Accessible::default(),
-				detail: String::default(), start_pos: i32::default(), length: i32::default(), text: zbus::zvariant::Value::U8(0).into()
-			}
-		}
-	}
 	
 	
 	impl From<ObjectEvents> for Event {
@@ -1937,7 +1898,7 @@ pub mod object {
 		fn from(event: PropertyChangeEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
-				kind: event.property, detail1: i32::default(), detail2: i32::default(), any_data: event.value
+				kind: event.property, detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::from(event.value).into()
 			}
 		}
 	}
@@ -2025,7 +1986,7 @@ pub mod object {
 		fn from(event: ChildrenChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
-				kind: event.operation, detail1: event.index_in_parent, detail2: i32::default(), any_data: event.child
+				kind: event.operation, detail1: event.index_in_parent, detail2: i32::default(), any_data: zbus::zvariant::Value::from(event.child).into()
 			}
 		}
 	}
@@ -2113,7 +2074,7 @@ pub mod object {
 		fn from(event: ActiveDescendantChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
-				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: event.child
+				kind: String::default(), detail1: i32::default(), detail2: i32::default(), any_data: zbus::zvariant::Value::from(event.child).into()
 			}
 		}
 	}
@@ -2355,7 +2316,7 @@ pub mod object {
 		fn from(event: TextChangedEvent) -> Self {
 			EventBodyOwned {
 				properties: std::collections::HashMap::new(),
-				kind: event.detail, detail1: event.start_pos, detail2: event.length, any_data: event.text
+				kind: event.detail, detail1: event.start_pos, detail2: event.length, any_data: zbus::zvariant::Value::from(event.text).into()
 			}
 		}
 	}
@@ -3380,11 +3341,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				property: body.kind	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3420,11 +3381,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3460,11 +3421,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3500,11 +3461,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3540,11 +3501,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3580,11 +3541,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3620,11 +3581,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3660,11 +3621,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3700,11 +3661,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3740,11 +3701,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3780,11 +3741,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3820,11 +3781,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3860,11 +3821,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3900,11 +3861,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3940,11 +3901,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -3980,11 +3941,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -4020,11 +3981,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -4060,11 +4021,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -4100,11 +4061,11 @@ pub mod window {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -4926,11 +4887,11 @@ pub mod mouse {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				x: body.detail1, y: body.detail2	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -4966,11 +4927,11 @@ pub mod mouse {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				x: body.detail1, y: body.detail2	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -5006,11 +4967,11 @@ pub mod mouse {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -5285,11 +5246,11 @@ pub mod keyboard {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 				previous_modifiers: body.detail1, current_modifiers: body.detail2	
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -5660,11 +5621,11 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -5700,11 +5661,11 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -5740,11 +5701,11 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -5780,11 +5741,11 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -5820,11 +5781,11 @@ pub mod terminal {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -6350,11 +6311,11 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -6390,11 +6351,11 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -6430,11 +6391,11 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -6470,11 +6431,11 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -6510,11 +6471,11 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -6550,11 +6511,11 @@ pub mod document {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
@@ -6914,11 +6875,11 @@ pub mod focus {
 			
 			type Body = EventBodyOwned;
 
-		fn build(item: Accessible, body: Self::Body) -> Self {
-			Self {
+		fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+			Ok(Self {
 				item,
 					
-			}
+			})
 		}
     fn sender(&self) -> UniqueName<'_> {
       self.item.name.clone().into()
