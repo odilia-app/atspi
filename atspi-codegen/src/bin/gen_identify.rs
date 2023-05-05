@@ -22,12 +22,13 @@ enum AtspiEventInnerName {
     Detail2,
     AnyData,
 }
+#[derive(PartialEq)]
 enum AtspiEventInnerName2 {
     Kind,
     Detail1,
     Detail2,
     AnyData,
-    Properties,
+		Properties,
 }
 
 impl ToString for AtspiEventInnerName {
@@ -47,7 +48,7 @@ impl ToString for AtspiEventInnerName2 {
             Self::Detail1 => "detail1",
             Self::Detail2 => "detail2",
             Self::AnyData => "any_data",
-            Self::Properties => "properties",
+						Self::Properties => "properties",
         }
         .to_string()
     }
@@ -67,7 +68,6 @@ impl TryFrom<usize> for AtspiEventInnerName2 {
             1 => Ok(Self::Detail1),
             2 => Ok(Self::Detail2),
             3 => Ok(Self::AnyData),
-            4 => Ok(Self::Properties),
             _ => Err(ConversionError::UnknownItem),
         }
     }
@@ -412,8 +412,10 @@ fn generate_struct_from_signal(mod_name: &str, signal: &Signal, derive_default: 
     let fields = signal
         .args()
         .iter()
-        .map(|arg| {
-            generate_field_for_signal_item(arg)
+        .filter_map(|arg| {
+						if arg.name()? == "properties" { return None } else {
+							Some(generate_field_for_signal_item(arg))
+						}
         })
         .collect::<Vec<String>>()
         .join("");
@@ -491,8 +493,9 @@ fn generate_default_for_signal(iface: &Interface, signal: &Signal) -> String {
         .args()
         .iter()
         .filter_map(|arg| {
-						arg.name()?;
-            Some(default_for_signal_item(arg))
+						if arg.name()? != "properties" {
+							Some(default_for_signal_item(arg))
+						} else { None }
         })
         .collect::<Vec<String>>()
         .join(", ");
@@ -521,6 +524,9 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
             let Ok(field_name) = i.try_into() else {
               return None;
             };
+						if field_name == AtspiEventInnerName2::Properties {
+							return None;
+						}
             Some(generate_reverse_struct_literal_conversion_for_signal_item(arg, field_name))
         })
         .collect::<Vec<String>>()
@@ -554,6 +560,7 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal) -> String {
 	impl From<{impl_for_name}> for EventBodyOwned {{
 		fn from(event: {impl_for_name}) -> Self {{
 			EventBodyOwned {{
+				properties: std::collections::HashMap::new(),
 				{reverse_signal_conversion_lit}
 			}}
 		}}
