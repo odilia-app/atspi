@@ -1,6 +1,6 @@
 [workspace]
 default-members = ["atspi"]
-exclude = ["codegen"]
+exclude = ["atspi-codegen"]
 members = [
 	"atspi-types",
 	"atspi-macros",

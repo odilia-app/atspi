@@ -98,7 +98,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::PropertyChangeEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -140,7 +140,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::BoundsChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -180,7 +180,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::LinkSelectedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -220,7 +220,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::StateChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -262,7 +262,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::ChildrenChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -305,7 +305,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::VisibleDataChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -345,7 +345,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::SelectionChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -385,7 +385,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::ModelChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -425,7 +425,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::ActiveDescendantChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -466,7 +466,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::AnnouncementEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -507,7 +507,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::AttributesChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -547,7 +547,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::RowInsertedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -587,7 +587,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::RowReorderedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -627,7 +627,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::RowDeletedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -667,7 +667,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::ColumnInsertedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -707,7 +707,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::ColumnReorderedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -747,7 +747,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::ColumnDeletedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -787,7 +787,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::TextBoundsChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -827,7 +827,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::TextSelectionChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -867,7 +867,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::TextChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -911,7 +911,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::TextAttributesChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -951,7 +951,7 @@ pub mod object {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::object::TextCaretMovedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2638,7 +2638,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::PropertyChangeEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2679,7 +2679,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::MinimizeEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2719,7 +2719,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::MaximizeEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2759,7 +2759,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::RestoreEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2799,7 +2799,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::CloseEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2839,7 +2839,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::CreateEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2879,7 +2879,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::ReparentEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2919,7 +2919,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::DesktopCreateEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2959,7 +2959,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::DesktopDestroyEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -2999,7 +2999,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::DestroyEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3039,7 +3039,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::ActivateEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3079,7 +3079,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::DeactivateEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3119,7 +3119,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::RaiseEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3159,7 +3159,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::LowerEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3199,7 +3199,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::MoveEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3239,7 +3239,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::ResizeEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3279,7 +3279,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::ShadeEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3319,7 +3319,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::UUshadeEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -3359,7 +3359,7 @@ pub mod window {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::window::RestyleEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -4802,7 +4802,7 @@ pub mod mouse {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::mouse::AbsEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -4844,7 +4844,7 @@ pub mod mouse {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::mouse::RelEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -4886,7 +4886,7 @@ pub mod mouse {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::mouse::ButtonEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -5244,7 +5244,7 @@ pub mod keyboard {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::keyboard::ModifiersEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -5465,7 +5465,7 @@ pub mod terminal {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::terminal::LineChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -5505,7 +5505,7 @@ pub mod terminal {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::terminal::ColumnCountChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -5545,7 +5545,7 @@ pub mod terminal {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::terminal::LineCountChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -5585,7 +5585,7 @@ pub mod terminal {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::terminal::ApplicationChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -5625,7 +5625,7 @@ pub mod terminal {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::terminal::CharWidthChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -6116,7 +6116,7 @@ pub mod document {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::document::LoadCompleteEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -6156,7 +6156,7 @@ pub mod document {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::document::ReloadEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -6196,7 +6196,7 @@ pub mod document {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::document::LoadStoppedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -6236,7 +6236,7 @@ pub mod document {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::document::ContentChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -6276,7 +6276,7 @@ pub mod document {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::document::AttributesChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -6316,7 +6316,7 @@ pub mod document {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::document::PageChangedEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -6875,7 +6875,7 @@ pub mod focus {
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::focus::FocusEvent;
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;

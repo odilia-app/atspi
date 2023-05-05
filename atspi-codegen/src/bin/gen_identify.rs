@@ -373,7 +373,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -
     /// More complete examples may be found in the `examples/` directory.
     ///
     /// ```
-    /// use atspi::events::Event;
+    /// use atspi_types::events::Event;
     /// use atspi_types::events::{mod_name}::{signal_event_name};
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
