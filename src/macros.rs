@@ -22,7 +22,7 @@ macro_rules! impl_event_conversions {
 				}
 			}
 		}
-	}
+	};
 }
 
 macro_rules! impl_to_dbus_message {
@@ -130,12 +130,13 @@ macro_rules! end_to_end_test_case {
 				.await
 				.expect("Could not send event struct");
 			while let Some(Ok(ev)) = events.next().await {
-				 if let Ok(event) = <$type>::try_from(ev) {
-						 assert_eq!(struct_event.body(), event.body());
-						 break;
-						 // do things with your event here
-				 }
-				 else { panic!("The wrong event was received.") };
+				if let Ok(event) = <$type>::try_from(ev) {
+					assert_eq!(struct_event.body(), event.body());
+					break;
+				// do things with your event here
+				} else {
+					panic!("The wrong event was received.")
+				};
 			}
 			Ok(())
 		}
@@ -147,9 +148,9 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use crate::Event;
+			use super::$type;
 			use crate::events::GenericEvent;
-			use super::{$type};
+			use crate::Event;
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);

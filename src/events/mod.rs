@@ -265,8 +265,7 @@ pub mod accessible_deserialization_tests {
 		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
 	#[test]
-	fn try_from_value() {
-	}
+	fn try_from_value() {}
 }
 
 impl From<Accessible> for zbus::zvariant::Structure<'_> {
@@ -369,7 +368,12 @@ pub struct EventListenerDeregisteredEvent {
 	pub item: Accessible,
 	pub deregistered_event: EventListeners,
 }
-impl_event_conversions!(EventListenerDeregisteredEvent, EventListenerEvents, EventListenerEvents::Deregistered, Event::Listener);
+impl_event_conversions!(
+	EventListenerDeregisteredEvent,
+	EventListenerEvents,
+	EventListenerEvents::Deregistered,
+	Event::Listener
+);
 event_test_cases!(EventListenerDeregisteredEvent);
 impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
@@ -402,7 +406,12 @@ pub struct EventListenerRegisteredEvent {
 	pub item: Accessible,
 	pub registered_event: EventListeners,
 }
-impl_event_conversions!(EventListenerRegisteredEvent, EventListenerEvents, EventListenerEvents::Registered, Event::Listener);
+impl_event_conversions!(
+	EventListenerRegisteredEvent,
+	EventListenerEvents,
+	EventListenerEvents::Registered,
+	Event::Listener
+);
 event_test_cases!(EventListenerRegisteredEvent);
 impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
