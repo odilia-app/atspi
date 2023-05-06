@@ -432,9 +432,7 @@ impl TryFrom<&Message> for Event {
 	fn try_from(msg: &Message) -> Result<Event, AtspiError> {
 		let body_signature = msg.body_signature()?;
 		let message_signature = body_signature.as_str();
-		let signal_member = msg
-			.member()
-			.ok_or(AtspiError::MissingMember)?;
+		let signal_member = msg.member().ok_or(AtspiError::MissingMember)?;
 		let message_member = signal_member.as_str();
 		match message_signature {
 			// Accessible signature
