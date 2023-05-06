@@ -369,7 +369,8 @@ fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> Strin
     let sig_name_event = event_ident(signal.name());
     let matcher = generate_try_from_event_impl_match_statement(signal, interface);
     format!(
-        "#[rustfmt::skip]
+        "
+		/*
     impl TryFrom<Event> for {sig_name_event} {{
 	type Error = AtspiError;
 	fn try_from(event: Event) -> Result<Self, Self::Error> {{
@@ -379,7 +380,7 @@ fn generate_try_from_event_impl(signal: &Signal, interface: &Interface) -> Strin
 				Err(AtspiError::Conversion(\"Invalid type\"))
 			}}
 		}}
-	}}
+	}}*/
     "
     )
 }
@@ -444,12 +445,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
     ///         if let Ok(event) = {signal_event_name}::try_from(ev) {{
-		/// #          let event_enum: Event = event.into();
-		/// #          let back_to_event = {signal_event_name}::try_from(event_enum).unwrap();
-		/// #          assert_eq!(back_to_event.sender().as_str(), \":0.0\");
-		/// #          let body = back_to_event.body();
-		/// #          let item = back_to_event.item.clone();
-		/// #          let event_from_parts = {signal_event_name}::build(item, body).unwrap();
+		/// #          assert_eq!(event.sender().as_str(), \":0.0\");
 		/// #          break;
 		///            // do something with the specific event you've received
 		///         }} else {{ continue }};
@@ -611,18 +607,10 @@ fn generate_try_from_event_body(iface: &Interface, signal: &Signal, empty_body: 
 			"event"
 		}.to_string();
     format!("
-	impl From<{impl_for_name}> for {enum_variant} {{
-		fn from(specific_event: {impl_for_name}) -> Self {{
-			{enum_variant}::{event_variant}(specific_event)
-		}}
-	}}
-	impl From<{impl_for_name}> for Event {{
-		fn from(specific_event: {impl_for_name}) -> Self {{
-			Event::{iface_variant}(specific_event.into())
-		}}
-	}}
-	crate::events::macros::impl_to_dbus_message!({impl_for_name});
-	crate::events::macros::impl_from_dbus_message!({impl_for_name});
+	impl_event_conversions!({impl_for_name}, {enum_variant}, {enum_variant}::{event_variant}, Event::{iface_variant});
+	event_test_cases!({impl_for_name});
+	impl_to_dbus_message!({impl_for_name});
+	impl_from_dbus_message!({impl_for_name});
 	impl From<{impl_for_name}> for EventBodyOwned {{
 		fn from({event_var_name}: {impl_for_name}) -> Self {{
 			EventBodyOwned {{
@@ -983,7 +971,6 @@ pub fn create_events_from_xml(file_name: &str) -> String {
         .join("\n\n");
     format!(
         "
-    use crate::AtspiError;
     {module_level_doc}\n
     {iface_data}"
     )
@@ -1297,10 +1284,9 @@ fn load_saved_docvec_or_gather_new(
 fn generate_new_sources_main() -> String {
     let mut generated = String::new();
     generated.push_str(&create_events_from_xml("xml/Event.xml"));
-    generated.push_str("use crate::Event;\n");
-    generated.push_str(&create_try_from_event_impl_from_xml("xml/Cache.xml"));
-    generated.push_str(&create_try_from_event_impl_from_xml("xml/Registry.xml"));
-    generated.push_str(&create_try_from_event_impl_from_xml("xml/Socket.xml"));
+    //generated.push_str(&create_try_from_event_impl_from_xml("xml/Cache.xml"));
+    //generated.push_str(&create_try_from_event_impl_from_xml("xml/Registry.xml"));
+    //generated.push_str(&create_try_from_event_impl_from_xml("xml/Socket.xml"));
     generated
 }
 
