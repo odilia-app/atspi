@@ -136,7 +136,7 @@ pub enum CacheEvents {
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct AddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: CacheItem,
@@ -173,7 +173,7 @@ impl<'a, T: GenericEvent<'a>> HasRegistryEventString for T {
 impl_from_dbus_message!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct RemoveAccessibleEvent {
 	pub item: Accessible,
 	pub node_removed: Accessible,
@@ -305,6 +305,19 @@ pub struct EventListeners {
 	pub bus_name: OwnedUniqueName,
 	pub path: String,
 }
+impl Default for EventListeners {
+	fn default() -> Self {
+		Self {
+			bus_name: UniqueName::try_from(":0.0").unwrap().into(),
+			path: "/org/a11y/atspi/accessible/null".to_string(),
+		}
+	}
+}
+#[test]
+fn test_event_listener_default_no_panic() {
+	let _el = EventListeners::default();
+	assert!(true);
+}
 
 #[test]
 fn test_event_listener_signature() {
@@ -321,7 +334,7 @@ pub enum EventListenerEvents {
 
 /// An event that is emitted by the regostry daemon to signal that an event has been deregistered
 /// to no longer listen for.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct EventListenerDeregisteredEvent {
 	pub item: Accessible,
 	pub deregistered_event: EventListeners,
@@ -352,7 +365,7 @@ impl_from_dbus_message!(EventListenerDeregisteredEvent);
 impl_to_dbus_message!(EventListenerDeregisteredEvent);
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct EventListenerRegisteredEvent {
 	pub item: Accessible,
 	pub registered_event: EventListeners,
@@ -383,7 +396,7 @@ impl_from_dbus_message!(EventListenerRegisteredEvent);
 impl_to_dbus_message!(EventListenerRegisteredEvent);
 
 /// An event that is emitted when the registry daemon has started.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct AvailableEvent {
 	pub item: Accessible,
 	pub socket: Accessible,
@@ -524,13 +537,42 @@ pub trait HasRegistryEventString {
 #[cfg(test)]
 mod tests {
 	use crate::events::{
-		Accessible, AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
+		Accessible, AddAccessibleEvent, AvailableEvent, CacheEvents, CacheItem, Event,
+		EventBodyOwned, EventBodyQT, EventListenerDeregisteredEvent, EventListenerRegisteredEvent,
 		GenericEvent, RemoveAccessibleEvent, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::collections::HashMap;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+
+	macro_rules! end_to_end_test {
+		($type:ty, $test_name:ident) => {
+			#[tokio::test]
+			async fn $test_name() {
+				let atspi = AccessibilityConnection::open().await.unwrap();
+				let mut events = atspi.event_stream();
+				atspi.register_event::<$type>().await.unwrap();
+				std::pin::pin!(&mut events);
+				let event_struct = <$type>::default();
+				atspi.send_event(event_struct).await.unwrap();
+
+				while let Some(Ok(ev)) = events.next().await {
+					if let Ok(event) = <$type>::try_from(ev) {
+						assert_eq!(event.item.path.as_str(), "/org/a11y/atspi/accessible/null");
+						break;
+					// do something with the specific event you've received
+					} else {
+						continue;
+					}
+				}
+			}
+		};
+	}
+
+	end_to_end_test!(EventListenerRegisteredEvent, end_to_end_event_listener_registered);
+	end_to_end_test!(EventListenerDeregisteredEvent, end_to_end_event_listener_deregistered);
+	end_to_end_test!(AvailableEvent, end_to_end_available_event);
 
 	#[test]
 	fn check_event_body_qt_signature() {

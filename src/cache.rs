@@ -37,6 +37,22 @@ pub struct CacheItem {
 	/// The states applicable to the accessible.  au
 	pub states: StateSet,
 }
+impl Default for CacheItem {
+	fn default() -> Self {
+		Self {
+			object: (":0.0".to_string(), "/org/a11y/atspi/accessible/object".try_into().unwrap()),
+			app: (":0.0".to_string(), "/org/a11y/atspi/accessible/application".try_into().unwrap()),
+			parent: (":0.0".to_string(), "/org/a11y/atspi/accessible/parent".try_into().unwrap()),
+			index: 0,
+			children: 0,
+			ifaces: InterfaceSet::empty(),
+			short_name: String::default(),
+			role: Role::Invalid,
+			name: String::default(),
+			states: StateSet::empty(),
+		}
+	}
+}
 
 #[test]
 fn zvariant_type_signature_of_cache_item() {
