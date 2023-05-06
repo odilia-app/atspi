@@ -12,6 +12,9 @@ use atspi_macros::atspi_proxy;
 #[cfg(not(feature = "unstable-traits"))]
 use zbus::dbus_proxy as atspi_proxy;
 
+#[macro_use]
+mod macros;
+
 pub mod accessible;
 #[cfg(feature = "unstable-traits")]
 pub mod accessible_ext;
