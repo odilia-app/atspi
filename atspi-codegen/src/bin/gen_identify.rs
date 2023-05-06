@@ -441,11 +441,11 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -
 		/// #   atspi.register_event::<{signal_event_name}>().await.unwrap();
     ///     std::pin::pin!(&mut events);
 		/// #   let event_struct = {signal_event_name}::default();
-		/// #   atspi.send_event(event_struct).await.unwrap();
+		/// #   atspi.send_event(event_struct.clone()).await.unwrap();
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
     ///         if let Ok(event) = {signal_event_name}::try_from(ev) {{
-		/// #          assert_eq!(event.sender().as_str(), \":0.0\");
+		/// #          assert_eq!(event.body(), event_struct.body());
 		/// #          break;
 		///            // do something with the specific event you've received
 		///         }} else {{ continue }};

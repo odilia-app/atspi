@@ -129,11 +129,11 @@ pub mod object {
 	/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = PropertyChangeEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -170,11 +170,11 @@ pub mod object {
 	/// #   atspi.register_event::<BoundsChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = BoundsChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = BoundsChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -209,11 +209,11 @@ pub mod object {
 	/// #   atspi.register_event::<LinkSelectedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = LinkSelectedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LinkSelectedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -248,11 +248,11 @@ pub mod object {
 	/// #   atspi.register_event::<StateChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = StateChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = StateChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -289,11 +289,11 @@ pub mod object {
 	/// #   atspi.register_event::<ChildrenChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ChildrenChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ChildrenChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -331,11 +331,11 @@ pub mod object {
 	/// #   atspi.register_event::<VisibleDataChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = VisibleDataChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = VisibleDataChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -370,11 +370,11 @@ pub mod object {
 	/// #   atspi.register_event::<SelectionChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = SelectionChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = SelectionChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -409,11 +409,11 @@ pub mod object {
 	/// #   atspi.register_event::<ModelChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ModelChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ModelChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -448,11 +448,11 @@ pub mod object {
 	/// #   atspi.register_event::<ActiveDescendantChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ActiveDescendantChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ActiveDescendantChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -488,11 +488,11 @@ pub mod object {
 	/// #   atspi.register_event::<AnnouncementEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = AnnouncementEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AnnouncementEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -528,11 +528,11 @@ pub mod object {
 	/// #   atspi.register_event::<AttributesChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = AttributesChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -567,11 +567,11 @@ pub mod object {
 	/// #   atspi.register_event::<RowInsertedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = RowInsertedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RowInsertedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -606,11 +606,11 @@ pub mod object {
 	/// #   atspi.register_event::<RowReorderedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = RowReorderedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RowReorderedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -645,11 +645,11 @@ pub mod object {
 	/// #   atspi.register_event::<RowDeletedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = RowDeletedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RowDeletedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -684,11 +684,11 @@ pub mod object {
 	/// #   atspi.register_event::<ColumnInsertedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ColumnInsertedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnInsertedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -723,11 +723,11 @@ pub mod object {
 	/// #   atspi.register_event::<ColumnReorderedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ColumnReorderedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnReorderedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -762,11 +762,11 @@ pub mod object {
 	/// #   atspi.register_event::<ColumnDeletedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ColumnDeletedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnDeletedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -801,11 +801,11 @@ pub mod object {
 	/// #   atspi.register_event::<TextBoundsChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = TextBoundsChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextBoundsChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -840,11 +840,11 @@ pub mod object {
 	/// #   atspi.register_event::<TextSelectionChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = TextSelectionChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextSelectionChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -879,11 +879,11 @@ pub mod object {
 	/// #   atspi.register_event::<TextChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = TextChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -922,11 +922,11 @@ pub mod object {
 	/// #   atspi.register_event::<TextAttributesChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = TextAttributesChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextAttributesChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -961,11 +961,11 @@ pub mod object {
 	/// #   atspi.register_event::<TextCaretMovedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = TextCaretMovedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextCaretMovedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2544,11 +2544,11 @@ pub mod window {
 	/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = PropertyChangeEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2584,11 +2584,11 @@ pub mod window {
 	/// #   atspi.register_event::<MinimizeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = MinimizeEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = MinimizeEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2623,11 +2623,11 @@ pub mod window {
 	/// #   atspi.register_event::<MaximizeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = MaximizeEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = MaximizeEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2662,11 +2662,11 @@ pub mod window {
 	/// #   atspi.register_event::<RestoreEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = RestoreEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RestoreEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2701,11 +2701,11 @@ pub mod window {
 	/// #   atspi.register_event::<CloseEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = CloseEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = CloseEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2740,11 +2740,11 @@ pub mod window {
 	/// #   atspi.register_event::<CreateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = CreateEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = CreateEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2779,11 +2779,11 @@ pub mod window {
 	/// #   atspi.register_event::<ReparentEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ReparentEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ReparentEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2818,11 +2818,11 @@ pub mod window {
 	/// #   atspi.register_event::<DesktopCreateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = DesktopCreateEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DesktopCreateEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2857,11 +2857,11 @@ pub mod window {
 	/// #   atspi.register_event::<DesktopDestroyEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = DesktopDestroyEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DesktopDestroyEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2896,11 +2896,11 @@ pub mod window {
 	/// #   atspi.register_event::<DestroyEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = DestroyEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DestroyEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2935,11 +2935,11 @@ pub mod window {
 	/// #   atspi.register_event::<ActivateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ActivateEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ActivateEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2974,11 +2974,11 @@ pub mod window {
 	/// #   atspi.register_event::<DeactivateEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = DeactivateEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DeactivateEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3013,11 +3013,11 @@ pub mod window {
 	/// #   atspi.register_event::<RaiseEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = RaiseEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RaiseEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3052,11 +3052,11 @@ pub mod window {
 	/// #   atspi.register_event::<LowerEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = LowerEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LowerEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3091,11 +3091,11 @@ pub mod window {
 	/// #   atspi.register_event::<MoveEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = MoveEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = MoveEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3130,11 +3130,11 @@ pub mod window {
 	/// #   atspi.register_event::<ResizeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ResizeEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ResizeEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3169,11 +3169,11 @@ pub mod window {
 	/// #   atspi.register_event::<ShadeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ShadeEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ShadeEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3208,11 +3208,11 @@ pub mod window {
 	/// #   atspi.register_event::<UUshadeEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = UUshadeEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = UUshadeEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3247,11 +3247,11 @@ pub mod window {
 	/// #   atspi.register_event::<RestyleEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = RestyleEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RestyleEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -4534,11 +4534,11 @@ pub mod mouse {
 	/// #   atspi.register_event::<AbsEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = AbsEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AbsEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -4575,11 +4575,11 @@ pub mod mouse {
 	/// #   atspi.register_event::<RelEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = RelEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RelEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -4616,11 +4616,11 @@ pub mod mouse {
 	/// #   atspi.register_event::<ButtonEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ButtonEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ButtonEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -4945,11 +4945,11 @@ pub mod keyboard {
 	/// #   atspi.register_event::<ModifiersEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ModifiersEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ModifiersEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5164,11 +5164,11 @@ pub mod terminal {
 	/// #   atspi.register_event::<LineChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = LineChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LineChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5203,11 +5203,11 @@ pub mod terminal {
 	/// #   atspi.register_event::<ColumnCountChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ColumnCountChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnCountChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5242,11 +5242,11 @@ pub mod terminal {
 	/// #   atspi.register_event::<LineCountChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = LineCountChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LineCountChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5281,11 +5281,11 @@ pub mod terminal {
 	/// #   atspi.register_event::<ApplicationChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ApplicationChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ApplicationChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5320,11 +5320,11 @@ pub mod terminal {
 	/// #   atspi.register_event::<CharWidthChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = CharWidthChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = CharWidthChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5794,11 +5794,11 @@ pub mod document {
 	/// #   atspi.register_event::<LoadCompleteEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = LoadCompleteEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LoadCompleteEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5833,11 +5833,11 @@ pub mod document {
 	/// #   atspi.register_event::<ReloadEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ReloadEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ReloadEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5872,11 +5872,11 @@ pub mod document {
 	/// #   atspi.register_event::<LoadStoppedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = LoadStoppedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LoadStoppedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5911,11 +5911,11 @@ pub mod document {
 	/// #   atspi.register_event::<ContentChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = ContentChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ContentChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5950,11 +5950,11 @@ pub mod document {
 	/// #   atspi.register_event::<AttributesChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = AttributesChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5989,11 +5989,11 @@ pub mod document {
 	/// #   atspi.register_event::<PageChangedEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = PageChangedEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = PageChangedEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -6517,11 +6517,11 @@ pub mod focus {
 	/// #   atspi.register_event::<FocusEvent>().await.unwrap();
 	///     std::pin::pin!(&mut events);
 	/// #   let event_struct = FocusEvent::default();
-	/// #   atspi.send_event(event_struct).await.unwrap();
+	/// #   atspi.send_event(event_struct.clone()).await.unwrap();
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = FocusEvent::try_from(ev) {
-	/// #          assert_eq!(event.sender().as_str(), ":0.0");
+	/// #          assert_eq!(event.body(), event_struct.body());
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
