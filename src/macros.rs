@@ -112,6 +112,103 @@ macro_rules! zbus_message_test_case {
 				<$type>::try_from(&msg).expect("Could not convert message into an event");
 			assert_eq!(struct_event, struct_event_back);
 		}
+		// make want to consider paramaterized tests here, no need for fuzz testing, but one level lower than that may be nice
+		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
+		#[test]
+		#[should_panic]
+		fn zbus_msg_conversion_failure_fake_msg() -> () {
+			let Ok(msg_builder) = zbus::MessageBuilder::signal(
+					"/org/a11y/sixynine/fourtwenty",
+					"org.a11y.atspi.technically.valid",
+					"MadeUpMember",
+				) else {
+				return ();
+			};
+			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+				return ();
+			};
+			let Ok(fake_msg) = msg_with_sender.build(&(),) else {
+				return ();
+			};
+			let event = <$type>::try_from(&fake_msg);
+			event.expect("This should panci! Nothing about this event is valid");
+		}
+		#[test]
+		#[should_panic]
+		fn zbus_msg_conversion_failure_correct_interface() -> () {
+			let Ok(msg_builder) = zbus::MessageBuilder::signal(
+					"/org/a11y/sixynine/fourtwenty",
+					<$type>::DBUS_INTERFACE,
+					"MadeUpMember",
+				) else {
+				return ();
+			};
+			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+				return ();
+			};
+			let Ok(fake_msg) = msg_with_sender.build(&(),) else {
+				return ();
+			};
+			let event = <$type>::try_from(&fake_msg);
+			event.expect("This should panci! Nothing about this event is valid");
+		}
+		#[test]
+		#[should_panic]
+		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
+			let Ok(msg_builder) = zbus::MessageBuilder::signal(
+					"/org/a11y/sixynine/fourtwenty",
+					<$type>::DBUS_INTERFACE,
+					<$type>::DBUS_MEMBER,
+				) else {
+				return ();
+			};
+			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+				return ();
+			};
+			let Ok(fake_msg) = msg_with_sender.build(&("i", "am", "cool", "and", "have", "a", "strange", "body"),) else {
+				return ();
+			};
+			let event = <$type>::try_from(&fake_msg);
+			event.expect("This should panci! Nothing about this event is valid");
+		}
+		#[test]
+		#[should_panic]
+		fn zbus_msg_conversion_failure_correct_body() -> () {
+			let Ok(msg_builder) = zbus::MessageBuilder::signal(
+					"/org/a11y/sixynine/fourtwenty",
+					<$type>::DBUS_INTERFACE,
+					"FakeMember",
+				) else {
+				return ();
+			};
+			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+				return ();
+			};
+			let Ok(fake_msg) = msg_with_sender.build(&(<$type>::default().body()),) else {
+				return ();
+			};
+			let event = <$type>::try_from(&fake_msg);
+			event.expect("This should panci! Nothing about this event is valid");
+		}
+		#[test]
+		#[should_panic]
+		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
+			let Ok(msg_builder) = zbus::MessageBuilder::signal(
+					"/org/a11y/sixynine/fourtwenty",
+					"org.a11y.atspi.accessible.technically.valid",
+					<$type>::DBUS_MEMBER,
+				) else {
+				return ();
+			};
+			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+				return ();
+			};
+			let Ok(fake_msg) = msg_with_sender.build(&(<$type>::default().body()),) else {
+				return ();
+			};
+			let event = <$type>::try_from(&fake_msg);
+			event.expect("This should panci! Nothing about this event is valid");
+		}
 	};
 }
 
