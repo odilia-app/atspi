@@ -275,7 +275,7 @@ impl AccessibilityConnection {
 		)?
 		.sender(conn.unique_name().ok_or(AtspiError::MissingName)?)?
 		// this re-encodes the entire body; it's not great..., but you can't replace a sender once a message a created.
-		.build(&((event.body()),))?;
+		.build(&event.body())?;
 		Ok(conn.send_message(new_message).await?)
 	}
 }
