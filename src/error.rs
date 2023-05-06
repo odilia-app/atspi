@@ -12,6 +12,9 @@ pub enum AtspiError {
 	/// On specific types, if the event / message member does not match the Event's name.
 	MemberMatch(String),
 
+	/// On specific types, if the event / message member does not match the Event's name.
+	InterfaceMatch(String),
+
 	/// To indicate a match or equality test on a signa body signature failed.
 	UnknownBusSignature,
 
@@ -20,6 +23,9 @@ pub enum AtspiError {
 
 	/// No interface on event.
 	MissingInterface,
+
+	/// No member on event.
+	MissingMember,
 
 	/// No name on bus.
 	MissingName,
@@ -65,9 +71,13 @@ impl std::fmt::Display for AtspiError {
 			Self::MemberMatch(e) => {
 				f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
 			}
+			Self::InterfaceMatch(e) => {
+				f.write_str(format!("atspi: interface mismatch in conversion: {e}").as_str())
+			}
 			Self::UnknownBusSignature => f.write_str("atspi: Unknown bus body signature."),
 			Self::UnknownInterface => f.write_str("Unknown interface."),
-			Self::MissingInterface => f.write_str("Missing> interface."),
+			Self::MissingInterface => f.write_str("Missing interface."),
+			Self::MissingMember => f.write_str("Missing member."),
 			Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
 			Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
 			Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),

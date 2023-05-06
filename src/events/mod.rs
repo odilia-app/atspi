@@ -434,7 +434,7 @@ impl TryFrom<&Message> for Event {
 		let message_signature = body_signature.as_str();
 		let signal_member = msg
 			.member()
-			.ok_or(AtspiError::MemberMatch("signal w/o member".to_string()))?;
+			.ok_or(AtspiError::MissingMember)?;
 		let message_member = signal_member.as_str();
 		match message_signature {
 			// Accessible signature
@@ -558,12 +558,12 @@ mod tests {
 				atspi.send_event(event_struct).await.unwrap();
 
 				while let Some(Ok(ev)) = events.next().await {
-					if let Ok(event) = <$type>::try_from(ev) {
+					if let Ok(event) = <$type>::try_from(ev.clone()) {
 						assert_eq!(event.item.path.as_str(), "/org/a11y/atspi/accessible/null");
 						break;
 					// do something with the specific event you've received
 					} else {
-						continue;
+						panic!("The wrong event was sent: {ev:?}");
 					}
 				}
 			}
