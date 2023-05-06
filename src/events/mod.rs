@@ -564,7 +564,7 @@ pub trait GenericEvent<'a> {
 	/// # Errors
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
-	/// It is not possible for this to error on most events, but on events whoes raw message [`Body`] type contains a [`zbus::zvariant::Value`], you may get errors when constructing the structure.
+	/// It is not possible for this to error on most events, but on events whoes raw message [`Self::Body`] type contains a [`enum@zbus::zvariant::Value`], you may get errors when constructing the structure.
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
