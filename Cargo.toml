@@ -45,3 +45,4 @@ tokio = { version = "1", default_features = false, features = ["macros", "rt-mul
 async-std = { version = "1", features = ["attributes"] }
 futures-lite = { version = "1.12", default-features = false }
 tokio-test = "0.4.2"
+rename-item = "0.1.0"
