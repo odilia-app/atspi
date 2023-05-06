@@ -148,7 +148,7 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::$type;
+			use super::{$type};
 			use crate::events::GenericEvent;
 			use crate::Event;
 
