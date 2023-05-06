@@ -5,8 +5,6 @@ pub mod mouse;
 pub mod object;
 pub mod terminal;
 pub mod window;
-#[macro_use]
-pub mod macros;
 
 // Event body signatures: These outline the event specific deserialized event types.
 // Safety: These are evaluated at compile time.
@@ -77,7 +75,7 @@ pub struct EventBodyQT {
 }
 
 // Signature (siiva{sv}),
-#[derive(Clone, Debug, Serialize, Deserialize, Type)]
+#[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyOwned {
 	#[serde(rename = "type")]
 	pub kind: String,
@@ -136,11 +134,14 @@ pub enum CacheEvents {
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct AddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: CacheItem,
 }
+impl_event_conversions!(AddAccessibleEvent, CacheEvents, CacheEvents::Add, Event::Cache);
+event_test_cases!(AddAccessibleEvent);
+
 impl GenericEvent<'_> for AddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
@@ -173,11 +174,13 @@ impl<'a, T: GenericEvent<'a>> HasRegistryEventString for T {
 impl_from_dbus_message!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct RemoveAccessibleEvent {
 	pub item: Accessible,
 	pub node_removed: Accessible,
 }
+impl_event_conversions!(RemoveAccessibleEvent, CacheEvents, CacheEvents::Remove, Event::Cache);
+event_test_cases!(RemoveAccessibleEvent);
 impl GenericEvent<'_> for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
 	const MATCH_RULE_STRING: &'static str =
@@ -216,7 +219,7 @@ pub struct Accessible {
 }
 impl TryFrom<zbus::zvariant::OwnedValue> for Accessible {
 	type Error = zbus::Error;
-	fn try_from(value: zbus::zvariant::OwnedValue) -> Result<Self, Self::Error> {
+	fn try_from<'a>(value: zbus::zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
 			zbus::zvariant::Value::Structure(s) => {
 				if s.signature() != ACCESSIBLE_PAIR_SIGNATURE {
@@ -227,18 +230,45 @@ impl TryFrom<zbus::zvariant::OwnedValue> for Accessible {
 					.get(0)
 					.ok_or(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType))?
 					.try_into()?;
-				let path_value: String = fields
+				let path_value: ObjectPath<'_> = fields
 					.get(1)
 					.ok_or(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType))?
 					.try_into()?;
 				let name = UniqueName::try_from(name_value)?.into();
-				let path = ObjectPath::try_from(path_value)?.into();
-				Ok(Accessible { name, path })
+				Ok(Accessible { name, path: path_value.into() })
 			}
 			_ => Err(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType)),
 		}
 	}
 }
+#[cfg(test)]
+pub mod accessible_deserialization_tests {
+	use crate::events::Accessible;
+	use zbus::zvariant::Value;
+
+	#[test]
+	fn try_into_value() {
+		let acc = Accessible::default();
+		let value_struct = Value::try_from(acc).expect("Unable to convert into a zvariant::Value");
+		let Value::Structure(structure) = value_struct else {
+			panic!("Unable to destructure a structure out of the Value.");
+		};
+		let vals = structure.into_fields();
+		assert_eq!(vals.len(), 2);
+		let Value::Str(bus_name) = vals.get(0).unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.get(0).unwrap());
+		};
+		assert_eq!(bus_name, ":0.0");
+		let Value::ObjectPath(path) = vals.get(1).unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
+		};
+		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+	#[test]
+	fn try_from_value() {
+	}
+}
+
 impl From<Accessible> for zbus::zvariant::Structure<'_> {
 	fn from(accessible: Accessible) -> Self {
 		(accessible.name.as_str().to_string(), accessible.path).into()
@@ -300,7 +330,7 @@ impl TryFrom<Message> for EventBodyOwned {
 
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventListeners {
 	pub bus_name: OwnedUniqueName,
 	pub path: String,
@@ -334,11 +364,13 @@ pub enum EventListenerEvents {
 
 /// An event that is emitted by the regostry daemon to signal that an event has been deregistered
 /// to no longer listen for.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct EventListenerDeregisteredEvent {
 	pub item: Accessible,
 	pub deregistered_event: EventListeners,
 }
+impl_event_conversions!(EventListenerDeregisteredEvent, EventListenerEvents, EventListenerEvents::Deregistered, Event::Listener);
+event_test_cases!(EventListenerDeregisteredEvent);
 impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
 	const MATCH_RULE_STRING: &'static str =
@@ -365,11 +397,13 @@ impl_from_dbus_message!(EventListenerDeregisteredEvent);
 impl_to_dbus_message!(EventListenerDeregisteredEvent);
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct EventListenerRegisteredEvent {
 	pub item: Accessible,
 	pub registered_event: EventListeners,
 }
+impl_event_conversions!(EventListenerRegisteredEvent, EventListenerEvents, EventListenerEvents::Registered, Event::Listener);
+event_test_cases!(EventListenerRegisteredEvent);
 impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
 	const MATCH_RULE_STRING: &'static str =
@@ -396,11 +430,27 @@ impl_from_dbus_message!(EventListenerRegisteredEvent);
 impl_to_dbus_message!(EventListenerRegisteredEvent);
 
 /// An event that is emitted when the registry daemon has started.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct AvailableEvent {
 	pub item: Accessible,
 	pub socket: Accessible,
 }
+impl From<AvailableEvent> for Event {
+	fn from(ev: AvailableEvent) -> Event {
+		Event::Available(ev)
+	}
+}
+impl TryFrom<Event> for AvailableEvent {
+	type Error = AtspiError;
+	fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {
+		if let Event::Available(specific_event) = generic_event {
+			Ok(specific_event)
+		} else {
+			Err(AtspiError::Conversion("Invalid type"))
+		}
+	}
+}
+event_test_cases!(AvailableEvent);
 impl GenericEvent<'_> for AvailableEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
 	const MATCH_RULE_STRING: &'static str =
