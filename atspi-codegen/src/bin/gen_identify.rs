@@ -428,6 +428,7 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -
     ///
     /// ```
     /// use atspi::Event;
+		/// # use atspi::events::GenericEvent;
     /// use atspi::identify::{mod_name}::{signal_event_name};
     /// # use std::time::Duration;
     /// use tokio_stream::StreamExt;
@@ -443,6 +444,12 @@ fn generate_signal_associated_example(mod_name: &str, signal_event_name: &str) -
     ///
     ///     while let Some(Ok(ev)) = events.next().await {{
     ///         if let Ok(event) = {signal_event_name}::try_from(ev) {{
+		/// #          let event_enum: Event = event.into();
+		/// #          let back_to_event = {signal_event_name}::try_from(event_enum).unwrap();
+		/// #          assert_eq!(back_to_event.sender().as_str(), \":0.0\");
+		/// #          let body = back_to_event.body();
+		/// #          let item = back_to_event.item.clone();
+		/// #          let event_from_parts = {signal_event_name}::build(item, body).unwrap();
 		/// #          break;
 		///            // do something with the specific event you've received
 		///         }} else {{ continue }};

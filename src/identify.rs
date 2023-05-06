@@ -1,3 +1,4 @@
+
 use crate::AtspiError;
 
 #[allow(clippy::module_name_repetitions)]
@@ -119,6 +120,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::PropertyChangeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -134,6 +136,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = PropertyChangeEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = PropertyChangeEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -158,6 +166,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::BoundsChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -173,6 +182,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = BoundsChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = BoundsChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = BoundsChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -195,6 +210,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::LinkSelectedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -210,6 +226,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LinkSelectedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = LinkSelectedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = LinkSelectedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -232,6 +254,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::StateChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -247,6 +270,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = StateChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = StateChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = StateChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -271,6 +300,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::ChildrenChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -286,6 +316,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ChildrenChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ChildrenChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ChildrenChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -311,6 +347,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::VisibleDataChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -326,6 +363,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = VisibleDataChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = VisibleDataChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = VisibleDataChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -348,6 +391,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::SelectionChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -363,6 +407,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = SelectionChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = SelectionChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = SelectionChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -385,6 +435,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::ModelChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -400,6 +451,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ModelChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ModelChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ModelChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -422,6 +479,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::ActiveDescendantChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -437,6 +495,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ActiveDescendantChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ActiveDescendantChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ActiveDescendantChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -460,6 +524,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::AnnouncementEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -475,6 +540,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AnnouncementEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = AnnouncementEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = AnnouncementEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -498,6 +569,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::AttributesChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -513,6 +585,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = AttributesChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = AttributesChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -535,6 +613,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::RowInsertedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -550,6 +629,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RowInsertedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = RowInsertedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = RowInsertedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -572,6 +657,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::RowReorderedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -587,6 +673,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RowReorderedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = RowReorderedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = RowReorderedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -609,6 +701,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::RowDeletedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -624,6 +717,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RowDeletedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = RowDeletedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = RowDeletedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -646,6 +745,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::ColumnInsertedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -661,6 +761,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnInsertedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ColumnInsertedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ColumnInsertedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -683,6 +789,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::ColumnReorderedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -698,6 +805,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnReorderedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ColumnReorderedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ColumnReorderedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -720,6 +833,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::ColumnDeletedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -735,6 +849,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnDeletedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ColumnDeletedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ColumnDeletedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -757,6 +877,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::TextBoundsChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -772,6 +893,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextBoundsChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = TextBoundsChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = TextBoundsChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -794,6 +921,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::TextSelectionChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -809,6 +937,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextSelectionChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = TextSelectionChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = TextSelectionChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -831,6 +965,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::TextChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -846,6 +981,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = TextChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = TextChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -872,6 +1013,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::TextAttributesChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -887,6 +1029,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextAttributesChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = TextAttributesChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = TextAttributesChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -909,6 +1057,7 @@ pub mod object {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::object::TextCaretMovedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -924,6 +1073,12 @@ pub mod object {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = TextCaretMovedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = TextCaretMovedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = TextCaretMovedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2561,6 +2716,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::PropertyChangeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2576,6 +2732,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = PropertyChangeEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = PropertyChangeEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2599,6 +2761,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::MinimizeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2614,6 +2777,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = MinimizeEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = MinimizeEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = MinimizeEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2636,6 +2805,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::MaximizeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2651,6 +2821,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = MaximizeEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = MaximizeEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = MaximizeEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2673,6 +2849,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::RestoreEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2688,6 +2865,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RestoreEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = RestoreEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = RestoreEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2710,6 +2893,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::CloseEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2725,6 +2909,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = CloseEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = CloseEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = CloseEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2747,6 +2937,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::CreateEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2762,6 +2953,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = CreateEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = CreateEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = CreateEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2784,6 +2981,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::ReparentEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2799,6 +2997,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ReparentEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ReparentEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ReparentEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2821,6 +3025,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::DesktopCreateEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2836,6 +3041,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DesktopCreateEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = DesktopCreateEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = DesktopCreateEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2858,6 +3069,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::DesktopDestroyEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2873,6 +3085,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DesktopDestroyEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = DesktopDestroyEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = DesktopDestroyEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2895,6 +3113,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::DestroyEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2910,6 +3129,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DestroyEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = DestroyEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = DestroyEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2932,6 +3157,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::ActivateEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2947,6 +3173,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ActivateEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ActivateEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ActivateEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -2969,6 +3201,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::DeactivateEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -2984,6 +3217,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = DeactivateEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = DeactivateEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = DeactivateEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3006,6 +3245,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::RaiseEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3021,6 +3261,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RaiseEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = RaiseEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = RaiseEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3043,6 +3289,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::LowerEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3058,6 +3305,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LowerEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = LowerEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = LowerEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3080,6 +3333,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::MoveEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3095,6 +3349,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = MoveEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = MoveEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = MoveEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3117,6 +3377,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::ResizeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3132,6 +3393,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ResizeEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ResizeEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ResizeEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3154,6 +3421,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::ShadeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3169,6 +3437,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ShadeEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ShadeEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ShadeEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3191,6 +3465,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::UUshadeEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3206,6 +3481,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = UUshadeEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = UUshadeEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = UUshadeEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -3228,6 +3509,7 @@ pub mod window {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::window::RestyleEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -3243,6 +3525,12 @@ pub mod window {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RestyleEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = RestyleEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = RestyleEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -4650,6 +4938,7 @@ pub mod mouse {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::mouse::AbsEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -4665,6 +4954,12 @@ pub mod mouse {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AbsEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = AbsEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = AbsEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -4689,6 +4984,7 @@ pub mod mouse {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::mouse::RelEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -4704,6 +5000,12 @@ pub mod mouse {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = RelEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = RelEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = RelEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -4728,6 +5030,7 @@ pub mod mouse {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::mouse::ButtonEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -4743,6 +5046,12 @@ pub mod mouse {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ButtonEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ButtonEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ButtonEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5079,6 +5388,7 @@ pub mod keyboard {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::keyboard::ModifiersEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5094,6 +5404,12 @@ pub mod keyboard {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ModifiersEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ModifiersEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ModifiersEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5299,6 +5615,7 @@ pub mod terminal {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::terminal::LineChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5314,6 +5631,12 @@ pub mod terminal {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LineChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = LineChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = LineChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5336,6 +5659,7 @@ pub mod terminal {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::terminal::ColumnCountChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5351,6 +5675,12 @@ pub mod terminal {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ColumnCountChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ColumnCountChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ColumnCountChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5373,6 +5703,7 @@ pub mod terminal {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::terminal::LineCountChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5388,6 +5719,12 @@ pub mod terminal {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LineCountChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = LineCountChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = LineCountChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5410,6 +5747,7 @@ pub mod terminal {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::terminal::ApplicationChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5425,6 +5763,12 @@ pub mod terminal {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ApplicationChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ApplicationChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ApplicationChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5447,6 +5791,7 @@ pub mod terminal {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::terminal::CharWidthChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5462,6 +5807,12 @@ pub mod terminal {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = CharWidthChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = CharWidthChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = CharWidthChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5934,6 +6285,7 @@ pub mod document {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::document::LoadCompleteEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5949,6 +6301,12 @@ pub mod document {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LoadCompleteEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = LoadCompleteEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = LoadCompleteEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -5971,6 +6329,7 @@ pub mod document {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::document::ReloadEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -5986,6 +6345,12 @@ pub mod document {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ReloadEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ReloadEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ReloadEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -6008,6 +6373,7 @@ pub mod document {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::document::LoadStoppedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -6023,6 +6389,12 @@ pub mod document {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = LoadStoppedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = LoadStoppedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = LoadStoppedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -6045,6 +6417,7 @@ pub mod document {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::document::ContentChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -6060,6 +6433,12 @@ pub mod document {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = ContentChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = ContentChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = ContentChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -6082,6 +6461,7 @@ pub mod document {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::document::AttributesChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -6097,6 +6477,12 @@ pub mod document {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = AttributesChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = AttributesChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = AttributesChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -6119,6 +6505,7 @@ pub mod document {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::document::PageChangedEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -6134,6 +6521,12 @@ pub mod document {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = PageChangedEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = PageChangedEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = PageChangedEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
@@ -6668,6 +7061,7 @@ pub mod focus {
 	///
 	/// ```
 	/// use atspi::Event;
+	/// # use atspi::events::GenericEvent;
 	/// use atspi::identify::focus::FocusEvent;
 	/// # use std::time::Duration;
 	/// use tokio_stream::StreamExt;
@@ -6683,6 +7077,12 @@ pub mod focus {
 	///
 	///     while let Some(Ok(ev)) = events.next().await {
 	///         if let Ok(event) = FocusEvent::try_from(ev) {
+	/// #          let event_enum: Event = event.into();
+	/// #          let back_to_event = FocusEvent::try_from(event_enum).unwrap();
+	/// #          assert_eq!(back_to_event.sender().as_str(), ":0.0");
+	/// #          let body = back_to_event.body();
+	/// #          let item = back_to_event.item.clone();
+	/// #          let event_from_parts = FocusEvent::build(item, body).unwrap();
 	/// #          break;
 	///            // do something with the specific event you've received
 	///         } else { continue };
