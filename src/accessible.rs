@@ -449,7 +449,8 @@ trait Accessible {
 
 	/// AccessibleId property
 	#[dbus_proxy(property)]
-	fn accessible_id(&self) -> zbus::Result<zbus::zvariant::OwnedObjectPath>;
+	//fn accessible_id(&self) -> zbus::Result<zbus::zvariant::OwnedObjectPath>;
+	fn accessible_id(&self) -> zbus::Result<String>;
 
 	/// ChildCount property
 	#[dbus_proxy(property)]
@@ -478,10 +479,16 @@ impl TryFrom<AccessibleProxy<'_>> for ObjectPair {
 		Ok((proxy.destination().to_string(), proxy.path().to_string().try_into()?))
 	}
 }
+impl TryFrom<&AccessibleProxy<'_>> for ObjectPair {
+	type Error = AtspiError;
+	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectPair, Self::Error> {
+		Ok((proxy.destination().to_string(), proxy.path().to_string().try_into()?))
+	}
+}
 
 impl PartialEq for AccessibleProxy<'_> {
 	fn eq<'a>(&self, other: &Self) -> bool {
-		self.path() == other.path()
+		self.path() == other.path() //&& self.destination() == other.destination()
 	}
 }
 impl Eq for AccessibleProxy<'_> {}

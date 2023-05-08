@@ -1,5 +1,6 @@
 use crate::{
 	accessible::{
+		ObjectPair,
 		Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking, RelationType,
 		Role,
 	},
@@ -18,6 +19,9 @@ pub type MatcherArgs =
 #[async_trait]
 pub trait AccessibleExt {
 	type Error: std::error::Error;
+	async fn get_application_ext<'a>(&self) -> Result<Self, Self::Error>
+	where
+		Self: Sized;
 	async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error>
 	where
 		Self: Sized;
@@ -43,21 +47,23 @@ pub trait AccessibleExt {
 		&self,
 		matcher_args: &MatcherArgs,
 		backward: bool,
+		already_visited: &'a mut Vec<ObjectPair>,
 	) -> Result<Option<Self>, Self::Error>
+	where
+		Self: Sized;
+	/// Get all edges for a given accessible object.
+	/// This means: all children, siblings, and parent, in that order.
+	/// If a direction is specified, then it will only get the appicable matching siblings/children.
+	/// This also checks if the element supports the text interface, and then checks if the caret position is contained within the string, if it is, then children are also handled by direction.
+	async fn edges<'a>(
+		&self,
+		backward: Option<bool>,
+	) -> Result<Vec<Self>, Self::Error>
 	where
 		Self: Sized;
 	async fn get_relation_set_ext<'a>(
 		&self,
 	) -> Result<HashMap<RelationType, Vec<Self>>, Self::Error>
-	where
-		Self: Sized;
-	async fn find_inner<'a>(
-		&self,
-		after_or_before: i32,
-		matcher_args: &MatcherArgs,
-		backward: bool,
-		recur: bool,
-	) -> Result<Option<Self>, <Self as AccessibleExt>::Error>
 	where
 		Self: Sized;
 	async fn match_(
@@ -90,8 +96,15 @@ pub trait AccessibleBlockingExtError: AccessibleBlocking + ConvertableBlocking {
 }
 
 #[async_trait]
-impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleExt for T {
+impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync+ Clone> AccessibleExt for T 
+	where ObjectPair: for<'c> TryFrom<&'c T> {
 	type Error = <T as AccessibleExtError>::Error;
+	async fn get_application_ext<'a>(&self) -> Result<Self, Self::Error>
+	where
+		Self: Sized,
+	{
+		Ok(self.get_application().await?)
+	}
 	async fn get_parent_ext<'a>(&self) -> Result<Self, Self::Error>
 	where
 		Self: Sized,
@@ -130,7 +143,9 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 		Self: Sized,
 	{
 		let parent = self.parent().await?;
-		let index = self.get_index_in_parent().await?.try_into()?;
+		let pin = self.get_index_in_parent().await?;
+		println!("Attempt conversion into usize: {:?}", pin);
+		let index = pin.try_into()?;
 		// Clippy false positive: Standard pattern for excluding index item from list.
 		#[allow(clippy::if_not_else)]
 		let children: Vec<Self> = parent
@@ -194,39 +209,79 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 		}
 		Ok(children_after_before)
 	}
+	async fn edges<'a>(
+		&self,
+		backward: Option<bool>,
+	) -> Result<Vec<Self>, Self::Error>
+	where
+		Self: Sized
+	{
+		let mut edge_elements = Vec::new();
+		let children = match backward {
+			Some(backward) => {
+				if let Ok(caret_children) = self.get_children_caret(backward).await {
+					caret_children
+				} else {
+					self.get_children().await?
+				}
+			},
+			None => {
+				self.get_children().await?
+			},
+		};
+		children
+			.into_iter()
+			.for_each(|child| edge_elements.push(child));
+		let siblings = match backward {
+			Some(false) => self.get_siblings_before().await?,
+			Some(true) => self.get_siblings_after().await?,
+			None => self.get_siblings().await?,
+		};
+		siblings
+			.into_iter()
+			.for_each(|sibling| edge_elements.push(sibling));
+		let parent = self.get_parent_ext().await?;
+		edge_elements.push(parent);
+		Ok(edge_elements)
+	}
 	async fn get_next<'a>(
 		&self,
 		matcher_args: &MatcherArgs,
 		backward: bool,
+		visited: &'a mut Vec<ObjectPair>,
 	) -> Result<Option<Self>, Self::Error>
 	where
 		Self: Sized,
 	{
-		// TODO if backwards, check here
-		let caret_children = self.get_children_caret(backward).await?;
-		for child in caret_children {
-			if child.match_(matcher_args).await? {
-				return Ok(Some(child));
-			} else if let Some(found_sub) =
-				child.find_inner(0, matcher_args, backward, true).await?
-			{
-				return Ok(Some(found_sub));
+		let mut stack: Vec<T> = Vec::new();
+		let edges = self.edges(Some(backward)).await?;
+		edges.into_iter()
+			.for_each(|edge| stack.push(edge));
+		while let Some(item) = stack.pop() {
+			// TODO: properly bubble up error
+			let Ok(identifier) = ObjectPair::try_from(&item) else {
+				return Ok(None);
+			};
+			println!("{:?}", identifier);
+			// the top of the hirearchy for strctural navigation.
+			if visited.contains(&identifier) {
+				continue;
 			}
-		}
-		let mut last_parent_index = self.get_index_in_parent().await?;
-		if let Ok(mut parent) = self.get_parent_ext().await {
-			while parent.get_role().await? != Role::InternalFrame {
-				let found_inner_child = parent
-					.find_inner(last_parent_index, matcher_args, backward, false)
-					.await?;
-				if found_inner_child.is_some() {
-					return Ok(found_inner_child);
-				}
-				last_parent_index = parent.get_index_in_parent().await?;
-				parent = parent.get_parent_ext().await?;
+			visited.push(identifier);
+			if item.get_role().await? == Role::InternalFrame {
+				return Ok(None);
 			}
+			// if it matches, then return it
+			if item.match_(matcher_args).await? {
+				return Ok(Some(item));
+			}
+			// if it doesnt match, add all edges
+			self.edges(Some(backward))
+				.await?
+				.into_iter()
+				.for_each(|edge| stack.push(edge));
 		}
-		Ok(None)
+		return Ok(None);
 	}
 	async fn get_relation_set_ext<'a>(
 		&self,
@@ -244,42 +299,6 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync> AccessibleE
 			relations.insert(relation.0, related_vec);
 		}
 		Ok(relations)
-	}
-	async fn find_inner<'a>(
-		&self,
-		after_or_before: i32,
-		matcher_args: &MatcherArgs,
-		backward: bool,
-		recur: bool,
-	) -> Result<Option<Self>, <Self as AccessibleExt>::Error>
-	where
-		Self: Sized,
-	{
-		let children = if backward {
-			let mut vec = self.get_children_ext().await?;
-			vec.reverse();
-			vec
-		} else {
-			self.get_children_ext().await?
-		};
-		for child in children {
-			let child_index = child.get_index_in_parent().await?;
-			if !recur
-				&& ((child_index <= after_or_before && !backward)
-					|| (child_index >= after_or_before && backward))
-			{
-				continue;
-			}
-			if child.match_(matcher_args).await? {
-				return Ok(Some(child));
-			}
-			/* 0 here is ignored because we are recursive; see the line starting with if !recur */
-			if let Some(found_decendant) = child.find_inner(0, matcher_args, backward, true).await?
-			{
-				return Ok(Some(found_decendant));
-			}
-		}
-		Ok(None)
 	}
 	// TODO: make match more broad, allow use of other parameters; also, support multiple roles, since right now, multiple will just exit immediately with false
 	async fn match_(
