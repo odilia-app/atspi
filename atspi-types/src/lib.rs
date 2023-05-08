@@ -1,3 +1,5 @@
+pub mod text;
+pub use text::Granularity;
 pub mod events;
 pub use events::Event;
 pub mod errors;
