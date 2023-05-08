@@ -1,3 +1,5 @@
+pub mod coord_type;
+pub use coord_type::CoordType;
 pub mod text;
 pub use text::Granularity;
 pub mod events;
