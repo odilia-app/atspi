@@ -264,18 +264,18 @@ macro_rules! event_wrapper_test_cases {
 			#[should_panic]
 			fn zbus_msg_invalid_interface() {
 				let Ok(msg_builder) = zbus::MessageBuilder::signal(
-												"/org/a11y/sixynine/fourtwenty",
-												"org.a11y.atspi.technically.valid.lol",
-												<$any_subtype as GenericEvent>::DBUS_MEMBER,
-											) else {
-											return ();
-										};
+														"/org/a11y/sixynine/fourtwenty",
+														"org.a11y.atspi.technically.valid.lol",
+														<$any_subtype as GenericEvent>::DBUS_MEMBER,
+													) else {
+													return ();
+												};
 				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-											return ();
-										};
+													return ();
+												};
 				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
-											return ();
-										};
+													return ();
+												};
 				let mod_type = <$type>::try_from(&fake_msg);
 				mod_type.expect("Could not convert message into a event wrapper type");
 			}
@@ -283,18 +283,18 @@ macro_rules! event_wrapper_test_cases {
 			#[should_panic]
 			fn zbus_msg_invalid_member() {
 				let Ok(msg_builder) = zbus::MessageBuilder::signal(
-												"/org/a11y/sixynine/fourtwenty",
-												<$any_subtype as GenericEvent>::DBUS_INTERFACE,
-												"FakeFunctionLol",
-											) else {
-											return ();
-										};
+														"/org/a11y/sixynine/fourtwenty",
+														<$any_subtype as GenericEvent>::DBUS_INTERFACE,
+														"FakeFunctionLol",
+													) else {
+													return ();
+												};
 				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-											return ();
-										};
+													return ();
+												};
 				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
-											return ();
-										};
+													return ();
+												};
 				let mod_type = <$type>::try_from(&fake_msg);
 				mod_type.expect("Could not convert message into a event wrapper type");
 			}
@@ -302,36 +302,36 @@ macro_rules! event_wrapper_test_cases {
 			#[should_panic]
 			fn zbus_msg_invalid_member_and_interface() {
 				let Ok(msg_builder) = zbus::MessageBuilder::signal(
-												"/org/a11y/sixynine/fourtwenty",
-												"org.a11y.atspi.technically.allowed",
-												"FakeFunctionLol",
-											) else {
-											return ();
-										};
+														"/org/a11y/sixynine/fourtwenty",
+														"org.a11y.atspi.technically.allowed",
+														"FakeFunctionLol",
+													) else {
+													return ();
+												};
 				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-											return ();
-										};
+													return ();
+												};
 				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
-											return ();
-										};
+													return ();
+												};
 				let mod_type = <$type>::try_from(&fake_msg);
 				mod_type.expect("Could not convert message into a event wrapper type");
 			}
 			#[test]
 			fn zbus_msg_conversion() {
 				let Ok(msg_builder) = zbus::MessageBuilder::signal(
-												"/org/a11y/sixynine/fourtwenty",
-												<$any_subtype as GenericEvent>::DBUS_INTERFACE,
-												<$any_subtype as GenericEvent>::DBUS_MEMBER,
-											) else {
-											return ();
-										};
+														"/org/a11y/sixynine/fourtwenty",
+														<$any_subtype as GenericEvent>::DBUS_INTERFACE,
+														<$any_subtype as GenericEvent>::DBUS_MEMBER,
+													) else {
+													return ();
+												};
 				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-											return ();
-										};
+													return ();
+												};
 				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
-											return ();
-										};
+													return ();
+												};
 				let mod_type = <$type>::try_from(&fake_msg);
 				mod_type.expect("Could not convert message into a event wrapper type");
 			}
