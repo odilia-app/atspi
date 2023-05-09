@@ -1,26 +1,22 @@
 use serial_test::*;
 
-use fantoccini::{ClientBuilder, Client};
-use std::process::{Command, Stdio};
-use std::collections::HashMap;
-use std::io::Write;
-use futures_lite::stream::StreamExt;
-use tokio::time::{sleep, Duration, timeout};
 #[cfg(feature = "unstable-traits")]
 use atspi::accessible_ext::AccessibleExt;
 #[cfg(feature = "unstable-traits")]
 use atspi::convertable::Convertable;
 use atspi::{
-	collection::MatchType,
-	InterfaceSet,
-	Interface,
-	StateSet,
 	accessible::{AccessibleProxy, Role},
-	AccessibilityConnection,
+	collection::MatchType,
 	events::{Event, GenericEvent},
-	identify::object::{ObjectEvents, ChildrenChangedEvent, StateChangedEvent},
-	set_session_accessibility,
+	identify::object::{ChildrenChangedEvent, ObjectEvents, StateChangedEvent},
+	set_session_accessibility, AccessibilityConnection, Interface, InterfaceSet, StateSet,
 };
+use fantoccini::{Client, ClientBuilder};
+use futures_lite::stream::StreamExt;
+use std::collections::HashMap;
+use std::io::Write;
+use std::process::{Command, Stdio};
+use tokio::time::{sleep, timeout, Duration};
 
 async fn start_firefox(port: &str) -> Client {
 	Command::new("geckodriver")
@@ -34,7 +30,7 @@ async fn start_firefox(port: &str) -> Client {
 	sleep(Duration::from_millis(50)).await;
 	/*"args": ["-headless"],*/
 	let options = serde_json::from_str(
-r#"
+		r#"
 {
 "moz:firefoxOptions": {
 	"prefs": {
@@ -48,7 +44,9 @@ r#"
 	}
 } 
 }
-"#).expect("Could not create value");
+"#,
+	)
+	.expect("Could not create value");
 	ClientBuilder::native()
 		.capabilities(options)
 		.connect(&format!("http://localhost:{}", port))
@@ -83,24 +81,34 @@ async fn test_get_next_accessible_ext() -> Result<(), Box<dyn std::error::Error>
 					.build()
 					.await?;
 				let interfaces = accessible.get_interfaces().await?;
-				let args = (vec![Role::Heading], MatchType::Empty, HashMap::new(), MatchType::Empty, InterfaceSet::empty(), MatchType::Empty);
+				let args = (
+					vec![Role::Heading],
+					MatchType::Empty,
+					HashMap::new(),
+					MatchType::Empty,
+					InterfaceSet::empty(),
+					MatchType::Empty,
+				);
 				let mut empty_visited = Vec::new();
-				let get_next = timeout(Duration::from_millis(100), accessible.get_next(&args, true, &mut empty_visited));
+				let get_next = timeout(
+					Duration::from_millis(100),
+					accessible.get_next(&args, true, &mut empty_visited),
+				);
 				match get_next.await {
 					Err(_) => {
 						println!("This took too long to run; this ususally means DBus hung on us.");
-					},
+					}
 					Ok(Ok(Some(a11y))) => {
 						println!("We got an answer!");
-					},
+					}
 					Ok(Ok(None)) => {
 						println!("We didn't get an answer!");
-					},
+					}
 					Ok(Err(e)) => {
 						println!("{:?}", e);
-					},
+					}
 				};
-			},
+			}
 			Err(_) => {
 				c.clone().close().await;
 				return Ok(());
@@ -120,7 +128,7 @@ macro_rules! conversion_test {
 			let new = $acc.$to_func().await?;
 			assert_eq!(new.path(), $acc.path());
 		}
-	}
+	};
 }
 
 #[cfg(feature = "unstable-traits")]
@@ -163,12 +171,12 @@ async fn test_convertable_trait() -> Result<(), Box<dyn std::error::Error>> {
 				conversion_test!(interfaces, accessible, Interface::TableCell, to_table_cell);
 				conversion_test!(interfaces, accessible, Interface::Text, to_text);
 				conversion_test!(interfaces, accessible, Interface::Value, to_value);
-			},
+			}
 			Err(e) => {
 				// elapsed is allowed, this means the test ran fine; the test will panic if something goes wrong
 				c.close().await;
 				return Ok(());
-			},
+			}
 			_ => {
 				panic!("An unexpected value was received from the future.");
 			}
@@ -183,7 +191,7 @@ macro_rules! assert_no_err {
 			$client.clone().close().await;
 			assert!(false);
 		}
-	}
+	};
 }
 
 #[tokio::test]
@@ -211,7 +219,10 @@ async fn test_interface_accessible_methods() -> Result<(), Box<dyn std::error::E
 					.build()
 					.await
 					.expect("Unable to create AccessibleProxy");
-				let interfaces = accessible.get_interfaces().await.expect("Unable to build an interface set from get_interfaces response");
+				let interfaces = accessible
+					.get_interfaces()
+					.await
+					.expect("Unable to build an interface set from get_interfaces response");
 				if interfaces.contains(Interface::Accessible) {
 					assert_no_err!(accessible.get_application(), c);
 					assert_no_err!(accessible.get_attributes(), c);
@@ -229,12 +240,12 @@ async fn test_interface_accessible_methods() -> Result<(), Box<dyn std::error::E
 					assert_no_err!(accessible.name(), c);
 					assert_no_err!(accessible.parent(), c);
 				}
-			},
+			}
 			Err(e) => {
 				// elapsed is allowed, this means the test ran fine; the test will panic if something goes wrong
 				c.close().await;
 				return Ok(());
-			},
+			}
 			_ => {
 				panic!("An unexpected value was received from the future.");
 			}
@@ -269,7 +280,10 @@ async fn test_text_methods() -> Result<(), Box<dyn std::error::Error>> {
 					.build()
 					.await
 					.expect("Unable to create AccessibleProxy");
-				let interfaces = accessible.get_interfaces().await.expect("Unable to build an interface set from get_interfaces response");
+				let interfaces = accessible
+					.get_interfaces()
+					.await
+					.expect("Unable to build an interface set from get_interfaces response");
 				if interfaces.contains(Interface::Text) {
 					let Ok(text) = accessible.to_text().await else {
 						continue;
@@ -280,12 +294,12 @@ async fn test_text_methods() -> Result<(), Box<dyn std::error::Error>> {
 					assert_no_err!(text.get_default_attributes(), c);
 					assert_no_err!(text.get_default_attribute_set(), c);
 				}
-			},
+			}
 			Err(e) => {
 				// elapsed is allowed, this means the test ran fine; the test will panic if something goes wrong
 				c.close().await;
 				return Ok(());
-			},
+			}
 			_ => {
 				panic!("An unexpected value was received from the future.");
 			}
