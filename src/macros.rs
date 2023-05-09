@@ -261,9 +261,9 @@ macro_rules! event_wrapper_test_cases {
 				);
 			}
 			#[test]
-			#[should_panic]
+			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_interface() {
-				let msg_builder = zbus::MessageBuilder::signal(
+				let fake_msg = zbus::MessageBuilder::signal(
 					"/org/a11y/sixynine/fourtwenty",
 					"org.a11y.atspi.technically.valid.lol",
 					<$any_subtype as GenericEvent>::DBUS_MEMBER,
@@ -274,27 +274,32 @@ macro_rules! event_wrapper_test_cases {
 				.build(&(<$any_subtype>::default().body()))
 				.unwrap();
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect("Could not convert message into a event wrapper type");
+				mod_type.expect(
+					"This should panic! Could not convert message into a event wrapper type",
+				);
 			}
 			#[test]
-			#[should_panic]
+			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member() {
-				let msg_builder = zbus::MessageBuilder::signal(
+				let fake_msg = zbus::MessageBuilder::signal(
 					"/org/a11y/sixynine/fourtwenty",
 					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
 					"FakeFunctionLol",
 				)
 				.unwrap()
 				.sender(":0.0")
+				.unwrap()
 				.build(&(<$any_subtype>::default().body()))
 				.unwrap();
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect("Could not convert message into a event wrapper type");
+				mod_type.expect(
+					"This should panic! Could not convert message into a event wrapper type",
+				);
 			}
 			#[test]
-			#[should_panic]
+			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member_and_interface() {
-				let Ok(msg_builder) = zbus::MessageBuilder::signal(
+				let fake_msg = zbus::MessageBuilder::signal(
 					"/org/a11y/sixynine/fourtwenty",
 					"org.a11y.atspi.technically.allowed",
 					"FakeFunctionLol",
@@ -305,11 +310,13 @@ macro_rules! event_wrapper_test_cases {
 				.build(&(<$any_subtype>::default().body()))
 				.unwrap();
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect("Could not convert message into a event wrapper type");
+				mod_type.expect(
+					"This should panic! Could not convert message into a event wrapper type",
+				);
 			}
 			#[test]
 			fn zbus_msg_conversion() {
-				let msg_builder = zbus::MessageBuilder::signal(
+				let valid_msg = zbus::MessageBuilder::signal(
 					"/org/a11y/sixynine/fourtwenty",
 					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
 					<$any_subtype as GenericEvent>::DBUS_MEMBER,
@@ -319,7 +326,7 @@ macro_rules! event_wrapper_test_cases {
 				.unwrap()
 				.build(&(<$any_subtype>::default().body()))
 				.unwrap();
-				let mod_type = <$type>::try_from(&fake_msg);
+				let mod_type = <$type>::try_from(&valid_msg);
 				mod_type.expect("Could not convert message into a event wrapper type");
 			}
 		}
