@@ -252,5 +252,16 @@ macro_rules! event_test_cases {
 			zbus_message_test_case!($type);
 			end_to_end_test_case!($type);
 		}
+		assert_impl_all!(
+			$type: Clone,
+			std::fmt::Debug,
+			serde::Serialize,
+			serde::Deserialize<'static>,
+			Default,
+			PartialEq,
+			Eq,
+			std::hash::Hash,
+		);
+		assert_impl_all!(zbus::Message: TryFrom<$type>);
 	};
 }
