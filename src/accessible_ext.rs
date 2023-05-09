@@ -1,8 +1,7 @@
 use crate::{
 	accessible::{
-		ObjectPair,
-		Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking, RelationType,
-		Role,
+		Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking, ObjectPair,
+		RelationType, Role,
 	},
 	collection::MatchType,
 	convertable::{Convertable, ConvertableBlocking},
@@ -55,10 +54,7 @@ pub trait AccessibleExt {
 	/// This means: all children, siblings, and parent, in that order.
 	/// If a direction is specified, then it will only get the appicable matching siblings/children.
 	/// This also checks if the element supports the text interface, and then checks if the caret position is contained within the string, if it is, then children are also handled by direction.
-	async fn edges<'a>(
-		&self,
-		backward: Option<bool>,
-	) -> Result<Vec<Self>, Self::Error>
+	async fn edges<'a>(&self, backward: Option<bool>) -> Result<Vec<Self>, Self::Error>
 	where
 		Self: Sized;
 	async fn get_relation_set_ext<'a>(
@@ -96,8 +92,10 @@ pub trait AccessibleBlockingExtError: AccessibleBlocking + ConvertableBlocking {
 }
 
 #[async_trait]
-impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync+ Clone> AccessibleExt for T 
-	where ObjectPair: for<'c> TryFrom<&'c T> {
+impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync + Clone> AccessibleExt for T
+where
+	ObjectPair: for<'c> TryFrom<&'c T>,
+{
 	type Error = <T as AccessibleExtError>::Error;
 	async fn get_application_ext<'a>(&self) -> Result<Self, Self::Error>
 	where
@@ -209,12 +207,9 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync+ Clone> Acce
 		}
 		Ok(children_after_before)
 	}
-	async fn edges<'a>(
-		&self,
-		backward: Option<bool>,
-	) -> Result<Vec<Self>, Self::Error>
+	async fn edges<'a>(&self, backward: Option<bool>) -> Result<Vec<Self>, Self::Error>
 	where
-		Self: Sized
+		Self: Sized,
 	{
 		let mut edge_elements = Vec::new();
 		let children = match backward {
@@ -224,22 +219,16 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync+ Clone> Acce
 				} else {
 					self.get_children().await?
 				}
-			},
-			None => {
-				self.get_children().await?
-			},
+			}
+			None => self.get_children().await?,
 		};
-		children
-			.into_iter()
-			.for_each(|child| edge_elements.push(child));
+		children.into_iter().for_each(|child| edge_elements.push(child));
 		let siblings = match backward {
 			Some(false) => self.get_siblings_before().await?,
 			Some(true) => self.get_siblings_after().await?,
 			None => self.get_siblings().await?,
 		};
-		siblings
-			.into_iter()
-			.for_each(|sibling| edge_elements.push(sibling));
+		siblings.into_iter().for_each(|sibling| edge_elements.push(sibling));
 		let parent = self.get_parent_ext().await?;
 		edge_elements.push(parent);
 		Ok(edge_elements)
@@ -255,8 +244,7 @@ impl<T: Accessible + Convertable + AccessibleExtError + Send + Sync+ Clone> Acce
 	{
 		let mut stack: Vec<T> = Vec::new();
 		let edges = self.edges(Some(backward)).await?;
-		edges.into_iter()
-			.for_each(|edge| stack.push(edge));
+		edges.into_iter().for_each(|edge| stack.push(edge));
 		while let Some(item) = stack.pop() {
 			// TODO: properly bubble up error
 			let Ok(identifier) = ObjectPair::try_from(&item) else {
