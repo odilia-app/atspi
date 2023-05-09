@@ -76,7 +76,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum ObjectEvents {
 		PropertyChange(PropertyChangeEvent),
 		BoundsChanged(BoundsChangedEvent),
@@ -141,7 +141,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct PropertyChangeEvent {
 		pub item: crate::events::Accessible,
 		pub property: String,
@@ -182,7 +182,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct BoundsChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -221,7 +221,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct LinkSelectedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -260,7 +260,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct StateChangedEvent {
 		pub item: crate::events::Accessible,
 		pub state: String,
@@ -301,7 +301,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ChildrenChangedEvent {
 		pub item: crate::events::Accessible,
 		pub operation: String,
@@ -343,7 +343,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct VisibleDataChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -382,7 +382,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct SelectionChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -421,7 +421,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ModelChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -460,7 +460,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ActiveDescendantChangedEvent {
 		pub item: crate::events::Accessible,
 		pub child: Accessible,
@@ -500,7 +500,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct AnnouncementEvent {
 		pub item: crate::events::Accessible,
 		pub text: String,
@@ -540,7 +540,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct AttributesChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -579,7 +579,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct RowInsertedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -618,7 +618,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct RowReorderedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -657,7 +657,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct RowDeletedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -696,7 +696,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ColumnInsertedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -735,7 +735,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ColumnReorderedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -774,7 +774,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ColumnDeletedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -813,7 +813,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct TextBoundsChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -852,7 +852,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct TextSelectionChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -891,7 +891,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct TextChangedEvent {
 		pub item: crate::events::Accessible,
 		pub detail: String,
@@ -934,7 +934,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct TextAttributesChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -973,7 +973,7 @@ pub mod object {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct TextCaretMovedEvent {
 		pub item: crate::events::Accessible,
 		pub position: i32,
@@ -2494,7 +2494,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum WindowEvents {
 		PropertyChange(PropertyChangeEvent),
 		Minimize(MinimizeEvent),
@@ -2556,7 +2556,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct PropertyChangeEvent {
 		pub item: crate::events::Accessible,
 		pub property: String,
@@ -2596,7 +2596,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct MinimizeEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2635,7 +2635,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct MaximizeEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2674,7 +2674,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct RestoreEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2713,7 +2713,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct CloseEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2752,7 +2752,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct CreateEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2791,7 +2791,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ReparentEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2830,7 +2830,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct DesktopCreateEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2869,7 +2869,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct DesktopDestroyEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2908,7 +2908,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct DestroyEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2947,7 +2947,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ActivateEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -2986,7 +2986,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct DeactivateEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -3025,7 +3025,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct RaiseEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -3064,7 +3064,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct LowerEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -3103,7 +3103,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct MoveEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -3142,7 +3142,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ResizeEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -3181,7 +3181,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ShadeEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -3220,7 +3220,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct UUshadeEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -3259,7 +3259,7 @@ pub mod window {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct RestyleEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -4500,7 +4500,7 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum MouseEvents {
 		Abs(AbsEvent),
 		Rel(RelEvent),
@@ -4546,7 +4546,7 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct AbsEvent {
 		pub item: crate::events::Accessible,
 		pub x: i32,
@@ -4587,7 +4587,7 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct RelEvent {
 		pub item: crate::events::Accessible,
 		pub x: i32,
@@ -4628,7 +4628,7 @@ pub mod mouse {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ButtonEvent {
 		pub item: crate::events::Accessible,
 		pub detail: String,
@@ -4913,7 +4913,7 @@ pub mod keyboard {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum KeyboardEvents {
 		Modifiers(ModifiersEvent),
 	}
@@ -4957,7 +4957,7 @@ pub mod keyboard {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ModifiersEvent {
 		pub item: crate::events::Accessible,
 		pub previous_modifiers: i32,
@@ -5128,7 +5128,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum TerminalEvents {
 		LineChanged(LineChangedEvent),
 		ColumnCountChanged(ColumnCountChangedEvent),
@@ -5176,7 +5176,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct LineChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5215,7 +5215,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ColumnCountChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5254,7 +5254,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct LineCountChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5293,7 +5293,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ApplicationChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5332,7 +5332,7 @@ pub mod terminal {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct CharWidthChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5757,7 +5757,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum DocumentEvents {
 		LoadComplete(LoadCompleteEvent),
 		Reload(ReloadEvent),
@@ -5806,7 +5806,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct LoadCompleteEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5845,7 +5845,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ReloadEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5884,7 +5884,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct LoadStoppedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5923,7 +5923,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct ContentChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -5962,7 +5962,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct AttributesChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -6001,7 +6001,7 @@ pub mod document {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct PageChangedEvent {
 		pub item: crate::events::Accessible,
 	}
@@ -6485,7 +6485,7 @@ pub mod focus {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum FocusEvents {
 		Focus(FocusEvent),
 	}
@@ -6529,7 +6529,7 @@ pub mod focus {
 	/// }
 	/// ```
 	// IgnoreBlock stop
-	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Default)]
+	#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 	pub struct FocusEvent {
 		pub item: crate::events::Accessible,
 	}

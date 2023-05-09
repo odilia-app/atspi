@@ -460,7 +460,7 @@ fn generate_struct_from_signal(iface: &Interface, mod_name: &str, signal: &Signa
     let sig_name_event = event_ident(signal.name());
     let example = generate_signal_associated_example(mod_name, &sig_name_event);
 		let derives = {
-			let mut derive_types = vec!["Debug", "PartialEq", "Clone", "serde::Serialize", "serde::Deserialize"];
+			let mut derive_types = vec!["Debug", "PartialEq", "Clone", "serde::Serialize", "serde::Deserialize", "Eq", "Hash"];
 			if derive_default {
 				derive_types.push("Default");
 			}
@@ -903,7 +903,7 @@ fn generate_enum_from_iface(iface: &Interface) -> String {
     format!(
         "
     {example}
-	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+	#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 	pub enum {name_ident_plural} {{
 {signal_quotes}
 	}}
