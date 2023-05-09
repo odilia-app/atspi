@@ -1,6 +1,23 @@
 #[macro_export]
 
 macro_rules! impl_event_conversions {
+	($outer_type:ty, $outer_variant:path) => {
+		impl From<$outer_type> for Event {
+			fn from(event_variant: $outer_type) -> Event {
+				$outer_variant(event_variant.into())
+			}
+		}
+		impl TryFrom<Event> for $outer_type {
+			type Error = AtspiError;
+			fn try_from(generic_event: Event) -> Result<$outer_type, Self::Error> {
+				if let $outer_variant(event_type) = generic_event {
+					Ok(event_type)
+				} else {
+					Err(AtspiError::Conversion("Invalid type"))
+				}
+			}
+		}
+	};
 	($inner_type:ty, $outer_type:ty, $inner_variant:path, $outer_variant:path) => {
 		impl From<$inner_type> for $outer_type {
 			fn from(specific_event: $inner_type) -> $outer_type {
@@ -115,99 +132,84 @@ macro_rules! zbus_message_test_case {
 		// make want to consider paramaterized tests here, no need for fuzz testing, but one level lower than that may be nice
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
 		#[test]
-		#[should_panic]
+		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_fake_msg() -> () {
-			let Ok(msg_builder) = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
-					"org.a11y.atspi.technically.valid",
-					"MadeUpMember",
-				) else {
-				return ();
-			};
-			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-				return ();
-			};
-			let Ok(fake_msg) = msg_with_sender.build(&(),) else {
-				return ();
-			};
+			let fake_msg = zbus::MessageBuilder::signal(
+				"/org/a11y/sixynine/fourtwenty",
+				"org.a11y.atspi.technically.valid",
+				"MadeUpMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&())
+			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panci! Nothing about this event is valid");
+			event.expect("This should panic! Invalid event.");
 		}
 		#[test]
-		#[should_panic]
+		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
-			let Ok(msg_builder) = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
-					<$type>::DBUS_INTERFACE,
-					"MadeUpMember",
-				) else {
-				return ();
-			};
-			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-				return ();
-			};
-			let Ok(fake_msg) = msg_with_sender.build(&(),) else {
-				return ();
-			};
+			let fake_msg = zbus::MessageBuilder::signal(
+				"/org/a11y/sixynine/fourtwenty",
+				<$type as GenericEvent>::DBUS_INTERFACE,
+				"MadeUpMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&())
+			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panci! Nothing about this event is valid");
+			event.expect("This should panic! Invalid event.");
 		}
 		#[test]
-		#[should_panic]
+		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
-			let Ok(msg_builder) = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
-					<$type>::DBUS_INTERFACE,
-					<$type>::DBUS_MEMBER,
-				) else {
-				return ();
-			};
-			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-				return ();
-			};
-			let Ok(fake_msg) = msg_with_sender.build(&("i", "am", "cool", "and", "have", "a", "strange", "body"),) else {
-				return ();
-			};
+			let fake_msg = zbus::MessageBuilder::signal(
+				"/org/a11y/sixynine/fourtwenty",
+				<$type as GenericEvent>::DBUS_INTERFACE,
+				<$type as GenericEvent>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&())
+			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panci! Nothing about this event is valid");
+			event.expect("This should panic! Invalid event.");
 		}
 		#[test]
-		#[should_panic]
+		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
-			let Ok(msg_builder) = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
-					<$type>::DBUS_INTERFACE,
-					"FakeMember",
-				) else {
-				return ();
-			};
-			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-				return ();
-			};
-			let Ok(fake_msg) = msg_with_sender.build(&(<$type>::default().body()),) else {
-				return ();
-			};
+			let fake_msg = zbus::MessageBuilder::signal(
+				"/org/a11y/sixynine/fourtwenty",
+				"org.a11y.atspi.accesible.technically.valid",
+				"FakeMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&(<$type>::default().body()))
+			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panci! Nothing about this event is valid");
+			event.expect("This should panic! Invalid event.");
 		}
 		#[test]
-		#[should_panic]
+		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
-			let Ok(msg_builder) = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
-					"org.a11y.atspi.accessible.technically.valid",
-					<$type>::DBUS_MEMBER,
-				) else {
-				return ();
-			};
-			let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
-				return ();
-			};
-			let Ok(fake_msg) = msg_with_sender.build(&(<$type>::default().body()),) else {
-				return ();
-			};
+			let fake_msg = zbus::MessageBuilder::signal(
+				"/org/a11y/sixynine/fourtwenty",
+				"org.a11y.atspi.accessible.technically.valid",
+				<$type as GenericEvent>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&(<$type>::default().body()))
+			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panci! Nothing about this event is valid");
+			event.expect("This should panic! Invalid event.");
 		}
 	};
 }
@@ -236,6 +238,103 @@ macro_rules! end_to_end_test_case {
 				};
 			}
 			Ok(())
+		}
+	};
+}
+
+macro_rules! event_wrapper_test_cases {
+	($type:ty, $any_subtype:ty) => {
+		#[cfg(test)]
+		#[rename_item::rename(name($type), prefix = "events_tests_", case = "snake")]
+		mod foo {
+			use super::{$any_subtype, $type, Event, GenericEvent};
+			#[test]
+			fn into_and_try_from_event() {
+				let sub_type = <$any_subtype>::default();
+				let mod_type = <$type>::from(sub_type);
+				let event = Event::from(mod_type.clone());
+				let mod_type2 = <$type>::try_from(event.clone())
+					.expect("Could not create event type from event");
+				assert_eq!(
+					mod_type, mod_type2,
+					"Events were able to be parsed and encapsulated, but they have changed value"
+				);
+			}
+			#[test]
+			#[should_panic]
+			fn zbus_msg_invalid_interface() {
+				let Ok(msg_builder) = zbus::MessageBuilder::signal(
+								"/org/a11y/sixynine/fourtwenty",
+								"org.a11y.atspi.technically.valid.lol",
+								<$any_subtype as GenericEvent>::DBUS_MEMBER,
+							) else {
+							return ();
+						};
+				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+							return ();
+						};
+				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
+							return ();
+						};
+				let mod_type = <$type>::try_from(&fake_msg);
+				mod_type.expect("Could not convert message into a event wrapper type");
+			}
+			#[test]
+			#[should_panic]
+			fn zbus_msg_invalid_member() {
+				let Ok(msg_builder) = zbus::MessageBuilder::signal(
+								"/org/a11y/sixynine/fourtwenty",
+								<$any_subtype as GenericEvent>::DBUS_INTERFACE,
+								"FakeFunctionLol",
+							) else {
+							return ();
+						};
+				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+							return ();
+						};
+				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
+							return ();
+						};
+				let mod_type = <$type>::try_from(&fake_msg);
+				mod_type.expect("Could not convert message into a event wrapper type");
+			}
+			#[test]
+			#[should_panic]
+			fn zbus_msg_invalid_member_and_interface() {
+				let Ok(msg_builder) = zbus::MessageBuilder::signal(
+								"/org/a11y/sixynine/fourtwenty",
+								"org.a11y.atspi.technically.allowed",
+								"FakeFunctionLol",
+							) else {
+							return ();
+						};
+				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+							return ();
+						};
+				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
+							return ();
+						};
+				let mod_type = <$type>::try_from(&fake_msg);
+				mod_type.expect("Could not convert message into a event wrapper type");
+			}
+			#[test]
+			fn zbus_msg_conversion() {
+				let Ok(msg_builder) = zbus::MessageBuilder::signal(
+								"/org/a11y/sixynine/fourtwenty",
+								<$any_subtype as GenericEvent>::DBUS_INTERFACE,
+								<$any_subtype as GenericEvent>::DBUS_MEMBER,
+							) else {
+							return ();
+						};
+				let Ok(msg_with_sender) = msg_builder.sender(":0.0") else {
+							return ();
+						};
+				let Ok(fake_msg) = msg_with_sender.build(&(<$any_subtype>::default().body()),) else {
+							return ();
+						};
+				let mod_type = <$type>::try_from(&fake_msg);
+				mod_type.expect("Could not convert message into a event wrapper type");
+			}
 		}
 	};
 }

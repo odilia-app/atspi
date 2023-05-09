@@ -101,6 +101,8 @@ pub mod object {
 		TextAttributesChanged(TextAttributesChangedEvent),
 		TextCaretMoved(TextCaretMovedEvent),
 	}
+	impl_event_conversions!(ObjectEvents, Event::Object);
+	event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
 
 	impl HasMatchRule for ObjectEvents {
 		const MATCH_RULE_STRING: &'static str =
@@ -1781,11 +1783,6 @@ pub mod object {
 		}
 	}*/
 
-	impl From<ObjectEvents> for Event {
-		fn from(event_enum: ObjectEvents) -> Self {
-			Event::Object(event_enum)
-		}
-	}
 	impl TryFrom<&zbus::Message> for ObjectEvents {
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
@@ -2516,6 +2513,8 @@ pub mod window {
 		UUshade(UUshadeEvent),
 		Restyle(RestyleEvent),
 	}
+	impl_event_conversions!(WindowEvents, Event::Window);
+	event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
 	impl HasMatchRule for WindowEvents {
 		const MATCH_RULE_STRING: &'static str =
@@ -3948,11 +3947,6 @@ pub mod window {
 		}
 	}*/
 
-	impl From<WindowEvents> for Event {
-		fn from(event_enum: WindowEvents) -> Self {
-			Event::Window(event_enum)
-		}
-	}
 	impl TryFrom<&zbus::Message> for WindowEvents {
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
@@ -4506,6 +4500,8 @@ pub mod mouse {
 		Rel(RelEvent),
 		Button(ButtonEvent),
 	}
+	impl_event_conversions!(MouseEvents, Event::Mouse);
+	event_wrapper_test_cases!(MouseEvents, AbsEvent);
 
 	impl HasMatchRule for MouseEvents {
 		const MATCH_RULE_STRING: &'static str =
@@ -4744,11 +4740,6 @@ pub mod mouse {
 		}
 	}*/
 
-	impl From<MouseEvents> for Event {
-		fn from(event_enum: MouseEvents) -> Self {
-			Event::Mouse(event_enum)
-		}
-	}
 	impl TryFrom<&zbus::Message> for MouseEvents {
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
@@ -4917,6 +4908,8 @@ pub mod keyboard {
 	pub enum KeyboardEvents {
 		Modifiers(ModifiersEvent),
 	}
+	impl_event_conversions!(KeyboardEvents, Event::Keyboard);
+	event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
 	impl HasMatchRule for KeyboardEvents {
 		const MATCH_RULE_STRING: &'static str =
@@ -5000,11 +4993,6 @@ pub mod keyboard {
 		}
 	}*/
 
-	impl From<KeyboardEvents> for Event {
-		fn from(event_enum: KeyboardEvents) -> Self {
-			Event::Keyboard(event_enum)
-		}
-	}
 	impl TryFrom<&zbus::Message> for KeyboardEvents {
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
@@ -5136,6 +5124,8 @@ pub mod terminal {
 		ApplicationChanged(ApplicationChangedEvent),
 		CharWidthChanged(CharWidthChangedEvent),
 	}
+	impl_event_conversions!(TerminalEvents, Event::Terminal);
+	event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
 
 	impl HasMatchRule for TerminalEvents {
 		const MATCH_RULE_STRING: &'static str =
@@ -5517,11 +5507,6 @@ pub mod terminal {
 		}
 	}*/
 
-	impl From<TerminalEvents> for Event {
-		fn from(event_enum: TerminalEvents) -> Self {
-			Event::Terminal(event_enum)
-		}
-	}
 	impl TryFrom<&zbus::Message> for TerminalEvents {
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
@@ -5766,6 +5751,8 @@ pub mod document {
 		AttributesChanged(AttributesChangedEvent),
 		PageChanged(PageChangedEvent),
 	}
+	impl_event_conversions!(DocumentEvents, Event::Document);
+	event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
 
 	impl HasMatchRule for DocumentEvents {
 		const MATCH_RULE_STRING: &'static str =
@@ -6222,11 +6209,6 @@ pub mod document {
 		}
 	}*/
 
-	impl From<DocumentEvents> for Event {
-		fn from(event_enum: DocumentEvents) -> Self {
-			Event::Document(event_enum)
-		}
-	}
 	impl TryFrom<&zbus::Message> for DocumentEvents {
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
@@ -6489,6 +6471,8 @@ pub mod focus {
 	pub enum FocusEvents {
 		Focus(FocusEvent),
 	}
+	impl_event_conversions!(FocusEvents, Event::Focus);
+	event_wrapper_test_cases!(FocusEvents, FocusEvent);
 
 	impl HasMatchRule for FocusEvents {
 		const MATCH_RULE_STRING: &'static str =
@@ -6570,11 +6554,6 @@ pub mod focus {
 		}
 	}*/
 
-	impl From<FocusEvents> for Event {
-		fn from(event_enum: FocusEvents) -> Self {
-			Event::Focus(event_enum)
-		}
-	}
 	impl TryFrom<&zbus::Message> for FocusEvents {
 		type Error = AtspiError;
 		fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
