@@ -134,7 +134,7 @@ pub enum CacheEvents {
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct AddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: CacheItem,
@@ -174,7 +174,7 @@ impl<'a, T: GenericEvent<'a>> HasRegistryEventString for T {
 impl_from_dbus_message!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct RemoveAccessibleEvent {
 	pub item: Accessible,
 	pub node_removed: Accessible,
@@ -363,7 +363,7 @@ pub enum EventListenerEvents {
 
 /// An event that is emitted by the regostry daemon to signal that an event has been deregistered
 /// to no longer listen for.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct EventListenerDeregisteredEvent {
 	pub item: Accessible,
 	pub deregistered_event: EventListeners,
@@ -401,7 +401,7 @@ impl_from_dbus_message!(EventListenerDeregisteredEvent);
 impl_to_dbus_message!(EventListenerDeregisteredEvent);
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct EventListenerRegisteredEvent {
 	pub item: Accessible,
 	pub registered_event: EventListeners,
@@ -439,7 +439,7 @@ impl_from_dbus_message!(EventListenerRegisteredEvent);
 impl_to_dbus_message!(EventListenerRegisteredEvent);
 
 /// An event that is emitted when the registry daemon has started.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct AvailableEvent {
 	pub item: Accessible,
 	pub socket: Accessible,

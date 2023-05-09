@@ -1,3 +1,5 @@
+#![cfg(feature = "unstable-tests")]
+
 use serial_test::*;
 
 #[cfg(feature = "unstable-traits")]
