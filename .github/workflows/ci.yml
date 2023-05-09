@@ -200,7 +200,7 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: cargo llvm-cov
-        run: cargo llvm-cov --doctests --locked --features=unstable-traits --lcov --output-path lcov.info
+        run: cargo llvm-cov --locked --features=unstable-traits --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
