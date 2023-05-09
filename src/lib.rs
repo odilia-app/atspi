@@ -3,7 +3,6 @@
 #![allow(clippy::multiple_crate_versions)]
 
 #[macro_use]
-#[cfg(feature = "unstable-traits")]
 extern crate static_assertions;
 
 #[cfg(feature = "unstable-traits")]
