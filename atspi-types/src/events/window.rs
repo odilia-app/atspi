@@ -96,8 +96,7 @@ impl_event_conversions!(WindowEvents, Event::Window);
 event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
 impl HasMatchRule for WindowEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window'";
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window'";
 }
 
 // IgnoreBlock start

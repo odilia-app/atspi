@@ -78,8 +78,7 @@ impl_event_conversions!(FocusEvents, Event::Focus);
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
 
 impl HasMatchRule for FocusEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Focus'";
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
 }
 
 // IgnoreBlock start

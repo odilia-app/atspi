@@ -173,12 +173,7 @@ impl TryFrom<&zbus::Message> for KeyboardEvents {
 	}
 }
 
-impl_event_conversions!(
-	ModifiersEvent,
-	KeyboardEvents,
-	KeyboardEvents::Modifiers,
-	Event::Keyboard
-);
+impl_event_conversions!(ModifiersEvent, KeyboardEvents, KeyboardEvents::Modifiers, Event::Keyboard);
 event_test_cases!(ModifiersEvent);
 impl_to_dbus_message!(ModifiersEvent);
 impl_from_dbus_message!(ModifiersEvent);

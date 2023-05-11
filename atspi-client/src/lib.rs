@@ -1,8 +1,5 @@
 use atspi::{
-	bus::{
-		BusProxy,
-		StatusProxy,
-	},
+	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
 use atspi_types::error::AtspiError;

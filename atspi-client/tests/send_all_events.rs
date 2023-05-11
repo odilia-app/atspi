@@ -1,82 +1,40 @@
 use atspi_client::AccessibilityConnection;
 use atspi_types::{
+	events::GenericEvent,
 	events::{
 		document::{
-			LoadCompleteEvent,
-			ReloadEvent,
-			LoadStoppedEvent,
-			ContentChangedEvent,
-			AttributesChangedEvent as DocumentAttributesChangedEvent,
-			PageChangedEvent,
+			AttributesChangedEvent as DocumentAttributesChangedEvent, ContentChangedEvent,
+			LoadCompleteEvent, LoadStoppedEvent, PageChangedEvent, ReloadEvent,
 		},
+		keyboard::ModifiersEvent,
+		mouse::{AbsEvent, ButtonEvent, RelEvent},
 		object::{
-			PropertyChangeEvent as ObjectPropertyChangeEvent,
-			BoundsChangedEvent,
-			LinkSelectedEvent,
-			StateChangedEvent as ObjectStateChangedEvent,
-			ChildrenChangedEvent,
-			VisibleDataChangedEvent,
-			SelectionChangedEvent,
-			ModelChangedEvent,
-			ActiveDescendantChangedEvent,
-			AnnouncementEvent,
-			AttributesChangedEvent as ObjectAttributesChangedEvent,
-			RowInsertedEvent,
-			RowReorderedEvent,
-			RowDeletedEvent,
-			ColumnInsertedEvent,
-			ColumnReorderedEvent,
-			ColumnDeletedEvent,
-			TextBoundsChangedEvent,
-			TextSelectionChangedEvent,
-			TextChangedEvent,
-			TextAttributesChangedEvent,
-			TextCaretMovedEvent,
-		},
-		keyboard::{
-			ModifiersEvent,
-		},
-		mouse::{
-			AbsEvent,
-			RelEvent,
-			ButtonEvent,
+			ActiveDescendantChangedEvent, AnnouncementEvent,
+			AttributesChangedEvent as ObjectAttributesChangedEvent, BoundsChangedEvent,
+			ChildrenChangedEvent, ColumnDeletedEvent, ColumnInsertedEvent, ColumnReorderedEvent,
+			LinkSelectedEvent, ModelChangedEvent, PropertyChangeEvent as ObjectPropertyChangeEvent,
+			RowDeletedEvent, RowInsertedEvent, RowReorderedEvent, SelectionChangedEvent,
+			StateChangedEvent as ObjectStateChangedEvent, TextAttributesChangedEvent,
+			TextBoundsChangedEvent, TextCaretMovedEvent, TextChangedEvent,
+			TextSelectionChangedEvent, VisibleDataChangedEvent,
 		},
 		terminal::{
-			LineChangedEvent,
-			ColumnCountChangedEvent,
-			LineCountChangedEvent,
-			ApplicationChangedEvent,
-			CharWidthChangedEvent,
+			ApplicationChangedEvent, CharWidthChangedEvent, ColumnCountChangedEvent,
+			LineChangedEvent, LineCountChangedEvent,
 		},
 		window::{
-			PropertyChangeEvent,
-			MinimizeEvent,
-			MaximizeEvent,
-			RestoreEvent,
-			CloseEvent,
-			CreateEvent,
-			ReparentEvent,
-			DesktopCreateEvent,
-			DesktopDestroyEvent,
-			DestroyEvent,
-			ActivateEvent,
-			DeactivateEvent,
-			RaiseEvent,
-			LowerEvent,
-			MoveEvent,
-			ResizeEvent,
-			ShadeEvent,
-			UUshadeEvent,
-			RestyleEvent,
+			ActivateEvent, CloseEvent, CreateEvent, DeactivateEvent, DesktopCreateEvent,
+			DesktopDestroyEvent, DestroyEvent, LowerEvent, MaximizeEvent, MinimizeEvent, MoveEvent,
+			PropertyChangeEvent, RaiseEvent, ReparentEvent, ResizeEvent, RestoreEvent,
+			RestyleEvent, ShadeEvent, UUshadeEvent,
 		},
 	},
-	events::GenericEvent,
 };
 use rename_item::rename;
 
 macro_rules! end_to_end_test_case {
 	($type:ty) => {
-		#[rename(name($type), prefix="end_to_end_test_case_", case="snake")]
+		#[rename(name($type), prefix = "end_to_end_test_case_", case = "snake")]
 		#[tokio::test]
 		async fn end_to_end() -> Result<(), Box<dyn std::error::Error>> {
 			use futures_lite::StreamExt;

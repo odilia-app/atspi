@@ -99,8 +99,7 @@ impl_event_conversions!(ObjectEvents, Event::Object);
 event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
 
 impl HasMatchRule for ObjectEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object'";
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
 }
 
 // IgnoreBlock start
@@ -1271,7 +1270,8 @@ fn try_from(event: Event) -> Result<Self, Self::Error> {
 impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	const DBUS_MEMBER: &'static str = "ActiveDescendantChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 
 	type Body = EventBodyOwned;
@@ -1793,9 +1793,7 @@ impl TryFrom<&zbus::Message> for ObjectEvents {
 			"VisibleDataChanged" => Ok(ObjectEvents::VisibleDataChanged(ev.try_into()?)),
 			"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(ev.try_into()?)),
 			"ModelChanged" => Ok(ObjectEvents::ModelChanged(ev.try_into()?)),
-			"ActiveDescendantChanged" => {
-				Ok(ObjectEvents::ActiveDescendantChanged(ev.try_into()?))
-			}
+			"ActiveDescendantChanged" => Ok(ObjectEvents::ActiveDescendantChanged(ev.try_into()?)),
 			"Announcement" => Ok(ObjectEvents::Announcement(ev.try_into()?)),
 			"AttributesChanged" => Ok(ObjectEvents::AttributesChanged(ev.try_into()?)),
 			"RowInserted" => Ok(ObjectEvents::RowInserted(ev.try_into()?)),
@@ -1856,12 +1854,7 @@ impl From<BoundsChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
-	LinkSelectedEvent,
-	ObjectEvents,
-	ObjectEvents::LinkSelected,
-	Event::Object
-);
+impl_event_conversions!(LinkSelectedEvent, ObjectEvents, ObjectEvents::LinkSelected, Event::Object);
 event_test_cases!(LinkSelectedEvent);
 impl_to_dbus_message!(LinkSelectedEvent);
 impl_from_dbus_message!(LinkSelectedEvent);
@@ -1877,12 +1870,7 @@ impl From<LinkSelectedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
-	StateChangedEvent,
-	ObjectEvents,
-	ObjectEvents::StateChanged,
-	Event::Object
-);
+impl_event_conversions!(StateChangedEvent, ObjectEvents, ObjectEvents::StateChanged, Event::Object);
 event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
@@ -1961,12 +1949,7 @@ impl From<SelectionChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
-	ModelChangedEvent,
-	ObjectEvents,
-	ObjectEvents::ModelChanged,
-	Event::Object
-);
+impl_event_conversions!(ModelChangedEvent, ObjectEvents, ObjectEvents::ModelChanged, Event::Object);
 event_test_cases!(ModelChangedEvent);
 impl_to_dbus_message!(ModelChangedEvent);
 impl_from_dbus_message!(ModelChangedEvent);
@@ -2003,12 +1986,7 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
-	AnnouncementEvent,
-	ObjectEvents,
-	ObjectEvents::Announcement,
-	Event::Object
-);
+impl_event_conversions!(AnnouncementEvent, ObjectEvents, ObjectEvents::Announcement, Event::Object);
 event_test_cases!(AnnouncementEvent);
 impl_to_dbus_message!(AnnouncementEvent);
 impl_from_dbus_message!(AnnouncementEvent);
@@ -2045,12 +2023,7 @@ impl From<AttributesChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
-	RowInsertedEvent,
-	ObjectEvents,
-	ObjectEvents::RowInserted,
-	Event::Object
-);
+impl_event_conversions!(RowInsertedEvent, ObjectEvents, ObjectEvents::RowInserted, Event::Object);
 event_test_cases!(RowInsertedEvent);
 impl_to_dbus_message!(RowInsertedEvent);
 impl_from_dbus_message!(RowInsertedEvent);
@@ -2066,12 +2039,7 @@ impl From<RowInsertedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
-	RowReorderedEvent,
-	ObjectEvents,
-	ObjectEvents::RowReordered,
-	Event::Object
-);
+impl_event_conversions!(RowReorderedEvent, ObjectEvents, ObjectEvents::RowReordered, Event::Object);
 event_test_cases!(RowReorderedEvent);
 impl_to_dbus_message!(RowReorderedEvent);
 impl_from_dbus_message!(RowReorderedEvent);
@@ -2208,12 +2176,7 @@ impl From<TextSelectionChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
-	TextChangedEvent,
-	ObjectEvents,
-	ObjectEvents::TextChanged,
-	Event::Object
-);
+impl_event_conversions!(TextChangedEvent, ObjectEvents, ObjectEvents::TextChanged, Event::Object);
 event_test_cases!(TextChangedEvent);
 impl_to_dbus_message!(TextChangedEvent);
 impl_from_dbus_message!(TextChangedEvent);

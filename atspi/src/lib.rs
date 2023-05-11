@@ -45,7 +45,7 @@ pub mod document_ext;
 pub mod editable_text;
 #[cfg(feature = "unstable-traits")]
 pub mod editable_text_ext;
-pub use atspi_types::events as events;
+pub use atspi_types::events;
 pub mod hyperlink;
 #[cfg(feature = "unstable-traits")]
 pub mod hyperlink_ext;

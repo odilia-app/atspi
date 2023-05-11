@@ -4,10 +4,7 @@
 //! Source: `Cache.xml`.
 //!
 
-use crate::{
-	ObjectPair, Role,
-	InterfaceSet, StateSet,
-};
+use crate::{InterfaceSet, ObjectPair, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zvariant::{OwnedObjectPath, Type};
 

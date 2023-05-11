@@ -223,14 +223,10 @@ impl TryFrom<zvariant::OwnedValue> for Accessible {
 					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
 				}
 				let fields = s.fields();
-				let name_value: String = fields
-					.get(0)
-					.ok_or(zvariant::Error::IncorrectType)?
-					.try_into()?;
-				let path_value: ObjectPath<'_> = fields
-					.get(1)
-					.ok_or(zvariant::Error::IncorrectType)?
-					.try_into()?;
+				let name_value: String =
+					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
+				let path_value: ObjectPath<'_> =
+					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				let name = UniqueName::try_from(name_value)?.into();
 				Ok(Accessible { name, path: path_value.into() })
 			}

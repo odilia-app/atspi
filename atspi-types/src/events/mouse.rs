@@ -80,8 +80,7 @@ impl_event_conversions!(MouseEvents, Event::Mouse);
 event_wrapper_test_cases!(MouseEvents, AbsEvent);
 
 impl HasMatchRule for MouseEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Mouse'";
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
 }
 
 // IgnoreBlock start

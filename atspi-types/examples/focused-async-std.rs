@@ -1,7 +1,7 @@
 use async_std::prelude::*;
 use atspi::events::object::{ObjectEvents, StateChangedEvent};
-use std::error::Error;
 use futures_lite::stream::StreamExt;
+use std::error::Error;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn Error>> {

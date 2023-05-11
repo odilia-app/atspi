@@ -12,10 +12,7 @@ pub use cache::CacheItem;
 pub mod error;
 pub use error::AtspiError;
 pub mod events;
-pub use events::{
-	Event,
-	GenericEvent,
-};
+pub use events::{Event, GenericEvent};
 mod role;
 pub use role::Role;
 mod relation_type;
