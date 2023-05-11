@@ -1,10 +1,11 @@
 use async_std::prelude::*;
-use atspi::identify::object::{ObjectEvents, StateChangedEvent};
+use atspi::events::object::{ObjectEvents, StateChangedEvent};
 use std::error::Error;
+use futures_lite::stream::StreamExt;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-	let atspi = atspi::AccessibilityConnection::open().await?;
+	let atspi = atspi_client::AccessibilityConnection::open().await?;
 	atspi.register_event::<ObjectEvents>().await?;
 
 	let events = atspi.event_stream();

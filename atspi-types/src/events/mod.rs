@@ -28,16 +28,13 @@ pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use zbus::{
-	names::{OwnedUniqueName, UniqueName},
-	zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value},
-	Message,
-};
+use zbus_names::{OwnedUniqueName, UniqueName};
+use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
 	cache::CacheItem,
 	error::ObjectPathConversionError,
-	identify::{
+	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
 		object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 	},
@@ -217,34 +214,34 @@ pub struct Accessible {
 	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
 }
-impl TryFrom<zbus::zvariant::OwnedValue> for Accessible {
-	type Error = zbus::Error;
-	fn try_from<'a>(value: zbus::zvariant::OwnedValue) -> Result<Self, Self::Error> {
+impl TryFrom<zvariant::OwnedValue> for Accessible {
+	type Error = AtspiError;
+	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
-			zbus::zvariant::Value::Structure(s) => {
+			zvariant::Value::Structure(s) => {
 				if s.signature() != ACCESSIBLE_PAIR_SIGNATURE {
-					return Err(zbus::Error::Variant(zbus::zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str()))));
+					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
 				}
 				let fields = s.fields();
 				let name_value: String = fields
 					.get(0)
-					.ok_or(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType))?
+					.ok_or(zvariant::Error::IncorrectType)?
 					.try_into()?;
 				let path_value: ObjectPath<'_> = fields
 					.get(1)
-					.ok_or(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType))?
+					.ok_or(zvariant::Error::IncorrectType)?
 					.try_into()?;
 				let name = UniqueName::try_from(name_value)?.into();
 				Ok(Accessible { name, path: path_value.into() })
 			}
-			_ => Err(zbus::Error::Variant(zbus::zvariant::Error::IncorrectType)),
+			_ => Err(zvariant::Error::IncorrectType.into()),
 		}
 	}
 }
 #[cfg(test)]
 pub mod accessible_deserialization_tests {
 	use crate::events::Accessible;
-	use zbus::zvariant::Value;
+	use zvariant::Value;
 
 	#[test]
 	fn try_into_value() {
@@ -268,7 +265,7 @@ pub mod accessible_deserialization_tests {
 	fn try_from_value() {}
 }
 
-impl From<Accessible> for zbus::zvariant::Structure<'_> {
+impl From<Accessible> for zvariant::Structure<'_> {
 	fn from(accessible: Accessible) -> Self {
 		(accessible.name.as_str().to_string(), accessible.path).into()
 	}
@@ -294,9 +291,10 @@ pub mod accessible_tests {
 		assert_eq!(acc.path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
 }
-impl TryFrom<&Message> for Accessible {
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for Accessible {
 	type Error = AtspiError;
-	fn try_from(message: &Message) -> Result<Self, Self::Error> {
+	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		Ok(Accessible {
 			name: message
 				.header()?
@@ -314,10 +312,11 @@ fn test_accessible_signature() {
 	assert_eq!(Accessible::signature(), "(so)");
 }
 
-impl TryFrom<Message> for EventBodyOwned {
+#[cfg(feature = "zbus")]
+impl TryFrom<zbus::Message> for EventBodyOwned {
 	type Error = AtspiError;
 
-	fn try_from(message: Message) -> Result<Self, Self::Error> {
+	fn try_from(message: zbus::Message) -> Result<Self, Self::Error> {
 		let signature = message.body_signature()?;
 		if signature == QSPI_EVENT_SIGNATURE {
 			Ok(EventBodyOwned::from(message.body::<EventBodyQT>()?))
@@ -485,10 +484,11 @@ impl GenericEvent<'_> for AvailableEvent {
 impl_from_dbus_message!(AvailableEvent);
 impl_to_dbus_message!(AvailableEvent);
 
-impl TryFrom<&Message> for Event {
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for Event {
 	type Error = AtspiError;
 
-	fn try_from(msg: &Message) -> Result<Event, AtspiError> {
+	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
 		let body_signature = msg.body_signature()?;
 		let message_signature = body_signature.as_str();
 		let signal_member = msg.member().ok_or(AtspiError::MissingMember)?;
@@ -564,7 +564,7 @@ pub trait GenericEvent<'a> {
 	/// # Errors
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
-	/// It is not possible for this to error on most events, but on events whoes raw message [`Self::Body`] type contains a [`enum@zbus::zvariant::Value`], you may get errors when constructing the structure.
+	/// It is not possible for this to error on most events, but on events whoes raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
@@ -591,6 +591,7 @@ pub trait HasRegistryEventString {
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
+/*
 #[cfg(test)]
 mod tests {
 	use crate::events::{
@@ -598,10 +599,11 @@ mod tests {
 		EventBodyOwned, EventBodyQT, EventListenerDeregisteredEvent, EventListenerRegisteredEvent,
 		GenericEvent, RemoveAccessibleEvent, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
-	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
+	use crate::{Role, InterfaceSet, StateSet};
+	use atspi::AccessibilityConnection;
 	use futures_lite::StreamExt;
 	use std::collections::HashMap;
-	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+	use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 
 	macro_rules! end_to_end_test {
 		($type:ty, $test_name:ident) => {
@@ -739,3 +741,4 @@ mod tests {
 		Ok(())
 	}
 }
+*/

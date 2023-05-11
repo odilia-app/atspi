@@ -1,0 +1,24 @@
+[package]
+name = "atspi-client"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["zbus-async-io"]
+zbus-async-io = ["atspi-types/zbus-async-io"]
+zbus-tokio = ["atspi-types/zbus-tokio"]
+
+[dependencies]
+futures-lite = "1.13.0"
+zbus = "3.12.0"
+atspi-types = { path = "../atspi-types", default-features = false }
+atspi = { path = "../atspi" }
+tracing = "0.1.37"
+
+[dev-dependencies]
+rename-item = "0.1.0"
+tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }
+tokio-test = "0.4.2"
+enumflags2 = "0.7.7"

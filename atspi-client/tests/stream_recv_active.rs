@@ -1,7 +1,7 @@
 mod common;
 
-use atspi::identify::object::ObjectEvents;
-use atspi::Event;
+use atspi::events::object::ObjectEvents;
+use atspi::events::Event;
 use futures_lite::future::{block_on, race};
 use futures_lite::pin;
 use futures_lite::StreamExt;
@@ -11,7 +11,7 @@ use crate::common::{a11y_bus_address, create_command, timeout};
 #[test]
 fn recv_active_signal() {
 	let receive_good_event = async {
-		let connection = atspi::AccessibilityConnection::open().await.unwrap();
+		let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
 		connection.register_event::<ObjectEvents>().await.unwrap();
 		let a11y_event_stream = connection.event_stream();
 

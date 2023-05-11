@@ -632,9 +632,7 @@ fn generate_match_rule_vec_impl(interface: &Interface) -> String {
 				.build();
     let match_rule_str = match_rule.to_string();
     format!(
-        "	impl HasMatchRule for {enum_name} {{
-      const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
-	}}"
+        "impl_dbus_match_rule!({enum_name}, \"{match_rule_str}\");"
     )
 }
 
@@ -643,38 +641,10 @@ fn generate_registry_event_enum_impl(interface: &Interface) -> String {
     let iface_name = iface_to_enum_name(interface);
     let enum_name = events_ident(iface_name);
     format!(
-        "	impl HasRegistryEventString for {enum_name} {{
-		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:\";
-	}}"
-    )
-}
-fn generate_registry_event_impl(signal: &Signal, interface: &Interface) -> String {
-    let sig_name_event = event_ident(signal.name());
-    let member_string = signal.name();
-    let iface_prefix = iface_name(interface);
-    format!(
-        "	/*impl HasRegistryEventString for {sig_name_event} {{
-		const REGISTRY_EVENT_STRING: &'static str = \"{iface_prefix}:{member_string}\";
-	}}*/"
+        "impl_registry_event_string!({enum_name}, \"{iface_prefix}:\");"
     )
 }
 
-fn generate_match_rule_impl(signal: &Signal, interface: &Interface) -> String {
-    let sig_name_event = event_ident(signal.name());
-    let member_string = signal.name();
-    let iface_long_name = interface.name();
-    let match_rule = zbus::MatchRule::builder()
-				.msg_type(zbus::MessageType::Signal)
-				.interface(iface_long_name).expect("Unable to use an interface: {iface_long_name}")
-				.member(member_string).expect("Unable to use a member: {member_string}")
-				.build();
-    let match_rule_str = match_rule.to_string();
-    format!(
-        "	/*impl HasMatchRule for {sig_name_event} {{
-      const MATCH_RULE_STRING: &'static str = \"{match_rule_str}\";
-	}}*/"
-    )
-}
 // TODO
 fn generate_generic_event_impl(signal: &Signal, interface: &Interface, is_empty_body: bool) -> String {
     let iface_prefix = iface_name(interface);
@@ -774,18 +744,6 @@ fn generate_mod_from_iface(iface: &Interface) -> String {
         .collect::<Vec<String>>()
         .join("\n");
     let registry_event_enum_impl = generate_registry_event_enum_impl(iface);
-    let registry_event_impls = iface
-        .signals()
-        .iter()
-        .map(|signal| generate_registry_event_impl(signal, iface))
-        .collect::<Vec<String>>()
-        .join("\n");
-    let match_rule_impls = iface
-        .signals()
-        .iter()
-        .map(|signal| generate_match_rule_impl(signal, iface))
-        .collect::<Vec<String>>()
-        .join("\n");
     let match_rule_vec_impl = generate_match_rule_vec_impl(iface);
     format!(
         "
@@ -809,8 +767,6 @@ pub mod {mod_name} {{
 	{default_impls}
 	{try_from_atspi}
   {from_event_body}
-	{match_rule_impls}
-  {registry_event_impls}
   {registry_event_enum_impl}
 }}
 	"

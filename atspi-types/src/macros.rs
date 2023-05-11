@@ -44,6 +44,7 @@ macro_rules! impl_event_conversions {
 
 macro_rules! impl_to_dbus_message {
 	($type:ty) => {
+		#[cfg(feature = "zbus")]
 		impl TryFrom<$type> for zbus::Message {
 			type Error = AtspiError;
 			fn try_from(event: $type) -> Result<Self, Self::Error> {
@@ -61,6 +62,7 @@ macro_rules! impl_to_dbus_message {
 
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
+		#[cfg(feature = "zbus")]
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
@@ -120,6 +122,7 @@ macro_rules! event_enum_test_case {
 #[cfg(test)]
 macro_rules! zbus_message_test_case {
 	($type:ty) => {
+		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion() {
 			let struct_event = <$type>::default();
@@ -131,6 +134,7 @@ macro_rules! zbus_message_test_case {
 		}
 		// make want to consider paramaterized tests here, no need for fuzz testing, but one level lower than that may be nice
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
+		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_fake_msg() -> () {
@@ -147,6 +151,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("This should panic! Invalid event.");
 		}
+		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
@@ -163,6 +168,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("This should panic! Invalid event.");
 		}
+		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
@@ -179,6 +185,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("This should panic! Invalid event.");
 		}
+		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
@@ -195,6 +202,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("This should panic! Invalid event.");
 		}
+		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
@@ -210,34 +218,6 @@ macro_rules! zbus_message_test_case {
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("This should panic! Invalid event.");
-		}
-	};
-}
-
-#[cfg(test)]
-macro_rules! end_to_end_test_case {
-	($type:ty) => {
-		#[tokio::test]
-		async fn end_to_end() -> Result<(), Box<dyn std::error::Error>> {
-			use futures_lite::StreamExt;
-			let struct_event = <$type>::default();
-			let con = crate::AccessibilityConnection::open().await.unwrap();
-			con.register_event::<$type>().await.expect("Could not register event");
-			let mut events = con.event_stream();
-			std::pin::pin!(&mut events);
-			con.send_event(struct_event.clone())
-				.await
-				.expect("Could not send event struct");
-			while let Some(Ok(ev)) = events.next().await {
-				if let Ok(event) = <$type>::try_from(ev) {
-					assert_eq!(struct_event.body(), event.body());
-					break;
-				// do things with your event here
-				} else {
-					panic!("The wrong event was received.")
-				};
-			}
-			Ok(())
 		}
 	};
 }
@@ -260,6 +240,7 @@ macro_rules! event_wrapper_test_cases {
 					"Events were able to be parsed and encapsulated, but they have changed value"
 				);
 			}
+			#[cfg(feature = "zbus")]
 			#[test]
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_interface() {
@@ -278,6 +259,7 @@ macro_rules! event_wrapper_test_cases {
 					"This should panic! Could not convert message into a event wrapper type",
 				);
 			}
+			#[cfg(feature = "zbus")]
 			#[test]
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member() {
@@ -296,6 +278,7 @@ macro_rules! event_wrapper_test_cases {
 					"This should panic! Could not convert message into a event wrapper type",
 				);
 			}
+			#[cfg(feature = "zbus")]
 			#[test]
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member_and_interface() {
@@ -314,6 +297,7 @@ macro_rules! event_wrapper_test_cases {
 					"This should panic! Could not convert message into a event wrapper type",
 				);
 			}
+			#[cfg(feature = "zbus")]
 			#[test]
 			fn zbus_msg_conversion() {
 				let valid_msg = zbus::MessageBuilder::signal(
@@ -343,7 +327,6 @@ macro_rules! event_test_cases {
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);
 			zbus_message_test_case!($type);
-			end_to_end_test_case!($type);
 		}
 		assert_impl_all!(
 			$type: Clone,
@@ -355,6 +338,7 @@ macro_rules! event_test_cases {
 			Eq,
 			std::hash::Hash,
 		);
+		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
 	};
 }

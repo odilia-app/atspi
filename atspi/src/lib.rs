@@ -11,9 +11,6 @@ use atspi_macros::atspi_proxy;
 #[cfg(not(feature = "unstable-traits"))]
 use zbus::dbus_proxy as atspi_proxy;
 
-#[macro_use]
-mod macros;
-
 pub mod accessible;
 #[cfg(feature = "unstable-traits")]
 pub mod accessible_ext;
@@ -48,9 +45,7 @@ pub mod document_ext;
 pub mod editable_text;
 #[cfg(feature = "unstable-traits")]
 pub mod editable_text_ext;
-pub mod events;
-pub mod identify;
-pub use events::{Event, EventBody};
+pub use atspi_types::events as events;
 pub mod hyperlink;
 #[cfg(feature = "unstable-traits")]
 pub mod hyperlink_ext;
@@ -81,12 +76,6 @@ pub mod text_ext;
 pub mod value;
 #[cfg(feature = "unstable-traits")]
 pub mod value_ext;
-
-// Hand-written connection module
-#[cfg(feature = "client-accessories")]
-mod accessibility_connection;
-#[cfg(feature = "client-accessories")]
-pub use accessibility_connection::*;
 
 mod interfaces;
 pub use interfaces::*;

@@ -1,9 +1,12 @@
-use crate::{
-	bus::BusProxy,
-	events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString},
+use atspi::{
+	bus::{
+		BusProxy,
+		StatusProxy,
+	},
 	registry::RegistryProxy,
-	AtspiError,
 };
+use atspi_types::error::AtspiError;
+use atspi_types::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
@@ -68,10 +71,11 @@ impl AccessibilityConnection {
 	/// Basic use:
 	///
 	/// ```rust
+	/// use atspi_client::AccessibilityConnection;
 	/// use enumflags2::BitFlag;
-	/// use atspi::identify::object::{ObjectEvents, StateChangedEvent};
-	/// use atspi::zbus::{fdo::DBusProxy, MatchRule, MessageType};
-	/// use atspi::Event;
+	/// use atspi_types::events::object::{ObjectEvents, StateChangedEvent};
+	/// use zbus::{fdo::DBusProxy, MatchRule, MessageType};
+	/// use atspi_types::events::Event;
 	/// # use futures_lite::StreamExt;
 	/// # use std::error::Error;
 	///
@@ -80,7 +84,7 @@ impl AccessibilityConnection {
 	/// # }
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
-	///     let atspi = atspi::AccessibilityConnection::open().await?;
+	///     let atspi = AccessibilityConnection::open().await?;
 	///     atspi.register_event::<ObjectEvents>().await?;
 	///
 	///     let mut events = atspi.event_stream();
@@ -144,9 +148,9 @@ impl AccessibilityConnection {
 
 	/// Registers an events as defined in [`crate::identify`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
 	/// connection.register_event::<StateChangedEvent>().await.unwrap();
 	/// # })
 	/// ```
@@ -162,9 +166,9 @@ impl AccessibilityConnection {
 
 	/// Deregisters an events as defined in [`crate::identify`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_match_rule::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -184,9 +188,9 @@ impl AccessibilityConnection {
 	/// This is called by [`Self::register_event`].
 	///
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -194,7 +198,7 @@ impl AccessibilityConnection {
 	///
 	/// # Errors
 	///
-	/// May cause an error if the `DBus` method [`crate::registry::RegistryProxy::register_event`] fails.
+	/// May cause an error if the `DBus` method [`atspi::registry::RegistryProxy::register_event`] fails.
 	pub async fn add_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
 			.register_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
@@ -208,9 +212,9 @@ impl AccessibilityConnection {
 	/// It may be called like so:
 	///
 	/// ```rust
-	/// use atspi::identify::object::StateChangedEvent;
+	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -300,13 +304,13 @@ impl Deref for AccessibilityConnection {
 /// ```rust
 ///     use futures_lite::future::block_on;
 ///
-///     let result =  block_on( atspi::set_session_accessibility(true) );
+///     let result =  block_on( atspi_client::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
 /// ```
 /// # Errors
 ///
 /// 1. when no connection with the session bus can be established,
-/// 2. if creation of a [`crate::bus::StatusProxy`] fails
+/// 2. if creation of a [`atspi::bus::StatusProxy`] fails
 /// 3. if the `IsEnabled` property cannot be read
 /// 4. the `IsEnabled` property cannot be set.
 pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), AtspiError> {
@@ -314,7 +318,7 @@ pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), 
 	let session = Box::pin(zbus::Connection::session()).await?;
 
 	// Aqcuire a `StatusProxy` for the session bus.
-	let status_proxy = crate::bus::StatusProxy::new(&session).await?;
+	let status_proxy = StatusProxy::new(&session).await?;
 
 	if status_proxy.is_enabled().await? != status {
 		status_proxy.set_is_enabled(status).await?;
