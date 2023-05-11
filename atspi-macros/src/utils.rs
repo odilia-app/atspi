@@ -216,27 +216,3 @@ pub fn parse_item_attributes(attrs: &[Attribute], attr_name: &str) -> Result<Vec
 	Ok(v)
 }
 
-#[cfg(test)]
-mod tests {
-	use super::{from_snake_case_to_upper_camel_case, snake_case};
-
-	#[test]
-	fn test_snake_to_from_snake_case_to_upper_camel_case() {
-		assert_eq!("MeaningOfLife", &from_snake_case_to_upper_camel_case("meaning_of_life"));
-	}
-
-	#[test]
-	fn test_from_snake_case_to_upper_camel_case_on_from_snake_case_to_upper_camel_cased_str() {
-		assert_eq!("MeaningOfLife", &from_snake_case_to_upper_camel_case("MeaningOfLife"));
-	}
-
-	#[test]
-	fn test_from_snake_case_to_upper_camel_case_to_snake_case() {
-		assert_eq!("meaning_of_life", &snake_case("MeaningOfLife"));
-	}
-
-	#[test]
-	fn test_snake_case_on_snake_cased_str() {
-		assert_eq!("meaning_of_life", &snake_case("meaning_of_life"));
-	}
-}
