@@ -6,7 +6,7 @@
 
 use crate::{InterfaceSet, ObjectPair, Role, StateSet};
 use serde::{Deserialize, Serialize};
-use zvariant::{OwnedObjectPath, Type};
+use zvariant::Type;
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]

@@ -4,10 +4,11 @@ version = "0.4.0"
 edition = "2021"
 authors = ["Luuk van der Duim <luukvanderduim@gmail.com>", "Tait Hoyem <tait@tait.tech>"]
 description = "Macros to assist in various impl blocks for the `atspi` crate."
-license = "MIT"
+license = "Apache-2.0 OR MIT"
 readme = "README.md"
 repository = "https://github.com/odilia-app/atspi"
 keywords = ["macros", "helper"]
+categories = ["macros"]
 
 [lib]
 proc_macro = true

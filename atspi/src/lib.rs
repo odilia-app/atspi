@@ -1,7 +1,6 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
-// #![deny(clippy::missing_docs)]
-#![allow(clippy::multiple_crate_versions)]
 
+#[cfg(featue = "zbus")]
 #[macro_use]
 extern crate static_assertions;
 

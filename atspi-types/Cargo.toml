@@ -2,6 +2,12 @@
 name = "atspi-types"
 version = "0.1.0"
 edition = "2021"
+readme = "README.md"
+categories = ["macros", "accessibility"]
+keywords = ["Macros", "Accessibility"]
+repository = "https://github.com/odilia-app/atspi"
+description = "Primitive types used for sending and recieving Linux accessibility events."
+license = "Apache-2.0 OR MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

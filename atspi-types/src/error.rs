@@ -111,14 +111,14 @@ impl From<std::num::TryFromIntError> for AtspiError {
 #[cfg(feature = "zbus")]
 impl From<zbus::fdo::Error> for AtspiError {
 	fn from(e: zbus::fdo::Error) -> Self {
-		Self::Zbus(format!("{:?}", e))
+		Self::Zbus(format!("{e:?}"))
 	}
 }
 
 #[cfg(feature = "zbus")]
 impl From<zbus::Error> for AtspiError {
 	fn from(e: zbus::Error) -> Self {
-		Self::Zbus(format!("{:?}", e))
+		Self::Zbus(format!("{e:?}"))
 	}
 }
 

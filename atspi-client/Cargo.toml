@@ -2,6 +2,12 @@
 name = "atspi-client"
 version = "0.1.0"
 edition = "2021"
+description = "A basic AT-SPI client library."
+readme = "README.md"
+keywords = ["a11y", "linux"]
+categories = ["Accessibility", "Linux"]
+license = "Apache-2.0 OR MIT" # For ease of integration in the Rust ecosystem.
+repository = "https://github.com/odilia-app/atspi"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

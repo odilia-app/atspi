@@ -1,3 +1,9 @@
+#![deny(
+	clippy::all,
+	clippy::pedantic,
+	clippy::cargo,
+	unsafe_code,
+)]
 #[cfg(feature = "unstable_atspi_proxy_macro")]
 mod proxy;
 #[cfg(feature = "unstable_atspi_proxy_macro")]

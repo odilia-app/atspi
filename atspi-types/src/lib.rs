@@ -1,3 +1,11 @@
+#![deny(
+	clippy::all,
+	clippy::pedantic,
+	clippy::cargo,
+	unsafe_code,
+)]
+#![allow(clippy::module_name_repetitions)]
+
 #[macro_use]
 extern crate static_assertions;
 #[macro_use]
