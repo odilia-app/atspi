@@ -143,7 +143,7 @@ impl AccessibilityConnection {
 		})
 	}
 
-	/// Registers an events as defined in [`crate::identify`]. This function registers a single event, like so:
+	/// Registers an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
 	/// ```rust
 	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
@@ -161,7 +161,7 @@ impl AccessibilityConnection {
 		Ok(())
 	}
 
-	/// Deregisters an events as defined in [`crate::identify`]. This function registers a single event, like so:
+	/// Deregisters an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
 	/// ```rust
 	/// use atspi_types::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {

@@ -8,7 +8,7 @@ use std::fmt;
 use zvariant::{Signature, Type};
 
 /// Used by various interfaces indicating every possible state
-/// an [`crate::accessible::AccessibleProxy`] object can assume.
+/// of an accessibility object.
 #[bitflags]
 #[repr(u64)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -183,16 +183,16 @@ pub enum State {
 	/// sub-elements causes those elements to scroll into view or become
 	/// selected. Subsequent character input may narrow the selection further as
 	/// long as one or more sub-elements match the string. This state is normally
-	/// only useful and encountered on objects that implement [`crate::selection::SelectionProxy`].
+	/// only useful and encountered on objects that implement [`crate::interface::Interface::Selection`].
 	/// In some cases the typeahead behavior may result in full or partial
 	/// completion of the data in the input field, in which case
 	/// these input events may trigger text-changed events from the source.
 	SupportsAutocompletion,
 	/// Indicates that the object in
 	/// question supports text selection. It should only be exposed on objects
-	/// which implement the [`crate::text::TextProxy`] interface, in order to distinguish this state
+	/// which implement the [`crate::interface::Interface::Text`] interface, in order to distinguish this state
 	/// from [`State::Selectable`], which infers that the object in question is a
-	/// selectable child of an object which implements [`crate::selection::SelectionProxy`]. While
+	/// selectable child of an object which implements [`crate::interface::Interface::Selection`]. While
 	/// similar, text selection and subelement selection are distinct operations.
 	SelectableText,
 	/// Indicates that the object in question is
