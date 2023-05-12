@@ -7,7 +7,7 @@ mod utils;
 mod zbus_proxy;
 
 #[cfg(feature = "unstable_atspi_proxy_macro")]
-use syn::{ItemTrait, AttributeArgs};
+use syn::{AttributeArgs, ItemTrait};
 
 use proc_macro::TokenStream;
 use quote::quote;
