@@ -215,4 +215,3 @@ pub fn parse_item_attributes(attrs: &[Attribute], attr_name: &str) -> Result<Vec
 
 	Ok(v)
 }
-

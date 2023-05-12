@@ -1,9 +1,4 @@
-#![deny(
-	clippy::all,
-	clippy::pedantic,
-	clippy::cargo,
-	unsafe_code,
-)]
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
 #![allow(clippy::module_name_repetitions)]
 
 #[macro_use]
