@@ -1,4 +1,3 @@
-use async_std::prelude::*;
 use atspi::events::object::{ObjectEvents, StateChangedEvent};
 use futures_lite::stream::StreamExt;
 use std::error::Error;
