@@ -7,7 +7,10 @@ use syn::{
 	TraitItemMethod,
 };
 
-use crate::utils::*;
+use crate::utils::{
+	from_snake_case_to_upper_camel_case, parse_item_attributes, pat_ident, typed_arg, zbus_path,
+	ItemAttribute,
+};
 
 /// The name of an object pair. See: [`atspi::accessible::ObjectPair`].
 const OBJECT_PAIR_NAME: &str = "ObjectPair";
@@ -26,15 +29,15 @@ impl AsyncOpts {
 	}
 }
 
-pub fn expand(input: ItemTrait) -> Result<TokenStream, Error> {
+pub fn expand(input: &ItemTrait) -> Result<TokenStream, Error> {
 	let async_trait_name = format!("{}", input.ident);
 	let trait_name = format!("{}Blocking", input.ident);
 	let async_proxy_name = format!("{}Proxy", input.ident);
 	let proxy_name = format!("{}ProxyBlocking", input.ident);
-	let blocking_trait = create_trait(&input, &trait_name, true)?;
-	let async_trait = create_trait(&input, &async_trait_name, false)?;
-	let blocking_impl = create_proxy_trait_impl(&input, &async_trait_name, true)?;
-	let async_impl = create_proxy_trait_impl(&input, &async_trait_name, false)?;
+	let blocking_trait = create_trait(input, &trait_name, true)?;
+	let async_trait = create_trait(input, &async_trait_name, false)?;
+	let blocking_impl = create_proxy_trait_impl(input, &async_trait_name, true)?;
+	let async_impl = create_proxy_trait_impl(input, &async_trait_name, false)?;
 	let atspi_proxy_impl = create_atspi_proxy_trait_impl(&async_proxy_name)?;
 	let blocking_atspi_proxy_impl = create_atspi_proxy_trait_impl(&proxy_name)?;
 	let ext_err_impl = create_ext_error_trait_impl(&async_proxy_name, false)?;
@@ -135,7 +138,7 @@ pub fn create_proxy_trait_impl(
 
 	let async_opts = AsyncOpts::new(blocking);
 
-	for i in input.items.iter() {
+	for i in &input.items {
 		if let syn::TraitItem::Method(m) = i {
 			let method_name = m.sig.ident.to_string();
 			let attrs = parse_item_attributes(&m.attrs, "dbus_proxy")?;
@@ -144,7 +147,6 @@ pub fn create_proxy_trait_impl(
 				_ => None,
 			});
 			let is_property = property_attrs.is_some();
-			let _is_signal = attrs.iter().any(|x| x.is_signal());
 			let has_inputs = m.sig.inputs.len() > 1;
 			let member_name = attrs
 				.iter()
@@ -230,7 +232,7 @@ pub fn create_trait(
 
 	let async_opts = AsyncOpts::new(blocking);
 
-	for i in input.items.iter() {
+	for i in &input.items {
 		if let syn::TraitItem::Method(m) = i {
 			let method_name = m.sig.ident.to_string();
 			let attrs = parse_item_attributes(&m.attrs, "dbus_proxy")?;
@@ -239,7 +241,6 @@ pub fn create_trait(
 				_ => None,
 			});
 			let is_property = property_attrs.is_some();
-			let _is_signal = attrs.iter().any(|x| x.is_signal());
 			let has_inputs = m.sig.inputs.len() > 1;
 			let member_name = attrs
 				.iter()
@@ -646,18 +647,13 @@ fn gen_proxy_trait_method_impl(
 /// Standard annotation `org.freedesktop.DBus.Property.EmitsChangedSignal`.
 ///
 /// See <https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format>.
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 enum PropertyEmitsChangedSignal {
+	#[default]
 	True,
 	Invalidates,
 	Const,
 	False,
-}
-
-impl Default for PropertyEmitsChangedSignal {
-	fn default() -> Self {
-		PropertyEmitsChangedSignal::True
-	}
 }
 
 impl PropertyEmitsChangedSignal {
@@ -690,7 +686,6 @@ fn gen_trait_property(
 	let _zbus = zbus_path();
 	let other_attrs: Vec<_> = m.attrs.iter().filter(|a| !a.path.is_ident("dbus_proxy")).collect();
 	let method = Ident::new(method_name, Span::call_site());
-	let _signature = &m.sig;
 	let inputs = &m.sig.inputs;
 	let output = genericize_method_return_type(&m.sig.output);
 	// do not process methods setting property values
@@ -737,7 +732,7 @@ fn gen_proxy_trait_impl_property(
 		} else {
 			signature.span()
 		};
-		let output_str = format!("{}", output);
+		let output_str = format!("{output}");
 		let proxy = TokenStream::from_str(proxy_name)
 			.expect("Could not create token stream from \"{proxy_name}\"");
 		let input_args = if args.len() == 1 {
@@ -780,17 +775,17 @@ fn gen_proxy_trait_impl_property(
 			("zbus::Proxy", quote! { #zbus::PropertyStream })
 		};
 
-		if !inputs.is_empty() {
+		if inputs.is_empty() {
 			quote! {
 					#(#other_attrs)*
-					#usage fn #method(#inputs) #output {
+					#usage fn #method(&self) #output {
 							#body
 					}
 			}
 		} else {
 			quote! {
 					#(#other_attrs)*
-					#usage fn #method(&self) #output {
+					#usage fn #method(#inputs) #output {
 							#body
 					}
 			}

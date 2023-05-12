@@ -142,7 +142,6 @@ where
 	{
 		let parent = self.parent().await?;
 		let pin = self.get_index_in_parent().await?;
-		println!("Attempt conversion into usize: {:?}", pin);
 		let index = pin.try_into()?;
 		// Clippy false positive: Standard pattern for excluding index item from list.
 		#[allow(clippy::if_not_else)]
@@ -250,7 +249,6 @@ where
 			let Ok(identifier) = ObjectPair::try_from(&item) else {
 				return Ok(None);
 			};
-			println!("{:?}", identifier);
 			// the top of the hirearchy for strctural navigation.
 			if visited.contains(&identifier) {
 				continue;

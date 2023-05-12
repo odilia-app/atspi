@@ -1,4 +1,5 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
+#![allow(clippy::too_many_lines)]
 #[cfg(feature = "unstable_atspi_proxy_macro")]
 mod proxy;
 #[cfg(feature = "unstable_atspi_proxy_macro")]
@@ -109,8 +110,8 @@ pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
 	let args = parse_macro_input!(attr as AttributeArgs);
 	let input = parse_macro_input!(item as ItemTrait);
 	let zbus_part =
-		zbus_proxy::expand(args, input.clone()).unwrap_or_else(|err| err.into_compile_error());
-	let atspi_part = proxy::expand(input).unwrap_or_else(|err| err.into_compile_error());
+		zbus_proxy::expand(&args, &input).unwrap_or_else(syn::Error::into_compile_error);
+	let atspi_part = proxy::expand(&input).unwrap_or_else(syn::Error::into_compile_error);
 	quote! {
 	#zbus_part
 	#atspi_part
