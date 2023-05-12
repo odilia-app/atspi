@@ -22,7 +22,7 @@ async-io = ["zbus/async-io"]
 
 [dependencies]
 # required dependencies
-syn = { version = "1.0", features = ["extra-traits", "fold", "full"] }
+syn = { version = "2.0", features = ["extra-traits", "fold", "full"] }
 quote = "1.0.21"
 # optional dependencies
 proc-macro2 = { version = "1.0", optional = true }

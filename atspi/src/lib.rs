@@ -1,5 +1,7 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
+#![allow(clippy::multiple_crate_versions)]
 
+#[cfg(feature = "unstable-traits")]
 #[macro_use]
 extern crate static_assertions;
 
