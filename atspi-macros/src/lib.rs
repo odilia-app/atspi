@@ -11,10 +11,7 @@ use syn::ItemTrait;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{
-	parse_macro_input, DeriveInput,
-	Type,
-};
+use syn::{parse_macro_input, DeriveInput, Type};
 
 use std::convert::TryFrom;
 
@@ -120,4 +117,3 @@ pub fn atspi_proxy(attr: TokenStream, item: TokenStream) -> TokenStream {
 		}
 	.into()
 }
-
