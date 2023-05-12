@@ -180,7 +180,7 @@ jobs:
       - name: Install Cargo MSRV Verifier
         run: cargo install cargo-msrv
       - name: Check MSRV Compliance
-        run: cargo msrv verify
+        run: cargo msrv --path atspi verify
   coverage:
     runs-on: ubuntu-latest
     steps:
