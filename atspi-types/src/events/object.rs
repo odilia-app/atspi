@@ -1675,7 +1675,7 @@ impl GenericEvent<'_> for TextChangedEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			detail: body.kind,
+			operation: body.kind,
 			start_pos: body.detail1,
 			length: body.detail2,
 			text: body.any_data.try_into()?,
@@ -2184,7 +2184,7 @@ impl From<TextChangedEvent> for EventBodyOwned {
 	fn from(event: TextChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.detail,
+			kind: event.operation,
 			detail1: event.start_pos,
 			detail2: event.length,
 			any_data: zvariant::Value::from(event.text).into(),

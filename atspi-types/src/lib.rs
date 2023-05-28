@@ -21,6 +21,9 @@ pub use role::Role;
 mod relation_type;
 pub use relation_type::RelationType;
 
+use serde::{Serialize, Deserialize};
+use zvariant::Type;
+
 /// A pair of (`sender`, `object path with id`) which constitutes the fundemental parts of an Accessible object in `atspi`.
 /// NOTE: If you update the name of this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
 pub type ObjectPair = (String, zvariant::OwnedObjectPath);
