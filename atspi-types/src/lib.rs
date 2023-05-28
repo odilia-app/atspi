@@ -24,3 +24,45 @@ pub use relation_type::RelationType;
 /// A pair of (`sender`, `object path with id`) which constitutes the fundemental parts of an Accessible object in `atspi`.
 /// NOTE: If you update the name of this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
 pub type ObjectPair = (String, zvariant::OwnedObjectPath);
+
+pub type MatchArgs<'a> = (
+	&'a [i32],
+	MatchType,
+	std::collections::HashMap<&'a str, &'a str>,
+	MatchType,
+	&'a [i32],
+	MatchType,
+	&'a [&'a str],
+	MatchType,
+	bool,
+);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[repr(u32)]
+pub enum SortOrder {
+	Invalid,
+	Canonical,
+	Flow,
+	Tab,
+	ReverseCanonical,
+	ReverseFlow,
+	ReverseTab,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[repr(u32)]
+pub enum TreeTraversalType {
+	RestrictChildren,
+	RestrictSibling,
+	Inorder,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[repr(i32)]
+pub enum MatchType {
+	Invalid,
+	All,
+	Any,
+	NA,
+	Empty,
+}

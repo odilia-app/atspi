@@ -889,7 +889,7 @@ pub struct TextSelectionChangedEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
 	pub item: crate::events::Accessible,
-	pub detail: String,
+	pub operation: String,
 	pub start_pos: i32,
 	pub length: i32,
 	pub text: String,
