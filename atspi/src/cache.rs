@@ -9,67 +9,9 @@ use crate::{
 	accessible::{ObjectPair, Role},
 	InterfaceSet, StateSet,
 };
+use atspi_types::CacheItem;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{OwnedObjectPath, Type};
-
-/// The item type provided by `Cache:Add` signals
-#[allow(clippy::module_name_repetitions)]
-#[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct CacheItem {
-	/// The accessible object (within the application)   (so)
-	pub object: ObjectPair,
-	/// The application (root object(?)    (so)
-	pub app: ObjectPair,
-	/// The parent object.  (so)
-	pub parent: ObjectPair,
-	/// The accessbile index in parent.  i
-	pub index: i32,
-	/// Child count of the accessible  i
-	pub children: i32,
-	/// The exposed interfece(s) set.  as
-	pub ifaces: InterfaceSet,
-	/// The short localized name.  s
-	pub short_name: String,
-	/// Accessible role. u
-	pub role: Role,
-	/// More detailed localized name.
-	pub name: String,
-	/// The states applicable to the accessible.  au
-	pub states: StateSet,
-}
-impl Default for CacheItem {
-	fn default() -> Self {
-		Self {
-			object: (":0.0".to_string(), "/org/a11y/atspi/accessible/object".try_into().unwrap()),
-			app: (":0.0".to_string(), "/org/a11y/atspi/accessible/application".try_into().unwrap()),
-			parent: (":0.0".to_string(), "/org/a11y/atspi/accessible/parent".try_into().unwrap()),
-			index: 0,
-			children: 0,
-			ifaces: InterfaceSet::empty(),
-			short_name: String::default(),
-			role: Role::Invalid,
-			name: String::default(),
-			states: StateSet::empty(),
-		}
-	}
-}
-
-#[test]
-fn zvariant_type_signature_of_cache_item() {
-	assert_eq!(
-		CacheItem::signature(),
-		zbus::zvariant::Signature::from_static_str("((so)(so)(so)iiassusau)").unwrap()
-	);
-}
-
-// impl CacheItem {
-//     fn accessible(&self, conn: &Connection) -> AccessibleProxy<'_> {
-//         let conn = conn.inner().connection();
-//         let (name, path) = (self.object.0, self.object.1);
-//         ProxyBuilder::new(conn)
-//     }
-// }
-//
 
 #[atspi_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {
