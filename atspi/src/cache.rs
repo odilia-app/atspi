@@ -5,11 +5,7 @@
 //!
 
 use crate::atspi_proxy;
-use crate::{
-	accessible::{ObjectPair, Role},
-	InterfaceSet, StateSet,
-};
-use atspi_types::CacheItem;
+use atspi_types::{CacheItem, ObjectPair, Role, InterfaceSet, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{OwnedObjectPath, Type};
 
