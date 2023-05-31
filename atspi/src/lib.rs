@@ -86,9 +86,6 @@ pub mod error;
 pub use error::AtspiError;
 
 pub use zbus;
-use zbus::zvariant::Type;
-
-use serde::{Deserialize, Serialize};
 
 pub trait AtspiProxy {
 	const INTERFACE: Interface;

@@ -13,8 +13,6 @@
 use crate::atspi_proxy;
 use atspi_types::{Role, RelationType, ObjectPair, StateSet, InterfaceSet};
 use crate::{AtspiError};
-use serde::{Deserialize, Serialize};
-use zbus::zvariant::Type;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {

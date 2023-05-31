@@ -13,9 +13,7 @@
 // this allow zbus to change the number of parameters in a function without setting off clippy
 
 use crate::atspi_proxy;
-use serde::{Deserialize, Serialize};
-use atspi_types::{SortOrder, TreeTraversalType, MatchType, MatchArgs};
-use zbus::zvariant::Type;
+use atspi_types::{SortOrder, TreeTraversalType, MatchArgs};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
