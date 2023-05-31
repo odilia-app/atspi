@@ -1,13 +1,11 @@
-use atspi_types::{Role, RelationType, MatchType, InterfaceSet, ObjectPair};
 use crate::{
-	accessible::{
-		Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking,
-	},
+	accessible::{Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking},
 	convertable::{Convertable, ConvertableBlocking},
 	hyperlink::Hyperlink,
 	text::{Text, TextBlocking},
 };
 use async_trait::async_trait;
+use atspi_types::{InterfaceSet, MatchType, ObjectPair, RelationType, Role};
 use std::collections::HashMap;
 
 pub type MatcherArgs =

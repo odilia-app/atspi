@@ -21,7 +21,7 @@ pub use role::Role;
 mod relation_type;
 pub use relation_type::RelationType;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
 /// A pair of (`sender`, `object path with id`) which constitutes the fundemental parts of an Accessible object in `atspi`.
@@ -81,4 +81,3 @@ pub enum CoordType {
 	/// In relation to the parent of the element being checked.
 	Parent,
 }
-

@@ -46,7 +46,7 @@ pub mod editable_text;
 #[cfg(feature = "unstable-traits")]
 pub mod editable_text_ext;
 pub use atspi_types::events;
-pub use atspi_types::{Interface, InterfaceSet, CoordType};
+pub use atspi_types::{CoordType, Interface, InterfaceSet};
 
 pub mod hyperlink;
 #[cfg(feature = "unstable-traits")]

@@ -5,8 +5,8 @@
 //!
 
 use crate::atspi_proxy;
-use atspi_types::{CacheItem};
-use zbus::zvariant::{OwnedObjectPath};
+use atspi_types::CacheItem;
+use zbus::zvariant::OwnedObjectPath;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {
