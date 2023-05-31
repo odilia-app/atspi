@@ -14,49 +14,8 @@
 
 use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
+use atspi_types::{SortOrder, TreeTraversalType, MatchType, MatchArgs};
 use zbus::zvariant::Type;
-
-pub type MatchArgs<'a> = (
-	&'a [i32],
-	MatchType,
-	std::collections::HashMap<&'a str, &'a str>,
-	MatchType,
-	&'a [i32],
-	MatchType,
-	&'a [&'a str],
-	MatchType,
-	bool,
-);
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
-pub enum SortOrder {
-	Invalid,
-	Canonical,
-	Flow,
-	Tab,
-	ReverseCanonical,
-	ReverseFlow,
-	ReverseTab,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
-pub enum TreeTraversalType {
-	RestrictChildren,
-	RestrictSibling,
-	Inorder,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(i32)]
-pub enum MatchType {
-	Invalid,
-	All,
-	Any,
-	NA,
-	Empty,
-}
 
 #[atspi_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
