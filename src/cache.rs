@@ -46,14 +46,37 @@ fn zvariant_type_signature_of_cache_item() {
 	);
 }
 
-// impl CacheItem {
-//     fn accessible(&self, conn: &Connection) -> AccessibleProxy<'_> {
-//         let conn = conn.inner().connection();
-//         let (name, path) = (self.object.0, self.object.1);
-//         ProxyBuilder::new(conn)
-//     }
-// }
-//
+/// The item type provided by `Cache:Add` signals
+#[allow(clippy::module_name_repetitions)]
+#[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+pub struct LegacyCacheItem {
+	/// The accessible object (within the application)   (so)
+	pub object: ObjectPair,
+	/// The application (root object(?)    (so)
+	pub app: ObjectPair,
+	/// The parent object.  (so)
+	pub parent: ObjectPair,
+	/// List of references to the accessible's children.  (so)
+	pub children: Vec<ObjectPair>,
+	/// The exposed interfece(s) set.  as
+	pub ifaces: InterfaceSet,
+	/// The short localized name.  s
+	pub short_name: String,
+	/// Accessible role. u
+	pub role: Role,
+	/// More detailed localized name.
+	pub name: String,
+	/// The states applicable to the accessible.  au
+	pub states: StateSet,
+}
+
+#[test]
+fn zvariant_type_signature_of_legacy_cache_item() {
+	assert_eq!(
+		LegacyCacheItem::signature(),
+		zbus::zvariant::Signature::from_static_str("((so)(so)(so)a(so)assusau)").unwrap()
+	);
+}
 
 #[atspi_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {
@@ -67,4 +90,8 @@ trait Cache {
 	/// RemoveAccessible signal
 	#[dbus_proxy(signal)]
 	fn remove_accessible(&self, node_removed: (String, OwnedObjectPath)) -> zbus::Result<()>;
+
+	/// GetItems method to support legacy servers (presumably Qt based applications and at-spi2-registryd)
+	#[dbus_proxy(name = "GetItems")]
+	fn get_legacy_items(&self) -> zbus::Result<Vec<LegacyCacheItem>>;
 }

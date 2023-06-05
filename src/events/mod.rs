@@ -35,7 +35,7 @@ use zbus::{
 };
 
 use crate::{
-	cache::CacheItem,
+	cache::{CacheItem, LegacyCacheItem},
 	identify::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
 		object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
@@ -113,7 +113,7 @@ pub enum Event {
 	Available(AvailableEvent),
 	/// Both `CacheAdd` and `CacheRemove` signals
 	Cache(CacheEvents),
-	/// Emitted on registry or deregristry of event listeners.,
+	/// Emitted on registration or de-registration of event listeners.
 	///
 	/// (eg. "Cache:AddAccessible:")
 	Listener(EventListenerEvents),
@@ -123,6 +123,7 @@ pub enum Event {
 #[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
 	Add(AddAccessibleEvent),
+	LegacyAdd(AddLegacyAccessibleEvent),
 	Remove(RemoveAccessibleEvent),
 }
 
@@ -142,16 +143,50 @@ impl HasMatchRule for AddAccessibleEvent {
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
 }
 
+/// Type that contains the `zbus::Message` for meta information and
+/// the [`crate::cache::LegacyCacheItem`]
+#[derive(Debug, Clone, GenericEvent)]
+#[try_from_zbus_message(body = "LegacyCacheItem")]
+pub struct AddLegacyAccessibleEvent {
+	pub(crate) message: Arc<Message>,
+	pub(crate) body: LegacyCacheItem,
+}
+
+// TODO: Reuses / overloads the `HasRegistryEventString` and `HasMatchRule`, is that a problem?
+impl HasRegistryEventString for AddLegacyAccessibleEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
+}
+
+impl HasMatchRule for AddLegacyAccessibleEvent {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
+}
+
+impl AddLegacyAccessibleEvent {
+	/// When an object in an application is added, this may evoke a `CacheAdd` event,
+	/// this yields either a  [`crate::cache::CacheItem`] or a legacy [`crate::cache::LegacyCacheItem`]
+	#[must_use]
+	pub fn item(&self) -> &LegacyCacheItem {
+		&self.body
+	}
+	/// When an object in an application is added, this may evoke a `CacheAdd` event,
+	/// this yields either a  [`crate::cache::CacheItem`] or a legacy [`crate::cache::LegacyCacheItem`]
+	/// Consumes the `CacheAdd` event.
+	#[must_use]
+	pub fn into_item(self) -> LegacyCacheItem {
+		self.body
+	}
+}
+
 impl AddAccessibleEvent {
 	/// When an object in an application is added, this may evoke a `CacheAdd` event,
-	/// this yields an [`crate::cache::CacheItem`]
+	/// this yields either a  [`crate::cache::CacheItem`] or a legacy [`crate::cache::LegacyCacheItem`]
 	#[must_use]
 	pub fn item(&self) -> &CacheItem {
 		&self.body
 	}
-
 	/// When an object in an application is added, this may evoke a `CacheAdd` event,
-	/// this yields an [`crate::cache::CacheItem`]
+	/// this yields either a  [`crate::cache::CacheItem`] or a legacy [`crate::cache::LegacyCacheItem`]
 	/// Consumes the `CacheAdd` event.
 	#[must_use]
 	pub fn into_item(self) -> CacheItem {
@@ -323,7 +358,7 @@ pub enum EventListenerEvents {
 	Deregistered(EventListenerDeregisteredEvent),
 }
 
-/// An event that is emitted by the regostry daemon to signal that an event has been deregistered
+/// An event that is emitted by the registry daemon to signal that an event has been deregistered
 /// to no longer listen for.
 #[derive(Clone, Debug, GenericEvent)]
 #[try_from_zbus_message(body = "EventListeners")]
@@ -332,7 +367,7 @@ pub struct EventListenerDeregisteredEvent {
 	pub body: EventListeners,
 }
 
-/// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
+/// An event that is emitted by the registry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug, GenericEvent)]
 #[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerRegisteredEvent {
@@ -398,6 +433,11 @@ impl TryFrom<Arc<Message>> for Event {
 			"((so)(so)(so)iiassusau)" => {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
+			}
+			// Legacy CacheAdd signature
+			"((so)(so)(so)a(so)assusauu)" => {
+				let ev = AddLegacyAccessibleEvent::try_from(msg)?;
+				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
 			}
 			_ => Err(AtspiError::UnknownBusSignature),
 		}
