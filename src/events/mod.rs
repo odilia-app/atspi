@@ -435,7 +435,7 @@ impl TryFrom<Arc<Message>> for Event {
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
 			// Legacy CacheAdd signature
-			"((so)(so)(so)a(so)assusauu)" => {
+			"((so)(so)(so)a(so)assusau)" => {
 				let ev = AddLegacyAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
 			}
@@ -640,7 +640,7 @@ mod tests {
 				panic!("Something else happened");
 			}
 			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				panic!("An error occurred: {:?}", e);
 			}
 		}
 	}
