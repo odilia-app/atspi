@@ -10,7 +10,7 @@ use crate::{
 	InterfaceSet, StateSet,
 };
 use serde::{Deserialize, Serialize};
-use zbus::zvariant::{OwnedObjectPath, Type};
+use zbus::zvariant::Type;
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
@@ -59,12 +59,4 @@ fn zvariant_type_signature_of_cache_item() {
 trait Cache {
 	/// GetItems method
 	fn get_items(&self) -> zbus::Result<Vec<CacheItem>>;
-
-	/// AddAccessible signal
-	#[dbus_proxy(signal)]
-	fn add_accessible(&self, node_added: CacheItem) -> zbus::Result<()>;
-
-	/// RemoveAccessible signal
-	#[dbus_proxy(signal)]
-	fn remove_accessible(&self, node_removed: (String, OwnedObjectPath)) -> zbus::Result<()>;
 }

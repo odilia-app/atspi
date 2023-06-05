@@ -28,12 +28,4 @@ trait Registry {
 
 	/// RegisterEvent method
 	fn register_event(&self, event: &str) -> zbus::Result<()>;
-
-	/// EventListenerDeregistered signal
-	#[dbus_proxy(signal)]
-	fn event_listener_deregistered(&self, bus: &str, path: &str) -> zbus::Result<()>;
-
-	/// EventListenerRegistered signal
-	#[dbus_proxy(signal)]
-	fn event_listener_registered(&self, bus: &str, path: &str) -> zbus::Result<()>;
 }
