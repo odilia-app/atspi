@@ -587,14 +587,14 @@ mod tests {
 			detail1: 0,
 			detail2: 0,
 			any_data: Value::U8(0u8).into(),
-			properties: ("".to_string(), ObjectPath::try_from("/").unwrap().into()),
+			properties: (String::new(), ObjectPath::try_from("/").unwrap().into()),
 		}
 	}
 
 	#[test]
 	fn test_event_body_qt_to_event_body_owned_conversion() {
 		let event_body: EventBodyOwned = gen_event_body_qt().into();
-		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
+		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
 	#[tokio::test]
@@ -614,10 +614,10 @@ mod tests {
 		.sender(unique_bus_name.unwrap())
 		.expect("Could not set sender to {unique_bus_name:?}")
 		.build(
-			&(((
+			&((
 				":69.420".to_string(),
 				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
-			),)),
+			),),
 		)
 		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
@@ -675,7 +675,7 @@ mod tests {
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
-			short_name: "".to_string(),
+			short_name: String::new(),
 			role: Role::Application,
 			name: "Hi".to_string(),
 			states: StateSet::empty(),
