@@ -11,7 +11,7 @@ pub mod window;
 // ----
 // The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
 // -  Cache : RemoveAccessible
-// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
+// -  Socket: Available  *( signals the availability of the `Registry` daemon.)
 //
 // ATSPI- and QSPI both describe the generic events. These can be converted into
 // specific signal types with TryFrom implementations. See crate::[`identify`]
@@ -109,7 +109,7 @@ impl From<EventBodyQT> for EventBodyOwned {
 pub enum Event {
 	// Exploring if having a fully destructable hierarchical  works as we'd like..
 	Interfaces(EventInterfaces),
-	/// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
+	/// Emitted when the `Registry` interface on `org.a11y.atspi.Registry` becomes available.
 	Available(AvailableEvent),
 	/// Both `CacheAdd` and `CacheRemove` signals
 	Cache(CacheEvents),
@@ -311,7 +311,7 @@ impl<'name> PartialEq<MemberName<'name>> for AtspiEvent {
 //  Equality on `AtspiEvent` may be considered ambiguous.
 //
 // Because `AtspiEvent`'s message has eg. a `SerialNumber` in the primary header,
-// only exacly same instances would be equal, _if_ `PartialEq` were derivable.
+// only exactly same instances would be equal, _if_ `PartialEq` were derivable.
 //
 // This PartialEq implements the strictest kind where only same instances are considered the same.
 // Other equalities should be made with PartailEq<T> for AtspiEvent and PartialEq<AtspiEvent> for T
@@ -461,7 +461,7 @@ pub trait GenericEvent {
 	/// Sender of the signal.
 	///
 	/// ### Errors
-	/// - when deserializeing the header failed, or
+	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<UniqueName>, AtspiError>;
 }
@@ -550,7 +550,7 @@ impl GenericEvent for AtspiEvent {
 
 	/// Identifies the `sender` of the event.
 	/// # Errors
-	/// - when deserializeing the header failed, or
+	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
 		Ok(self.message.header()?.sender()?.cloned())
@@ -613,12 +613,10 @@ mod tests {
 		.expect("Could not create signal")
 		.sender(unique_bus_name.unwrap())
 		.expect("Could not set sender to {unique_bus_name:?}")
-		.build(
-			&((
-				":69.420".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
-			),),
-		)
+		.build(&((
+			":69.420".to_string(),
+			OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
+		),))
 		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
@@ -632,15 +630,15 @@ mod tests {
 				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
+				println!("{another_event:?}");
 				panic!("The wrong event was sent");
 			}
 			Ok(e) => {
-				println!("{:?}", e);
+				println!("{e:?}");
 				panic!("Something else happened");
 			}
 			Err(e) => {
-				panic!("An error occurred: {:?}", e);
+				panic!("An error occurred: {e:?}");
 			}
 		}
 	}
@@ -693,19 +691,19 @@ mod tests {
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
+				println!("{another_event:?}");
 				panic!("The wrong event was sent");
 			}
 			Ok(Some(Err(e))) => {
-				println!("{:?}", e);
-				panic!("An error occured destructuring the body");
+				println!("{e:?}");
+				panic!("An error occurred destructuring the body");
 			}
 			Ok(e) => {
-				println!("{:?}", e);
+				println!("{e:?}");
 				panic!("Something else happened");
 			}
 			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				panic!("An error occurred: {e:?}");
 			}
 		}
 	}
