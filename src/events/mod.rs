@@ -590,15 +590,15 @@ mod tests {
 				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
+				println!("{another_event:?}");
 				panic!("The wrong event was sent");
 			}
 			Ok(e) => {
-				println!("{:?}", e);
+				println!("{e:?}");
 				panic!("Something else happened");
 			}
 			Err(e) => {
-				panic!("An error occurred: {:?}", e);
+				panic!("An error occurred: {e:?}");
 			}
 		}
 	}
@@ -651,19 +651,19 @@ mod tests {
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
+				println!("{another_event:?}");
 				panic!("The wrong event was sent");
 			}
 			Ok(Some(Err(e))) => {
-				println!("{:?}", e);
+				println!("{e:?}");
 				panic!("An error occured destructuring the body");
 			}
 			Ok(e) => {
-				println!("{:?}", e);
+				println!("{e:?}");
 				panic!("Something else happened");
 			}
 			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				panic!("An error occured: {e:?}");
 			}
 		}
 	}
