@@ -22,5 +22,24 @@
       <arg direction="out" name="col_extents" type="i" />
     </method>
 
+    <!--
+        GetColumnHeaderCells:
+
+        Returns a list of the table cell's column header cells.
+    -->
+    <method name="GetColumnHeaderCells">
+      <arg direction="out" type="a(so)"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QSpiObjectReferenceArray"/>
+    </method>
+
+    <!--
+        GetRowHeaderCells:
+
+        Returns a list of the table cell's row header cells.
+    -->
+    <method name="GetRowHeaderCells">
+      <arg direction="out" type="a(so)"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QSpiObjectReferenceArray"/>
+    </method>
   </interface>
 </node>
