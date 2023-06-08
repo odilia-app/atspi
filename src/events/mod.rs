@@ -547,14 +547,14 @@ mod tests {
 			detail1: 0,
 			detail2: 0,
 			any_data: Value::U8(0u8).into(),
-			properties: ("".to_string(), ObjectPath::try_from("/").unwrap().into()),
+			properties: (String::new(), ObjectPath::try_from("/").unwrap().into()),
 		}
 	}
 
 	#[test]
 	fn test_event_body_qt_to_event_body_owned_conversion() {
 		let event_body: EventBodyOwned = gen_event_body_qt().into();
-		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
+		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
 	#[tokio::test]
@@ -573,12 +573,10 @@ mod tests {
 		.expect("Could not create signal")
 		.sender(unique_bus_name.unwrap())
 		.expect("Could not set sender to {unique_bus_name:?}")
-		.build(
-			&(((
-				":69.420".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
-			),)),
-		)
+		.build(&((
+			":69.420".to_string(),
+			OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
+		),))
 		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
@@ -592,15 +590,15 @@ mod tests {
 				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
+				println!("{another_event:?}");
 				panic!("The wrong event was sent");
 			}
 			Ok(e) => {
-				println!("{:?}", e);
+				println!("{e:?}");
 				panic!("Something else happened");
 			}
 			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				panic!("An error occurred: {e:?}");
 			}
 		}
 	}
@@ -635,7 +633,7 @@ mod tests {
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
-			short_name: "".to_string(),
+			short_name: String::new(),
 			role: Role::Application,
 			name: "Hi".to_string(),
 			states: StateSet::empty(),
@@ -653,19 +651,19 @@ mod tests {
 				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
 			}
 			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
+				println!("{another_event:?}");
 				panic!("The wrong event was sent");
 			}
 			Ok(Some(Err(e))) => {
-				println!("{:?}", e);
-				panic!("An error occured destructuring the body");
+				println!("{e:?}");
+				panic!("An error occurred destructuring the body");
 			}
 			Ok(e) => {
-				println!("{:?}", e);
+				println!("{e:?}");
 				panic!("Something else happened");
 			}
 			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				panic!("An error occurred: {e:?}");
 			}
 		}
 	}
