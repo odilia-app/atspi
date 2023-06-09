@@ -12,7 +12,7 @@
 
 use crate::atspi_proxy;
 use crate::AtspiError;
-use atspi_types::{InterfaceSet, ObjectPair, RelationType, Role, StateSet};
+use atspi_common::{InterfaceSet, ObjectPair, RelationType, Role, StateSet};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {

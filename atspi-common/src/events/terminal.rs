@@ -22,7 +22,7 @@ use zvariant::ObjectPath;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<LineChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -103,7 +103,7 @@ impl HasMatchRule for TerminalEvents {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<LineChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -142,7 +142,7 @@ pub struct LineChangedEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ColumnCountChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -181,7 +181,7 @@ pub struct ColumnCountChangedEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<LineCountChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -220,7 +220,7 @@ pub struct LineCountChangedEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ApplicationChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -259,7 +259,7 @@ pub struct ApplicationChangedEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<CharWidthChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);

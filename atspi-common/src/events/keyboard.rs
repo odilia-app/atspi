@@ -16,15 +16,15 @@ use zvariant::ObjectPath;
 ///
 /// ```
 /// use atspi::events::Event;
-/// use atspi::events::focus::FocusEvent;
+/// use atspi::events::keyboard::ModifiersEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<FocusEvent>().await.unwrap();
+/// #   atspi.register_event::<ModifiersEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
 /// #   let output = std::process::Command::new("busctl")
 /// #       .arg("--user")
@@ -48,8 +48,8 @@ use zvariant::ObjectPath;
 /// #       .arg(addr_str)
 /// #       .arg("emit")
 /// #       .arg("/org/a11y/atspi/accessible/null")
-/// #       .arg("org.a11y.atspi.Event.Focus")
-/// #       .arg("Focus")
+/// #       .arg("org.a11y.atspi.Event.Keyboard")
+/// #       .arg("Modifiers")
 /// #       .arg("siiva{sv}")
 /// #       .arg("")
 /// #       .arg("0")
@@ -61,7 +61,7 @@ use zvariant::ObjectPath;
 /// #       .unwrap();
 ///
 ///     while let Some(Ok(ev)) = events.next().await {
-///          if let Event::Focus(_event) = ev {
+///          if let Event::Keyboard(_event) = ev {
 /// #            break;
 ///              // do things with your event here
 ///          }
@@ -71,14 +71,15 @@ use zvariant::ObjectPath;
 /// ```
 // IgnoreBlock stop
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum FocusEvents {
-	Focus(FocusEvent),
+pub enum KeyboardEvents {
+	Modifiers(ModifiersEvent),
 }
-impl_event_conversions!(FocusEvents, Event::Focus);
-event_wrapper_test_cases!(FocusEvents, FocusEvent);
+impl_event_conversions!(KeyboardEvents, Event::Keyboard);
+event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
-impl HasMatchRule for FocusEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
+impl HasMatchRule for KeyboardEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 }
 
 // IgnoreBlock start
@@ -92,21 +93,21 @@ impl HasMatchRule for FocusEvents {
 /// ```
 /// use atspi::events::Event;
 /// # use atspi::events::GenericEvent;
-/// use atspi::events::focus::FocusEvent;
+/// use atspi::events::keyboard::ModifiersEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<FocusEvent>().await.unwrap();
+/// #   atspi.register_event::<ModifiersEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
-/// #   let event_struct = FocusEvent::default();
+/// #   let event_struct = ModifiersEvent::default();
 /// #   atspi.send_event(event_struct.clone()).await.unwrap();
 ///
 ///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = FocusEvent::try_from(ev) {
+///         if let Ok(event) = ModifiersEvent::try_from(ev) {
 /// #          assert_eq!(event.body(), event_struct.body());
 /// #          break;
 ///            // do something with the specific event you've received
@@ -116,21 +117,23 @@ impl HasMatchRule for FocusEvents {
 /// ```
 // IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct FocusEvent {
+pub struct ModifiersEvent {
 	pub item: crate::events::Accessible,
+	pub previous_modifiers: i32,
+	pub current_modifiers: i32,
 }
 
-impl GenericEvent<'_> for FocusEvent {
-	const DBUS_MEMBER: &'static str = "Focus";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
+impl GenericEvent<'_> for ModifiersEvent {
+	const DBUS_MEMBER: &'static str = "Modifiers";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
+		"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
+	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -145,10 +148,10 @@ impl GenericEvent<'_> for FocusEvent {
 }
 
 /*
-impl TryFrom<Event> for FocusEvent {
+impl TryFrom<Event> for ModifiersEvent {
 type Error = AtspiError;
 fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Focus(FocusEvents::Focus(inner_event)) = event {
+	 if let Event::Keyboard(KeyboardEvents::Modifiers(inner_event)) = event {
 			Ok(inner_event)
 		} else {
 			Err(AtspiError::Conversion("Invalid type"))
@@ -157,41 +160,41 @@ fn try_from(event: Event) -> Result<Self, Self::Error> {
 }*/
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for FocusEvents {
+impl TryFrom<&zbus::Message> for KeyboardEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
 		let member = ev
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
-			"Focus" => Ok(FocusEvents::Focus(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Focus".into())),
+			"Modifiers" => Ok(KeyboardEvents::Modifiers(ev.try_into()?)),
+			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
 		}
 	}
 }
 
-impl_event_conversions!(FocusEvent, FocusEvents, FocusEvents::Focus, Event::Focus);
-event_test_cases!(FocusEvent);
-impl_to_dbus_message!(FocusEvent);
-impl_from_dbus_message!(FocusEvent);
-impl From<FocusEvent> for EventBodyOwned {
-	fn from(_event: FocusEvent) -> Self {
+impl_event_conversions!(ModifiersEvent, KeyboardEvents, KeyboardEvents::Modifiers, Event::Keyboard);
+event_test_cases!(ModifiersEvent);
+impl_to_dbus_message!(ModifiersEvent);
+impl_from_dbus_message!(ModifiersEvent);
+impl From<ModifiersEvent> for EventBodyOwned {
+	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
 			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
+			detail1: event.previous_modifiers,
+			detail2: event.current_modifiers,
 			any_data: zvariant::Value::U8(0).into(),
 		}
 	}
 }
 
-/*impl HasMatchRule for FocusEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
+/*impl HasMatchRule for ModifiersEvent {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
 }*/
-/*impl HasRegistryEventString for FocusEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:Focus";
+/*impl HasRegistryEventString for ModifiersEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:Modifiers";
 }*/
-impl HasRegistryEventString for FocusEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
+impl HasRegistryEventString for KeyboardEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 }

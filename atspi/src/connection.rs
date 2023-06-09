@@ -1,9 +1,9 @@
-use atspi::{
+use crate::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
-use atspi_types::error::AtspiError;
-use atspi_types::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
+use atspi_common::error::AtspiError;
+use atspi_common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
@@ -68,11 +68,11 @@ impl AccessibilityConnection {
 	/// Basic use:
 	///
 	/// ```rust
-	/// use atspi_client::AccessibilityConnection;
+	/// use atspi::AccessibilityConnection;
 	/// use enumflags2::BitFlag;
-	/// use atspi_types::events::object::{ObjectEvents, StateChangedEvent};
+	/// use atspi_common::events::object::{ObjectEvents, StateChangedEvent};
 	/// use zbus::{fdo::DBusProxy, MatchRule, MessageType};
-	/// use atspi_types::events::Event;
+	/// use atspi_common::events::Event;
 	/// # use futures_lite::StreamExt;
 	/// # use std::error::Error;
 	///
@@ -145,9 +145,9 @@ impl AccessibilityConnection {
 
 	/// Registers an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi_types::events::object::StateChangedEvent;
+	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.register_event::<StateChangedEvent>().await.unwrap();
 	/// # })
 	/// ```
@@ -163,9 +163,9 @@ impl AccessibilityConnection {
 
 	/// Deregisters an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi_types::events::object::StateChangedEvent;
+	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_match_rule::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -185,9 +185,9 @@ impl AccessibilityConnection {
 	/// This is called by [`Self::register_event`].
 	///
 	/// ```rust
-	/// use atspi_types::events::object::StateChangedEvent;
+	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -209,9 +209,9 @@ impl AccessibilityConnection {
 	/// It may be called like so:
 	///
 	/// ```rust
-	/// use atspi_types::events::object::StateChangedEvent;
+	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_client::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -300,7 +300,7 @@ impl Deref for AccessibilityConnection {
 /// ```rust
 ///     use futures_lite::future::block_on;
 ///
-///     let result =  block_on( atspi_client::set_session_accessibility(true) );
+///     let result =  block_on( atspi::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
 /// ```
 /// # Errors

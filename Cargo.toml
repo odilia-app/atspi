@@ -1,7 +1,6 @@
 [workspace]
 members = [
 	"atspi",
-	"atspi-client",
-	"atspi-types",
+	"atspi-common",
 	"atspi-macros",
 ]

@@ -1,5 +1,5 @@
 [package]
-name = "atspi-types"
+name = "atspi-common"
 version = "0.1.0"
 edition = "2021"
 readme = "README.md"
@@ -27,7 +27,6 @@ zbus = { version = "3.12.0", optional = true }
 
 [dev-dependencies]
 atspi = { path = "../atspi/", default-features = false, features = ["async-io"] }
-atspi-client = { path = "../atspi-client/", default-features = false, features = ["async-io"] }
 async-std = { version = "1.12.0", features = ["attributes"] }
 futures-lite = "1.13.0"
 tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }

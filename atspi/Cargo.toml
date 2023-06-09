@@ -19,13 +19,14 @@ publish = true
 
 [features]
 default = ["async-io"]
-async-io = ["zbus/async-io", "atspi-types/zbus-async-io"]
+async-io = ["zbus/async-io", "atspi-common/zbus-async-io"]
 gvariant = ["zbus/gvariant"]
-tokio = ["zbus/tokio", "atspi-types/zbus-tokio"]
+tokio = ["zbus/tokio", "atspi-common/zbus-tokio"]
 unstable-traits = ["atspi-macros/unstable_atspi_proxy_macro", "dep:async-trait"]
+connection = ["dep:tracing", "dep:futures-lite"]
 
 [dependencies]
-atspi-types = { path = "../atspi-types", default-features = false }
+atspi-common = { path = "../atspi-common", default-features = false }
 atspi-macros = { version = "0.4.0", path = "../atspi-macros" }
 enumflags2 = "^0.7.5"
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
@@ -33,6 +34,8 @@ zbus = { version = "^3.6.2", default-features = false }
 static_assertions = { version = "^1.1.0" }
 # optioanl dependencies
 async-trait = { version = "^0.1.59", optional = true }
+tracing = { version = "0.1.37", optional = true }
+futures-lite = { version = "1.12", default-features = false, optional = true }
 
 [dev-dependencies]
 byteorder = "1.4"
@@ -47,3 +50,4 @@ rename-item = "0.1.0"
 fantoccini = "0.19"
 serde_json = "1.0.96"
 serial_test = "2.0.0"
+tracing = "0.1.37"

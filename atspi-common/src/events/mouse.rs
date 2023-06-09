@@ -22,7 +22,7 @@ use zvariant::ObjectPath;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<AbsEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -100,7 +100,7 @@ impl HasMatchRule for MouseEvents {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<AbsEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -141,7 +141,7 @@ pub struct AbsEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<RelEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -182,7 +182,7 @@ pub struct RelEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ButtonEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);

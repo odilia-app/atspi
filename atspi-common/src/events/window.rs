@@ -22,7 +22,7 @@ use zvariant::ObjectPath;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -116,7 +116,7 @@ impl HasMatchRule for WindowEvents {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -156,7 +156,7 @@ pub struct PropertyChangeEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<MinimizeEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -195,7 +195,7 @@ pub struct MinimizeEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<MaximizeEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -234,7 +234,7 @@ pub struct MaximizeEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<RestoreEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -273,7 +273,7 @@ pub struct RestoreEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<CloseEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -312,7 +312,7 @@ pub struct CloseEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<CreateEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -351,7 +351,7 @@ pub struct CreateEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ReparentEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -390,7 +390,7 @@ pub struct ReparentEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<DesktopCreateEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -429,7 +429,7 @@ pub struct DesktopCreateEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<DesktopDestroyEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -468,7 +468,7 @@ pub struct DesktopDestroyEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<DestroyEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -507,7 +507,7 @@ pub struct DestroyEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ActivateEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -546,7 +546,7 @@ pub struct ActivateEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<DeactivateEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -585,7 +585,7 @@ pub struct DeactivateEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<RaiseEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -624,7 +624,7 @@ pub struct RaiseEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<LowerEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -663,7 +663,7 @@ pub struct LowerEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<MoveEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -702,7 +702,7 @@ pub struct MoveEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ResizeEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -741,7 +741,7 @@ pub struct ResizeEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ShadeEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -780,7 +780,7 @@ pub struct ShadeEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<UUshadeEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -819,7 +819,7 @@ pub struct UUshadeEvent {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi_client::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<RestyleEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
