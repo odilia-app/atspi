@@ -15,14 +15,14 @@ use zvariant::ObjectPath;
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// use atspi::events::document::LoadCompleteEvent;
+/// use atspi_common::events::Event;
+/// use atspi_common::events::document::LoadCompleteEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<LoadCompleteEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -96,15 +96,15 @@ impl HasMatchRule for DocumentEvents {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::document::LoadCompleteEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::document::LoadCompleteEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<LoadCompleteEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -135,15 +135,15 @@ pub struct LoadCompleteEvent {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::document::ReloadEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::document::ReloadEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ReloadEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -174,15 +174,15 @@ pub struct ReloadEvent {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::document::LoadStoppedEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::document::LoadStoppedEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<LoadStoppedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -213,15 +213,15 @@ pub struct LoadStoppedEvent {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::document::ContentChangedEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::document::ContentChangedEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ContentChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -252,15 +252,15 @@ pub struct ContentChangedEvent {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::document::AttributesChangedEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::document::AttributesChangedEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<AttributesChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -291,15 +291,15 @@ pub struct AttributesChangedEvent {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::document::PageChangedEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::document::PageChangedEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<PageChangedEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);

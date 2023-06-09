@@ -15,14 +15,14 @@ use zvariant::ObjectPath;
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// use atspi::events::keyboard::ModifiersEvent;
+/// use atspi_common::events::Event;
+/// use atspi_common::events::keyboard::ModifiersEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ModifiersEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -91,15 +91,15 @@ impl HasMatchRule for KeyboardEvents {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::keyboard::ModifiersEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::keyboard::ModifiersEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ModifiersEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);

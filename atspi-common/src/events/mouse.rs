@@ -15,14 +15,14 @@ use zvariant::ObjectPath;
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// use atspi::events::mouse::AbsEvent;
+/// use atspi_common::events::Event;
+/// use atspi_common::events::mouse::AbsEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<AbsEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -92,15 +92,15 @@ impl HasMatchRule for MouseEvents {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::mouse::AbsEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::mouse::AbsEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<AbsEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -133,15 +133,15 @@ pub struct AbsEvent {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::mouse::RelEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::mouse::RelEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<RelEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
@@ -174,15 +174,15 @@ pub struct RelEvent {
 /// More complete examples may be found in the `examples/` directory.
 ///
 /// ```
-/// use atspi::events::Event;
-/// # use atspi::events::GenericEvent;
-/// use atspi::events::mouse::ButtonEvent;
+/// use atspi_common::events::Event;
+/// # use atspi_common::events::GenericEvent;
+/// use atspi_common::events::mouse::ButtonEvent;
 /// # use std::time::Duration;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let atspi = atspi::AccessibilityConnection::open().await.unwrap();
+///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
 ///     let mut events = atspi.event_stream();
 /// #   atspi.register_event::<ButtonEvent>().await.unwrap();
 ///     std::pin::pin!(&mut events);
