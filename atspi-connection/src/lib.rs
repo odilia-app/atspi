@@ -1,4 +1,4 @@
-use crate::{
+use atspi_proxies::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
@@ -68,7 +68,7 @@ impl AccessibilityConnection {
 	/// Basic use:
 	///
 	/// ```rust
-	/// use atspi::AccessibilityConnection;
+	/// use atspi_connection::AccessibilityConnection;
 	/// use enumflags2::BitFlag;
 	/// use atspi_common::events::object::{ObjectEvents, StateChangedEvent};
 	/// use zbus::{fdo::DBusProxy, MatchRule, MessageType};
@@ -147,7 +147,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.register_event::<StateChangedEvent>().await.unwrap();
 	/// # })
 	/// ```
@@ -165,7 +165,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_match_rule::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -187,7 +187,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -211,7 +211,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -300,7 +300,7 @@ impl Deref for AccessibilityConnection {
 /// ```rust
 ///     use futures_lite::future::block_on;
 ///
-///     let result =  block_on( atspi::set_session_accessibility(true) );
+///     let result =  block_on( atspi_connection::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
 /// ```
 /// # Errors
