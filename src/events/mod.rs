@@ -421,7 +421,7 @@ pub trait GenericEvent {
 	/// Sender of the signal.
 	///
 	/// ### Errors
-	/// - when deserializeing the header failed, or
+	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<UniqueName>, AtspiError>;
 }
@@ -510,7 +510,7 @@ impl GenericEvent for AtspiEvent {
 
 	/// Identifies the `sender` of the event.
 	/// # Errors
-	/// - when deserializeing the header failed, or
+	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
 		Ok(self.message.header()?.sender()?.cloned())
