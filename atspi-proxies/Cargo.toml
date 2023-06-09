@@ -19,9 +19,9 @@ publish = true
 
 [features]
 default = ["async-std"]
-async-std = ["zbus/async-io", "atspi-common/zbus-async-std"]
+async-std = ["zbus/async-io", "atspi-common/async-std"]
 gvariant = ["zbus/gvariant"]
-tokio = ["zbus/tokio", "atspi-common/zbus-tokio"]
+tokio = ["zbus/tokio", "atspi-common/tokio"]
 unstable-traits = ["atspi-macros/unstable_atspi_proxy_macro", "dep:async-trait"]
 
 [dependencies]

@@ -13,14 +13,13 @@ license = "Apache-2.0 OR MIT"
 
 [features]
 default = []
-zbus-async-std = ["zbus/async-io"]
-zbus-tokio = ["zbus/tokio"]
+async-std = ["zbus/async-io"]
+tokio = ["zbus/tokio"]
 
 [dependencies]
 enumflags2 = "0.7.7"
 serde = "1.0.162"
 static_assertions = "1.1.0"
-tokio-stream = "0.1.14"
 zbus_names = "2.5.0"
 zvariant = "3.12.0"
 zbus = { version = "3.12.0", optional = true }
