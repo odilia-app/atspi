@@ -5,7 +5,7 @@ use crate::{
 	text::{Text, TextBlocking},
 };
 use async_trait::async_trait;
-use atspi_types::{InterfaceSet, MatchType, ObjectPair, RelationType, Role};
+use atspi_common::{InterfaceSet, MatchType, ObjectPair, RelationType, Role};
 use std::collections::HashMap;
 
 pub type MatcherArgs =
