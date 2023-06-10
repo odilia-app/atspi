@@ -13,13 +13,19 @@ rust-version = "1.65"
 
 [features]
 default = ["proxies-async-std", "connection-async-std"]
+async-std = []
+tokio = []
+
 proxies-async-std = ["atspi-proxies/async-std"]
 proxies-tokio = ["atspi-proxies/tokio"]
 connection-async-std = ["atspi-connection/async-std"]
 connection-tokio = ["atspi-connection/tokio"]
+client-async-std = ["atspi-client/async-std"]
+client-tokio = ["atspi-client/tokio"]
 unstable-proxy-traits = ["atspi-proxies/unstable-traits"]
 
 [dependencies]
 atspi-common = { path = "../atspi-common" }
 atspi-proxies = { path = "../atspi-proxies", optional = true }
 atspi-connection = { path = "../atspi-connection", optional = true }
+atspi-client = { path = "../atspi-client", optional = true }

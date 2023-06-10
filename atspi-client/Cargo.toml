@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+tokio = ["atspi-proxies/tokio"]
+async-std = ["atspi-proxies/async-std"]
+
 [dependencies]
 async-trait = "0.1.68"
 static_assertions = "1.1.0"

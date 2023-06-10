@@ -1,13 +1,10 @@
-#[cfg(feature = "proxies")]
-use atspi_proxies;
-#[cfg(feature = "proxies")]
-pub use atspi_proxies as proxies;
+pub use atspi_common::*;
 
-#[cfg(feature = "connection")]
-use atspi_connection;
+#[cfg(feature = "proxies")]
+pub use atspi_proxies as proxy;
+
 #[cfg(feature = "connection")]
 pub use atspi_connection as connection;
 
-use atspi_common;
-pub use atspi_common::*;
-
+#[cfg(feature = "client")]
+pub use atspi_client as client;
