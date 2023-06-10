@@ -40,8 +40,6 @@ pub fn expand(input: &ItemTrait) -> Result<TokenStream, Error> {
 	let async_impl = create_proxy_trait_impl(input, &async_trait_name, false)?;
 	let atspi_proxy_impl = create_atspi_proxy_trait_impl(&async_proxy_name)?;
 	let blocking_atspi_proxy_impl = create_atspi_proxy_trait_impl(&proxy_name)?;
-	let ext_err_impl = create_ext_error_trait_impl(&async_proxy_name, false)?;
-	let blocking_ext_err_impl = create_ext_error_trait_impl(&proxy_name, true)?;
 
 	Ok(quote! {
 		#blocking_trait
@@ -57,44 +55,6 @@ pub fn expand(input: &ItemTrait) -> Result<TokenStream, Error> {
 				#atspi_proxy_impl
 				#blocking_atspi_proxy_impl
 
-				#ext_err_impl
-				#blocking_ext_err_impl
-	})
-}
-
-pub fn create_ext_error_trait_impl(proxy_name: &str, blocking: bool) -> Result<TokenStream, Error> {
-	let mut interface_name_str = proxy_name.to_owned();
-	interface_name_str = interface_name_str.replace("ProxyBlocking", "");
-	interface_name_str = interface_name_str.replace("Proxy", "");
-	if blocking {
-		interface_name_str.push_str("BlockingExtError");
-	} else {
-		interface_name_str.push_str("ExtError");
-	}
-	let mut module_name_str = proxy_name.to_owned();
-	module_name_str = module_name_str.replace("ProxyBlocking", "");
-	module_name_str = module_name_str.replace("Proxy", "");
-	// replace upper case letters with the lower-case equiv, then add an underscore
-	module_name_str = module_name_str
-		.chars()
-		.enumerate()
-		.flat_map(|(idx, c)| {
-			[
-				if c.is_ascii_uppercase() && idx != 0 { '_' } else { 0 as char },
-				c.to_ascii_lowercase(),
-			]
-		})
-		.filter(|c| c != &(0 as char))
-		.collect();
-	module_name_str.push_str("_ext");
-
-	let module_name = TokenStream::from_str(&module_name_str)?;
-	let trait_impl_name = TokenStream::from_str(proxy_name)?;
-	let interface_name = TokenStream::from_str(&interface_name_str)?;
-	Ok(quote! {
-		impl crate::#module_name::#interface_name for #trait_impl_name<'_> {
-			type Error = crate::AtspiError;
-		}
 	})
 }
 

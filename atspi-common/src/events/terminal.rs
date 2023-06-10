@@ -18,7 +18,7 @@ use zvariant::ObjectPath;
 /// use atspi_common::events::Event;
 /// use atspi_common::events::terminal::LineChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -99,7 +99,7 @@ impl HasMatchRule for TerminalEvents {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::terminal::LineChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -138,7 +138,7 @@ pub struct LineChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::terminal::ColumnCountChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -177,7 +177,7 @@ pub struct ColumnCountChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::terminal::LineCountChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -216,7 +216,7 @@ pub struct LineCountChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::terminal::ApplicationChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -255,7 +255,7 @@ pub struct ApplicationChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::terminal::CharWidthChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {

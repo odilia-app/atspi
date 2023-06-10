@@ -1,20 +1,23 @@
-use crate::application::{
+use atspi_proxies::application::{
 	Application, ApplicationBlocking, ApplicationProxy, ApplicationProxyBlocking,
 };
 
+impl_extended_errors!(ApplicationProxy<'_>, ApplicationExtError);
+impl_extended_errors!(ApplicationProxyBlocking<'_>, ApplicationBlockingExtError);
+
 #[allow(clippy::module_name_repetitions)]
-pub trait ApplicationExtError: crate::application::Application {
+pub trait ApplicationExtError: Application {
 	type Error: std::error::Error;
 }
-pub trait ApplicationBlockingExtError: crate::application::ApplicationBlocking {
+pub trait ApplicationBlockingExtError: ApplicationBlocking {
 	type Error: std::error::Error;
 }
 
 pub trait ApplicationExt {}
 pub trait ApplicationBlockingExt {}
 
-impl<T: ApplicationExtError + crate::application::Application> ApplicationExt for T {}
-impl<T: ApplicationBlockingExtError + crate::application::ApplicationBlocking>
+impl<T: ApplicationExtError + Application> ApplicationExt for T {}
+impl<T: ApplicationBlockingExtError + ApplicationBlocking>
 	ApplicationBlockingExt for T
 {
 }

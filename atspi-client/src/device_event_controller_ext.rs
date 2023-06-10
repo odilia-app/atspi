@@ -1,16 +1,19 @@
-use crate::device_event_controller::{
+use atspi_proxies::device_event_controller::{
 	DeviceEventController, DeviceEventControllerBlocking, DeviceEventControllerProxy,
 	DeviceEventControllerProxyBlocking,
 };
 
+impl_extended_errors!(DeviceEventControllerProxy<'_>, DeviceEventControllerExtError);
+impl_extended_errors!(DeviceEventControllerProxyBlocking<'_>, DeviceEventControllerBlockingExtError);
+
 #[allow(clippy::module_name_repetitions)]
 pub trait DeviceEventControllerExtError:
-	crate::device_event_controller::DeviceEventController
+	DeviceEventController
 {
 	type Error: std::error::Error;
 }
 pub trait DeviceEventControllerBlockingExtError:
-	crate::device_event_controller::DeviceEventControllerBlocking
+	DeviceEventControllerBlocking
 {
 	type Error: std::error::Error;
 }
@@ -18,13 +21,13 @@ pub trait DeviceEventControllerBlockingExtError:
 pub trait DeviceEventControllerExt {}
 pub trait DeviceEventControllerBlockingExt {}
 
-impl<T: DeviceEventControllerExtError + crate::device_event_controller::DeviceEventController>
+impl<T: DeviceEventControllerExtError + DeviceEventController>
 	DeviceEventControllerExt for T
 {
 }
 impl<
 		T: DeviceEventControllerBlockingExtError
-			+ crate::device_event_controller::DeviceEventControllerBlocking,
+			+ DeviceEventControllerBlocking,
 	> DeviceEventControllerBlockingExt for T
 {
 }

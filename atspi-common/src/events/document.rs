@@ -18,7 +18,7 @@ use zvariant::ObjectPath;
 /// use atspi_common::events::Event;
 /// use atspi_common::events::document::LoadCompleteEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -100,7 +100,7 @@ impl HasMatchRule for DocumentEvents {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::document::LoadCompleteEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -139,7 +139,7 @@ pub struct LoadCompleteEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::document::ReloadEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -178,7 +178,7 @@ pub struct ReloadEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::document::LoadStoppedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -217,7 +217,7 @@ pub struct LoadStoppedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::document::ContentChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -256,7 +256,7 @@ pub struct ContentChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::document::AttributesChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -295,7 +295,7 @@ pub struct AttributesChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::document::PageChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {

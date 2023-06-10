@@ -18,7 +18,7 @@ use zvariant::ObjectPath;
 /// use atspi_common::events::Event;
 /// use atspi_common::events::focus::FocusEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -94,7 +94,7 @@ impl HasMatchRule for FocusEvents {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::focus::FocusEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {

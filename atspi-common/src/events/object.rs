@@ -18,7 +18,7 @@ use zvariant::ObjectPath;
 /// use atspi_common::events::Event;
 /// use atspi_common::events::object::PropertyChangeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -115,7 +115,7 @@ impl HasMatchRule for ObjectEvents {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::PropertyChangeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -156,7 +156,7 @@ pub struct PropertyChangeEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::BoundsChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -195,7 +195,7 @@ pub struct BoundsChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::LinkSelectedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -234,7 +234,7 @@ pub struct LinkSelectedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::StateChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -275,7 +275,7 @@ pub struct StateChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::ChildrenChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -317,7 +317,7 @@ pub struct ChildrenChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::VisibleDataChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -356,7 +356,7 @@ pub struct VisibleDataChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::SelectionChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -395,7 +395,7 @@ pub struct SelectionChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::ModelChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -434,7 +434,7 @@ pub struct ModelChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::ActiveDescendantChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -474,7 +474,7 @@ pub struct ActiveDescendantChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::AnnouncementEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -514,7 +514,7 @@ pub struct AnnouncementEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::AttributesChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -553,7 +553,7 @@ pub struct AttributesChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::RowInsertedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -592,7 +592,7 @@ pub struct RowInsertedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::RowReorderedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -631,7 +631,7 @@ pub struct RowReorderedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::RowDeletedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -670,7 +670,7 @@ pub struct RowDeletedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::ColumnInsertedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -709,7 +709,7 @@ pub struct ColumnInsertedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::ColumnReorderedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -748,7 +748,7 @@ pub struct ColumnReorderedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::ColumnDeletedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -787,7 +787,7 @@ pub struct ColumnDeletedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::TextBoundsChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -826,7 +826,7 @@ pub struct TextBoundsChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::TextSelectionChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -865,7 +865,7 @@ pub struct TextSelectionChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::TextChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -908,7 +908,7 @@ pub struct TextChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::TextAttributesChangedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -947,7 +947,7 @@ pub struct TextAttributesChangedEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::object::TextCaretMovedEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {

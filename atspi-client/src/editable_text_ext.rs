@@ -1,20 +1,23 @@
-use crate::editable_text::{
+use atspi_proxies::editable_text::{
 	EditableText, EditableTextBlocking, EditableTextProxy, EditableTextProxyBlocking,
 };
 
+impl_extended_errors!(EditableTextProxy<'_>, EditableTextExtError);
+impl_extended_errors!(EditableTextProxyBlocking<'_>, EditableTextBlockingExtError);
+
 #[allow(clippy::module_name_repetitions)]
-pub trait EditableTextExtError: crate::editable_text::EditableText {
+pub trait EditableTextExtError: EditableText {
 	type Error: std::error::Error;
 }
-pub trait EditableTextBlockingExtError: crate::editable_text::EditableTextBlocking {
+pub trait EditableTextBlockingExtError: EditableTextBlocking {
 	type Error: std::error::Error;
 }
 
 pub trait EditableTextExt {}
 pub trait EditableTextBlockingExt {}
 
-impl<T: EditableTextExtError + crate::editable_text::EditableText> EditableTextExt for T {}
-impl<T: EditableTextBlockingExtError + crate::editable_text::EditableTextBlocking>
+impl<T: EditableTextExtError + EditableText> EditableTextExt for T {}
+impl<T: EditableTextBlockingExtError + EditableTextBlocking>
 	EditableTextBlockingExt for T
 {
 }

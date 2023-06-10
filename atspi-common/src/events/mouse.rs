@@ -18,7 +18,7 @@ use zvariant::ObjectPath;
 /// use atspi_common::events::Event;
 /// use atspi_common::events::mouse::AbsEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -96,7 +96,7 @@ impl HasMatchRule for MouseEvents {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::mouse::AbsEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -137,7 +137,7 @@ pub struct AbsEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::mouse::RelEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -178,7 +178,7 @@ pub struct RelEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::mouse::ButtonEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {

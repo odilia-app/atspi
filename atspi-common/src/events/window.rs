@@ -18,7 +18,7 @@ use zvariant::ObjectPath;
 /// use atspi_common::events::Event;
 /// use atspi_common::events::window::PropertyChangeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -112,7 +112,7 @@ impl HasMatchRule for WindowEvents {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::PropertyChangeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -152,7 +152,7 @@ pub struct PropertyChangeEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::MinimizeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -191,7 +191,7 @@ pub struct MinimizeEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::MaximizeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -230,7 +230,7 @@ pub struct MaximizeEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::RestoreEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -269,7 +269,7 @@ pub struct RestoreEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::CloseEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -308,7 +308,7 @@ pub struct CloseEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::CreateEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -347,7 +347,7 @@ pub struct CreateEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::ReparentEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -386,7 +386,7 @@ pub struct ReparentEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::DesktopCreateEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -425,7 +425,7 @@ pub struct DesktopCreateEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::DesktopDestroyEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -464,7 +464,7 @@ pub struct DesktopDestroyEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::DestroyEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -503,7 +503,7 @@ pub struct DestroyEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::ActivateEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -542,7 +542,7 @@ pub struct ActivateEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::DeactivateEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -581,7 +581,7 @@ pub struct DeactivateEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::RaiseEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -620,7 +620,7 @@ pub struct RaiseEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::LowerEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -659,7 +659,7 @@ pub struct LowerEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::MoveEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -698,7 +698,7 @@ pub struct MoveEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::ResizeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -737,7 +737,7 @@ pub struct ResizeEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::ShadeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -776,7 +776,7 @@ pub struct ShadeEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::UUshadeEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
@@ -815,7 +815,7 @@ pub struct UUshadeEvent {
 /// # use atspi_common::events::GenericEvent;
 /// use atspi_common::events::window::RestyleEvent;
 /// # use std::time::Duration;
-/// use tokio_stream::StreamExt;
+/// use futures_lite::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {

@@ -1,0 +1,13 @@
+[package]
+name = "atspi-client"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.68"
+static_assertions = "1.1.0"
+atspi-common = { path = "../atspi-common/" }
+atspi-proxies = { path = "../atspi-proxies", features = ["unstable-traits"] }
+zbus.workspace = true
