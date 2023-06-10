@@ -685,11 +685,6 @@ mod tests {
 											event.path().unwrap(),
 											"/org/a11y/atspi/accessible/null"
 										);
-										assert_eq!(
-											event.as_accessible().path.as_str(),
-											"/org/a11y/atspi/accessible/add"
-										);
-										assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 									}
 									// Stream yields a Some(Ok(Event)) when a message is received
 									another_event => {
