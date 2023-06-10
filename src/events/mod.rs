@@ -399,7 +399,7 @@ impl TryFrom<Arc<Message>> for Event {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
-			_ => Err(AtspiError::UnknownBusSignature),
+			_ => Err(AtspiError::UnknownBusSignature(message_signature.to_string())),
 		}
 	}
 }
