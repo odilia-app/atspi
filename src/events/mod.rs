@@ -557,11 +557,13 @@ mod tests {
 		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
+
 	#[tokio::test]
 	async fn test_recv_remove_accessible() {
 		let atspi = AccessibilityConnection::open().await.unwrap();
-		let mut events = atspi.event_stream();
 		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
+
+		let mut events = atspi.event_stream();
 		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
 		let unique_bus_name = atspi.connection().unique_name();
@@ -581,7 +583,7 @@ mod tests {
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
-		// This to has has a nested structure of Result<Option<Event>, Error>
+		// This `to` has a nested structure of Result<Option<Event>, Error>
 		// The outer Result is a timeout error. the option comes from the stream.next() call
 		match to.await {
 			Ok(opt) => {
@@ -603,16 +605,14 @@ mod tests {
 										);
 										assert_eq!(event.as_accessible().name.as_str(), ":69.420");
 									}
-									// Stream yields a Some(Ok(Event)) when a message is received
 									another_event => {
-										println!("{another_event:?}");
-										panic!("The wrong event was sent");
+										panic!("The wrong event was received: {another_event:?}");
 									}
 								}
 							}
-							// Stream yields a Some(Err(Error)) when a message is received but deserialization fails
+							// Stream yields a Some(Err(Error)) when a message is received
 							Err(e) => {
-								panic!("Error: Stream yielded a Some(Err(Error)) when a message is received but deserialization fails{e:?}");
+								panic!("Error: Stream yielded a Some(Err( Error )), conversion to Event failed {e:?}");
 							}
 						}
 					}
@@ -627,11 +627,13 @@ mod tests {
 			}
 		}
 	}
+
 	#[tokio::test]
 	async fn test_recv_add_accessible() {
 		let atspi = AccessibilityConnection::open().await.unwrap();
-		let mut events = atspi.event_stream();
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
+
+		let mut events = atspi.event_stream();
 		std::pin::pin!(&mut events);
 		let unique_bus_name = atspi.connection().unique_name();
 		let msg = MessageBuilder::signal(
@@ -667,28 +669,48 @@ mod tests {
 		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 		let to = timeout(Duration::from_secs(1), events.next());
+
+		// This to has has a nested structure of Result<Option<Event>, Error>
+		// The outer Result is a timeout error. the option comes from the stream.next() call
 		match to.await {
-			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
-				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
-				let cache_item = event.item();
-				assert_eq!(cache_item.object.1.as_str(), "/org/a11y/atspi/accessible/object");
-				assert_eq!(cache_item.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
-				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
-			}
-			Ok(Some(Ok(another_event))) => {
-				println!("{another_event:?}");
-				panic!("The wrong event was sent");
-			}
-			Ok(Some(Err(e))) => {
-				println!("{e:?}");
-				panic!("An error occurred destructuring the body");
-			}
-			Ok(e) => {
-				println!("{e:?}");
-				panic!("Something else happened");
+			Ok(opt) => {
+				match opt {
+					// Stream yields a Some(Ok(Event)) when a message is received
+					Some(res) => {
+						match res {
+							Ok(event) => {
+								match event {
+									Event::Cache(CacheEvents::Add(event)) => {
+										assert_eq!(
+											event.path().unwrap(),
+											"/org/a11y/atspi/accessible/null"
+										);
+										assert_eq!(
+											event.as_accessible().path.as_str(),
+											"/org/a11y/atspi/accessible/add"
+										);
+										assert_eq!(event.as_accessible().name.as_str(), ":69.420");
+									}
+									// Stream yields a Some(Ok(Event)) when a message is received
+									another_event => {
+										panic!("The wrong event was received: {another_event:?}");
+									}
+								}
+							}
+							// Stream yields a Some(Err(Error)) when a message is received
+							Err(e) => {
+								panic!("Error: Stream yielded a Some(Err( Error )), conversion to Event failed {e:?}");
+							}
+						}
+					}
+					// Stream yields a None when the stream is closed
+					None => {
+						panic!("Stream closed");
+					}
+				}
 			}
 			Err(e) => {
-				panic!("An error occurred: {e:?}");
+				panic!("Timeout - response exceeded 1s: {e:?}");
 			}
 		}
 	}
