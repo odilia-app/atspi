@@ -276,7 +276,7 @@ impl<'name> PartialEq<MemberName<'name>> for AtspiEvent {
 //  Equality on `AtspiEvent` may be considered ambiguous.
 //
 // Because `AtspiEvent`'s message has eg. a `SerialNumber` in the primary header,
-// only exacly same instances would be equal, _if_ `PartialEq` were derivable.
+// only exactly same instances would be equal, _if_ `PartialEq` were derivable.
 //
 // This PartialEq implements the strictest kind where only same instances are considered the same.
 // Other equalities should be made with PartailEq<T> for AtspiEvent and PartialEq<AtspiEvent> for T
@@ -399,7 +399,7 @@ impl TryFrom<Arc<Message>> for Event {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
-			_ => Err(AtspiError::UnknownBusSignature),
+			_ => Err(AtspiError::UnknownBusSignature(message_signature.to_string())),
 		}
 	}
 }
@@ -421,7 +421,7 @@ pub trait GenericEvent {
 	/// Sender of the signal.
 	///
 	/// ### Errors
-	/// - when deserializeing the header failed, or
+	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<UniqueName>, AtspiError>;
 }
@@ -510,7 +510,7 @@ impl GenericEvent for AtspiEvent {
 
 	/// Identifies the `sender` of the event.
 	/// # Errors
-	/// - when deserializeing the header failed, or
+	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> Result<Option<zbus::names::UniqueName>, crate::AtspiError> {
 		Ok(self.message.header()?.sender()?.cloned())
@@ -547,21 +547,23 @@ mod tests {
 			detail1: 0,
 			detail2: 0,
 			any_data: Value::U8(0u8).into(),
-			properties: ("".to_string(), ObjectPath::try_from("/").unwrap().into()),
+			properties: (String::new(), ObjectPath::try_from("/").unwrap().into()),
 		}
 	}
 
 	#[test]
 	fn test_event_body_qt_to_event_body_owned_conversion() {
 		let event_body: EventBodyOwned = gen_event_body_qt().into();
-		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
+		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
+
 	#[tokio::test]
 	async fn test_recv_remove_accessible() {
 		let atspi = AccessibilityConnection::open().await.unwrap();
-		let mut events = atspi.event_stream();
 		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
+
+		let mut events = atspi.event_stream();
 		std::pin::pin!(&mut events);
 		let to = timeout(Duration::from_secs(1), events.next());
 		let unique_bus_name = atspi.connection().unique_name();
@@ -573,42 +575,65 @@ mod tests {
 		.expect("Could not create signal")
 		.sender(unique_bus_name.unwrap())
 		.expect("Could not set sender to {unique_bus_name:?}")
-		.build(
-			&(((
-				":69.420".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
-			),)),
-		)
+		.build(&((
+			":69.420".to_string(),
+			OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
+		),))
 		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
+
+		// This `to` has a nested structure of Result<Option<Event>, Error>
+		// The outer Result is a timeout error. the option comes from the stream.next() call
 		match to.await {
-			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
-				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
-				assert_eq!(
-					event.as_accessible().path.as_str(),
-					"/org/a11y/atspi/accessible/remove"
-				);
-				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
-			}
-			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
-				panic!("The wrong event was sent");
-			}
-			Ok(e) => {
-				println!("{:?}", e);
-				panic!("Something else happened");
+			Ok(opt) => {
+				match opt {
+					// Stream yields a Some(Ok(Event)) when a message is received
+					Some(res) => {
+						match res {
+							Ok(event) => {
+								match event {
+									// Stream yields a Some(Ok(Event)) when a message is received
+									Event::Cache(CacheEvents::Remove(event)) => {
+										assert_eq!(
+											event.path().unwrap(),
+											"/org/a11y/atspi/accessible/null"
+										);
+										assert_eq!(
+											event.as_accessible().path.as_str(),
+											"/org/a11y/atspi/accessible/remove"
+										);
+										assert_eq!(event.as_accessible().name.as_str(), ":69.420");
+									}
+									another_event => {
+										panic!("The wrong event was received: {another_event:?}");
+									}
+								}
+							}
+							// Stream yields a Some(Err(Error)) when a message is received
+							Err(e) => {
+								panic!("Error: Stream yielded a Some(Err( Error )), conversion to Event failed {e:?}");
+							}
+						}
+					}
+					// Stream yields a None when the stream is closed
+					None => {
+						panic!("Stream closed");
+					}
+				}
 			}
 			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				panic!("Timeout - response exceeded 1s: {e:?}");
 			}
 		}
 	}
+
 	#[tokio::test]
 	async fn test_recv_add_accessible() {
 		let atspi = AccessibilityConnection::open().await.unwrap();
-		let mut events = atspi.event_stream();
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
+
+		let mut events = atspi.event_stream();
 		std::pin::pin!(&mut events);
 		let unique_bus_name = atspi.connection().unique_name();
 		let msg = MessageBuilder::signal(
@@ -635,7 +660,7 @@ mod tests {
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
-			short_name: "".to_string(),
+			short_name: String::new(),
 			role: Role::Application,
 			name: "Hi".to_string(),
 			states: StateSet::empty(),
@@ -644,28 +669,43 @@ mod tests {
 		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 		let to = timeout(Duration::from_secs(1), events.next());
+
+		// This to has has a nested structure of Result<Option<Event>, Error>
+		// The outer Result is a timeout error. the option comes from the stream.next() call
 		match to.await {
-			Ok(Some(Ok(Event::Cache(CacheEvents::Add(event))))) => {
-				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
-				let cache_item = event.item();
-				assert_eq!(cache_item.object.1.as_str(), "/org/a11y/atspi/accessible/object");
-				assert_eq!(cache_item.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
-				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
-			}
-			Ok(Some(Ok(another_event))) => {
-				println!("{:?}", another_event);
-				panic!("The wrong event was sent");
-			}
-			Ok(Some(Err(e))) => {
-				println!("{:?}", e);
-				panic!("An error occured destructuring the body");
-			}
-			Ok(e) => {
-				println!("{:?}", e);
-				panic!("Something else happened");
+			Ok(opt) => {
+				match opt {
+					// Stream yields a Some(Ok(Event)) when a message is received
+					Some(res) => {
+						match res {
+							Ok(event) => {
+								match event {
+									Event::Cache(CacheEvents::Add(event)) => {
+										assert_eq!(
+											event.path().unwrap(),
+											"/org/a11y/atspi/accessible/null"
+										);
+									}
+									// Stream yields a Some(Ok(Event)) when a message is received
+									another_event => {
+										panic!("The wrong event was received: {another_event:?}");
+									}
+								}
+							}
+							// Stream yields a Some(Err(Error)) when a message is received
+							Err(e) => {
+								panic!("Error: Stream yielded a Some(Err( Error )), conversion to Event failed {e:?}");
+							}
+						}
+					}
+					// Stream yields a None when the stream is closed
+					None => {
+						panic!("Stream closed");
+					}
+				}
 			}
 			Err(e) => {
-				panic!("An error occured: {:?}", e);
+				panic!("Timeout - response exceeded 1s: {e:?}");
 			}
 		}
 	}

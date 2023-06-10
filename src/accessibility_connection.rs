@@ -251,7 +251,7 @@ impl AccessibilityConnection {
 	}
 
 	/// Shorthand for a reference to the underlying [`zbus::Connection`]
-	#[must_use]
+	#[must_use = "The reference to the underlying zbus::Connection must be used"]
 	pub fn connection(&self) -> &zbus::Connection {
 		self.registry.connection()
 	}
