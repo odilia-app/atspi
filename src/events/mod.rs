@@ -276,7 +276,7 @@ impl<'name> PartialEq<MemberName<'name>> for AtspiEvent {
 //  Equality on `AtspiEvent` may be considered ambiguous.
 //
 // Because `AtspiEvent`'s message has eg. a `SerialNumber` in the primary header,
-// only exacly same instances would be equal, _if_ `PartialEq` were derivable.
+// only exactly same instances would be equal, _if_ `PartialEq` were derivable.
 //
 // This PartialEq implements the strictest kind where only same instances are considered the same.
 // Other equalities should be made with PartailEq<T> for AtspiEvent and PartialEq<AtspiEvent> for T
@@ -594,8 +594,7 @@ mod tests {
 				panic!("The wrong event was sent");
 			}
 			Ok(e) => {
-				println!("{e:?}");
-				panic!("Something else happened");
+				panic!("Something else happened: {e:?}");
 			}
 			Err(e) => {
 				panic!("An error occurred: {e:?}");
