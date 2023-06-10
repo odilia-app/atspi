@@ -63,7 +63,9 @@ impl std::fmt::Display for AtspiError {
 			Self::MemberMatch(e) => {
 				f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
 			}
-			Self::UnknownBusSignature(s) => f.write_str("atspi: Unknown bus body signature: {s}"),
+			Self::UnknownBusSignature(s) => {
+				write!(f, "atspi: Unknown bus body signature: {s}")
+			}
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing> interface."),
 			Self::UnknownSignal => f.write_str("atspi: Unknown signal"),

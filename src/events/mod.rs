@@ -580,24 +580,50 @@ mod tests {
 		.unwrap();
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
+
+		// This to has has a nested structure of Result<Option<Event>, Error>
+		// The outer Result is a timeout error. the option comes from the stream.next() call
 		match to.await {
-			Ok(Some(Ok(Event::Cache(CacheEvents::Remove(event))))) => {
-				assert_eq!(event.path().unwrap(), "/org/a11y/atspi/accessible/null");
-				assert_eq!(
-					event.as_accessible().path.as_str(),
-					"/org/a11y/atspi/accessible/remove"
-				);
-				assert_eq!(event.as_accessible().name.as_str(), ":69.420");
-			}
-			Ok(Some(Ok(another_event))) => {
-				println!("{another_event:?}");
-				panic!("The wrong event was sent");
-			}
-			Ok(e) => {
-				panic!("Something else happened: {e:?}");
+			Ok(opt) => {
+				match opt {
+					// Stream yields a Some(Ok(Event)) when a message is received
+					Some(res) => {
+						match res {
+							Ok(event) => {
+								match event {
+									// Stream yields a Some(Ok(Event)) when a message is received
+									Event::Cache(CacheEvents::Remove(event)) => {
+										assert_eq!(
+											event.path().unwrap(),
+											"/org/a11y/atspi/accessible/null"
+										);
+										assert_eq!(
+											event.as_accessible().path.as_str(),
+											"/org/a11y/atspi/accessible/remove"
+										);
+										assert_eq!(event.as_accessible().name.as_str(), ":69.420");
+									}
+									// Stream yields a Some(Ok(Event)) when a message is received
+									another_event => {
+										println!("{another_event:?}");
+										panic!("The wrong event was sent");
+									}
+								}
+							}
+							// Stream yields a Some(Err(Error)) when a message is received but deserialization fails
+							Err(e) => {
+								panic!("Error: Stream yielded a Some(Err(Error)) when a message is received but deserialization fails{e:?}");
+							}
+						}
+					}
+					// Stream yields a None when the stream is closed
+					None => {
+						panic!("Stream closed");
+					}
+				}
 			}
 			Err(e) => {
-				panic!("An error occurred: {e:?}");
+				panic!("Timeout - response exceeded 1s: {e:?}");
 			}
 		}
 	}
