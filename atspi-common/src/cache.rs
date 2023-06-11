@@ -22,7 +22,7 @@ pub struct CacheItem {
 	pub index: i32,
 	/// Child count of the accessible  i
 	pub children: i32,
-	/// The exposed interfece(s) set.  as
+	/// The exposed interface(s) set.  as
 	pub ifaces: InterfaceSet,
 	/// The short localized name.  s
 	pub short_name: String,
