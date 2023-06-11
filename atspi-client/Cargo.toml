@@ -2,6 +2,13 @@
 name = "atspi-client"
 version = "0.1.0"
 edition = "2021"
+description = "Client extensions for the atspi crate."
+readme = "README.md"
+categories = ["accessibility"]
+keywords = ["screen-reader", "accessibility", "a11y", "linux"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/odilia-app/atspi/"
+homepage = "https://github.com/odilia-app/atspi/"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
