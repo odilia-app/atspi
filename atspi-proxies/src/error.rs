@@ -75,13 +75,9 @@ impl std::fmt::Display for AtspiError {
 			Self::UnknownBusSignature(s) => {
 				write!(f, "atspi: Unknown bus body signature: {s}")
 			}
-<<<<<<< HEAD:atspi-proxies/src/error.rs
 			Self::InterfaceMatch(e) => {
 				f.write_str(format!("atspi: interface mismatch in conversion: {e}").as_str())
 			}
-			Self::UnknownBusSignature => f.write_str("atspi: Unknown bus body signature."),
-=======
->>>>>>> http/main:src/error.rs
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),
 			Self::MissingMember => f.write_str("Missing member."),
