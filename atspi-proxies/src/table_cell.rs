@@ -10,7 +10,8 @@
 //! section of the zbus documentation.
 //!
 
-use crate::{accessible::ObjectPair, atspi_proxy};
+use crate::atspi_proxy;
+use atspi_common::ObjectPair;
 
 #[atspi_proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 trait TableCell {
