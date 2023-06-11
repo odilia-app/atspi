@@ -156,3 +156,7 @@ pub enum ScrollType {
 	RightEdge,
 	Anywhere,
 }
+
+pub type MatcherArgs =
+	(Vec<Role>, MatchType, std::collections::HashMap<String, String>, MatchType, InterfaceSet, MatchType);
+
