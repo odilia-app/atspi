@@ -124,6 +124,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Install Cargo Machete
+        run: cargo install cargo-machete
       - name: Check For Unused Depdencies
         run: cargo machete
   semver-compliance:
