@@ -1,4 +1,6 @@
-use atspi_proxies::collection::{Collection, CollectionBlocking, CollectionProxy, CollectionProxyBlocking};
+use atspi_proxies::collection::{
+	Collection, CollectionBlocking, CollectionProxy, CollectionProxyBlocking,
+};
 
 impl_extended_errors!(CollectionProxy<'_>, CollectionExtError);
 impl_extended_errors!(CollectionProxyBlocking<'_>, CollectionBlockingExtError);
@@ -15,10 +17,7 @@ pub trait CollectionExt {}
 pub trait CollectionBlockingExt {}
 
 impl<T: CollectionExtError + Collection> CollectionExt for T {}
-impl<T: CollectionBlockingExtError + CollectionBlocking> CollectionBlockingExt
-	for T
-{
-}
+impl<T: CollectionBlockingExtError + CollectionBlocking> CollectionBlockingExt for T {}
 
 assert_impl_all!(CollectionProxy: Collection, CollectionExt);
 assert_impl_all!(CollectionProxyBlocking: CollectionBlocking, CollectionBlockingExt);

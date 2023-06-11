@@ -1,4 +1,6 @@
-use atspi_proxies::selection::{Selection, SelectionBlocking, SelectionProxy, SelectionProxyBlocking};
+use atspi_proxies::selection::{
+	Selection, SelectionBlocking, SelectionProxy, SelectionProxyBlocking,
+};
 
 impl_extended_errors!(SelectionProxy<'_>, SelectionExtError);
 impl_extended_errors!(SelectionProxyBlocking<'_>, SelectionBlockingExtError);
@@ -15,10 +17,7 @@ pub trait SelectionExt {}
 pub trait SelectionBlockingExt {}
 
 impl<T: SelectionExtError + Selection> SelectionExt for T {}
-impl<T: SelectionBlockingExtError + SelectionBlocking> SelectionBlockingExt
-	for T
-{
-}
+impl<T: SelectionBlockingExtError + SelectionBlocking> SelectionBlockingExt for T {}
 
 assert_impl_all!(SelectionProxy: Selection, SelectionExt);
 assert_impl_all!(SelectionProxyBlocking: SelectionBlocking, SelectionBlockingExt);

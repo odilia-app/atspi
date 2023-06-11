@@ -6,11 +6,6 @@ extern crate static_assertions;
 #[macro_use]
 mod macros;
 
-#[cfg(feature = "connection")]
-pub mod connection;
-#[cfg(feature = "connection")]
-pub use connection::{AccessibilityConnection, set_session_accessibility};
-
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;

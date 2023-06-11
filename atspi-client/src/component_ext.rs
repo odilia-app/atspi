@@ -1,4 +1,6 @@
-use atspi_proxies::component::{Component, ComponentBlocking, ComponentProxy, ComponentProxyBlocking};
+use atspi_proxies::component::{
+	Component, ComponentBlocking, ComponentProxy, ComponentProxyBlocking,
+};
 
 impl_extended_errors!(ComponentProxy<'_>, ComponentExtError);
 impl_extended_errors!(ComponentProxyBlocking<'_>, ComponentBlockingExtError);
@@ -15,10 +17,7 @@ pub trait ComponentExt {}
 pub trait ComponentBlockingExt {}
 
 impl<T: ComponentExtError + Component> ComponentExt for T {}
-impl<T: ComponentBlockingExtError + ComponentBlocking> ComponentBlockingExt
-	for T
-{
-}
+impl<T: ComponentBlockingExtError + ComponentBlocking> ComponentBlockingExt for T {}
 
 assert_impl_all!(ComponentProxy: Component, ComponentExt);
 assert_impl_all!(ComponentProxyBlocking: ComponentBlocking, ComponentBlockingExt);

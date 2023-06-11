@@ -17,10 +17,7 @@ pub trait EditableTextExt {}
 pub trait EditableTextBlockingExt {}
 
 impl<T: EditableTextExtError + EditableText> EditableTextExt for T {}
-impl<T: EditableTextBlockingExtError + EditableTextBlocking>
-	EditableTextBlockingExt for T
-{
-}
+impl<T: EditableTextBlockingExtError + EditableTextBlocking> EditableTextBlockingExt for T {}
 
 assert_impl_all!(EditableTextProxy: EditableText, EditableTextExt);
 assert_impl_all!(EditableTextProxyBlocking: EditableTextBlocking, EditableTextBlockingExt);

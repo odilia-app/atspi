@@ -1,9 +1,9 @@
+use atspi_common::error::AtspiError;
+use atspi_common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use atspi_proxies::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
-use atspi_common::error::AtspiError;
-use atspi_common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
@@ -20,20 +20,20 @@ impl AccessibilityConnection {
 	pub async fn open() -> zbus::Result<Self> {
 		// Grab the a11y bus address from the session bus
 		let a11y_bus_addr = {
-      #[cfg(feature = "tracing")]
+			#[cfg(feature = "tracing")]
 			tracing::debug!("Connecting to session bus");
 			let session_bus = Box::pin(zbus::Connection::session()).await?;
-      #[cfg(feature = "tracing")]
+			#[cfg(feature = "tracing")]
 			tracing::debug!(
 				name = session_bus.unique_name().map(|n| n.as_str()),
 				"Connected to session bus"
 			);
 			let proxy = BusProxy::new(&session_bus).await?;
-      #[cfg(feature = "tracing")]
+			#[cfg(feature = "tracing")]
 			tracing::debug!("Getting a11y bus address from session bus");
 			proxy.get_address().await?
 		};
-    #[cfg(feature = "tracing")]
+		#[cfg(feature = "tracing")]
 		tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
 		let addr: Address = a11y_bus_addr.parse()?;
 		Self::connect(addr).await
@@ -53,10 +53,10 @@ impl AccessibilityConnection {
 	/// `RegistryProxy` is configured with invalid path, interface or destination
 
 	pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
-    #[cfg(feature = "tracing")]
+		#[cfg(feature = "tracing")]
 		tracing::debug!("Connecting to a11y bus");
 		let bus = Box::pin(zbus::ConnectionBuilder::address(bus_addr)?.build()).await?;
-    #[cfg(feature = "tracing")]
+		#[cfg(feature = "tracing")]
 		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
 
 		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy

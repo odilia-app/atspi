@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use atspi_proxies::{
 	accessible::{Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking},
 	action::{Action, ActionBlocking, ActionProxy, ActionProxyBlocking},
@@ -18,7 +19,6 @@ use atspi_proxies::{
 	value::{Value, ValueBlocking, ValueProxy, ValueProxyBlocking},
 	AtspiProxy,
 };
-use async_trait::async_trait;
 use std::ops::Deref;
 use zbus::{
 	blocking::Proxy as ProxyBlocking, blocking::ProxyBuilder as ProxyBuilderBlocking,

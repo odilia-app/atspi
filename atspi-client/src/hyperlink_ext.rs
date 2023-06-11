@@ -1,4 +1,6 @@
-use atspi_proxies::hyperlink::{Hyperlink, HyperlinkBlocking, HyperlinkProxy, HyperlinkProxyBlocking};
+use atspi_proxies::hyperlink::{
+	Hyperlink, HyperlinkBlocking, HyperlinkProxy, HyperlinkProxyBlocking,
+};
 
 impl_extended_errors!(HyperlinkProxy<'_>, HyperlinkExtError);
 impl_extended_errors!(HyperlinkProxyBlocking<'_>, HyperlinkBlockingExtError);
@@ -15,10 +17,7 @@ pub trait HyperlinkExt {}
 pub trait HyperlinkBlockingExt {}
 
 impl<T: HyperlinkExtError + Hyperlink> HyperlinkExt for T {}
-impl<T: HyperlinkBlockingExtError + HyperlinkBlocking> HyperlinkBlockingExt
-	for T
-{
-}
+impl<T: HyperlinkBlockingExtError + HyperlinkBlocking> HyperlinkBlockingExt for T {}
 
 assert_impl_all!(HyperlinkProxy: Hyperlink, HyperlinkExt);
 assert_impl_all!(HyperlinkProxyBlocking: HyperlinkBlocking, HyperlinkBlockingExt);

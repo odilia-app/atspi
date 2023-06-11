@@ -26,5 +26,5 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 #[cfg(not(feature = "connection"))]
 fn main() {
-  println!("This test can not be run without the \"connection\" feature.");
+	println!("This test can not be run without the \"connection\" feature.");
 }

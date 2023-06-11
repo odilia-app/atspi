@@ -1,11 +1,11 @@
+use crate::convertable::{Convertable, ConvertableBlocking};
+use async_trait::async_trait;
+use atspi_common::{AtspiError as Error, InterfaceSet, MatchType, ObjectPair, RelationType, Role};
 use atspi_proxies::{
 	accessible::{Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking},
 	hyperlink::Hyperlink,
 	text::{Text, TextBlocking},
 };
-use crate::convertable::{Convertable, ConvertableBlocking};
-use async_trait::async_trait;
-use atspi_common::{InterfaceSet, MatchType, ObjectPair, RelationType, Role, AtspiError as Error};
 use std::collections::HashMap;
 
 pub type MatcherArgs =
@@ -77,7 +77,7 @@ pub trait AccessibleExtError: Accessible + Convertable {
 		+ Send;
 }
 impl AccessibleExtError for AccessibleProxy<'_> {
-  type Error = Error;
+	type Error = Error;
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -90,7 +90,7 @@ pub trait AccessibleBlockingExtError: AccessibleBlocking + ConvertableBlocking {
 		+ From<std::num::TryFromIntError>;
 }
 impl AccessibleBlockingExtError for AccessibleProxyBlocking<'_> {
-  type Error = Error;
+	type Error = Error;
 }
 
 #[async_trait]

@@ -1,5 +1,5 @@
-use atspi_proxies::text::{Text, TextBlocking, TextProxy, TextProxyBlocking};
 use async_trait::async_trait;
+use atspi_proxies::text::{Text, TextBlocking, TextProxy, TextProxyBlocking};
 
 impl_extended_errors!(TextProxy<'_>, TextExtError);
 impl_extended_errors!(TextProxyBlocking<'_>, TextBlockingExtError);

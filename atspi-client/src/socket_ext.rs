@@ -16,4 +16,3 @@ pub trait SocketBlockingExt {}
 
 impl<T: SocketExtError + Socket> SocketExt for T {}
 impl<T: SocketBlockingExtError + SocketBlocking> SocketBlockingExt for T {}
-

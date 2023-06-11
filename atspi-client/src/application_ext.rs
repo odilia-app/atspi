@@ -17,10 +17,7 @@ pub trait ApplicationExt {}
 pub trait ApplicationBlockingExt {}
 
 impl<T: ApplicationExtError + Application> ApplicationExt for T {}
-impl<T: ApplicationBlockingExtError + ApplicationBlocking>
-	ApplicationBlockingExt for T
-{
-}
+impl<T: ApplicationBlockingExtError + ApplicationBlocking> ApplicationBlockingExt for T {}
 
 assert_impl_all!(ApplicationProxy: Application, ApplicationExt);
 assert_impl_all!(ApplicationProxyBlocking: ApplicationBlocking, ApplicationBlockingExt);
