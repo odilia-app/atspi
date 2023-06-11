@@ -27,7 +27,7 @@ unstable-traits = ["atspi-macros/unstable_atspi_proxy_macro", "dep:async-trait"]
 [dependencies]
 atspi-common = { path = "../atspi-common", default-features = false }
 atspi-macros = { version = "0.4.0", path = "../atspi-macros" }
-enumflags2 = "^0.7.5"
+enumflags2.workspace = true
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
 zbus = { version = "^3.6.2", default-features = false }
 # optioanl dependencies
