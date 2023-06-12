@@ -27,7 +27,7 @@ client-tokio = ["atspi-client/tokio"]
 unstable-proxy-traits = ["atspi-proxies/unstable-traits"]
 
 [dependencies]
-atspi-common = { path = "../atspi-common" }
-atspi-proxies = { path = "../atspi-proxies", optional = true }
-atspi-connection = { path = "../atspi-connection", optional = true }
-atspi-client = { path = "../atspi-client", optional = true }
+atspi-common = { path = "../atspi-common", default-features = false }
+atspi-proxies = { path = "../atspi-proxies", default-features = false, optional = true }
+atspi-connection = { path = "../atspi-connection", default-features = false, optional = true }
+atspi-client = { path = "../atspi-client", default-features = false, optional = true }

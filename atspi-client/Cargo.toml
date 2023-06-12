@@ -13,12 +13,13 @@ homepage = "https://github.com/odilia-app/atspi/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-tokio = ["atspi-proxies/tokio"]
-async-std = ["atspi-proxies/async-std"]
+default = ["async-std"]
+tokio = ["atspi-proxies/tokio", "atspi-common/tokio"]
+async-std = ["atspi-proxies/async-std", "atspi-common/async-std"]
 
 [dependencies]
 async-trait = "0.1.68"
 static_assertions = "1.1.0"
-atspi-common = { path = "../atspi-common/" }
-atspi-proxies = { path = "../atspi-proxies", features = ["unstable-traits"] }
+atspi-common = { path = "../atspi-common/", default-features = false }
+atspi-proxies = { path = "../atspi-proxies", default-features = false, features = ["unstable-traits"] }
 zbus.workspace = true

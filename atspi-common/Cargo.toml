@@ -12,9 +12,9 @@ license = "Apache-2.0 OR MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = []
-async-std = ["zbus/async-io"]
-tokio = ["zbus/tokio"]
+default = ["async-std"]
+async-std = ["zbus/async-io", "atspi-connection/async-std"]
+tokio = ["zbus/tokio", "atspi-connection/tokio"]
 
 [dependencies]
 enumflags2 = "0.7.7"
@@ -25,8 +25,8 @@ zvariant = "3.12.0"
 zbus = { version = "3.12.0", optional = true }
 
 [dev-dependencies]
-atspi-proxies = { path = "../atspi-proxies/", default-features = false, features = ["async-std"] }
-atspi-connection = { path = "../atspi-connection" }
+atspi-proxies = { path = "../atspi-proxies/", default-features = false }
+atspi-connection = { path = "../atspi-connection", default-features = false }
 async-std = { version = "1.12.0", features = ["attributes"] }
 futures-lite = "1.13.0"
 tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }

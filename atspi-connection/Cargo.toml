@@ -12,13 +12,14 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
+default = ["async-std"]
 tracing = ["dep:tracing"]
 async-std = ["zbus/async-io", "atspi-proxies/async-std", "atspi-common/async-std"]
 tokio = ["zbus/tokio", "atspi-proxies/tokio", "atspi-common/tokio"]
 
 [dependencies]
-atspi-proxies = { path = "../atspi-proxies/" }
-atspi-common = { path = "../atspi-common/" }
+atspi-proxies = { path = "../atspi-proxies/", default-features = false }
+atspi-common = { path = "../atspi-common/", default-features = false }
 futures-lite = "1.13.0"
 zbus.workspace = true
 tracing = { optional = true, workspace = true }

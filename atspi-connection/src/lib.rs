@@ -1,3 +1,9 @@
+#[cfg(all(feature = "async-std", feature = "tokio"))]
+compile_error!("You may not mix the async-std and tokio features.");
+
+#[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
+compile_error!("You must specify either the async-std or tokio feature.");
+
 use atspi_common::error::AtspiError;
 use atspi_common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use atspi_proxies::{
@@ -83,7 +89,7 @@ impl AccessibilityConnection {
 	/// # use std::error::Error;
 	///
 	/// # fn main() {
-	/// #   assert!(futures_lite::future::block_on(example()).is_ok());
+	/// #   assert!(tokio_test::block_on(example()).is_ok());
 	/// # }
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
@@ -305,9 +311,7 @@ impl Deref for AccessibilityConnection {
 ///
 ///  ## Example
 /// ```rust
-///     use futures_lite::future::block_on;
-///
-///     let result =  block_on( atspi_connection::set_session_accessibility(true) );
+///     let result =  tokio_test::block_on( atspi_connection::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
 /// ```
 /// # Errors
