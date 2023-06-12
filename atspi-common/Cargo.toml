@@ -13,8 +13,8 @@ license = "Apache-2.0 OR MIT"
 
 [features]
 default = ["async-std"]
-async-std = ["zbus/async-io", "atspi-connection/async-std"]
-tokio = ["zbus/tokio", "atspi-connection/tokio"]
+async-std = ["zbus/async-io", "atspi-connection/async-std", "atspi-proxies/async-std"]
+tokio = ["zbus/tokio", "atspi-connection/tokio", "atspi-proxies/tokio"]
 
 [dependencies]
 enumflags2 = "0.7.7"
@@ -22,7 +22,7 @@ serde = "1.0.162"
 static_assertions = "1.1.0"
 zbus_names = "2.5.0"
 zvariant = "3.12.0"
-zbus = { version = "3.12.0", optional = true }
+zbus = { version = "3.12.0", optional = true, default-features = false }
 
 [dev-dependencies]
 atspi-proxies = { path = "../atspi-proxies/", default-features = false }

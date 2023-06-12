@@ -29,7 +29,7 @@ atspi-common = { path = "../atspi-common", default-features = false }
 atspi-macros = { version = "0.4.0", path = "../atspi-macros" }
 enumflags2.workspace = true
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
-zbus = { version = "^3.6.2", default-features = false }
+zbus.workspace = true
 # optioanl dependencies
 async-trait = { version = "^0.1.59", optional = true }
 futures-lite = { version = "1.12", default-features = false, optional = true }
