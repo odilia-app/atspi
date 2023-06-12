@@ -589,7 +589,7 @@ pub trait HasRegistryEventString {
 
 #[cfg(test)]
 mod tests {
-  use crate::events::{EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE};
+	use crate::events::{EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE};
 	use std::collections::HashMap;
 	use zvariant::{ObjectPath, Type, Value};
 

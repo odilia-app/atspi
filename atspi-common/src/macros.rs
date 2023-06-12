@@ -140,7 +140,7 @@ macro_rules! zbus_message_test_case {
 				.expect("Could not convert event into a message");
 			let event_enum_back =
 				Event::try_from(&msg).expect("Could not convert message into an event");
-      let event_enum: Event = struct_event.into();
+			let event_enum: Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
 		// make want to consider paramaterized tests here, no need for fuzz testing, but one level lower than that may be nice
