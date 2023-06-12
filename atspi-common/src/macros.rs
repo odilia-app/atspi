@@ -124,13 +124,24 @@ macro_rules! zbus_message_test_case {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
 		#[test]
-		fn zbus_msg_conversion() {
+		fn zbus_msg_conversion_to_specific_event_type() {
 			let struct_event = <$type>::default();
 			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone())
 				.expect("Could not convert event into a message");
 			let struct_event_back =
 				<$type>::try_from(&msg).expect("Could not convert message into an event");
 			assert_eq!(struct_event, struct_event_back);
+		}
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_to_event_enum_type() {
+			let struct_event = <$type>::default();
+			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone())
+				.expect("Could not convert event into a message");
+			let event_enum_back =
+				Event::try_from(&msg).expect("Could not convert message into an event");
+      let event_enum: Event = struct_event.into();
+			assert_eq!(event_enum, event_enum_back);
 		}
 		// make want to consider paramaterized tests here, no need for fuzz testing, but one level lower than that may be nice
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
