@@ -51,7 +51,7 @@ pub trait Convertable {
 	/// This may fail based on the implementation of.
 	/// Generally, it fails if the accessible item does not implement to accessible interface.
 	/// This shouldn't be possible, but this function may fail for other reasons.
-	/// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`crate::accessible::AccessibleProxy`].
+	/// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`atspi_proxies::accessible::AccessibleProxy`].
 	async fn to_accessible(&self) -> Result<Self::Accessible, Self::Error>;
 	/// Creates an [`Self::Action`] from the existing accessible item.
 	/// # Errors
@@ -114,7 +114,7 @@ pub trait ConvertableBlocking {
 	/// This may fail based on the implementation of.
 	/// Generally, it fails if the accessible item does not implement to accessible interface.
 	/// This shouldn't be possible, but this function may fail for other reasons.
-	/// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`crate::accessible::AccessibleProxyBlocking`].
+	/// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`atspi_proxies::accessible::AccessibleProxyBlocking`].
 	fn to_accessible(&self) -> Result<Self::Accessible, Self::Error>;
 	/// Creates an [`Self::Action`] from the existing accessible item.
 	/// # Errors

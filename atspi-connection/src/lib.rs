@@ -207,7 +207,7 @@ impl AccessibilityConnection {
 	///
 	/// # Errors
 	///
-	/// May cause an error if the `DBus` method [`atspi::registry::RegistryProxy::register_event`] fails.
+	/// May cause an error if the `DBus` method [`atspi_proxies::registry::RegistryProxy::register_event`] fails.
 	pub async fn add_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
 			.register_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
@@ -317,7 +317,7 @@ impl Deref for AccessibilityConnection {
 /// # Errors
 ///
 /// 1. when no connection with the session bus can be established,
-/// 2. if creation of a [`atspi::bus::StatusProxy`] fails
+/// 2. if creation of a [`atspi_proxies::bus::StatusProxy`] fails
 /// 3. if the `IsEnabled` property cannot be read
 /// 4. the `IsEnabled` property cannot be set.
 pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), AtspiError> {
