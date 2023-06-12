@@ -107,7 +107,7 @@ pub enum Granularity {
 	Paragraph,
 }
 
-/// Indicates relative stacking order of a [`ComponentProxy`] with respect to the
+/// Indicates relative stacking order of a `atspi_proxies::component::ComponentProxy` with respect to the
 /// onscreen visual representation of the UI.
 ///
 /// The layer index, in combination with the component's extents,
@@ -129,14 +129,14 @@ pub enum Layer {
 	/// over which everything else is painted.
 	Background,
 	/// The 'background' layer for most content renderers and
-	/// UI [`ComponentProxy`] containers.
+	/// UI `atspi_proxies::component::ComponentProxy` containers.
 	Canvas,
 	/// The layer in which the majority of ordinary 'foreground' widgets reside.
 	Widget,
 	/// A special layer between [`Layer::Canvas`] and [`Layer::Widget`], in which the
 	/// 'pseudo windows' (e.g. the Multiple-Document Interface frames) reside.
 	///
-	/// See [`ComponentProxy::get_mdizorder`].
+	/// See `atspi_proxies::component::ComponentProxy::get_mdizorder`.
 	Mdi,
 	/// A layer for popup window content, above [`Layer::Widget`].
 	Popup,
