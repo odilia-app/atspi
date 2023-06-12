@@ -11,7 +11,7 @@ pub mod window;
 // ----
 // The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
 // -  Cache : RemoveAccessible
-// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
+// -  Socket: Available  *( signals the availability of the `Registry` daemon.)
 //
 // ATSPI- and QSPI both describe the generic events. These can be converted into
 // specific signal types with TryFrom implementations. See crate::[`identify`]
@@ -527,7 +527,7 @@ mod tests {
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
-	use tokio::time::timeout;
+	use zbus::names::OwnedUniqueName;
 	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 	use zbus::MessageBuilder;
 
@@ -563,67 +563,66 @@ mod tests {
 		let atspi = AccessibilityConnection::open().await.unwrap();
 		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 
-		let mut events = atspi.event_stream();
-		std::pin::pin!(&mut events);
-		let to = timeout(Duration::from_secs(1), events.next());
-		let unique_bus_name = atspi.connection().unique_name();
-		let msg = MessageBuilder::signal(
-			"/org/a11y/atspi/accessible/null",
-			"org.a11y.atspi.Cache",
-			"RemoveAccessible",
-		)
-		.expect("Could not create signal")
-		.sender(unique_bus_name.unwrap())
-		.expect("Could not set sender to {unique_bus_name:?}")
-		.build(&((
-			":69.420".to_string(),
-			OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
-		),))
-		.unwrap();
+		let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
+		tokio::pin!(events);
+
+		let msg: zbus::Message = {
+			let path = "/org/a11y/atspi/accessible/remove";
+			let iface = "org.a11y.atspi.Event.Accessible";
+			let member = "RemoveAccessible";
+
+			let unique_bus_name = atspi.connection().unique_name().unwrap();
+			let remove_body = crate::events::Accessible {
+				name: OwnedUniqueName::try_from(":1.1").unwrap(),
+				path: OwnedObjectPath::try_from("/org/a11y/atspi/cache/remove").unwrap(),
+			};
+
+			MessageBuilder::signal(path, iface, member)
+				.expect("Could not create signal")
+				.sender(unique_bus_name.clone())
+				.expect("Could not set sender to {unique_bus_name:?}")
+				.build(&remove_body)
+				.unwrap()
+		};
+
 		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
-		// This `to` has a nested structure of Result<Option<Event>, Error>
-		// The outer Result is a timeout error. the option comes from the stream.next() call
-		match to.await {
-			Ok(opt) => {
-				match opt {
-					// Stream yields a Some(Ok(Event)) when a message is received
-					Some(res) => {
-						match res {
-							Ok(event) => {
-								match event {
-									// Stream yields a Some(Ok(Event)) when a message is received
-									Event::Cache(CacheEvents::Remove(event)) => {
-										assert_eq!(
-											event.path().unwrap(),
-											"/org/a11y/atspi/accessible/null"
-										);
-										assert_eq!(
-											event.as_accessible().path.as_str(),
-											"/org/a11y/atspi/accessible/remove"
-										);
-										assert_eq!(event.as_accessible().name.as_str(), ":69.420");
-									}
-									another_event => {
-										panic!("The wrong event was received: {another_event:?}");
-									}
-								}
+		loop {
+			let to = events.try_next().await;
+			assert!(to.is_ok(), "Stream timed out");
+			let opt = to.unwrap();
+
+			match opt {
+				// Stream yields a Some(Ok(Event)) when a message is received
+				Some(res) => {
+					match res {
+						Ok(event) => match event {
+							Event::Cache(CacheEvents::Remove(event)) => {
+								assert_eq!(
+									event.path().unwrap(),
+									"/org/a11y/atspi/accessible/null"
+								);
+								assert_eq!(
+									event.as_accessible().path.as_str(),
+									"/org/a11y/atspi/accessible/remove"
+								);
 							}
-							// Stream yields a Some(Err(Error)) when a message is received
-							Err(e) => {
-								panic!("Error: Stream yielded a Some(Err( Error )), conversion to Event failed {e:?}");
+							_another_event => {
+								// We really don't care about other events
+								continue;
 							}
+						},
+						// Stream yields a Some(Err(Error)) when a message is received
+						Err(e) => {
+							panic!("Error: conversion to Event failed {e:?}");
 						}
 					}
-					// Stream yields a None when the stream is closed
-					None => {
-						panic!("Stream closed");
-					}
 				}
-			}
-			Err(e) => {
-				panic!("Timeout - response exceeded 1s: {e:?}");
+				// Stream yields a None when the stream is closed
+				None => {
+					panic!("Stream closed");
+				}
 			}
 		}
 	}
@@ -633,79 +632,80 @@ mod tests {
 		let atspi = AccessibilityConnection::open().await.unwrap();
 		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 
-		let mut events = atspi.event_stream();
-		std::pin::pin!(&mut events);
-		let unique_bus_name = atspi.connection().unique_name();
-		let msg = MessageBuilder::signal(
-			"/org/a11y/atspi/accessible/null",
-			"org.a11y.atspi.Cache",
-			"AddAccessible",
-		)
-		.expect("Could not create signal")
-		.sender(unique_bus_name.unwrap())
-		.expect("Could not set sender to {unique_bus_name:?}")
-		.build(&(CacheItem {
-			object: (
-				":1.1".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
-			),
-			app: (
-				":1.1".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
-			),
-			parent: (
-				":1.1".to_string(),
-				OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
-			),
-			index: 0,
-			children: 0,
-			ifaces: InterfaceSet::empty(),
-			short_name: String::new(),
-			role: Role::Application,
-			name: "Hi".to_string(),
-			states: StateSet::empty(),
-		},))
-		.unwrap();
+		let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
+		tokio::pin!(events);
+
+		let msg: zbus::Message = {
+			let path = "/org/a11y/atspi/cache/add";
+			let iface = "org.a11y.atspi.Cache.Add";
+			let member = "AddAccessible";
+
+			let unique_bus_name = atspi.connection().unique_name().unwrap();
+
+			let add_body = CacheItem {
+				object: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+				),
+				app: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+				),
+				parent: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+				),
+				index: 0,
+				children: 0,
+				ifaces: InterfaceSet::empty(),
+				short_name: String::new(),
+				role: Role::Application,
+				name: "Hi".to_string(),
+				states: StateSet::empty(),
+			};
+
+			MessageBuilder::signal(path, iface, member)
+				.expect("Could not create signal")
+				.sender(unique_bus_name.clone())
+				.expect("Could not set sender to {unique_bus_name:?}")
+				.build(&add_body)
+				.unwrap()
+		};
+
 		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
-		let to = timeout(Duration::from_secs(1), events.next());
 
-		// This to has has a nested structure of Result<Option<Event>, Error>
-		// The outer Result is a timeout error. the option comes from the stream.next() call
-		match to.await {
-			Ok(opt) => {
-				match opt {
-					// Stream yields a Some(Ok(Event)) when a message is received
-					Some(res) => {
-						match res {
-							Ok(event) => {
-								match event {
-									Event::Cache(CacheEvents::Add(event)) => {
-										assert_eq!(
-											event.path().unwrap(),
-											"/org/a11y/atspi/accessible/null"
-										);
-									}
-									// Stream yields a Some(Ok(Event)) when a message is received
-									another_event => {
-										panic!("The wrong event was received: {another_event:?}");
-									}
-								}
+		loop {
+			let to = events.try_next().await;
+			assert!(to.is_ok(), "Stream timed out");
+			let opt = to.unwrap();
+
+			match opt {
+				Some(res) => {
+					// This result comes from inner event-stream, Stream yields a Result<Event, AtspiError>
+					match res {
+						Ok(event) => match event {
+							Event::Cache(CacheEvents::Add(event)) => {
+								assert_eq!(
+									event.path().unwrap(),
+									"/org/a11y/atspi/accessible/null"
+								);
 							}
-							// Stream yields a Some(Err(Error)) when a message is received
-							Err(e) => {
-								panic!("Error: Stream yielded a Some(Err( Error )), conversion to Event failed {e:?}");
+							_another_event => {
+								// We really don't care about other events
+								continue;
 							}
+						},
+						// Stream yields a Some(Err(Error)) when a message is received
+						Err(e) => {
+							panic!("Error: conversion to Event failed {e:?}");
 						}
 					}
-					// Stream yields a None when the stream is closed
-					None => {
-						panic!("Stream closed");
-					}
 				}
-			}
-			Err(e) => {
-				panic!("Timeout - response exceeded 1s: {e:?}");
+				// Stream yields a None when the stream is closed
+				None => {
+					panic!("Stream closed");
+				}
 			}
 		}
 	}

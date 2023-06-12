@@ -290,7 +290,7 @@ pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), 
 	// Get a connection to the session bus.
 	let session = Box::pin(zbus::Connection::session()).await?;
 
-	// Aqcuire a `StatusProxy` for the session bus.
+	// Acquire a `StatusProxy` for the session bus.
 	let status_proxy = crate::bus::StatusProxy::new(&session).await?;
 
 	if status_proxy.is_enabled().await? != status {
