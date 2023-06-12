@@ -587,47 +587,11 @@ pub trait HasRegistryEventString {
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
-/*
 #[cfg(test)]
 mod tests {
-	use crate::events::{
-		Accessible, AddAccessibleEvent, AvailableEvent, CacheEvents, CacheItem, Event,
-		EventBodyOwned, EventBodyQT, EventListenerDeregisteredEvent, EventListenerRegisteredEvent,
-		GenericEvent, RemoveAccessibleEvent, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
-	};
-	use crate::{Role, InterfaceSet, StateSet};
-	use atspi::AccessibilityConnection;
-	use futures_lite::StreamExt;
+  use crate::events::{EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE};
 	use std::collections::HashMap;
-	use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
-
-	macro_rules! end_to_end_test {
-		($type:ty, $test_name:ident) => {
-			#[tokio::test]
-			async fn $test_name() {
-				let atspi = AccessibilityConnection::open().await.unwrap();
-				let mut events = atspi.event_stream();
-				atspi.register_event::<$type>().await.unwrap();
-				std::pin::pin!(&mut events);
-				let event_struct = <$type>::default();
-				atspi.send_event(event_struct).await.unwrap();
-
-				while let Some(Ok(ev)) = events.next().await {
-					if let Ok(event) = <$type>::try_from(ev.clone()) {
-						assert_eq!(event.item.path.as_str(), "/org/a11y/atspi/accessible/null");
-						break;
-					// do something with the specific event you've received
-					} else {
-						panic!("The wrong event was sent: {ev:?}");
-					}
-				}
-			}
-		};
-	}
-
-	end_to_end_test!(EventListenerRegisteredEvent, end_to_end_event_listener_registered);
-	end_to_end_test!(EventListenerDeregisteredEvent, end_to_end_event_listener_deregistered);
-	end_to_end_test!(AvailableEvent, end_to_end_available_event);
+	use zvariant::{ObjectPath, Type, Value};
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -655,86 +619,4 @@ mod tests {
 		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
-	#[tokio::test]
-	async fn test_recv_remove_accessible() -> Result<(), Box<dyn std::error::Error>> {
-		let atspi = AccessibilityConnection::open().await.unwrap();
-		let mut events = atspi.event_stream();
-		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
-		std::pin::pin!(&mut events);
-		let remove_accessible = RemoveAccessibleEvent {
-			item: Accessible {
-				path: "/org/a11y/atspi/accessible/null".try_into()?,
-				name: ":1.1".try_into()?,
-			},
-			node_removed: Accessible {
-				path: "/org/a11y/atspi/accessible/remove".try_into()?,
-				name: ":69.420".try_into()?,
-			},
-		};
-		atspi.send_event(remove_accessible).await.unwrap();
-		while let Some(Ok(ev)) = events.next().await {
-			if let Event::Cache(CacheEvents::Remove(event)) = ev {
-				assert_eq!(event.path(), "/org/a11y/atspi/accessible/null");
-				assert_eq!(event.node_removed.path.as_str(), "/org/a11y/atspi/accessible/remove");
-				assert_eq!(event.node_removed.name.as_str(), ":69.420");
-				break;
-			} else {
-				panic!("The wrong event was received!");
-			}
-		}
-		Ok(())
-	}
-	#[tokio::test]
-	async fn test_recv_add_accessible() -> Result<(), Box<dyn std::error::Error>> {
-		let atspi = AccessibilityConnection::open().await?;
-		let mut events = atspi.event_stream();
-		atspi.register_event::<AddAccessibleEvent>().await?;
-		// this is required; we want the event to come from the current connection
-		// otherwise, the bus will respond wiht the equivlent of "Yes, I acknowledge that you will be able to use this name".
-		// xref: "NameAquired DBus Signal"
-		let name = atspi.connection().unique_name().unwrap();
-		let add_accessible = AddAccessibleEvent {
-			item: Accessible {
-				name: name.to_owned(),
-				path: ObjectPath::try_from("/org/a11y/atspi/accessible/null")?.into(),
-			},
-			node_added: CacheItem {
-				object: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object")?,
-				),
-				app: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application")?,
-				),
-				parent: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent")?,
-				),
-				index: 0,
-				children: 0,
-				ifaces: InterfaceSet::empty(),
-				short_name: "".to_string(),
-				role: Role::Application,
-				name: "Hi".to_string(),
-				states: StateSet::empty(),
-			},
-		};
-		std::pin::pin!(&mut events);
-		atspi.send_event(add_accessible).await?;
-		while let Some(Ok(ev)) = events.next().await {
-			if let Event::Cache(CacheEvents::Add(event)) = ev {
-				assert_eq!(event.path(), "/org/a11y/atspi/accessible/null");
-				let cache_item = event.node_added;
-				assert_eq!(cache_item.object.1.as_str(), "/org/a11y/atspi/accessible/object");
-				assert_eq!(cache_item.parent.1.as_str(), "/org/a11y/atspi/accessible/parent");
-				assert_eq!(cache_item.app.1.as_str(), "/org/a11y/atspi/accessible/application");
-				break;
-			} else {
-				panic!("The wrong event was received!");
-			}
-		}
-		Ok(())
-	}
 }
-*/
