@@ -503,7 +503,7 @@ impl TryFrom<&zbus::Message> for Event {
 				_ => Err(AtspiError::UnknownSignal),
 			},
 			// Atspi / Qspi signature
-			"(siiva{sv})" | "(siiv(so))" => {
+			"siiva{sv}" | "siiv(so)" => {
 				let Some(interface) = msg.interface() else {  return Err(AtspiError::MissingInterface);  };
 				match interface.as_str() {
 					"org.a11y.atspi.Event.Document" => {
