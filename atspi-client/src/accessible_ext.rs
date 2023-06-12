@@ -1,6 +1,6 @@
 use crate::convertable::{Convertable, ConvertableBlocking};
 use async_trait::async_trait;
-use atspi_common::{AtspiError as Error, ObjectPair, RelationType, Role, MatcherArgs};
+use atspi_common::{AtspiError as Error, MatcherArgs, ObjectPair, RelationType, Role};
 use atspi_proxies::{
 	accessible::{Accessible, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking},
 	hyperlink::Hyperlink,
