@@ -65,9 +65,9 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: Run Tests (tokio)
-        run: cargo test --workspace --features=unstable-traits,tokio -- --nocapture
+        run: cargo test --workspace --no-default-features --features=unstable-traits,tokio -- --nocapture
       - name: Run Tests (async-std)
-        run: cargo test --workspace --features=unstable-traits,async-std -- --nocapture
+        run: cargo test --workspace --no-default-features --features=unstable-traits,async-std -- --nocapture
   rustfmt:
     runs-on: ubuntu-latest
     steps:
