@@ -54,7 +54,7 @@ macro_rules! impl_to_dbus_message {
 					<$type as GenericEvent>::DBUS_MEMBER,
 				)?
 				.sender(event.sender())?
-				.build(&(event.body()),)?)
+				.build(&(event.body()))?)
 			}
 		}
 	};

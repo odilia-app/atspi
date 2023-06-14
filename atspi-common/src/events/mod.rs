@@ -185,8 +185,8 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 	const DBUS_MEMBER: &'static str = "RemoveAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-  /// These parenthasies need to be here to match the signature on the bus: "(so)";
-  /// Most events use separate fields and therefore no parenthasies to create structs.
+	/// These parenthasies need to be here to match the signature on the bus: "(so)";
+	/// Most events use separate fields and therefore no parenthasies to create structs.
 	type Body = (Accessible,);
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
