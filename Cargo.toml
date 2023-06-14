@@ -29,7 +29,8 @@ unstable-traits = ["atspi-macros/unstable_atspi_proxy_macro", "atspi-macros/toki
 atspi-macros = { version = "0.3.0", path = "atspi-macros" }
 enumflags2 = "^0.7.7"
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
-zbus = { version = "^3.6.2", default-features = false }
+#zbus = { version = "^3.6.2", default-features = false }
+zbus = { git = "https://github.com/luukvanderduim/zbus.git", branch = "disregard-outer-parens-signature", default-features = false }
 # optional dependencies
 futures-lite = { version = "1.12", default-features = false, optional = true }
 tracing = { version = "^0.1.37", optional = true }

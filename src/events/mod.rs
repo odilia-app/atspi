@@ -526,9 +526,10 @@ mod tests {
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
+	use serde::de::IntoDeserializer;
 	use std::{collections::HashMap, time::Duration};
 	use zbus::names::OwnedUniqueName;
-	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+	use zbus::zvariant::{DynamicType, ObjectPath, OwnedObjectPath, Type, Value};
 	use zbus::MessageBuilder;
 
 	#[test]
@@ -567,14 +568,14 @@ mod tests {
 		tokio::pin!(events);
 
 		let msg: zbus::Message = {
-			let path = "/org/a11y/atspi/accessible/remove";
-			let iface = "org.a11y.atspi.Event.Accessible";
+			let path = "/org/a11y/atspi/accessible/null";
+			let iface = "org.a11y.atspi.Cache";
 			let member = "RemoveAccessible";
 
 			let unique_bus_name = atspi.connection().unique_name().unwrap();
 			let remove_body = crate::events::Accessible {
-				name: OwnedUniqueName::try_from(":1.1").unwrap(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/cache/remove").unwrap(),
+				name: OwnedUniqueName::try_from(":69.420").unwrap(),
+				path: OwnedObjectPath::try_from("/org/a11y/atspi/application/remove").unwrap(),
 			};
 
 			MessageBuilder::signal(path, iface, member)
@@ -585,7 +586,7 @@ mod tests {
 				.unwrap()
 		};
 
-		assert_eq!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
+		assert_eq!(msg.body_signature().unwrap().dynamic_signature(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
 		loop {
@@ -594,7 +595,6 @@ mod tests {
 			let opt = to.unwrap();
 
 			match opt {
-				// Stream yields a Some(Ok(Event)) when a message is received
 				Some(res) => {
 					match res {
 						Ok(event) => match event {
@@ -608,21 +608,14 @@ mod tests {
 									"/org/a11y/atspi/accessible/remove"
 								);
 							}
-							_another_event => {
-								// We really don't care about other events
-								continue;
-							}
+							_some_other_event => continue,
 						},
 						// Stream yields a Some(Err(Error)) when a message is received
-						Err(e) => {
-							panic!("Error: conversion to Event failed {e:?}");
-						}
+						Err(e) => panic!("Error: conversion to Event failed {e:?}"),
 					}
 				}
 				// Stream yields a None when the stream is closed
-				None => {
-					panic!("Stream closed");
-				}
+				None => panic!("Stream closed"),
 			}
 		}
 	}
@@ -636,8 +629,8 @@ mod tests {
 		tokio::pin!(events);
 
 		let msg: zbus::Message = {
-			let path = "/org/a11y/atspi/cache/add";
-			let iface = "org.a11y.atspi.Cache.Add";
+			let path = "/org/a11y/atspi/accessible/null";
+			let iface = "org.a11y.atspi.Cache";
 			let member = "AddAccessible";
 
 			let unique_bus_name = atspi.connection().unique_name().unwrap();
@@ -653,7 +646,7 @@ mod tests {
 				),
 				parent: (
 					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
 				),
 				index: 0,
 				children: 0,
@@ -691,21 +684,13 @@ mod tests {
 									"/org/a11y/atspi/accessible/null"
 								);
 							}
-							_another_event => {
-								// We really don't care about other events
-								continue;
-							}
+							_some_other_event => continue,
 						},
-						// Stream yields a Some(Err(Error)) when a message is received
-						Err(e) => {
-							panic!("Error: conversion to Event failed {e:?}");
-						}
+						Err(e) => panic!("Error: conversion to Event failed {e:?}"),
 					}
 				}
 				// Stream yields a None when the stream is closed
-				None => {
-					panic!("Stream closed");
-				}
+				None => panic!("Stream closed"),
 			}
 		}
 	}
