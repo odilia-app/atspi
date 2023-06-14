@@ -366,9 +366,10 @@ impl TryFrom<Arc<Message>> for Event {
 			.ok_or(AtspiError::MemberMatch("signal w/o member".to_string()))?;
 		let message_member = signal_member.as_str();
 
+		// Match against DBus signal signature, without outer parentheses.
 		match message_signature {
 			// Accessible signature
-			"(so)" => match message_member {
+			"so" => match message_member {
 				"RemoveAccessible" => {
 					let ev = RemoveAccessibleEvent::try_from(msg)?;
 					Ok(Event::Cache(CacheEvents::Remove(ev)))
@@ -385,7 +386,7 @@ impl TryFrom<Arc<Message>> for Event {
 				let event_interfaces: EventInterfaces = ev.try_into()?;
 				Ok(Event::Interfaces(event_interfaces))
 			}
-			"(ss)" => {
+			"ss" => {
 				if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg.clone()) {
 					return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
 				}
@@ -395,7 +396,7 @@ impl TryFrom<Arc<Message>> for Event {
 				Err(AtspiError::UnknownSignal)
 			}
 			// CacheAdd signature
-			"((so)(so)(so)iiassusau)" => {
+			"(so)(so)(so)iiassusau" => {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
@@ -526,10 +527,9 @@ mod tests {
 	};
 	use crate::{accessible::Role, AccessibilityConnection, InterfaceSet, StateSet};
 	use futures_lite::StreamExt;
-	use serde::de::IntoDeserializer;
 	use std::{collections::HashMap, time::Duration};
 	use zbus::names::OwnedUniqueName;
-	use zbus::zvariant::{DynamicType, ObjectPath, OwnedObjectPath, Type, Value};
+	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 	use zbus::MessageBuilder;
 
 	#[test]
@@ -586,7 +586,7 @@ mod tests {
 				.unwrap()
 		};
 
-		assert_eq!(msg.body_signature().unwrap().dynamic_signature(), ACCESSIBLE_PAIR_SIGNATURE);
+		assert!(msg.body_signature().unwrap() == ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
 		loop {
@@ -605,8 +605,9 @@ mod tests {
 								);
 								assert_eq!(
 									event.as_accessible().path.as_str(),
-									"/org/a11y/atspi/accessible/remove"
+									"/org/a11y/atspi/application/remove"
 								);
+								break;
 							}
 							_some_other_event => continue,
 						},
@@ -665,7 +666,7 @@ mod tests {
 				.unwrap()
 		};
 
-		assert_eq!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
+		assert!(msg.body_signature().unwrap() == CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
 		loop {
@@ -683,6 +684,7 @@ mod tests {
 									event.path().unwrap(),
 									"/org/a11y/atspi/accessible/null"
 								);
+								break;
 							}
 							_some_other_event => continue,
 						},
