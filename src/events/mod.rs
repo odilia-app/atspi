@@ -113,7 +113,7 @@ pub enum Event {
 	Available(AvailableEvent),
 	/// Both `CacheAdd` and `CacheRemove` signals
 	Cache(CacheEvents),
-	/// Emitted on registry or deregristry of event listeners.,
+	/// Emitted on registration or de-registration of event listeners.,
 	///
 	/// (eg. "Cache:AddAccessible:")
 	Listener(EventListenerEvents),
@@ -323,7 +323,7 @@ pub enum EventListenerEvents {
 	Deregistered(EventListenerDeregisteredEvent),
 }
 
-/// An event that is emitted by the regostry daemon to signal that an event has been deregistered
+/// An event that is emitted by the registry daemon to signal that an event has been deregistered
 /// to no longer listen for.
 #[derive(Clone, Debug, GenericEvent)]
 #[try_from_zbus_message(body = "EventListeners")]
@@ -332,7 +332,7 @@ pub struct EventListenerDeregisteredEvent {
 	pub body: EventListeners,
 }
 
-/// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
+/// An event that is emitted by the registry daemon to signal that an event has been registered to listen for.
 #[derive(Clone, Debug, GenericEvent)]
 #[try_from_zbus_message(body = "EventListeners")]
 pub struct EventListenerRegisteredEvent {
@@ -529,8 +529,43 @@ mod tests {
 	use futures_lite::StreamExt;
 	use std::{collections::HashMap, time::Duration};
 	use zbus::names::OwnedUniqueName;
-	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+	use zbus::zvariant::{ObjectPath, OwnedObjectPath, Signature, Type, Value};
 	use zbus::MessageBuilder;
+
+	fn has_outer_parentheses(bytes: &[u8]) -> bool {
+		bytes.starts_with(&[b'('])
+			&& bytes.ends_with(&[b')'])
+			&& (bytes[1..bytes.len() - 1].iter().fold(0i32, |acc, byte| {
+				if *byte == b'(' {
+					acc + 1
+				} else if *byte == b')' {
+					acc - 1
+				} else {
+					acc
+				}
+			}) == 0i32)
+	}
+
+	#[macro_export]
+	macro_rules! assert_eq_signatures {
+		($bus_signature:expr, $type_signature:expr) => {
+			let lhs_sig: Signature<'_> = $bus_signature;
+			let rhs_sig: Signature<'_> = $type_signature;
+
+			match (
+				has_outer_parentheses(lhs_sig.as_bytes()),
+				has_outer_parentheses(rhs_sig.as_bytes()),
+			) {
+				(true, false) => {
+					assert_eq!(lhs_sig.slice(1..lhs_sig.len() - 1).as_bytes(), rhs_sig.as_bytes());
+				}
+				(false, true) => {
+					assert_eq!(lhs_sig.as_bytes(), rhs_sig.slice(1..rhs_sig.len() - 1).as_bytes());
+				}
+				_ => assert_eq!(lhs_sig.as_bytes(), rhs_sig.as_bytes()),
+			}
+		};
+	}
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -586,7 +621,7 @@ mod tests {
 				.unwrap()
 		};
 
-		assert!(msg.body_signature().unwrap() == ACCESSIBLE_PAIR_SIGNATURE);
+		assert_eq_signatures!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
 		loop {
@@ -666,7 +701,7 @@ mod tests {
 				.unwrap()
 		};
 
-		assert!(msg.body_signature().unwrap() == CACHE_ADD_SIGNATURE);
+		assert_eq_signatures!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
 		loop {
