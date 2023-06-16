@@ -11,7 +11,7 @@ pub use interface::{Interface, InterfaceSet};
 pub mod state;
 pub use state::{State, StateSet};
 pub mod cache;
-pub use cache::CacheItem;
+pub use cache::{CacheItem, LegacyCacheItem};
 pub mod error;
 pub use error::AtspiError;
 pub mod events;

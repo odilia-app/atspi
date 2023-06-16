@@ -5,10 +5,14 @@
 //!
 
 use crate::atspi_proxy;
-use atspi_common::CacheItem;
+use atspi_common::{CacheItem, LegacyCacheItem};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {
 	/// GetItems method
 	fn get_items(&self) -> zbus::Result<Vec<CacheItem>>;
+
+	/// GetItems method to support legacy servers (presumably Qt based applications and at-spi2-registryd)
+	#[dbus_proxy(name = "GetItems")]
+	fn get_legacy_items(&self) -> zbus::Result<Vec<LegacyCacheItem>>;
 }

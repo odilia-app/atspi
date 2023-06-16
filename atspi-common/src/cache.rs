@@ -57,3 +57,35 @@ fn zvariant_type_signature_of_cache_item() {
 		zbus::zvariant::Signature::from_static_str("((so)(so)(so)iiassusau)").unwrap()
 	);
 }
+
+/// The item type provided by `Cache:Add` signals
+#[allow(clippy::module_name_repetitions)]
+#[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+pub struct LegacyCacheItem {
+	/// The accessible object (within the application)   (so)
+	pub object: ObjectPair,
+	/// The application (root object(?)    (so)
+	pub app: ObjectPair,
+	/// The parent object.  (so)
+	pub parent: ObjectPair,
+	/// List of references to the accessible's children.  (so)
+	pub children: Vec<ObjectPair>,
+	/// The exposed interfece(s) set.  as
+	pub ifaces: InterfaceSet,
+	/// The short localized name.  s
+	pub short_name: String,
+	/// Accessible role. u
+	pub role: Role,
+	/// More detailed localized name.
+	pub name: String,
+	/// The states applicable to the accessible.  au
+	pub states: StateSet,
+}
+
+#[test]
+fn zvariant_type_signature_of_legacy_cache_item() {
+	assert_eq!(
+		LegacyCacheItem::signature(),
+		zbus::zvariant::Signature::from_static_str("((so)(so)(so)a(so)assusau)").unwrap()
+	);
+}
