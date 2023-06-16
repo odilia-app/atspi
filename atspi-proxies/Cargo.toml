@@ -25,7 +25,7 @@ tokio = ["zbus/tokio", "atspi-common/tokio"]
 unstable-traits = ["atspi-macros/unstable_atspi_proxy_macro", "dep:async-trait"]
 
 [dependencies]
-atspi-common = { path = "../atspi-common", default-features = false }
+atspi-common = { path = "../atspi-common", version = "0.1.0", default-features = false }
 atspi-macros = { version = "0.4.0", path = "../atspi-macros" }
 enumflags2.workspace = true
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
