@@ -137,7 +137,7 @@
 
         2 - CANVAS: The 'background' layer for most content renderers and UI component containers.
 
-        3 - WIDGET: The layer in which the majority of ordintary 'foreground' widgets reside.
+        3 - WIDGET: The layer in which the majority of ordinary 'foreground' widgets reside.
 
         4 - MDI: A special layer between CANVAS and WIDGET, in which the 'pseudo-windows'
         (e.g. the Multiple-Document Interface frames) reside.  See the GetMDIZOrder

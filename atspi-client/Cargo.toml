@@ -1,0 +1,25 @@
+[package]
+name = "atspi-client"
+version = "0.1.0"
+edition = "2021"
+description = "Client extensions for the atspi crate."
+readme = "README.md"
+categories = ["accessibility"]
+keywords = ["screen-reader", "accessibility", "a11y", "linux"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/odilia-app/atspi/"
+homepage = "https://github.com/odilia-app/atspi/"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["async-std"]
+tokio = ["atspi-proxies/tokio", "atspi-common/tokio"]
+async-std = ["atspi-proxies/async-std", "atspi-common/async-std"]
+
+[dependencies]
+async-trait = "0.1.68"
+static_assertions = "1.1.0"
+atspi-common = { path = "../atspi-common/", default-features = false }
+atspi-proxies = { path = "../atspi-proxies", default-features = false, features = ["unstable-traits"] }
+zbus.workspace = true

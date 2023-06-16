@@ -1,0 +1,33 @@
+[package]
+name = "atspi"
+version = "0.16.0"
+edition = "2021"
+description = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+repository = "https://github.com/odilia-app/atspi"
+homepage = "https://github.com/odilia-app/atspi"
+keywords = ["screen-reader", "accessibility", "a11y", "tts", "linux"]
+categories = ["accessibility", "api-bindings"]
+rust-version = "1.65"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["async-std"]
+async-std = ["proxies-async-std", "connection-async-std", "client-async-std"]
+tokio = ["proxies-tokio", "connection-tokio", "client-tokio"]
+
+proxies-async-std = ["atspi-proxies/async-std"]
+proxies-tokio = ["atspi-proxies/tokio"]
+connection-async-std = ["atspi-connection/async-std"]
+connection-tokio = ["atspi-connection/tokio"]
+client-async-std = ["atspi-client/async-std"]
+client-tokio = ["atspi-client/tokio"]
+unstable-proxy-traits = ["atspi-proxies/unstable-traits"]
+
+[dependencies]
+atspi-common = { path = "../atspi-common", default-features = false }
+atspi-proxies = { path = "../atspi-proxies", default-features = false, optional = true }
+atspi-connection = { path = "../atspi-connection", default-features = false, optional = true }
+atspi-client = { path = "../atspi-client", default-features = false, optional = true }

@@ -64,8 +64,10 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt -y install at-spi2-core systemd
-      - name: Run Tests
-        run: cargo test --features=unstable-traits
+      - name: Run Tests (tokio)
+        run: cargo test --workspace --no-default-features --features=unstable-traits,tokio -- --nocapture
+      - name: Run Tests (async-std)
+        run: cargo test --workspace --no-default-features --features=unstable-traits,async-std -- --nocapture
   rustfmt:
     runs-on: ubuntu-latest
     steps:
@@ -101,7 +103,7 @@ jobs:
         with:
           toolchain: nightly
       - name: Generate Documentation
-        run: cargo doc --all-features --no-deps
+        run: cargo doc --workspace --features unstable-traits --no-deps
   no-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
@@ -154,7 +156,7 @@ jobs:
         # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
         run: cargo install cargo-semver-checks --no-default-features
       - name: Check Semver Compliance
-        run: cargo semver-checks check-release -p atspi
+        run: cargo semver-checks check-release -p atspi --default-features
   msrv-compliance:
     runs-on: ubuntu-latest
     steps:
@@ -180,7 +182,7 @@ jobs:
       - name: Install Cargo MSRV Verifier
         run: cargo install cargo-msrv
       - name: Check MSRV Compliance
-        run: cargo msrv verify
+        run: cargo msrv --path atspi verify
   coverage:
     runs-on: ubuntu-latest
     steps:
@@ -189,7 +191,7 @@ jobs:
       - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly
+          toolchain: stable
           components: llvm-tools-preview
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
@@ -200,7 +202,7 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: cargo llvm-cov
-        run: cargo llvm-cov --doctests --locked --features=unstable-traits --lcov --output-path lcov.info
+        run: cargo llvm-cov --workspace --locked --features=unstable-traits --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
