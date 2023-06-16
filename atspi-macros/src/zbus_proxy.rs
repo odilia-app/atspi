@@ -7,7 +7,10 @@ use syn::{
 	NestedMeta, ReturnType, TraitItemMethod, Type,
 };
 
-use crate::utils::*;
+use crate::utils::{
+	from_snake_case_to_upper_camel_case, parse_item_attributes, pat_ident, typed_arg, zbus_path,
+	ItemAttribute,
+};
 
 struct AsyncOpts {
 	blocking: bool,
@@ -23,14 +26,14 @@ impl AsyncOpts {
 	}
 }
 
-pub fn expand(args: AttributeArgs, input: ItemTrait) -> Result<TokenStream, Error> {
+pub fn expand(args: &AttributeArgs, input: &ItemTrait) -> Result<TokenStream, Error> {
 	let (mut gen_async, mut gen_blocking) = (true, true);
 	let (mut async_name, mut blocking_name) = (None, None);
 	let mut iface_name = None;
 	let mut assume_defaults = None;
 	let mut default_path = None;
 	let mut default_service = None;
-	for arg in &args {
+	for arg in args {
 		match arg {
 			NestedMeta::Meta(syn::Meta::NameValue(nv)) => {
 				if nv.path.is_ident("interface") || nv.path.is_ident("name") {
@@ -113,7 +116,7 @@ pub fn expand(args: AttributeArgs, input: ItemTrait) -> Result<TokenStream, Erro
 			}
 		});
 		create_proxy(
-			&input,
+			input,
 			iface_name.as_deref(),
 			assume_defaults,
 			default_path.as_deref(),
@@ -130,7 +133,7 @@ pub fn expand(args: AttributeArgs, input: ItemTrait) -> Result<TokenStream, Erro
 	let async_proxy = if gen_async {
 		let proxy_name = async_name.unwrap_or_else(|| format!("{}Proxy", input.ident));
 		create_proxy(
-			&input,
+			input,
 			iface_name.as_deref(),
 			assume_defaults,
 			default_path.as_deref(),
@@ -199,7 +202,7 @@ pub fn create_proxy(
 
 	let async_opts = AsyncOpts::new(blocking);
 
-	for i in input.items.iter() {
+	for i in &input.items {
 		if let syn::TraitItem::Method(m) = i {
 			let method_name = m.sig.ident.to_string();
 			let attrs = parse_item_attributes(&m.attrs, "dbus_proxy")?;
@@ -208,7 +211,7 @@ pub fn create_proxy(
 				_ => None,
 			});
 			let is_property = property_attrs.is_some();
-			let is_signal = attrs.iter().any(|x| x.is_signal());
+			let is_signal = attrs.iter().any(crate::utils::ItemAttribute::is_signal);
 			let has_inputs = m.sig.inputs.len() > 1;
 			let member_name = attrs
 				.iter()
@@ -639,18 +642,13 @@ fn gen_proxy_method_call(
 /// Standard annotation `org.freedesktop.DBus.Property.EmitsChangedSignal`.
 ///
 /// See <https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format>.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Default)]
 enum PropertyEmitsChangedSignal {
+	#[default]
 	True,
 	Invalidates,
 	Const,
 	False,
-}
-
-impl Default for PropertyEmitsChangedSignal {
-	fn default() -> Self {
-		PropertyEmitsChangedSignal::True
-	}
 }
 
 impl PropertyEmitsChangedSignal {
@@ -803,7 +801,7 @@ fn gen_proxy_signal(
 		.iter()
 		.filter_map(|arg| match arg {
 			FnArg::Typed(p) => Some(p.ty.clone()),
-			_ => None,
+			FnArg::Receiver(_) => None,
 		})
 		.collect();
 	let input_types_s: Vec<_> = SetLifetimeS
@@ -812,7 +810,7 @@ fn gen_proxy_signal(
 		.iter()
 		.filter_map(|arg| match arg {
 			FnArg::Typed(p) => Some(p.ty.clone()),
-			_ => None,
+			FnArg::Receiver(_) => None,
 		})
 		.collect();
 	let args: Vec<Ident> = m

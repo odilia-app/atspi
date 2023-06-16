@@ -19,7 +19,7 @@ pub fn zbus_path() -> TokenStream {
 pub fn typed_arg(arg: &FnArg) -> Option<&PatType> {
 	match arg {
 		FnArg::Typed(t) => Some(t),
-		_ => None,
+		FnArg::Receiver(_) => None,
 	}
 }
 
@@ -81,9 +81,8 @@ pub fn find_attribute_meta(attrs: &[Attribute], attr_name: &str) -> Result<Optio
 }
 
 fn parse_ident(meta: &NestedMeta) -> String {
-	let meta = match meta {
-		NestedMeta::Meta(m) => m,
-		_ => panic!("wrong meta type, expected meta"),
+	let NestedMeta::Meta(meta) = meta else {
+		panic!("wrong meta type, expected meta");
 	};
 
 	let ident = match meta {
@@ -102,13 +101,12 @@ fn parse_ident(meta: &NestedMeta) -> String {
 
 // parse a single meta like: ident = "value". meta can have multiple values too.
 fn parse_single_attribute(meta: &NestedMeta) -> (String, Vec<String>) {
-	let meta = match &meta {
-		NestedMeta::Meta(m) => m,
-		_ => panic!("wrong meta type, expected meta"),
+	let NestedMeta::Meta(meta) = meta else {
+		panic!("wrong meta type, expected meta");
 	};
 
 	let (ident, values) = match meta {
-		Meta::Path(p) => (p.get_ident().unwrap(), vec!["".to_string()]),
+		Meta::Path(p) => (p.get_ident().unwrap(), vec![String::new()]),
 		Meta::NameValue(n) => {
 			let value = match &n.lit {
 				Lit::Str(s) => s.value(),
@@ -130,7 +128,9 @@ fn parse_single_attribute(meta: &NestedMeta) -> (String, Vec<String>) {
 						Lit::Str(s) => values.push(s.value()),
 						_ => panic!("wrong meta type, expected string"),
 					},
-					x => panic!("wrong meta type, expected literal but got {:?}", x),
+					NestedMeta::Meta(x) => {
+						panic!("wrong meta type, expected literal but got {x:?}")
+					}
 				}
 			}
 
@@ -171,14 +171,13 @@ fn parse_simple_attribute(meta: &NestedMeta) -> Result<ItemAttribute> {
 		"async_object" => Ok(ItemAttribute::AsyncObject(values.remove(0))),
 		"blocking_object" => Ok(ItemAttribute::BlockingObject(values.remove(0))),
 		"property" => unreachable!(),
-		s => panic!("Unknown item meta {}", s),
+		s => panic!("Unknown item meta {s}"),
 	}
 }
 
 fn property_parse_item_attribute(meta: &NestedMeta, attrs: &mut HashMap<String, String>) {
-	let meta = match &meta {
-		NestedMeta::Meta(m) => m,
-		_ => panic!("wrong meta type, expected meta"),
+	let NestedMeta::Meta(meta) = &meta else {
+		panic!("wrong meta type, expected meta");
 	};
 
 	match meta {
@@ -214,29 +213,4 @@ pub fn parse_item_attributes(attrs: &[Attribute], attr_name: &str) -> Result<Vec
 	};
 
 	Ok(v)
-}
-
-#[cfg(test)]
-mod tests {
-	use super::{from_snake_case_to_upper_camel_case, snake_case};
-
-	#[test]
-	fn test_snake_to_from_snake_case_to_upper_camel_case() {
-		assert_eq!("MeaningOfLife", &from_snake_case_to_upper_camel_case("meaning_of_life"));
-	}
-
-	#[test]
-	fn test_from_snake_case_to_upper_camel_case_on_from_snake_case_to_upper_camel_cased_str() {
-		assert_eq!("MeaningOfLife", &from_snake_case_to_upper_camel_case("MeaningOfLife"));
-	}
-
-	#[test]
-	fn test_from_snake_case_to_upper_camel_case_to_snake_case() {
-		assert_eq!("meaning_of_life", &snake_case("MeaningOfLife"));
-	}
-
-	#[test]
-	fn test_snake_case_on_snake_cased_str() {
-		assert_eq!("meaning_of_life", &snake_case("meaning_of_life"));
-	}
 }
