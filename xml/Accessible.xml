@@ -67,7 +67,7 @@
     <property name="Locale" type="s" access="read"/>
 
     <!--
-        AccessibleId: application-spcific identifier for the current object.
+        AccessibleId: application-specific identifier for the current object.
 
         You can use this to give a special id to an object to use in tests, for example,
         "my_widget".  Note that there is no way to directly find an object by its id; your
@@ -113,7 +113,8 @@
         GetIndexInParent:
 
         Returns the 0-based index at which the object would be returned by calling
-        GetChildren on its parent.
+        GetChildren on its parent, or -1 if the object has no containing
+        parent or on exception.
     -->
     <method name="GetIndexInParent">
       <arg direction="out" type="i"/>
@@ -293,7 +294,7 @@
 
         12 - ATSPI_ROLE_DATE_EDITOR: An object which allows entry of a date.
 
-        13 - ATSPI_ROLE_DESKTOP_ICON: An inconifed internal frame within a DESKTOP_PANE.
+        13 - ATSPI_ROLE_DESKTOP_ICON: An inconified internal frame within a DESKTOP_PANE.
 
         14 - ATSPI_ROLE_DESKTOP_FRAME: A pane that supports internal frames and
              iconified versions of those internal frames.
@@ -419,7 +420,7 @@
         54 - ATSPI_ROLE_STATUS_BAR: Object displays non-quantitative status information
              (c.f. ATSPI_ROLE_PROGRESS_BAR)
 
-        55 - ATSPI_ROLE_TABLE: An object used to repesent information in terms of rows
+        55 - ATSPI_ROLE_TABLE: An object used to represent information in terms of rows
              and columns.
 
         56 - ATSPI_ROLE_TABLE_CELL: A 'cell' or discrete child within a Table. Note:
@@ -728,7 +729,9 @@
 
         Gets a UTF-8 string corresponding to the name of the role played by an object.
         This method will return useful values for roles that fall outside the
-        enumeration used in the GetRole method.
+        enumeration used in the GetRole method. Implementing this method is
+        optional, and it may be removed in a future version of the API.
+        Libatspi will only call id in the event of an unknown role.
     -->
     <method name="GetRoleName">
       <arg direction="out" type="s"/>
@@ -740,7 +743,9 @@
         Gets a UTF-8 string corresponding to the name of the role played by an object, translated
         to the current locale.
         This method will return useful values for roles that fall outside the
-        enumeration used in the GetRole method.
+        enumeration used in the GetRole method. Implementing this method is
+        optional, and it may be removed in a future version of the API.
+        Libatspi will only call id in the event of an unknown role.
     -->
     <method name="GetLocalizedRoleName">
       <arg direction="out" type="s"/>
