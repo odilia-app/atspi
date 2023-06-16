@@ -25,8 +25,8 @@ zvariant = "3.12.0"
 zbus = { version = "3.12.0", optional = true, default-features = false }
 
 [dev-dependencies]
-atspi-proxies = { path = "../atspi-proxies/", default-features = false }
-atspi-connection = { path = "../atspi-connection", default-features = false }
+atspi-proxies = { path = "../atspi-proxies/", version = "0.1.0", default-features = false }
+atspi-connection = { path = "../atspi-connection", version = "0.1.0", default-features = false }
 async-std = { version = "1.12.0", features = ["attributes"] }
 futures-lite = "1.13.0"
 tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }
