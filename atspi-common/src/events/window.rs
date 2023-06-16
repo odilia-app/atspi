@@ -6,70 +6,6 @@ use crate::{
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that this example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// use atspi_common::events::window::PropertyChangeEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let output = std::process::Command::new("busctl")
-/// #       .arg("--user")
-/// #       .arg("call")
-/// #       .arg("org.a11y.Bus")
-/// #       .arg("/org/a11y/bus")
-/// #       .arg("org.a11y.Bus")
-/// #       .arg("GetAddress")
-/// #       .output()
-/// #       .unwrap();
-/// #    let addr_string = String::from_utf8(output.stdout).unwrap();
-/// #    let addr_str = addr_string
-/// #        .strip_prefix("s \"")
-/// #        .unwrap()
-/// #        .trim()
-/// #        .strip_suffix('"')
-/// #        .unwrap();
-/// #   let mut base_cmd = std::process::Command::new("busctl");
-/// #   let thing = base_cmd
-/// #       .arg("--address")
-/// #       .arg(addr_str)
-/// #       .arg("emit")
-/// #       .arg("/org/a11y/atspi/accessible/null")
-/// #       .arg("org.a11y.atspi.Event.Window")
-/// #       .arg("PropertyChange")
-/// #       .arg("siiva{sv}")
-/// #       .arg("")
-/// #       .arg("0")
-/// #       .arg("0")
-/// #       .arg("i")
-/// #       .arg("0")
-/// #       .arg("0")
-/// #       .output()
-/// #       .unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///          if let Event::Window(_event) = ev {
-/// #            break;
-///              // do things with your event here
-///          }
-/// #        else { panic!("Something went wrong receiving the event. Usually this means the wrong event was received.") };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum WindowEvents {
 	PropertyChange(PropertyChangeEvent),
@@ -99,743 +35,97 @@ impl HasMatchRule for WindowEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window'";
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::PropertyChangeEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<PropertyChangeEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = PropertyChangeEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = PropertyChangeEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
 	pub item: crate::events::Accessible,
 	pub property: String,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::MinimizeEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<MinimizeEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = MinimizeEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = MinimizeEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MinimizeEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::MaximizeEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<MaximizeEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = MaximizeEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = MaximizeEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MaximizeEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::RestoreEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<RestoreEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = RestoreEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = RestoreEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestoreEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::CloseEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<CloseEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = CloseEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = CloseEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CloseEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::CreateEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<CreateEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = CreateEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = CreateEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CreateEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::ReparentEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<ReparentEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = ReparentEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = ReparentEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReparentEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::DesktopCreateEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<DesktopCreateEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = DesktopCreateEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = DesktopCreateEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopCreateEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::DesktopDestroyEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<DesktopDestroyEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = DesktopDestroyEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = DesktopDestroyEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopDestroyEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::DestroyEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<DestroyEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = DestroyEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = DestroyEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DestroyEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::ActivateEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<ActivateEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = ActivateEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = ActivateEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActivateEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::DeactivateEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<DeactivateEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = DeactivateEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = DeactivateEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DeactivateEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::RaiseEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<RaiseEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = RaiseEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = RaiseEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RaiseEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::LowerEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<LowerEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = LowerEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = LowerEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LowerEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::MoveEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<MoveEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = MoveEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = MoveEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MoveEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::ResizeEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<ResizeEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = ResizeEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = ResizeEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ResizeEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::ShadeEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<ShadeEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = ShadeEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = ShadeEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ShadeEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::UUshadeEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<UUshadeEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = UUshadeEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = UUshadeEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct UUshadeEvent {
 	pub item: crate::events::Accessible,
 }
 
-// IgnoreBlock start
-/// # Example
-///
-/// Even though this example employs `Tokio`, any runtime will do.
-///
-/// Note that the example is minimized for rhe sake of brevity.
-/// More complete examples may be found in the `examples/` directory.
-///
-/// ```
-/// use atspi_common::events::Event;
-/// # use atspi_common::events::GenericEvent;
-/// use atspi_common::events::window::RestyleEvent;
-/// # use std::time::Duration;
-/// use futures_lite::StreamExt;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-///     let mut events = atspi.event_stream();
-/// #   atspi.register_event::<RestyleEvent>().await.unwrap();
-///     std::pin::pin!(&mut events);
-/// #   let event_struct = RestyleEvent::default();
-/// #   atspi.send_event(event_struct.clone()).await.unwrap();
-///
-///     while let Some(Ok(ev)) = events.next().await {
-///         if let Ok(event) = RestyleEvent::try_from(ev) {
-/// #          assert_eq!(event.body(), event_struct.body());
-/// #          break;
-///            // do something with the specific event you've received
-///         } else { continue };
-///     }
-/// }
-/// ```
-// IgnoreBlock stop
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestyleEvent {
 	pub item: crate::events::Accessible,
