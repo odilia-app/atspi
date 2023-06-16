@@ -57,12 +57,3 @@ fn zvariant_type_signature_of_cache_item() {
 		zbus::zvariant::Signature::from_static_str("((so)(so)(so)iiassusau)").unwrap()
 	);
 }
-
-// impl CacheItem {
-//     fn accessible(&self, conn: &Connection) -> AccessibleProxy<'_> {
-//         let conn = conn.inner().connection();
-//         let (name, path) = (self.object.0, self.object.1);
-//         ProxyBuilder::new(conn)
-//     }
-// }
-//

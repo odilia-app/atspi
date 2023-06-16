@@ -26,8 +26,4 @@ trait Socket {
 
 	/// Unembed method
 	fn unembed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
-
-	/// Available signal
-	#[dbus_proxy(signal)]
-	fn available(&self, socket: (&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
 }
