@@ -89,4 +89,3 @@ fn zvariant_type_signature_of_legacy_cache_item() {
 		zbus::zvariant::Signature::from_static_str("((so)(so)(so)a(so)assusau)").unwrap()
 	);
 }
-
