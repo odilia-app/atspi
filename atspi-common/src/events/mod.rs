@@ -502,7 +502,7 @@ impl TryFrom<&zbus::Message> for Event {
 					let ev = AvailableEvent::try_from(msg)?;
 					Ok(Event::Available(ev))
 				}
-				_ => Err(AtspiError::UnknownSignal),
+				_ => Err(AtspiError::UnknownSignal(message_signature.to_string())),
 			},
 			// Atspi / Qspi signature
 			"siiva{sv}" | "siiv(so)" => {
@@ -525,7 +525,7 @@ impl TryFrom<&zbus::Message> for Event {
 					"org.a11y.atspi.Event.Window" => {
 						Ok(Event::Window(WindowEvents::try_from(msg)?))
 					}
-					_ => Err(AtspiError::UnknownInterface),
+					_ => Err(AtspiError::UnknownInterface(interface.to_string())),
 				}
 			}
 			"(ss)" => {
@@ -535,14 +535,14 @@ impl TryFrom<&zbus::Message> for Event {
 				if let Ok(ev) = EventListenerDeregisteredEvent::try_from(msg) {
 					return Ok(Event::Listener(EventListenerEvents::Deregistered(ev)));
 				}
-				Err(AtspiError::UnknownSignal)
+				Err(AtspiError::UnknownSignal(message_signature.to_string()))
 			}
 			// CacheAdd signature
 			"((so)(so)(so)iiassusau)" => {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
-			_ => Err(AtspiError::UnknownBusSignature),
+			_ => Err(AtspiError::UnknownBusSignature(message_signature.to_string())),
 		}
 	}
 }

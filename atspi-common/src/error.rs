@@ -1,6 +1,5 @@
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
-#[non_exhaustive]
 /// An error type that can describe atspi and `std` and different `zbus` errors.
 pub enum AtspiError {
 	/// Converting one type into another failure
@@ -16,10 +15,10 @@ pub enum AtspiError {
 	InterfaceMatch(String),
 
 	/// To indicate a match or equality test on a signa body signature failed.
-	UnknownBusSignature,
+	UnknownBusSignature(String),
 
 	/// When matching on an unknown interface
-	UnknownInterface,
+	UnknownInterface(String),
 
 	/// No interface on event.
 	MissingInterface,
@@ -31,7 +30,7 @@ pub enum AtspiError {
 	MissingName,
 
 	/// The signal that was encountered is unknown.
-	UnknownSignal,
+	UnknownSignal(String),
 
 	/// Other errors.
 	Owned(String),
@@ -73,11 +72,17 @@ impl std::fmt::Display for AtspiError {
 			Self::InterfaceMatch(e) => {
 				f.write_str(format!("atspi: interface mismatch in conversion: {e}").as_str())
 			}
-			Self::UnknownBusSignature => f.write_str("atspi: Unknown bus body signature."),
-			Self::UnknownInterface => f.write_str("Unknown interface."),
+			Self::UnknownBusSignature(signature) => {
+				f.write_str(&format!("atspi: Unknown bus body signature: {signature}."))
+			}
+			Self::UnknownInterface(interface_name) => {
+				f.write_str(&format!("Unknown interface: {interface_name}."))
+			}
 			Self::MissingInterface => f.write_str("Missing interface."),
 			Self::MissingMember => f.write_str("Missing member."),
-			Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
+			Self::UnknownSignal(signal_name) => {
+				f.write_str(&format!("atspi: Unknown signal: {signal_name}"))
+			}
 			Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
 			Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
 			Self::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
