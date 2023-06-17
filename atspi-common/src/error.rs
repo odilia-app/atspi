@@ -39,7 +39,7 @@ pub enum AtspiError {
 	Zbus(String),
 
 	/// Failed to parse a string into an enum variant
-	ParseError(&'static str),
+	ParseError(String),
 
 	/// Failed to convert an integer into another type of integer (usually i32 -> usize).
 	IntConversionError,
