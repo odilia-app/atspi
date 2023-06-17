@@ -2,9 +2,6 @@
 #[derive(Debug, serde::Serialize, serde::Deserialize, Eq, PartialEq, Clone)]
 /// An error type that can describe atspi and `std` and different `zbus` errors.
 pub enum AtspiError {
-	/// Converting one type into another failure
-	Conversion(&'static str),
-
 	/// When testing on either variant, we might find the we are not interested in.
 	CacheVariantMismatch,
 
@@ -49,6 +46,11 @@ pub enum AtspiError {
 
 	/// An infallible error; this is just something to satisfy the compiler.
 	Infallible,
+
+	/// An error for when you attempt to extract the incorrect variant of a type.
+	/// For example: [`crate::events::Event`] has many variants and sub-variants that can be extracted.
+	/// If you attempt to convert to a variant which is not the variant contained within the `Event` enum, then you will get this error.
+	InvalidType,
 	
 	/// An error type to hold innumerable errors. This includes implementation detail errors like internal zbus errors or serde serialization problems (again internal to zbus).
 	/// Any generic error here *can* be moved into its own variant if requested.
@@ -61,7 +63,9 @@ impl std::error::Error for AtspiError {}
 impl std::fmt::Display for AtspiError {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
-			Self::Conversion(e) => f.write_str(&format!("atspi: conversion failure: {e}")),
+			Self::InvalidType => {
+				f.write_str("atspi: invalid type conversion")
+			}
 			Self::MemberMatch(e) => {
 				f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
 			}
