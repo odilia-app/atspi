@@ -33,7 +33,6 @@ use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
 	cache::CacheItem,
-	error::ObjectPathConversionError,
 	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
 		object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
@@ -297,10 +296,10 @@ impl TryFrom<&zbus::Message> for Accessible {
 			name: message
 				.header()?
 				.sender()?
-				.ok_or(ObjectPathConversionError::NoIdAvailable)?
+				.ok_or(Self::Error::MissingPath)?
 				.to_owned()
 				.into(),
-			path: message.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
+			path: message.path().ok_or(Self::Error::MissingPath)?.into(),
 		})
 	}
 }
