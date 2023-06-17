@@ -13,15 +13,16 @@ license = "Apache-2.0 OR MIT"
 
 [features]
 default = ["async-std"]
-async-std = ["zbus/async-io"]
-tokio = ["zbus/tokio"]
+async-std = ["zbus/async-io", "_foreign_conversion"]
+tokio = ["zbus/tokio", "_foreign_conversion"]
+_foreign_conversion = []
 
 [dependencies]
 enumflags2 = "0.7.7"
 serde = "1.0.162"
 static_assertions = "1.1.0"
-zbus_names = "2.5.0"
-zvariant = "3.12.0"
+zbus_names = { version = "2.5.0", default-features = false }
+zvariant = { version = "3.12.0", default-features = false }
 zbus = { version = "3.12.0", optional = true, default-features = false }
 
 [dev-dependencies]
