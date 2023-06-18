@@ -11,7 +11,7 @@ pub mod window;
 // ----
 // The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
 // -  Cache : RemoveAccessible
-// -  Socket: Available  *( signals the availability of the `Registry` daeomon.)
+// -  Socket: Available  *( signals the availability of the `Registry` daemon.)
 //
 // ATSPI- and QSPI both describe the generic events. These can be converted into
 // specific signal types with TryFrom implementations. See crate::[`identify`]
@@ -42,6 +42,32 @@ use crate::{
 };
 //use atspi_macros::try_from_zbus_message;
 
+pub(crate) fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
+	let bytes = lhs.as_bytes();
+	let lhs_sig_has_outer_parens = bytes.starts_with(&[b'('])
+		&& bytes.ends_with(&[b')'])
+		&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+			b'(' => count + 1,
+			b')' if count > 0 => count - 1,
+			_ => count,
+		}) == 0);
+
+	let bytes = rhs.as_bytes();
+	let rhs_sig_has_outer_parens = bytes.starts_with(&[b'('])
+		&& bytes.ends_with(&[b')'])
+		&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+			b'(' => count + 1,
+			b')' if count > 0 => count - 1,
+			_ => count,
+		}) == 0);
+
+	match (lhs_sig_has_outer_parens, rhs_sig_has_outer_parens) {
+		(true, false) => lhs.slice(1..lhs.len() - 1).as_bytes() == rhs.as_bytes(),
+		(false, true) => lhs.as_bytes() == rhs.slice(1..rhs.len() - 1).as_bytes(),
+		_ => lhs.as_bytes() == rhs.as_bytes(),
+	}
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
 	#[serde(rename = "type")]
@@ -69,6 +95,18 @@ pub struct EventBodyQT {
 	pub detail2: i32,
 	pub any_data: OwnedValue,
 	pub properties: (String, OwnedObjectPath),
+}
+
+impl Default for EventBodyQT {
+	fn default() -> Self {
+		Self {
+			kind: String::new(),
+			detail1: 0,
+			detail2: 0,
+			any_data: Value::U8(0u8).into(),
+			properties: (String::new(), ObjectPath::from_static_str_unchecked("/").into()),
+		}
+	}
 }
 
 // Signature (siiva{sv}),
@@ -223,7 +261,7 @@ impl TryFrom<zvariant::OwnedValue> for Accessible {
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
 			zvariant::Value::Structure(s) => {
-				if s.signature() != ACCESSIBLE_PAIR_SIGNATURE {
+				if !signatures_are_eq(&s.signature(), &ACCESSIBLE_PAIR_SIGNATURE) {
 					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
 				}
 				let fields = s.fields();
@@ -295,21 +333,13 @@ pub mod accessible_tests {
 impl TryFrom<&zbus::Message> for Accessible {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		Ok(Accessible {
-			name: message
-				.header()?
-				.sender()?
-				.ok_or(ObjectPathConversionError::NoIdAvailable)?
-				.to_owned()
-				.into(),
-			path: message.path().ok_or(ObjectPathConversionError::NoIdAvailable)?.into(),
-		})
+		Ok(message.body::<Accessible>()?)
 	}
 }
 
 #[test]
 fn test_accessible_signature() {
-	assert_eq!(Accessible::signature(), "(so)");
+	assert_eq_signatures!(&Accessible::signature(), &ACCESSIBLE_PAIR_SIGNATURE);
 }
 
 #[cfg(feature = "zbus")]
@@ -318,10 +348,14 @@ impl TryFrom<zbus::Message> for EventBodyOwned {
 
 	fn try_from(message: zbus::Message) -> Result<Self, Self::Error> {
 		let signature = message.body_signature()?;
-		if signature == QSPI_EVENT_SIGNATURE {
+		if signatures_are_eq(&signature, &QSPI_EVENT_SIGNATURE) {
 			Ok(EventBodyOwned::from(message.body::<EventBodyQT>()?))
-		} else {
+		} else if signatures_are_eq(&signature, &ATSPI_EVENT_SIGNATURE) {
 			Ok(message.body::<EventBodyOwned>()?)
+		} else {
+			Err(AtspiError::Conversion(
+				"Unable to convert from zbus::Message to EventBodyQT or EventBodyOwned",
+			))
 		}
 	}
 }
@@ -343,13 +377,14 @@ impl Default for EventListeners {
 }
 #[test]
 fn test_event_listener_default_no_panic() {
-	let _el = EventListeners::default();
-	assert!(true);
+	let el = EventListeners::default();
+	assert_eq!(el.bus_name.as_str(), ":0.0");
+	assert_eq!(el.path.as_str(), "/org/a11y/atspi/accessible/null");
 }
 
 #[test]
 fn test_event_listener_signature() {
-	assert_eq!(EventListeners::signature(), "(ss)");
+	assert_eq_signatures!(&EventListeners::signature(), &EVENT_LISTENER_SIGNATURE);
 }
 
 /// Covers both `EventListener` events.
@@ -419,10 +454,10 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	const DBUS_MEMBER: &'static str = "EventListenerRegistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 
-	type Body = (EventListeners,);
+	type Body = EventListeners;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, registered_event: body.0 })
+		Ok(Self { item, registered_event: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -431,7 +466,7 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
-		(self.registered_event.clone(),)
+		self.registered_event.clone()
 	}
 }
 impl_from_dbus_message!(EventListenerRegisteredEvent);
@@ -466,10 +501,10 @@ impl GenericEvent<'_> for AvailableEvent {
 	const DBUS_MEMBER: &'static str = "Available";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
 
-	type Body = (Accessible,);
+	type Body = Accessible;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, socket: body.0 })
+		Ok(Self { item, socket: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -478,7 +513,7 @@ impl GenericEvent<'_> for AvailableEvent {
 		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
-		(self.socket.clone(),)
+		self.socket.clone()
 	}
 }
 impl_from_dbus_message!(AvailableEvent);
@@ -596,13 +631,12 @@ pub trait HasRegistryEventString {
 
 #[cfg(test)]
 mod tests {
-	use atspi_common::{CacheItem, StateSet, InterfaceSet, Role};
 	use atspi_common::events::{
-		Accessible,
-		AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT,
+		Accessible, AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT,
 		RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
 		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
+	use atspi_common::{CacheItem, InterfaceSet, Role, StateSet};
 	use atspi_connection::AccessibilityConnection;
 	use std::{collections::HashMap, time::Duration};
 	use tokio_stream::StreamExt;
@@ -617,57 +651,14 @@ mod tests {
 
 	#[test]
 	fn check_event_body_signature() {
-		assert_eq!(<EventBodyOwned as Type>::signature(), ATSPI_EVENT_SIGNATURE);
-	}
-
-	fn gen_event_body_qt() -> EventBodyQT {
-		EventBodyQT {
-			kind: "remove".to_string(),
-			detail1: 0,
-			detail2: 0,
-			any_data: Value::U8(0u8).into(),
-			properties: ("".to_string(), ObjectPath::try_from("/").unwrap().into()),
-		}
+		assert_eq_signatures!(&<EventBodyOwned as Type>::signature(), &ATSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]
 	fn test_event_body_qt_to_event_body_owned_conversion() {
-		let event_body: EventBodyOwned = gen_event_body_qt().into();
-		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
+		let event_body: EventBodyOwned = EventBodyQT::default().into();
+		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
-	}
-
-	fn has_outer_parentheses(bytes: &[u8]) -> bool {
-		bytes.starts_with(&[b'('])
-			&& bytes.ends_with(&[b')'])
-			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
-				b'(' => count + 1,
-				b')' if count > 0 => count - 1,
-				_ => count,
-			}) == 0)
-	}
-
-	// This asserts that the signatures are equal, but ignores the outer parentheses as
-	// the difference between marshalled and unmarshalled signatures is often just one set of outer parentheses.
-	#[macro_export]
-	macro_rules! assert_eq_signatures {
-		($bus_signature:expr, $type_signature:expr) => {
-			let lhs_sig: zvariant::Signature<'_> = $bus_signature;
-			let rhs_sig: zvariant::Signature<'_> = $type_signature;
-
-			match (
-				has_outer_parentheses(lhs_sig.as_bytes()),
-				has_outer_parentheses(rhs_sig.as_bytes()),
-			) {
-				(true, false) => {
-					assert_eq!(lhs_sig.slice(1..lhs_sig.len() - 1).as_bytes(), rhs_sig.as_bytes());
-				}
-				(false, true) => {
-					assert_eq!(lhs_sig.as_bytes(), rhs_sig.slice(1..rhs_sig.len() - 1).as_bytes());
-				}
-				_ => assert_eq!(lhs_sig.as_bytes(), rhs_sig.as_bytes()),
-			}
-		};
 	}
 
 	#[tokio::test]
@@ -698,7 +689,7 @@ mod tests {
 				.unwrap()
 		};
 
-		assert_eq_signatures!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
+		assert_eq_signatures!(&msg.body_signature().unwrap(), &ACCESSIBLE_PAIR_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
 		loop {
@@ -710,9 +701,7 @@ mod tests {
 				Some(res) => {
 					match res {
 						Ok(event) => match event {
-							Event::Cache(CacheEvents::Remove(
-								event,
-							)) => {
+							Event::Cache(CacheEvents::Remove(event)) => {
 								let removed_accessible = event.node_removed;
 								assert_eq!(
 									removed_accessible.path.as_str(),
@@ -777,7 +766,7 @@ mod tests {
 				.unwrap()
 		};
 
-		assert_eq_signatures!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
+		assert_eq_signatures!(&msg.body_signature().unwrap(), &CACHE_ADD_SIGNATURE);
 		atspi.connection().send_message(msg).await.unwrap();
 
 		loop {

@@ -113,7 +113,7 @@ macro_rules! event_enum_test_case {
 			let struct_event = <$type>::default();
 			let event = Event::from(struct_event.clone());
 			let struct_event_back = <$type>::try_from(event)
-				.expect("Could not convert from `Event` back to specifc event type");
+				.expect("Could not convert from `Event` back to specific event type");
 			assert_eq!(struct_event, struct_event_back);
 		}
 	};
@@ -143,14 +143,14 @@ macro_rules! zbus_message_test_case {
 			let event_enum: Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
-		// make want to consider paramaterized tests here, no need for fuzz testing, but one level lower than that may be nice
+		// make want to consider parameterized tests here, no need for fuzz testing, but one level lower than that may be nice
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
 		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_fake_msg() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
+				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.technically.valid",
 				"MadeUpMember",
 			)
@@ -167,7 +167,7 @@ macro_rules! zbus_message_test_case {
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
+				"/org/a11y/sixtynine/fourtwenty",
 				<$type as GenericEvent>::DBUS_INTERFACE,
 				"MadeUpMember",
 			)
@@ -184,7 +184,7 @@ macro_rules! zbus_message_test_case {
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
+				"/org/a11y/sixtynine/fourtwenty",
 				<$type as GenericEvent>::DBUS_INTERFACE,
 				<$type as GenericEvent>::DBUS_MEMBER,
 			)
@@ -351,5 +351,43 @@ macro_rules! event_test_cases {
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
+	};
+}
+
+/// Asserts that the signatures are equal, but ignores the outer parentheses as
+/// the difference between marshalled and unmarshalled signatures is often just one set of outer parentheses.
+#[macro_export]
+macro_rules! assert_eq_signatures {
+	($bus_signature:expr, $type_signature:expr) => {
+		let lhs_sig: &zvariant::Signature<'_> = $bus_signature;
+		let rhs_sig: &zvariant::Signature<'_> = $type_signature;
+
+		let bytes = lhs_sig.as_bytes();
+		let bus_sig_has_outer_parens = bytes.starts_with(&[b'('])
+			&& bytes.ends_with(&[b')'])
+			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+				b'(' => count + 1,
+				b')' if count > 0 => count - 1,
+				_ => count,
+			}) == 0);
+
+		let bytes = rhs_sig.as_bytes();
+		let type_sig_has_outer_parens = bytes.starts_with(&[b'('])
+			&& bytes.ends_with(&[b')'])
+			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+				b'(' => count + 1,
+				b')' if count > 0 => count - 1,
+				_ => count,
+			}) == 0);
+
+		match (bus_sig_has_outer_parens, type_sig_has_outer_parens) {
+			(true, false) => {
+				assert_eq!(lhs_sig.slice(1..lhs_sig.len() - 1).as_bytes(), rhs_sig.as_bytes());
+			}
+			(false, true) => {
+				assert_eq!(lhs_sig.as_bytes(), rhs_sig.slice(1..rhs_sig.len() - 1).as_bytes());
+			}
+			_ => assert_eq!(lhs_sig.as_bytes(), rhs_sig.as_bytes()),
+		}
 	};
 }
