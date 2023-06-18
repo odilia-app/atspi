@@ -183,10 +183,10 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 	const DBUS_MEMBER: &'static str = "AddAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-	type Body = (CacheItem,);
+	type Body = CacheItem;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body.0 })
+		Ok(Self { item, node_added: body })
 	}
 
 	fn sender(&self) -> UniqueName<'_> {
@@ -196,7 +196,7 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
-		(self.node_added.clone(),)
+		self.node_added.clone()
 	}
 }
 impl<'a, T: GenericEvent<'a>> HasMatchRule for T {
@@ -415,10 +415,10 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 
-	type Body = (EventListeners,);
+	type Body = EventListeners;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, deregistered_event: body.0 })
+		Ok(Self { item, deregistered_event: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -427,7 +427,7 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
-		(self.deregistered_event.clone(),)
+		self.deregistered_event.clone()
 	}
 }
 impl_from_dbus_message!(EventListenerDeregisteredEvent);
