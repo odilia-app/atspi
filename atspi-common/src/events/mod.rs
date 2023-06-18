@@ -6,7 +6,7 @@ pub mod object;
 pub mod terminal;
 pub mod window;
 
-// Event body signatures: These outline the event specific deserialized event types.
+// Unmarshalled event body signatures: These outline the event specific deserialized event types.
 // Safety: These are evaluated at compile time.
 // ----
 // The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
@@ -116,7 +116,7 @@ pub enum Event {
 	Available(AvailableEvent),
 	/// Both `CacheAdd` and `CacheRemove` signals
 	Cache(CacheEvents),
-	/// Emitted on registry or deregristry of event listeners.,
+	/// Emitted on registration or de-registration of event listeners.
 	///
 	/// (eg. "Cache:AddAccessible:")
 	Listener(EventListenerEvents),
@@ -171,9 +171,12 @@ impl<'a, T: GenericEvent<'a>> HasRegistryEventString for T {
 impl_from_dbus_message!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
+/// `Cache::RemoveAccessible` signal event type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct RemoveAccessibleEvent {
+	/// The application that emitted the signal TODO Check Me
 	pub item: Accessible,
+	/// The node that was removed from the application tree  TODO Check Me
 	pub node_removed: Accessible,
 }
 impl_event_conversions!(RemoveAccessibleEvent, CacheEvents, CacheEvents::Remove, Event::Cache);
@@ -185,12 +188,10 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 	const DBUS_MEMBER: &'static str = "RemoveAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-	/// These parenthasies need to be here to match the signature on the bus: "(so)";
-	/// Most events use separate fields and therefore no parenthasies to create structs.
-	type Body = (Accessible,);
+	type Body = Accessible;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_removed: body.0 })
+		Ok(Self { item, node_removed: body })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -199,9 +200,10 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
-		(self.node_removed.clone(),)
+		self.node_removed.clone()
 	}
 }
+
 impl_from_dbus_message!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);
 
@@ -491,9 +493,12 @@ impl TryFrom<&zbus::Message> for Event {
 		let message_signature = body_signature.as_str();
 		let signal_member = msg.member().ok_or(AtspiError::MissingMember)?;
 		let message_member = signal_member.as_str();
+
+		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
+		// Therefore no outer parentheses.
 		match message_signature {
-			// Accessible signature
-			"(so)" => match message_member {
+			// Marshalled Accessible signature
+			"so" => match message_member {
 				"RemoveAccessible" => {
 					let ev = RemoveAccessibleEvent::try_from(msg)?;
 					Ok(Event::Cache(CacheEvents::Remove(ev)))
@@ -528,7 +533,7 @@ impl TryFrom<&zbus::Message> for Event {
 					_ => Err(AtspiError::UnknownInterface),
 				}
 			}
-			"(ss)" => {
+			"ss" => {
 				if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg) {
 					return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
 				}
@@ -537,8 +542,8 @@ impl TryFrom<&zbus::Message> for Event {
 				}
 				Err(AtspiError::UnknownSignal)
 			}
-			// CacheAdd signature
-			"((so)(so)(so)iiassusau)" => {
+			// Marshalled `AddAccessible` signature
+			"(so)(so)(so)iiassusau" => {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
@@ -573,7 +578,7 @@ pub trait GenericEvent<'a> {
 	/// Sender of the signal.
 	///
 	/// ### Errors
-	/// - when deserializeing the header failed, or
+	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
 	fn sender(&self) -> UniqueName<'_>;
 
@@ -591,9 +596,17 @@ pub trait HasRegistryEventString {
 
 #[cfg(test)]
 mod tests {
-	use crate::events::{EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE};
-	use std::collections::HashMap;
-	use zvariant::{ObjectPath, Type, Value};
+	use super::{
+		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
+		RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
+		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
+	};
+	use atspi_connection::AccessibilityConnection;
+	use std::{collections::HashMap, time::Duration};
+	use tokio_stream::StreamExt;
+	use zbus::MessageBuilder;
+	use zbus_names::OwnedUniqueName;
+	use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -620,5 +633,189 @@ mod tests {
 		let event_body: EventBodyOwned = gen_event_body_qt().into();
 		let props = HashMap::from([("".to_string(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
+	}
+
+	fn has_outer_parentheses(bytes: &[u8]) -> bool {
+		bytes.starts_with(&[b'('])
+			&& bytes.ends_with(&[b')'])
+			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+				b'(' => count + 1,
+				b')' if count > 0 => count - 1,
+				_ => count,
+			}) == 0)
+	}
+
+	// This asserts that the signatures are equal, but ignores the outer parentheses as
+	// the difference between marshalled and unmarshalled signatures is often just one set of outer parentheses.
+	#[macro_export]
+	macro_rules! assert_eq_signatures {
+		($bus_signature:expr, $type_signature:expr) => {
+			let lhs_sig: zvariant::Signature<'_> = $bus_signature;
+			let rhs_sig: zvariant::Signature<'_> = $type_signature;
+
+			match (
+				has_outer_parentheses(lhs_sig.as_bytes()),
+				has_outer_parentheses(rhs_sig.as_bytes()),
+			) {
+				(true, false) => {
+					assert_eq!(lhs_sig.slice(1..lhs_sig.len() - 1).as_bytes(), rhs_sig.as_bytes());
+				}
+				(false, true) => {
+					assert_eq!(lhs_sig.as_bytes(), rhs_sig.slice(1..rhs_sig.len() - 1).as_bytes());
+				}
+				_ => assert_eq!(lhs_sig.as_bytes(), rhs_sig.as_bytes()),
+			}
+		};
+	}
+
+	#[tokio::test]
+	async fn test_recv_remove_accessible() {
+		let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
+
+		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
+
+		let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
+		tokio::pin!(events);
+
+		let msg: zbus::Message = {
+			let path = "/org/a11y/atspi/accessible/null";
+			let iface = "org.a11y.atspi.Cache";
+			let member = "RemoveAccessible";
+
+			let unique_bus_name = atspi.connection().unique_name().unwrap();
+			let remove_body = crate::events::Accessible {
+				name: OwnedUniqueName::try_from(":69.420").unwrap(),
+				path: OwnedObjectPath::try_from("/org/a11y/atspi/application/remove").unwrap(),
+			};
+
+			MessageBuilder::signal(path, iface, member)
+				.expect("Could not create signal")
+				.sender(unique_bus_name.clone())
+				.expect("Could not set sender to {unique_bus_name:?}")
+				.build(&remove_body)
+				.unwrap()
+		};
+
+		assert_eq_signatures!(msg.body_signature().unwrap(), ACCESSIBLE_PAIR_SIGNATURE);
+		atspi.connection().send_message(msg).await.unwrap();
+
+		loop {
+			let to = events.try_next().await;
+			assert!(to.is_ok(), "Stream timed out");
+			let opt = to.unwrap();
+
+			match opt {
+				Some(res) => {
+					match res {
+						Ok(event) => match event {
+							crate::events::Event::Cache(crate::events::CacheEvents::Remove(
+								event,
+							)) => {
+								let removed_accessible = event.node_removed;
+								assert_eq!(
+									removed_accessible.path.as_str(),
+									"/org/a11y/atspi/accessible/null"
+								);
+								assert_eq!(
+									removed_accessible.path.as_str(),
+									"/org/a11y/atspi/application/remove"
+								);
+								break;
+							}
+							_some_other_event => continue,
+						},
+						// Stream yields a Some(Err(Error)) when a message is received
+						Err(e) => panic!("Error: conversion to Event failed {e:?}"),
+					}
+				}
+				// Stream yields a None when the stream is closed
+				None => panic!("Stream closed"),
+			}
+		}
+	}
+
+	#[tokio::test]
+	async fn test_recv_add_accessible() {
+		let atspi = AccessibilityConnection::open().await.unwrap();
+		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
+
+		let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
+		tokio::pin!(events);
+
+		let msg: zbus::Message = {
+			let path = "/org/a11y/atspi/accessible/null";
+			let iface = "org.a11y.atspi.Cache";
+			let member = "AddAccessible";
+
+			let unique_bus_name = atspi.connection().unique_name().unwrap();
+
+			let add_body = CacheItem {
+				object: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+				),
+				app: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+				),
+				parent: (
+					":1.1".to_string(),
+					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
+				),
+				index: 0,
+				children: 0,
+				ifaces: crate::InterfaceSet::empty(),
+				short_name: String::new(),
+				role: crate::Role::Application,
+				name: "Hi".to_string(),
+				states: crate::StateSet::empty(),
+			};
+
+			MessageBuilder::signal(path, iface, member)
+				.expect("Could not create signal")
+				.sender(unique_bus_name.clone())
+				.expect("Could not set sender to {unique_bus_name:?}")
+				.build(&add_body)
+				.unwrap()
+		};
+
+		assert_eq_signatures!(msg.body_signature().unwrap(), CACHE_ADD_SIGNATURE);
+		atspi.connection().send_message(msg).await.unwrap();
+
+		loop {
+			let to = events.try_next().await;
+			assert!(to.is_ok(), "Stream timed out");
+			let opt = to.unwrap();
+
+			match opt {
+				Some(res) => {
+					// This result comes from inner event-stream, Stream yields a Result<Event, AtspiError>
+					match res {
+						Ok(event) => match event {
+							Event::Cache(CacheEvents::Add(add_accessible_event)) => {
+								let cache_item = add_accessible_event.node_added;
+								assert_eq!(
+									cache_item.object.1.as_str(),
+									"/org/a11y/atspi/accessible/object"
+								);
+								assert_eq!(
+									cache_item.app.1.as_str(),
+									"/org/a11y/atspi/accessible/application"
+								);
+								assert_eq!(
+									cache_item.parent.1.as_str(),
+									"/org/a11y/atspi/accessible/parent"
+								);
+								break;
+							}
+							_any_other_event => continue,
+						},
+						Err(e) => panic!("Error: conversion to Event failed {e:?}"),
+					}
+				}
+				// Stream yields a None when the stream is closed
+				None => panic!("Stream closed"),
+			}
+		}
 	}
 }
