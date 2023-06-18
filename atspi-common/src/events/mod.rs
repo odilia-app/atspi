@@ -154,10 +154,10 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 	const DBUS_MEMBER: &'static str = "AddAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-	type Body = (LegacyCacheItem,);
+	type Body = LegacyCacheItem;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body.0 })
+		Ok(Self { item, node_added: body })
 	}
 
 	fn sender(&self) -> UniqueName<'_> {
@@ -167,7 +167,7 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
-		(self.node_added.clone(),)
+		self.node_added.clone()
 	}
 }
 
@@ -585,7 +585,7 @@ impl TryFrom<&zbus::Message> for Event {
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
 			// LegacyCacheAdd signature
-			"((so)(so)(so)a(so)assusau)" => {
+			"(so)(so)(so)a(so)assusau" => {
 				let ev = LegacyAddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
 			}
