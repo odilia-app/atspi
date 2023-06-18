@@ -137,7 +137,12 @@ pub struct LegacyAddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: LegacyCacheItem,
 }
-impl_event_conversions!(LegacyAddAccessibleEvent, CacheEvents, CacheEvents::LegacyAdd, Event::Cache);
+impl_event_conversions!(
+	LegacyAddAccessibleEvent,
+	CacheEvents,
+	CacheEvents::LegacyAdd,
+	Event::Cache
+);
 event_test_cases!(LegacyAddAccessibleEvent);
 impl_from_dbus_message!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
