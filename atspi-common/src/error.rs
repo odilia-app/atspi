@@ -51,7 +51,7 @@ pub enum AtspiError {
 	/// For example: [`crate::events::Event`] has many variants and sub-variants that can be extracted.
 	/// If you attempt to convert to a variant which is not the variant contained within the `Event` enum, then you will get this error.
 	InvalidType,
-	
+
 	/// An error type to hold innumerable errors. This includes implementation detail errors like internal zbus errors or serde serialization problems (again internal to zbus).
 	/// Any generic error here *can* be moved into its own variant if requested.
 	/// These errors in general should be fairly rare; if you get this error, something very bad has happened, and you may want to consider [filing a bug](https://github.com/odilia-app/atspi/issues/) with a way to reproduce the bug.
@@ -63,9 +63,7 @@ impl std::error::Error for AtspiError {}
 impl std::fmt::Display for AtspiError {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
-			Self::InvalidType => {
-				f.write_str("atspi: invalid type conversion")
-			}
+			Self::InvalidType => f.write_str("atspi: invalid type conversion"),
 			Self::MemberMatch(e) => {
 				f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
 			}
@@ -92,7 +90,7 @@ impl std::fmt::Display for AtspiError {
 			Self::MissingName => f.write_str("Missing name for a bus."),
 			Self::Infallible => {
 				f.write_str("Infallible; only to trick the compiler. This should never happen.")
-			},
+			}
 			Self::Generic(msg) => f.write_str(msg),
 		}
 	}
