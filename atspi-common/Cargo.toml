@@ -18,18 +18,18 @@ tokio = ["zbus/tokio", "atspi-connection/tokio", "atspi-common/tokio"]
 
 [dependencies]
 enumflags2 = "0.7.7"
-serde = "1.0.162"
+serde = "1.0"
 static_assertions = "1.1.0"
 zbus_names = "2.5.0"
-zvariant = { version = "3.12.0", default-features = false }
-zbus = { version = "3.12.0", optional = true, default-features = false }
+zvariant = { version = "3", default-features = false }
+zbus = { version = "3", optional = true, default-features = false }
 
 [dev-dependencies]
-zbus = { version = "3.12.0", default-features = false }
-atspi-connection = { path = "../atspi-connection" } 
-tokio-stream = { version = "0.1", default-features = false, features = ["time"] }
+zbus = { version = "3", default-features = false }
+atspi-connection = { path = "../atspi-connection", default_features = false }  
+tokio-stream = { version = "0.1", default-features = false, features = ["full"] }
 tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
 byteorder = "1.4.3"
 rename-item = "0.1.0"
 tokio-test = "0.4.2"
-atspi-common = { path = ".", default-features = false }
+atspi-common = { path = ".", default-features = false, features = ["zbus"]}

@@ -342,10 +342,10 @@ fn test_accessible_signature() {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<zbus::Message> for EventBodyOwned {
+impl TryFrom<&zbus::Message> for EventBodyOwned {
 	type Error = AtspiError;
 
-	fn try_from(message: zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		let signature = message.body_signature()?;
 		if signatures_are_eq(&signature, &QSPI_EVENT_SIGNATURE) {
 			Ok(EventBodyOwned::from(message.body::<EventBodyQT>()?))
@@ -524,15 +524,15 @@ impl TryFrom<&zbus::Message> for Event {
 
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
 		let body_signature = msg.body_signature()?;
-		let message_signature = body_signature.as_str();
+		let body_signature = body_signature.as_str();
 		let signal_member = msg.member().ok_or(AtspiError::MissingMember)?;
-		let message_member = signal_member.as_str();
+		let member_str = signal_member.as_str();
 
 		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
 		// Therefore no outer parentheses.
-		match message_signature {
+		match body_signature {
 			// Marshalled Accessible signature
-			"so" => match message_member {
+			"so" => match member_str {
 				"RemoveAccessible" => {
 					let ev = RemoveAccessibleEvent::try_from(msg)?;
 					Ok(Event::Cache(CacheEvents::Remove(ev)))
@@ -601,7 +601,7 @@ pub trait GenericEvent<'a> {
 	/// # Errors
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
-	/// It is not possible for this to error on most events, but on events whoes raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
+	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
@@ -641,11 +641,11 @@ mod tests {
 	use tokio_stream::StreamExt;
 	use zbus::MessageBuilder;
 	use zbus_names::OwnedUniqueName;
-	use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+	use zvariant::{ObjectPath, OwnedObjectPath, Type};
 
 	#[test]
 	fn check_event_body_qt_signature() {
-		assert_eq!(<EventBodyQT as Type>::signature(), QSPI_EVENT_SIGNATURE);
+		assert_eq_signatures!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]
@@ -708,7 +708,7 @@ mod tests {
 								);
 								break;
 							}
-							_some_other_event => continue,
+							_ => continue,
 						},
 						// Stream yields a Some(Err(Error)) when a message is received
 						Err(e) => panic!("Error: conversion to Event failed {e:?}"),
@@ -765,8 +765,16 @@ mod tests {
 				.unwrap()
 		};
 
-		assert_eq_signatures!(&msg.body_signature().unwrap(), &CACHE_ADD_SIGNATURE);
-		atspi.connection().send_message(msg).await.unwrap();
+		assert_eq_signatures!(
+			&msg.body_signature()
+				.expect("marshalled AddAccessible body signature != expected"),
+			&CACHE_ADD_SIGNATURE
+		);
+		atspi
+			.connection()
+			.send_message(msg)
+			.await
+			.expect("Message sending unsuccesful");
 
 		loop {
 			let to = events.try_next().await;
@@ -778,8 +786,10 @@ mod tests {
 					// This result comes from inner event-stream, Stream yields a Result<Event, AtspiError>
 					match res {
 						Ok(event) => match event {
-							Event::Cache(CacheEvents::Add(add_accessible_event)) => {
-								let cache_item = add_accessible_event.node_added;
+							Event::Cache(CacheEvents::Add(AddAccessibleEvent {
+								item: _,
+								node_added: cache_item,
+							})) => {
 								assert_eq!(
 									cache_item.object.1.as_str(),
 									"/org/a11y/atspi/accessible/object"
