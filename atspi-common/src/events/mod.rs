@@ -32,7 +32,7 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
-	cache::CacheItem,
+	cache::{CacheItem, LegacyCacheItem},
 	error::ObjectPathConversionError,
 	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
@@ -126,7 +126,44 @@ pub enum Event {
 #[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
 	Add(AddAccessibleEvent),
+	LegacyAdd(LegacyAddAccessibleEvent),
 	Remove(RemoveAccessibleEvent),
+}
+
+/// Type that contains the `zbus::Message` for meta information and
+/// the [`crate::cache::LegacyCacheItem`]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
+pub struct LegacyAddAccessibleEvent {
+	pub item: Accessible,
+	pub node_added: LegacyCacheItem,
+}
+impl_event_conversions!(LegacyAddAccessibleEvent, CacheEvents, CacheEvents::LegacyAdd, Event::Cache);
+event_test_cases!(LegacyAddAccessibleEvent);
+impl_from_dbus_message!(LegacyAddAccessibleEvent);
+impl_to_dbus_message!(LegacyAddAccessibleEvent);
+
+impl GenericEvent<'_> for LegacyAddAccessibleEvent {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
+	const DBUS_MEMBER: &'static str = "AddAccessible";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+
+	type Body = (LegacyCacheItem,);
+
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body.0 })
+	}
+
+	fn sender(&self) -> UniqueName<'_> {
+		self.item.name.clone().into()
+	}
+	fn path(&self) -> ObjectPath<'_> {
+		self.item.path.clone().into()
+	}
+	fn body(&self) -> Self::Body {
+		(self.node_added.clone(),)
+	}
 }
 
 /// Type that contains the `zbus::Message` for meta information and
@@ -541,6 +578,11 @@ impl TryFrom<&zbus::Message> for Event {
 			"((so)(so)(so)iiassusau)" => {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
+			}
+			// LegacyCacheAdd signature
+			"((so)(so)(so)a(so)assusau)" => {
+				let ev = LegacyAddAccessibleEvent::try_from(msg)?;
+				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
 			}
 			_ => Err(AtspiError::UnknownBusSignature),
 		}
