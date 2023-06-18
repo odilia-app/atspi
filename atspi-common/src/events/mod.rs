@@ -596,8 +596,10 @@ pub trait HasRegistryEventString {
 
 #[cfg(test)]
 mod tests {
-	use super::{
-		AddAccessibleEvent, CacheEvents, CacheItem, Event, EventBodyOwned, EventBodyQT,
+	use atspi_common::{CacheItem, StateSet, InterfaceSet, Role};
+	use atspi_common::events::{
+		Accessible,
+		AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT,
 		RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
 		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
@@ -683,9 +685,9 @@ mod tests {
 			let member = "RemoveAccessible";
 
 			let unique_bus_name = atspi.connection().unique_name().unwrap();
-			let remove_body = crate::events::Accessible {
+			let remove_body = Accessible {
 				name: OwnedUniqueName::try_from(":69.420").unwrap(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/application/remove").unwrap(),
+				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
 			};
 
 			MessageBuilder::signal(path, iface, member)
@@ -708,17 +710,13 @@ mod tests {
 				Some(res) => {
 					match res {
 						Ok(event) => match event {
-							crate::events::Event::Cache(crate::events::CacheEvents::Remove(
+							Event::Cache(CacheEvents::Remove(
 								event,
 							)) => {
 								let removed_accessible = event.node_removed;
 								assert_eq!(
 									removed_accessible.path.as_str(),
-									"/org/a11y/atspi/accessible/null"
-								);
-								assert_eq!(
-									removed_accessible.path.as_str(),
-									"/org/a11y/atspi/application/remove"
+									"/org/a11y/atspi/accessible/remove"
 								);
 								break;
 							}
@@ -764,11 +762,11 @@ mod tests {
 				),
 				index: 0,
 				children: 0,
-				ifaces: crate::InterfaceSet::empty(),
+				ifaces: InterfaceSet::empty(),
 				short_name: String::new(),
-				role: crate::Role::Application,
+				role: Role::Application,
 				name: "Hi".to_string(),
-				states: crate::StateSet::empty(),
+				states: StateSet::empty(),
 			};
 
 			MessageBuilder::signal(path, iface, member)
