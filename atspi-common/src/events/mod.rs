@@ -665,7 +665,9 @@ mod tests {
 	use tokio_stream::StreamExt;
 	use zbus::MessageBuilder;
 	use zbus_names::OwnedUniqueName;
-	use zvariant::{ObjectPath, OwnedObjectPath, Type};
+	use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
+
+	use super::signatures_are_eq;
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -683,6 +685,39 @@ mod tests {
 			EventBodyQT { kind: "remove".into(), ..Default::default() }.into();
 		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
+	}
+
+	// `assert_eq_signatures!` and `signatures_are_eq` are helpers to deal with the difference
+	// in `Signatures` as consequence of marshalling. While `zvariant` is very lenient with respect
+	// to outer parentheses, these helpers only take one marshalling step into account.
+	#[test]
+	fn test_signatures_are_equal_macro_and_fn() {
+		let with_parentheses = &Signature::from_static_str_unchecked("(ii)");
+		let without_parentheses = &Signature::from_static_str_unchecked("ii");
+		assert_eq_signatures!(with_parentheses, without_parentheses);
+		assert!(signatures_are_eq(with_parentheses, without_parentheses));
+		// test against themselves
+		assert!(signatures_are_eq(with_parentheses, with_parentheses));
+		assert!(signatures_are_eq(without_parentheses, without_parentheses));
+		assert!(signatures_are_eq(with_parentheses, with_parentheses));
+		assert!(signatures_are_eq(without_parentheses, without_parentheses));
+		let with_parentheses = &Signature::from_static_str_unchecked("(ii)(ii)");
+		let without_parentheses = &Signature::from_static_str_unchecked("((ii)(ii))");
+		assert_eq_signatures!(with_parentheses, without_parentheses);
+		assert!(signatures_are_eq(with_parentheses, without_parentheses));
+		// test against themselves
+		assert!(signatures_are_eq(with_parentheses, with_parentheses));
+		assert!(signatures_are_eq(without_parentheses, without_parentheses));
+		assert_eq_signatures!(with_parentheses, with_parentheses);
+		assert_eq_signatures!(without_parentheses, without_parentheses);
+		// test false cases with unbalanced parentheses
+		let with_parentheses = &Signature::from_static_str_unchecked("(ii)(ii)");
+		let without_parentheses = &Signature::from_static_str_unchecked("((ii)(ii)");
+		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
+		// test case with more than oune extra outer parentheses
+		let with_parentheses = &Signature::from_static_str_unchecked("((ii)(ii))");
+		let without_parentheses = &Signature::from_static_str_unchecked("((((ii)(ii))))");
+		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
 	}
 
 	#[tokio::test]
