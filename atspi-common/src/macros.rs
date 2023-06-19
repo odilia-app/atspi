@@ -359,6 +359,11 @@ macro_rules! event_test_cases {
 #[macro_export]
 macro_rules! assert_eq_signatures {
 	($lhs_sig:expr, $rhs_sig:expr) => {
-		assert!(signatures_are_eq($lhs_sig, $rhs_sig))
+		assert!(
+			signatures_are_eq($lhs_sig, $rhs_sig),
+			"Signatures are not equal (Lhs: {}, Rhs: {})",
+			$lhs_sig,
+			$rhs_sig
+		);
 	};
 }
