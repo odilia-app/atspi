@@ -26,8 +26,8 @@ zbus = { version = "3", optional = true, default-features = false }
 
 [dev-dependencies]
 zbus = { version = "3", default-features = false }
-atspi-connection = { path = "../atspi-connection", default-features = false, default_features = false }  
-tokio-stream = { version = "0.1", default-features = false, features = ["full"] }
+atspi-connection = { path = "../atspi-connection", default-features = false  }  
+tokio-stream = { version = "0.1", default-features = false, features = ["time"] }
 tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
 byteorder = "1.4.3"
 rename-item = "0.1.0"
