@@ -28,6 +28,7 @@ pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use zbus::{MessageField, MessageFieldCode};
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
@@ -42,23 +43,21 @@ use crate::{
 //use atspi_macros::try_from_zbus_message;
 
 pub(crate) fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
+	fn has_outer_parentheses(bytes: &[u8]) -> bool {
+		bytes.starts_with(&[b'('])
+			&& bytes.ends_with(&[b')'])
+			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+				b'(' => count + 1,
+				b')' if count > 0 => count - 1,
+				_ => count,
+			}) == 0)
+	}
+
 	let bytes = lhs.as_bytes();
-	let lhs_sig_has_outer_parens = bytes.starts_with(&[b'('])
-		&& bytes.ends_with(&[b')'])
-		&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
-			b'(' => count + 1,
-			b')' if count > 0 => count - 1,
-			_ => count,
-		}) == 0);
+	let lhs_sig_has_outer_parens = has_outer_parentheses(bytes);
 
 	let bytes = rhs.as_bytes();
-	let rhs_sig_has_outer_parens = bytes.starts_with(&[b'('])
-		&& bytes.ends_with(&[b')'])
-		&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
-			b'(' => count + 1,
-			b')' if count > 0 => count - 1,
-			_ => count,
-		}) == 0);
+	let rhs_sig_has_outer_parens = has_outer_parentheses(bytes);
 
 	match (lhs_sig_has_outer_parens, rhs_sig_has_outer_parens) {
 		(true, false) => lhs.slice(1..lhs.len() - 1).as_bytes() == rhs.as_bytes(),
@@ -132,6 +131,18 @@ impl From<EventBodyQT> for EventBodyOwned {
 			detail2: body.detail2,
 			any_data: body.any_data,
 			properties: props,
+		}
+	}
+}
+
+impl Default for EventBodyOwned {
+	fn default() -> Self {
+		Self {
+			kind: String::new(),
+			detail1: 0,
+			detail2: 0,
+			any_data: Value::U8(0u8).into(),
+			properties: HashMap::new(),
 		}
 	}
 }
@@ -332,7 +343,20 @@ pub mod accessible_tests {
 impl TryFrom<&zbus::Message> for Accessible {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		Ok(message.body::<Accessible>()?)
+		let path = message.path().expect("returned path is either Some or panics");
+		let owned_path = OwnedObjectPath::try_from(path)?;
+		let fields = message.fields()?;
+		let sender = fields.get_field(MessageFieldCode::Sender);
+		let sender = sender
+			.expect("We get the sender field from a valid MessageFieldCode, so it should be there");
+
+		let MessageField::Sender(unique_name) = sender else {
+			return Err(AtspiError::Conversion("Unable to convert zbus::Message to Accessible"));
+		};
+		let unique_name = unique_name.as_str();
+		let owned_name = OwnedUniqueName::try_from(unique_name)?;
+
+		Ok(Accessible { name: owned_name, path: owned_path })
 	}
 }
 
@@ -655,7 +679,8 @@ mod tests {
 
 	#[test]
 	fn test_event_body_qt_to_event_body_owned_conversion() {
-		let event_body: EventBodyOwned = EventBodyQT::default().into();
+		let event_body: EventBodyOwned =
+			EventBodyQT { kind: "remove".into(), ..Default::default() }.into();
 		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
