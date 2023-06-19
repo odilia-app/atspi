@@ -358,36 +358,7 @@ macro_rules! event_test_cases {
 /// the difference between marshalled and unmarshalled signatures is often just one set of outer parentheses.
 #[macro_export]
 macro_rules! assert_eq_signatures {
-	($bus_signature:expr, $type_signature:expr) => {
-		let lhs_sig: &zvariant::Signature<'_> = $bus_signature;
-		let rhs_sig: &zvariant::Signature<'_> = $type_signature;
-
-		let bytes = lhs_sig.as_bytes();
-		let bus_sig_has_outer_parens = bytes.starts_with(&[b'('])
-			&& bytes.ends_with(&[b')'])
-			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
-				b'(' => count + 1,
-				b')' if count > 0 => count - 1,
-				_ => count,
-			}) == 0);
-
-		let bytes = rhs_sig.as_bytes();
-		let type_sig_has_outer_parens = bytes.starts_with(&[b'('])
-			&& bytes.ends_with(&[b')'])
-			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
-				b'(' => count + 1,
-				b')' if count > 0 => count - 1,
-				_ => count,
-			}) == 0);
-
-		match (bus_sig_has_outer_parens, type_sig_has_outer_parens) {
-			(true, false) => {
-				assert_eq!(lhs_sig.slice(1..lhs_sig.len() - 1).as_bytes(), rhs_sig.as_bytes());
-			}
-			(false, true) => {
-				assert_eq!(lhs_sig.as_bytes(), rhs_sig.slice(1..rhs_sig.len() - 1).as_bytes());
-			}
-			_ => assert_eq!(lhs_sig.as_bytes(), rhs_sig.as_bytes()),
-		}
+	($lhs_sig:expr, $rhs_sig:expr) => {
+		assert!(signatures_are_eq($lhs_sig, $rhs_sig))
 	};
 }

@@ -42,7 +42,7 @@ use crate::{
 };
 //use atspi_macros::try_from_zbus_message;
 
-pub(crate) fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
+fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	fn has_outer_parentheses(bytes: &[u8]) -> bool {
 		bytes.starts_with(&[b'('])
 			&& bytes.ends_with(&[b')'])
@@ -286,6 +286,7 @@ impl TryFrom<zvariant::OwnedValue> for Accessible {
 		}
 	}
 }
+
 #[cfg(test)]
 pub mod accessible_deserialization_tests {
 	use crate::events::Accessible;
