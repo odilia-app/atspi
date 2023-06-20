@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate static_assertions;
 #[macro_use]
-mod macros;
+pub(crate) mod macros;
 
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};

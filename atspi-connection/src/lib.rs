@@ -57,7 +57,6 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// `RegistryProxy` is configured with invalid path, interface or destination
-
 	pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
 		#[cfg(feature = "tracing")]
 		tracing::debug!("Connecting to a11y bus");
