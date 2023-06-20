@@ -22,4 +22,4 @@ async-trait = "0.1.68"
 static_assertions = "1.1.0"
 atspi-common = { path = "../atspi-common/", version = "0.1.0", default-features = false }
 atspi-proxies = { path = "../atspi-proxies", version = "0.1.0", default-features = false, features = ["unstable-traits"] }
-zbus.workspace = true
+zbus = { workspace = true }
