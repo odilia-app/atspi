@@ -54,7 +54,7 @@ macro_rules! impl_to_dbus_message {
 					<$type as GenericEvent>::DBUS_MEMBER,
 				)?
 				.sender(event.sender())?
-				.build(&(event.body()))?)
+				.build(&event.body())?)
 			}
 		}
 	};
@@ -113,7 +113,7 @@ macro_rules! event_enum_test_case {
 			let struct_event = <$type>::default();
 			let event = Event::from(struct_event.clone());
 			let struct_event_back = <$type>::try_from(event)
-				.expect("Could not convert from `Event` back to specifc event type");
+				.expect("Could not convert from `Event` back to specific event type");
 			assert_eq!(struct_event, struct_event_back);
 		}
 	};
@@ -143,14 +143,14 @@ macro_rules! zbus_message_test_case {
 			let event_enum: Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
-		// make want to consider paramaterized tests here, no need for fuzz testing, but one level lower than that may be nice
+		// make want to consider parameterized tests here, no need for fuzz testing, but one level lower than that may be nice
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
 		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_fake_msg() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
+				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.technically.valid",
 				"MadeUpMember",
 			)
@@ -167,7 +167,7 @@ macro_rules! zbus_message_test_case {
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
+				"/org/a11y/sixtynine/fourtwenty",
 				<$type as GenericEvent>::DBUS_INTERFACE,
 				"MadeUpMember",
 			)
@@ -184,7 +184,7 @@ macro_rules! zbus_message_test_case {
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
+				"/org/a11y/sixtynine/fourtwenty",
 				<$type as GenericEvent>::DBUS_INTERFACE,
 				<$type as GenericEvent>::DBUS_MEMBER,
 			)
@@ -208,7 +208,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.sender(":0.0")
 			.unwrap()
-			.build(&(<$type>::default().body()))
+			.build(&<$type>::default().body())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("This should panic! Invalid event.");
@@ -218,14 +218,14 @@ macro_rules! zbus_message_test_case {
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
+				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.accessible.technically.valid",
 				<$type as GenericEvent>::DBUS_MEMBER,
 			)
 			.unwrap()
 			.sender(":0.0")
 			.unwrap()
-			.build(&(<$type>::default().body()))
+			.build(&<$type>::default().body())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("This should panic! Invalid event.");
@@ -256,14 +256,14 @@ macro_rules! event_wrapper_test_cases {
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_interface() {
 				let fake_msg = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
+					"/org/a11y/sixtynine/fourtwenty",
 					"org.a11y.atspi.technically.valid.lol",
 					<$any_subtype as GenericEvent>::DBUS_MEMBER,
 				)
 				.unwrap()
 				.sender(":0.0")
 				.unwrap()
-				.build(&(<$any_subtype>::default().body()))
+				.build(&<$any_subtype>::default().body())
 				.unwrap();
 				let mod_type = <$type>::try_from(&fake_msg);
 				mod_type.expect(
@@ -275,14 +275,14 @@ macro_rules! event_wrapper_test_cases {
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member() {
 				let fake_msg = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
+					"/org/a11y/sixtynine/fourtwenty",
 					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
 					"FakeFunctionLol",
 				)
 				.unwrap()
 				.sender(":0.0")
 				.unwrap()
-				.build(&(<$any_subtype>::default().body()))
+				.build(&<$any_subtype>::default().body())
 				.unwrap();
 				let mod_type = <$type>::try_from(&fake_msg);
 				mod_type.expect(
@@ -294,14 +294,14 @@ macro_rules! event_wrapper_test_cases {
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member_and_interface() {
 				let fake_msg = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
+					"/org/a11y/sixtynine/fourtwenty",
 					"org.a11y.atspi.technically.allowed",
 					"FakeFunctionLol",
 				)
 				.unwrap()
 				.sender(":0.0")
 				.unwrap()
-				.build(&(<$any_subtype>::default().body()))
+				.build(&<$any_subtype>::default().body())
 				.unwrap();
 				let mod_type = <$type>::try_from(&fake_msg);
 				mod_type.expect(
@@ -312,14 +312,14 @@ macro_rules! event_wrapper_test_cases {
 			#[test]
 			fn zbus_msg_conversion() {
 				let valid_msg = zbus::MessageBuilder::signal(
-					"/org/a11y/sixynine/fourtwenty",
+					"/org/a11y/sixtynine/fourtwenty",
 					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
 					<$any_subtype as GenericEvent>::DBUS_MEMBER,
 				)
 				.unwrap()
 				.sender(":0.0")
 				.unwrap()
-				.build(&(<$any_subtype>::default().body()))
+				.build(&<$any_subtype>::default().body())
 				.unwrap();
 				let mod_type = <$type>::try_from(&valid_msg);
 				mod_type.expect("Could not convert message into a event wrapper type");
@@ -351,5 +351,19 @@ macro_rules! event_test_cases {
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
+	};
+}
+
+/// Asserts that the signatures are equal, but ignores the outer parentheses as
+/// the difference between marshalled and unmarshalled signatures is often just one set of outer parentheses.
+#[macro_export]
+macro_rules! assert_eq_signatures {
+	($lhs_sig:expr, $rhs_sig:expr) => {
+		assert!(
+			signatures_are_eq($lhs_sig, $rhs_sig),
+			"Signatures are not equal (Lhs: {}, Rhs: {})",
+			$lhs_sig,
+			$rhs_sig
+		);
 	};
 }

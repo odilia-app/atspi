@@ -1,6 +1,6 @@
 [package]
 name = "atspi"
-version = "0.16.0"
+version = "0.17.0"
 edition = "2021"
 description = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
 license = "Apache-2.0 OR MIT"
@@ -18,12 +18,15 @@ default = ["async-std"]
 async-std = ["proxies-async-std", "connection-async-std", "client-async-std"]
 tokio = ["proxies-tokio", "connection-tokio", "client-tokio"]
 
-proxies-async-std = ["atspi-proxies/async-std"]
-proxies-tokio = ["atspi-proxies/tokio"]
-connection-async-std = ["atspi-connection/async-std"]
-connection-tokio = ["atspi-connection/tokio"]
-client-async-std = ["atspi-client/async-std"]
-client-tokio = ["atspi-client/tokio"]
+proxies = []
+proxies-async-std = ["atspi-proxies/async-std", "proxies"]
+proxies-tokio = ["atspi-proxies/tokio", "proxies"]
+connection = []
+connection-async-std = ["atspi-connection/async-std", "connection"]
+connection-tokio = ["atspi-connection/tokio", "connection"]
+client = []
+client-async-std = ["atspi-client/async-std", "client"]
+client-tokio = ["atspi-client/tokio", "client"]
 unstable-proxy-traits = ["atspi-proxies/unstable-traits"]
 
 [dependencies]
