@@ -1,3 +1,4 @@
+use crate::AtspiError;
 use enumflags2::{bitflags, BitFlag, BitFlags, FromBitsError};
 use serde::{
 	de::{self, Deserializer, Visitor},
@@ -272,59 +273,66 @@ impl From<State> for String {
 	}
 }
 
-impl From<String> for State {
-	fn from(string: String) -> State {
-		(&*string).into()
+impl TryFrom<String> for State {
+	type Error = AtspiError;
+
+	fn try_from(string: String) -> Result<State, Self::Error> {
+		(&*string).try_into()
 	}
 }
 
-impl From<&str> for State {
-	fn from(string: &str) -> State {
+impl TryFrom<&str> for State {
+	type Error = AtspiError;
+
+	fn try_from(string: &str) -> Result<State, Self::Error> {
 		match string {
-			"active" => State::Active,
-			"armed" => State::Armed,
-			"busy" => State::Busy,
-			"checked" => State::Checked,
-			"collapsed" => State::Collapsed,
-			"defunct" => State::Defunct,
-			"editable" => State::Editable,
-			"enabled" => State::Enabled,
-			"expandable" => State::Expandable,
-			"expanded" => State::Expanded,
-			"focusable" => State::Focusable,
-			"focused" => State::Focused,
-			"has-tooltip" => State::HasTooltip,
-			"horizontal" => State::Horizontal,
-			"iconified" => State::Iconified,
-			"modal" => State::Modal,
-			"multi-line" => State::MultiLine,
-			"multiselectable" => State::Multiselectable,
-			"opaque" => State::Opaque,
-			"pressed" => State::Pressed,
-			"resizable" => State::Resizable,
-			"selectable" => State::Selectable,
-			"selected" => State::Selected,
-			"sensitive" => State::Sensitive,
-			"showing" => State::Showing,
-			"single-line" => State::SingleLine,
-			"stale" => State::Stale,
-			"transient" => State::Transient,
-			"vertical" => State::Vertical,
-			"visible" => State::Visible,
-			"manages-descendants" => State::ManagesDescendants,
-			"indeterminate" => State::Indeterminate,
-			"required" => State::Required,
-			"truncated" => State::Truncated,
-			"animated" => State::Animated,
-			"invalid-entry" => State::InvalidEntry,
-			"supports-autocompletion" => State::SupportsAutocompletion,
-			"selectable-text" => State::SelectableText,
-			"is-default" => State::IsDefault,
-			"visited" => State::Visited,
-			"checkable" => State::Checkable,
-			"has-popup" => State::HasPopup,
-			"read-only" => State::ReadOnly,
-			_ => State::Invalid,
+			"invalid" => Ok(State::Invalid),
+			"active" => Ok(State::Active),
+			"armed" => Ok(State::Armed),
+			"busy" => Ok(State::Busy),
+			"checked" => Ok(State::Checked),
+			"collapsed" => Ok(State::Collapsed),
+			"defunct" => Ok(State::Defunct),
+			"editable" => Ok(State::Editable),
+			"enabled" => Ok(State::Enabled),
+			"expandable" => Ok(State::Expandable),
+			"expanded" => Ok(State::Expanded),
+			"focusable" => Ok(State::Focusable),
+			"focused" => Ok(State::Focused),
+			"has-tooltip" => Ok(State::HasTooltip),
+			"horizontal" => Ok(State::Horizontal),
+			"iconified" => Ok(State::Iconified),
+			"modal" => Ok(State::Modal),
+			"multi-line" => Ok(State::MultiLine),
+			"multiselectable" => Ok(State::Multiselectable),
+			"opaque" => Ok(State::Opaque),
+			"pressed" => Ok(State::Pressed),
+			"resizable" => Ok(State::Resizable),
+			"selectable" => Ok(State::Selectable),
+			"selected" => Ok(State::Selected),
+			"sensitive" => Ok(State::Sensitive),
+			"showing" => Ok(State::Showing),
+			"single-line" => Ok(State::SingleLine),
+			"stale" => Ok(State::Stale),
+			"transient" => Ok(State::Transient),
+			"vertical" => Ok(State::Vertical),
+			"visible" => Ok(State::Visible),
+			"manages-descendants" => Ok(State::ManagesDescendants),
+			"indeterminate" => Ok(State::Indeterminate),
+			"required" => Ok(State::Required),
+			"truncated" => Ok(State::Truncated),
+			"animated" => Ok(State::Animated),
+			"invalid-entry" => Ok(State::InvalidEntry),
+			"supports-autocompletion" => Ok(State::SupportsAutocompletion),
+			"selectable-text" => Ok(State::SelectableText),
+			"is-default" => Ok(State::IsDefault),
+			"visited" => Ok(State::Visited),
+			"checkable" => Ok(State::Checkable),
+			"has-popup" => Ok(State::HasPopup),
+			"read-only" => Ok(State::ReadOnly),
+			_ => {
+				Err(AtspiError::ParseError(format!("No state found that can deserialize {string}")))
+			}
 		}
 	}
 }
@@ -604,7 +612,7 @@ mod tests {
 			.iter()
 		{
 			let state_str: String = state.into();
-			let state_two: State = state_str.clone().into();
+			let state_two: State = state_str.clone().try_into().unwrap();
 			assert_eq!(
 				state, state_two,
 				"The {state:?} was serialized as {state_str}, which deserializes to {state_two:?}"

@@ -280,7 +280,7 @@ impl GenericEvent<'_> for StateChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
+		Ok(Self { item, state: body.kind.try_into()?, enabled: body.detail1 })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
