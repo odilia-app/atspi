@@ -1,8 +1,7 @@
 use crate::{
-	State,
 	error::AtspiError,
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
-	Event,
+	Event, State,
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
