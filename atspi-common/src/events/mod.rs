@@ -28,7 +28,6 @@ pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use zbus::{MessageField, MessageFieldCode};
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
@@ -386,20 +385,15 @@ pub mod accessible_tests {
 impl TryFrom<&zbus::Message> for Accessible {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		let path = message.path().expect("returned path is either Some or panics");
-		let owned_path = OwnedObjectPath::try_from(path)?;
-		let fields = message.fields()?;
-		let sender = fields.get_field(MessageFieldCode::Sender);
-		let sender = sender
-			.expect("We get the sender field from a valid MessageFieldCode, so it should be there");
-
-		let MessageField::Sender(unique_name) = sender else {
-			return Err(AtspiError::Conversion("Unable to convert zbus::Message to Accessible"));
-		};
-		let unique_name = unique_name.as_str();
-		let owned_name = OwnedUniqueName::try_from(unique_name)?;
-
-		Ok(Accessible { name: owned_name, path: owned_path })
+		Ok(Accessible {
+			name: message
+				.header()?
+				.sender()?
+				.ok_or(Self::Error::MissingName)?
+				.to_owned()
+				.into(),
+			path: message.path().ok_or(Self::Error::MissingPath)?.into(),
+		})
 	}
 }
 
@@ -419,8 +413,8 @@ impl TryFrom<&zbus::Message> for EventBodyOwned {
 		} else if signatures_are_eq(&signature, &ATSPI_EVENT_SIGNATURE) {
 			Ok(message.body::<EventBodyOwned>()?)
 		} else {
-			Err(AtspiError::Conversion(
-				"Unable to convert from zbus::Message to EventBodyQT or EventBodyOwned",
+			Err(AtspiError::ParseError(
+				"Unable to convert from zbus::Message to EventBodyQT or EventBodyOwned".to_string(),
 			))
 		}
 	}
@@ -555,7 +549,7 @@ impl TryFrom<Event> for AvailableEvent {
 		if let Event::Available(specific_event) = generic_event {
 			Ok(specific_event)
 		} else {
-			Err(AtspiError::Conversion("Invalid type"))
+			Err(AtspiError::InvalidType)
 		}
 	}
 }
@@ -608,7 +602,7 @@ impl TryFrom<&zbus::Message> for Event {
 					let ev = AvailableEvent::try_from(msg)?;
 					Ok(Event::Available(ev))
 				}
-				_ => Err(AtspiError::UnknownSignal),
+				_ => Err(AtspiError::UnknownSignal(body_signature.to_string())),
 			},
 			// Atspi / Qspi signature
 			"siiva{sv}" | "siiv(so)" => {
@@ -631,7 +625,7 @@ impl TryFrom<&zbus::Message> for Event {
 					"org.a11y.atspi.Event.Window" => {
 						Ok(Event::Window(WindowEvents::try_from(msg)?))
 					}
-					_ => Err(AtspiError::UnknownInterface),
+					_ => Err(AtspiError::UnknownInterface(interface.to_string())),
 				}
 			}
 			"ss" => {
@@ -641,7 +635,7 @@ impl TryFrom<&zbus::Message> for Event {
 				if let Ok(ev) = EventListenerDeregisteredEvent::try_from(msg) {
 					return Ok(Event::Listener(EventListenerEvents::Deregistered(ev)));
 				}
-				Err(AtspiError::UnknownSignal)
+				Err(AtspiError::UnknownSignal(body_signature.to_string()))
 			}
 			// Marshalled `AddAccessible` signature
 			"(so)(so)(so)iiassusau" => {
@@ -653,7 +647,7 @@ impl TryFrom<&zbus::Message> for Event {
 				let ev = LegacyAddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
 			}
-			_ => Err(AtspiError::UnknownBusSignature),
+			_ => Err(AtspiError::UnknownBusSignature(body_signature.to_string())),
 		}
 	}
 }
