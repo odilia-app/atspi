@@ -39,6 +39,36 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - name: Run tests
         run: cargo clippy --workspace --no-deps -- -D warnings 
+  common-crate-wasm-compilation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Cache cargo home
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-cargo-home
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Install targets
+        run: rustup target add wasm32-unknown-unknow && rustup target add wasm32-wasi
+      - name: Build on WASM (wasm32-unknown-unknown)
+        working-directory: atspi-common
+        run: cargo build --target wasm32-unknown-unknown
+      - name: Build on WASM (wasm32-wasi)
+        working-directory: atspi-common
+        run: cargo build --target wasm32-wasi
   tests:
     runs-on: ubuntu-latest
     steps:
