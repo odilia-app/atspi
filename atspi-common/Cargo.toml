@@ -12,7 +12,7 @@ license = "Apache-2.0 OR MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["async-std"]
+default = []
 async-std = ["zbus/async-io", "_foreign_conversion", "atspi-connection/async-std", "atspi-common/async-std"]
 tokio = ["zbus/tokio", "_foreign_conversion", "atspi-connection/tokio", "atspi-common/tokio"]
 _foreign_conversion = []
