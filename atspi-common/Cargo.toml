@@ -1,6 +1,6 @@
 [package]
 name = "atspi-common"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 readme = "README.md"
 categories = ["macros", "accessibility"]
@@ -13,16 +13,17 @@ license = "Apache-2.0 OR MIT"
 
 [features]
 default = ["async-std"]
-async-std = ["zbus/async-io", "atspi-connection/async-std", "atspi-common/async-std"]
-tokio = ["zbus/tokio", "atspi-connection/tokio", "atspi-common/tokio"]
+async-std = ["zbus/async-io", "_foreign_conversion", "atspi-connection/async-std", "atspi-common/async-std"]
+tokio = ["zbus/tokio", "_foreign_conversion", "atspi-connection/tokio", "atspi-common/tokio"]
+_foreign_conversion = []
 
 [dependencies]
 enumflags2 = "0.7.7"
 serde = "1.0"
 static_assertions = "1.1.0"
-zbus_names = "2.5.0"
-zvariant = { version = "3", default-features = false }
-zbus = { version = "3", optional = true, default-features = false }
+zbus_names = { version = "2.5.0", default-features = false }
+zvariant = { version = "3.12.0", default-features = false }
+zbus = { version = "3.12.0", optional = true, default-features = false }
 
 [dev-dependencies]
 zbus = { version = "3", default-features = false }
