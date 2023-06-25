@@ -549,7 +549,7 @@ impl TryFrom<Event> for AvailableEvent {
 		if let Event::Available(specific_event) = generic_event {
 			Ok(specific_event)
 		} else {
-			Err(AtspiError::InvalidType)
+			Err(AtspiError::TypeMismatch)
 		}
 	}
 }

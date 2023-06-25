@@ -13,7 +13,7 @@ macro_rules! impl_event_conversions {
 				if let $outer_variant(event_type) = generic_event {
 					Ok(event_type)
 				} else {
-					Err(AtspiError::InvalidType)
+					Err(AtspiError::TypeMismatch)
 				}
 			}
 		}
@@ -35,7 +35,7 @@ macro_rules! impl_event_conversions {
 				if let $outer_variant($inner_variant(specific_event)) = generic_event {
 					Ok(specific_event)
 				} else {
-					Err(AtspiError::InvalidType)
+					Err(AtspiError::TypeMismatch)
 				}
 			}
 		}
