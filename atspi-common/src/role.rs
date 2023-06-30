@@ -226,7 +226,9 @@ pub enum Role {
 impl TryFrom<u32> for Role {
 	type Error = AtspiError;
 
+	#[allow(clippy::too_many_lines)]
 	fn try_from(value: u32) -> Result<Self, Self::Error> {
+		#[allow(clippy::enum_glob_use)]
 		use Role::*;
 		let res = match value {
 			1 => Invalid,

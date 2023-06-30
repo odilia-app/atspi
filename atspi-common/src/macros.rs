@@ -1,9 +1,9 @@
 #[macro_export]
 
 /// Performs the following conversions:
-/// - From the inner type to the outer type
-/// - From inner type for `Event`
-/// - TryFrom `Event` to inner type
+/// - `From<$inner_type> for $outer_type`
+/// - `From<$inner_type> for Event`
+/// - `TryFrom<Event> for $inner_type`
 macro_rules! impl_event_conversions {
 	($outer_type:ty, $outer_variant:path) => {
 		impl From<$outer_type> for Event {
@@ -47,7 +47,7 @@ macro_rules! impl_event_conversions {
 }
 
 /// Performs the following conversions:
-/// TryFrom type for `zbus::Message`
+/// `TryFrom` type for `zbus::Message`
 macro_rules! impl_to_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
@@ -67,7 +67,7 @@ macro_rules! impl_to_dbus_message {
 }
 
 /// Performs the following conversions:
-/// TryFrom `zbus::Message` to type
+/// `TryFrom<&zbus::Message> for $type`
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]

@@ -85,7 +85,7 @@ impl std::fmt::Display for AtspiError {
 			Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
 			Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
 			Self::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
-			Self::Zvariant(e) => f.write_str(&format!("Zvariant erron: {e}")),
+			Self::Zvariant(e) => f.write_str(&format!("Zvariant error: {e}")),
 			Self::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
 			Self::ParseError(e) => f.write_str(e),
 			Self::PathConversionError(e) => {
