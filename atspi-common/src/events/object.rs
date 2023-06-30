@@ -77,7 +77,6 @@ pub enum Property {
 	Description(String),
 	Role(crate::Role),
 	Parent(Accessible),
-	Value(OwnedValue),
 	TableCaption(String),
 	TableColumnDescription(String),
 	TableColumnHeader(String),
@@ -89,7 +88,7 @@ pub enum Property {
 
 impl Default for Property {
 	fn default() -> Self {
-		Self::Value(zvariant::Value::U64(0).into())
+		Self::Other((String::default(), zvariant::Value::U64(0).into()))
 	}
 }
 
@@ -124,7 +123,6 @@ impl TryFrom<EventBodyOwned> for Property {
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
 			)),
-			"accessible-value" => Ok(Self::Value(body.any_data)),
 			"accessible-table-caption" => Ok(Self::TableCaption(
 				body.any_data
 					.try_into()
@@ -167,7 +165,6 @@ impl From<Property> for OwnedValue {
 			Property::Description(description) => Value::from(description).into(),
 			Property::Role(role) => Value::from(role as u32).into(),
 			Property::Parent(parent) => Value::from(parent).into(),
-			Property::Value(value) => Value::from(value).into(),
 			Property::TableCaption(table_caption) => Value::from(table_caption).into(),
 			Property::TableColumnDescription(table_column_description) => {
 				Value::from(table_column_description).into()
@@ -1149,9 +1146,7 @@ impl_event_conversions!(
 	Event::Object
 );
 
-// TODO @Tait Would you look at these tests? Thanks!:
-// event_test_cases!(PropertyChangeEvent);
-
+event_test_cases!(PropertyChangeEvent);
 impl_to_dbus_message!(PropertyChangeEvent);
 impl_from_dbus_message!(PropertyChangeEvent);
 
