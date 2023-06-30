@@ -1,10 +1,12 @@
+use std::hash::Hash;
+
 use crate::{
 	error::AtspiError,
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
 use zbus_names::UniqueName;
-use zvariant::ObjectPath;
+use zvariant::{ObjectPath, OwnedValue};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
@@ -38,11 +40,31 @@ impl HasMatchRule for ObjectEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
 }
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
 	pub item: crate::events::Accessible,
 	pub property: String,
-	pub value: String,
+	pub value: OwnedValue,
+}
+
+impl Hash for PropertyChangeEvent {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.item.hash(state);
+		self.property.hash(state);
+	}
+}
+
+// Do not derive Eq if not all fields implement Eq
+impl Eq for PropertyChangeEvent {}
+
+impl Default for PropertyChangeEvent {
+	fn default() -> Self {
+		Self {
+			item: Accessible::default(),
+			property: String::default(),
+			value: zvariant::Value::U64(0).into(),
+		}
+	}
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -172,7 +194,7 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, property: body.kind, value: body.any_data.try_into()? })
+		Ok(Self { item, property: body.kind, value: body.any_data })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
