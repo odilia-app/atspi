@@ -1,5 +1,9 @@
 #[macro_export]
 
+/// Performs the following conversions:
+/// - From the inner type to the outer type
+/// - From inner type for `Event`
+/// - TryFrom `Event` to inner type
 macro_rules! impl_event_conversions {
 	($outer_type:ty, $outer_variant:path) => {
 		impl From<$outer_type> for Event {
@@ -42,6 +46,8 @@ macro_rules! impl_event_conversions {
 	};
 }
 
+/// Performs the following conversions:
+/// TryFrom type for `zbus::Message`
 macro_rules! impl_to_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
@@ -60,6 +66,8 @@ macro_rules! impl_to_dbus_message {
 	};
 }
 
+/// Performs the following conversions:
+/// TryFrom `zbus::Message` to type
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
@@ -201,8 +209,8 @@ macro_rules! zbus_message_test_case {
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
-				"org.a11y.atspi.accesible.technically.valid",
+				"/org/a11y/sixtynine/fourtwenty",
+				"org.a11y.atspi.accessible.technically.valid",
 				"FakeMember",
 			)
 			.unwrap()

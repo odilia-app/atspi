@@ -5,6 +5,7 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
+use serde::de::value;
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
 
@@ -40,11 +41,12 @@ impl HasMatchRule for ObjectEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
 }
 
+/// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
 	pub item: crate::events::Accessible,
 	pub property: String,
-	pub value: OwnedValue,
+	pub value: Property,
 }
 
 impl Hash for PropertyChangeEvent {
@@ -62,7 +64,97 @@ impl Default for PropertyChangeEvent {
 		Self {
 			item: Accessible::default(),
 			property: String::default(),
-			value: zvariant::Value::U64(0).into(),
+			value: Property::default(),
+		}
+	}
+}
+
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
+#[non_exhaustive]
+pub enum Property {
+	Name(String),
+	Description(String),
+	Role(crate::Role),
+	Parent(Accessible),
+	Value(OwnedValue),
+	TableCaption(String),
+	TableColumnDescription(String),
+	TableColumnHeader(String),
+	TableRowDescription(String),
+	TableRowHeader(String),
+	TableSummary(String),
+	Other((String, OwnedValue)),
+}
+
+impl Default for Property {
+	fn default() -> Self {
+		Self::Value(zvariant::Value::U64(0).into())
+	}
+}
+
+impl TryFrom<EventBodyOwned> for Property {
+	type Error = AtspiError;
+
+	fn try_from(body: EventBodyOwned) -> Result<Self, Self::Error> {
+		let property = body.kind;
+
+		match property.as_str() {
+			"accessible-name" => Ok(Self::Name(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
+			)),
+			"accessible-description" => Ok(Self::Description(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
+			)),
+			"accessible-role" => Ok(Self::Role({
+				let role_int: u32 = body
+					.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				let role: crate::Role = crate::Role::try_from(role_int)
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				role
+			})),
+			"accessible-parent" => Ok(Self::Parent(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
+			)),
+			"accessible-value" => Ok(Self::Value(body.any_data)),
+			"accessible-table-caption" => Ok(Self::TableCaption(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
+			)),
+			"table-column-description" => Ok(Self::TableColumnDescription(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-description"))?,
+			)),
+			"table-column-header" => Ok(Self::TableColumnHeader(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
+			)),
+			"table-row-description" => Ok(Self::TableRowDescription(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-description"))?,
+			)),
+			"table-row-header" => Ok(Self::TableRowHeader(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
+			)),
+			"table-summary" => Ok(Self::TableSummary(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-summary"))?,
+			)),
+			_ => Ok(Self::Other((property, body.any_data))),
 		}
 	}
 }
@@ -194,7 +286,8 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, property: body.kind, value: body.any_data })
+		let value: Property = body.try_into()?;
+		Ok(Self { item, property: body.kind, value })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
