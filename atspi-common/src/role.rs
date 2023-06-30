@@ -367,6 +367,28 @@ impl TryFrom<u32> for Role {
 	}
 }
 
+#[cfg(test)]
+pub mod tests {
+	use super::Role;
+	use zvariant::{from_slice, to_bytes, EncodingContext};
+
+	const HIGHEST_ROLE_VALUE: u32 = 130;
+
+	#[test]
+	fn test_serialization_matches_from_impl() {
+		let ctxt = EncodingContext::<byteorder::LE>::new_dbus(0);
+		for role_num in 1..HIGHEST_ROLE_VALUE + 1 {
+			let from_role =
+				Role::try_from(role_num).expect("Unable to convert {role_num} into Role");
+			let encoded = to_bytes(ctxt, &from_role).expect("Unable to encode {from_role}");
+			println!("ENCODED: {:?}", encoded);
+			let zbus_role: Role =
+				from_slice(&encoded, ctxt).expect("Unable to convert {encoded} into Role");
+			assert_eq!(from_role, zbus_role, "The serde zvariant::from_slice(...) and From<u32> implementations have produced different results. The number used was {}, it produced a Role of {}, but the from_slice(...) implementation produced {}", role_num, from_role, zbus_role);
+		}
+	}
+}
+
 const ROLE_NAMES: &[&str] = &[
 	"invalid",
 	"accelerator label",
