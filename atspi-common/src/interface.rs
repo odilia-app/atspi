@@ -130,6 +130,11 @@ impl InterfaceSet {
 		self.0.bits()
 	}
 
+	#[must_use]
+	pub fn all() -> InterfaceSet {
+		InterfaceSet(Interface::all())
+	}
+
 	pub fn contains<B: Into<BitFlags<Interface>>>(self, other: B) -> bool {
 		self.0.contains(other)
 	}
@@ -273,6 +278,21 @@ mod tests {
 		let encoded = to_bytes(ctxt, &object).unwrap();
 		let decoded: InterfaceSet = from_slice(&encoded, ctxt).unwrap();
 		assert!(object == decoded);
+	}
+	#[test]
+	fn match_various_de_serialization_methods() {
+		for iface in InterfaceSet::all().iter() {
+			let displayed = format!("{}", iface);
+			let serde_val = serde_plain::to_string(&iface).expect("Unable to serialize {iface}");
+			// this is not *necessary* if Display wants to be implemented for some other reason.
+			// as of when this test is written, it should be the same.
+			// but if you've made a concious decision as a developer that there is a better use for Display, go ahead and remove this
+			assert_eq!(displayed, serde_val, "Serde's serialization does not match the Display trait implementation.");
+			let from_str = Interface::try_from(&*displayed).unwrap();
+			assert_eq!(iface, from_str, "The display trait for {} became \"{}\", but was re-serialized as {} via TryFrom<&str>", iface, displayed, from_str);
+			let serde_from_str: Interface = serde_plain::from_str(&serde_val).unwrap();
+			assert_eq!(serde_from_str, iface, "Serde's deserialization does not match its serialization. {} was serialized to \"{}\", but deserialized into {}", iface, serde_val, serde_from_str);
+		}
 	}
 }
 impl TryFrom<&str> for Interface {
