@@ -103,7 +103,7 @@ jobs:
         with:
           toolchain: nightly
       - name: Generate Documentation
-        run: cargo doc --workspace --features -no-deps
+        run: cargo doc --workspace --no-deps
   no-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
