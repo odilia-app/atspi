@@ -4,9 +4,7 @@ members = [
   "atspi",
 	"atspi-proxies",
 	"atspi-common",
-	"atspi-macros",
   "atspi-connection",
-  "atspi-client"
 ]
 
 [workspace.dependencies]
