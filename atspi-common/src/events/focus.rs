@@ -46,18 +46,6 @@ impl GenericEvent<'_> for FocusEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for FocusEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Focus(FocusEvents::Focus(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for FocusEvents {
 	type Error = AtspiError;
@@ -88,12 +76,6 @@ impl From<FocusEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for FocusEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
-}*/
-/*impl HasRegistryEventString for FocusEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:Focus";
-}*/
 impl HasRegistryEventString for FocusEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 }

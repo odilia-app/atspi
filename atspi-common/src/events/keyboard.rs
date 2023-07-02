@@ -49,18 +49,6 @@ impl GenericEvent<'_> for ModifiersEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ModifiersEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Keyboard(KeyboardEvents::Modifiers(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for KeyboardEvents {
 	type Error = AtspiError;
@@ -91,12 +79,6 @@ impl From<ModifiersEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for ModifiersEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
-}*/
-/*impl HasRegistryEventString for ModifiersEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:Modifiers";
-}*/
 impl HasRegistryEventString for KeyboardEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 }

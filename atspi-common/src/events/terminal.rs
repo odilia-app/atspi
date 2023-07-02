@@ -71,18 +71,6 @@ impl GenericEvent<'_> for LineChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for LineChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::LineChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for ColumnCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "ColumncountChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
@@ -106,18 +94,6 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ColumnCountChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::ColumnCountChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for LineCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "LinecountChanged";
@@ -143,18 +119,6 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for LineCountChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::LineCountChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for ApplicationChangedEvent {
 	const DBUS_MEMBER: &'static str = "ApplicationChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
@@ -179,18 +143,6 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ApplicationChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::ApplicationChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for CharWidthChangedEvent {
 	const DBUS_MEMBER: &'static str = "CharwidthChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
@@ -214,18 +166,6 @@ impl GenericEvent<'_> for CharWidthChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for CharWidthChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::CharWidthChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for TerminalEvents {
@@ -350,36 +290,6 @@ impl From<CharWidthChangedEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for LineChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
-}*/
-/*impl HasMatchRule for ColumnCountChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
-}*/
-/*impl HasMatchRule for LineCountChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
-}*/
-/*impl HasMatchRule for ApplicationChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
-}*/
-/*impl HasMatchRule for CharWidthChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
-}*/
-/*impl HasRegistryEventString for LineChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:LineChanged";
-}*/
-/*impl HasRegistryEventString for ColumnCountChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:ColumncountChanged";
-}*/
-/*impl HasRegistryEventString for LineCountChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:LinecountChanged";
-}*/
-/*impl HasRegistryEventString for ApplicationChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:ApplicationChanged";
-}*/
-/*impl HasRegistryEventString for CharWidthChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:CharwidthChanged";
-}*/
 impl HasRegistryEventString for TerminalEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }

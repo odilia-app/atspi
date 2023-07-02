@@ -155,18 +155,6 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for PropertyChangeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::PropertyChange(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for MinimizeEvent {
 	const DBUS_MEMBER: &'static str = "Minimize";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -190,18 +178,6 @@ impl GenericEvent<'_> for MinimizeEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for MinimizeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Minimize(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for MaximizeEvent {
 	const DBUS_MEMBER: &'static str = "Maximize";
@@ -227,18 +203,6 @@ impl GenericEvent<'_> for MaximizeEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for MaximizeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Maximize(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for RestoreEvent {
 	const DBUS_MEMBER: &'static str = "Restore";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -262,18 +226,6 @@ impl GenericEvent<'_> for RestoreEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RestoreEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Restore(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for CloseEvent {
 	const DBUS_MEMBER: &'static str = "Close";
@@ -299,18 +251,6 @@ impl GenericEvent<'_> for CloseEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for CloseEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Close(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for CreateEvent {
 	const DBUS_MEMBER: &'static str = "Create";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -334,18 +274,6 @@ impl GenericEvent<'_> for CreateEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for CreateEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Create(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ReparentEvent {
 	const DBUS_MEMBER: &'static str = "Reparent";
@@ -371,18 +299,6 @@ impl GenericEvent<'_> for ReparentEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ReparentEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Reparent(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for DesktopCreateEvent {
 	const DBUS_MEMBER: &'static str = "DesktopCreate";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -406,18 +322,6 @@ impl GenericEvent<'_> for DesktopCreateEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for DesktopCreateEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::DesktopCreate(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for DesktopDestroyEvent {
 	const DBUS_MEMBER: &'static str = "DesktopDestroy";
@@ -443,18 +347,6 @@ impl GenericEvent<'_> for DesktopDestroyEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for DesktopDestroyEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::DesktopDestroy(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for DestroyEvent {
 	const DBUS_MEMBER: &'static str = "Destroy";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -478,18 +370,6 @@ impl GenericEvent<'_> for DestroyEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for DestroyEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Destroy(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ActivateEvent {
 	const DBUS_MEMBER: &'static str = "Activate";
@@ -515,18 +395,6 @@ impl GenericEvent<'_> for ActivateEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ActivateEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Activate(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for DeactivateEvent {
 	const DBUS_MEMBER: &'static str = "Deactivate";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -550,18 +418,6 @@ impl GenericEvent<'_> for DeactivateEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for DeactivateEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Deactivate(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for RaiseEvent {
 	const DBUS_MEMBER: &'static str = "Raise";
@@ -587,18 +443,6 @@ impl GenericEvent<'_> for RaiseEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for RaiseEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Raise(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for LowerEvent {
 	const DBUS_MEMBER: &'static str = "Lower";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -622,18 +466,6 @@ impl GenericEvent<'_> for LowerEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for LowerEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Lower(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for MoveEvent {
 	const DBUS_MEMBER: &'static str = "Move";
@@ -659,18 +491,6 @@ impl GenericEvent<'_> for MoveEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for MoveEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Move(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for ResizeEvent {
 	const DBUS_MEMBER: &'static str = "Resize";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -694,18 +514,6 @@ impl GenericEvent<'_> for ResizeEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ResizeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Resize(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ShadeEvent {
 	const DBUS_MEMBER: &'static str = "Shade";
@@ -731,18 +539,6 @@ impl GenericEvent<'_> for ShadeEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ShadeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Shade(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for UUshadeEvent {
 	const DBUS_MEMBER: &'static str = "uUshade";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -767,18 +563,6 @@ impl GenericEvent<'_> for UUshadeEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for UUshadeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::UUshade(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for RestyleEvent {
 	const DBUS_MEMBER: &'static str = "Restyle";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
@@ -802,18 +586,6 @@ impl GenericEvent<'_> for RestyleEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RestyleEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Window(WindowEvents::Restyle(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for WindowEvents {
@@ -1166,120 +938,6 @@ impl From<RestyleEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for PropertyChangeEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
-}*/
-/*impl HasMatchRule for MinimizeEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
-}*/
-/*impl HasMatchRule for MaximizeEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
-}*/
-/*impl HasMatchRule for RestoreEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
-}*/
-/*impl HasMatchRule for CloseEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
-}*/
-/*impl HasMatchRule for CreateEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
-}*/
-/*impl HasMatchRule for ReparentEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
-}*/
-/*impl HasMatchRule for DesktopCreateEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
-}*/
-/*impl HasMatchRule for DesktopDestroyEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
-}*/
-/*impl HasMatchRule for DestroyEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
-}*/
-/*impl HasMatchRule for ActivateEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
-}*/
-/*impl HasMatchRule for DeactivateEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
-}*/
-/*impl HasMatchRule for RaiseEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
-}*/
-/*impl HasMatchRule for LowerEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
-}*/
-/*impl HasMatchRule for MoveEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
-}*/
-/*impl HasMatchRule for ResizeEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
-}*/
-/*impl HasMatchRule for ShadeEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
-}*/
-/*impl HasMatchRule for UUshadeEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
-}*/
-/*impl HasMatchRule for RestyleEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
-}*/
-/*impl HasRegistryEventString for PropertyChangeEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:PropertyChange";
-}*/
-/*impl HasRegistryEventString for MinimizeEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Minimize";
-}*/
-/*impl HasRegistryEventString for MaximizeEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Maximize";
-}*/
-/*impl HasRegistryEventString for RestoreEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Restore";
-}*/
-/*impl HasRegistryEventString for CloseEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Close";
-}*/
-/*impl HasRegistryEventString for CreateEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Create";
-}*/
-/*impl HasRegistryEventString for ReparentEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Reparent";
-}*/
-/*impl HasRegistryEventString for DesktopCreateEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:DesktopCreate";
-}*/
-/*impl HasRegistryEventString for DesktopDestroyEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:DesktopDestroy";
-}*/
-/*impl HasRegistryEventString for DestroyEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Destroy";
-}*/
-/*impl HasRegistryEventString for ActivateEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Activate";
-}*/
-/*impl HasRegistryEventString for DeactivateEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Deactivate";
-}*/
-/*impl HasRegistryEventString for RaiseEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Raise";
-}*/
-/*impl HasRegistryEventString for LowerEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Lower";
-}*/
-/*impl HasRegistryEventString for MoveEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Move";
-}*/
-/*impl HasRegistryEventString for ResizeEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Resize";
-}*/
-/*impl HasRegistryEventString for ShadeEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Shade";
-}*/
-/*impl HasRegistryEventString for UUshadeEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:uUshade";
-}*/
-/*impl HasRegistryEventString for RestyleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:Restyle";
-}*/
 impl HasRegistryEventString for WindowEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
