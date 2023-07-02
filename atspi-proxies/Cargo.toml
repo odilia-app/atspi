@@ -25,7 +25,6 @@ tokio = ["zbus/tokio", "atspi-common/tokio"]
 
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.1.0", default-features = false }
-enumflags2.workspace = true
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
 zbus.workspace = true
 # optioanl dependencies
