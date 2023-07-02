@@ -20,7 +20,7 @@ pub mod device_event_controller;
 pub mod device_event_listener;
 pub mod document;
 pub mod editable_text;
-pub use atspi_common::{events, CoordType, Interface, InterfaceSet, AtspiError};
+pub use atspi_common::{events, AtspiError, CoordType, Interface, InterfaceSet};
 
 pub mod hyperlink;
 pub mod hypertext;
