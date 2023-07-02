@@ -267,7 +267,8 @@ impl From<State> for String {
 			State::Checkable => "checkable",
 			State::HasPopup => "has-popup",
 			State::ReadOnly => "read-only",
-		}.to_string()
+		}
+		.to_string()
 	}
 }
 
@@ -509,8 +510,8 @@ impl std::ops::BitAndAssign for StateSet {
 mod tests {
 	use super::*;
 	use byteorder::LE;
-	use zbus::zvariant::{from_slice, to_bytes, EncodingContext as Context};
 	use serde_plain;
+	use zbus::zvariant::{from_slice, to_bytes, EncodingContext as Context};
 
 	#[test]
 	fn serialize_empty_state_set() {
@@ -598,15 +599,24 @@ mod tests {
 
 	#[test]
 	fn convert_state_direct_string() {
-		for state in StateSet::from_bits(0b11111111111111111111111111111111111111111111).unwrap().iter() {
+		for state in StateSet::from_bits(0b11111111111111111111111111111111111111111111)
+			.unwrap()
+			.iter()
+		{
 			let state_str: String = state.into();
 			let state_two: State = state_str.clone().into();
-			assert_eq!(state, state_two, "The {state:?} was serialized as {state_str}, which deserializes to {state_two:?}");
+			assert_eq!(
+				state, state_two,
+				"The {state:?} was serialized as {state_str}, which deserializes to {state_two:?}"
+			);
 		}
 	}
 	#[test]
 	fn convert_state_direct_string_is_equal_to_serde_output() {
-		for state in StateSet::from_bits(0b11111111111111111111111111111111111111111111).unwrap().iter() {
+		for state in StateSet::from_bits(0b11111111111111111111111111111111111111111111)
+			.unwrap()
+			.iter()
+		{
 			let serde_state_str: String = serde_plain::to_string(&state).unwrap();
 			let state_str: String = state.into();
 			assert_eq!(serde_state_str, state_str);
