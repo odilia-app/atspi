@@ -431,7 +431,6 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	}
 }
 
-
 impl GenericEvent<'_> for RowInsertedEvent {
 	const DBUS_MEMBER: &'static str = "RowInserted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
