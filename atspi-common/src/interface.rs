@@ -6,6 +6,27 @@ use serde::{
 use std::fmt;
 use zvariant::{Signature, Type};
 
+const ACCESSIBLE_INTERFACE_NAME: &str = "org.a11y.atspi.Accessible";
+const ACTION_INTERFACE_NAME: &str = "org.a11y.atspi.Action";
+const APPLICATION_INTERFACE_NAME: &str = "org.a11y.atspi.Application";
+const CACHE_INTERFACE_NAME: &str = "org.a11y.atspi.Cache";
+const COLLECTION_INTERFACE_NAME: &str = "org.a11y.atspi.Collection";
+const COMPONENT_INTERFACE_NAME: &str = "org.a11y.atspi.Component";
+const DOCUMENT_INTERFACE_NAME: &str = "org.a11y.atspi.Document";
+const DEVICE_EVENT_CONTROLLER_INTERFACE_NAME: &str = "org.a11y.atspi.DeviceEventController";
+const DEVICE_EVENT_LISTENER_INTERFACE_NAME: &str = "org.a11y.atspi.DeviceEventListener";
+const EDITABLE_TEXT_INTERFACE_NAME: &str = "org.a11y.atspi.EditableText";
+const HYPERLINK_INTERFACE_NAME: &str = "org.a11y.atspi.Hyperlink";
+const HYPERTEXT_INTERFACE_NAME: &str = "org.a11y.atspi.Hypertext";
+const IMAGE_INTERFACE_NAME: &str = "org.a11y.atspi.Image";
+const REGISTRY_INTERFACE_NAME: &str = "org.a11y.atspi.Registry";
+const SELECTION_INTERFACE_NAME: &str = "org.a11y.atspi.Selection";
+const SOCKET_INTERFACE_NAME: &str = "org.a11y.atspi.Socket";
+const TABLE_INTERFACE_NAME: &str = "org.a11y.atspi.Table";
+const TABLE_CELL_INTERFACE_NAME: &str = "org.a11y.atspi.TableCell";
+const TEXT_INTERFACE_NAME: &str = "org.a11y.atspi.Text";
+const VALUE_INTERFACE_NAME: &str = "org.a11y.atspi.Value";
+
 /// AT-SPI interfaces an accessible object can implement.
 #[bitflags]
 #[repr(u32)]
@@ -52,26 +73,26 @@ impl<'de> Deserialize<'de> for Interface {
 				E: de::Error,
 			{
 				match value {
-					"org.a11y.atspi.Accessible" => Ok(Interface::Accessible),
-					"org.a11y.atspi.Action" => Ok(Interface::Action),
-					"org.a11y.atspi.Application" => Ok(Interface::Application),
-					"org.a11y.atspi.Cache" => Ok(Interface::Cache),
-					"org.a11y.atspi.Collection" => Ok(Interface::Collection),
-					"org.a11y.atspi.Component" => Ok(Interface::Component),
-					"org.a11y.atspi.DeviceEventController" => Ok(Interface::DeviceEventController),
-					"org.a11y.atspi.DeviceEventListener" => Ok(Interface::DeviceEventListener),
-					"org.a11y.atspi.Document" => Ok(Interface::Document),
-					"org.a11y.atspi.EditableText" => Ok(Interface::EditableText),
-					"org.a11y.atspi.Hyperlink" => Ok(Interface::Hyperlink),
-					"org.a11y.atspi.Hypertext" => Ok(Interface::Hypertext),
-					"org.a11y.atspi.Image" => Ok(Interface::Image),
-					"org.a11y.atspi.Registry" => Ok(Interface::Registry),
-					"org.a11y.atspi.Selection" => Ok(Interface::Selection),
-					"org.a11y.atspi.Socket" => Ok(Interface::Socket),
-					"org.a11y.atspi.Table" => Ok(Interface::Table),
-					"org.a11y.atspi.TableCell" => Ok(Interface::TableCell),
-					"org.a11y.atspi.Text" => Ok(Interface::Text),
-					"org.a11y.atspi.Value" => Ok(Interface::Value),
+					ACCESSIBLE_INTERFACE_NAME => Ok(Interface::Accessible),
+					ACTION_INTERFACE_NAME => Ok(Interface::Action),
+					APPLICATION_INTERFACE_NAME => Ok(Interface::Application),
+					CACHE_INTERFACE_NAME => Ok(Interface::Cache),
+					COLLECTION_INTERFACE_NAME => Ok(Interface::Collection),
+					COMPONENT_INTERFACE_NAME => Ok(Interface::Component),
+					DEVICE_EVENT_CONTROLLER_INTERFACE_NAME => Ok(Interface::DeviceEventController),
+					DEVICE_EVENT_LISTENER_INTERFACE_NAME => Ok(Interface::DeviceEventListener),
+					DOCUMENT_INTERFACE_NAME => Ok(Interface::Document),
+					EDITABLE_TEXT_INTERFACE_NAME => Ok(Interface::EditableText),
+					HYPERLINK_INTERFACE_NAME => Ok(Interface::Hyperlink),
+					HYPERTEXT_INTERFACE_NAME => Ok(Interface::Hypertext),
+					IMAGE_INTERFACE_NAME => Ok(Interface::Image),
+					REGISTRY_INTERFACE_NAME => Ok(Interface::Registry),
+					SELECTION_INTERFACE_NAME => Ok(Interface::Selection),
+					SOCKET_INTERFACE_NAME => Ok(Interface::Socket),
+					TABLE_INTERFACE_NAME => Ok(Interface::Table),
+					TABLE_CELL_INTERFACE_NAME => Ok(Interface::TableCell),
+					TEXT_INTERFACE_NAME => Ok(Interface::Text),
+					VALUE_INTERFACE_NAME => Ok(Interface::Value),
 					_ => Err(de::Error::custom("unknown interface")),
 				}
 			}
@@ -87,26 +108,26 @@ impl Serialize for Interface {
 		S: Serializer,
 	{
 		serializer.serialize_str(match self {
-			Interface::Accessible => "org.a11y.atspi.Accessible",
-			Interface::Action => "org.a11y.atspi.Action",
-			Interface::Application => "org.a11y.atspi.Application",
-			Interface::Cache => "org.a11y.atspi.Cache",
-			Interface::Collection => "org.a11y.atspi.Collection",
-			Interface::Component => "org.a11y.atspi.Component",
-			Interface::DeviceEventController => "org.a11y.atspi.DeviceEventController",
-			Interface::DeviceEventListener => "org.a11y.atspi.DeviceEventListener",
-			Interface::Document => "org.a11y.atspi.Document",
-			Interface::EditableText => "org.a11y.atspi.EditableText",
-			Interface::Hyperlink => "org.a11y.atspi.Hyperlink",
-			Interface::Hypertext => "org.a11y.atspi.Hypertext",
-			Interface::Image => "org.a11y.atspi.Image",
-			Interface::Registry => "org.a11y.atspi.Registry",
-			Interface::Selection => "org.a11y.atspi.Selection",
-			Interface::Socket => "org.a11y.atspi.Socket",
-			Interface::Table => "org.a11y.atspi.Table",
-			Interface::TableCell => "org.a11y.atspi.TableCell",
-			Interface::Text => "org.a11y.atspi.Text",
-			Interface::Value => "org.a11y.atspi.Value",
+			Interface::Accessible => ACCESSIBLE_INTERFACE_NAME,
+			Interface::Action => ACTION_INTERFACE_NAME,
+			Interface::Application => APPLICATION_INTERFACE_NAME,
+			Interface::Cache => CACHE_INTERFACE_NAME,
+			Interface::Collection => COLLECTION_INTERFACE_NAME,
+			Interface::Component => COMPONENT_INTERFACE_NAME,
+			Interface::DeviceEventController => DEVICE_EVENT_CONTROLLER_INTERFACE_NAME,
+			Interface::DeviceEventListener => DEVICE_EVENT_LISTENER_INTERFACE_NAME,
+			Interface::Document => DOCUMENT_INTERFACE_NAME,
+			Interface::EditableText => EDITABLE_TEXT_INTERFACE_NAME,
+			Interface::Hyperlink => HYPERLINK_INTERFACE_NAME,
+			Interface::Hypertext => HYPERTEXT_INTERFACE_NAME,
+			Interface::Image => IMAGE_INTERFACE_NAME,
+			Interface::Registry => REGISTRY_INTERFACE_NAME,
+			Interface::Selection => SELECTION_INTERFACE_NAME,
+			Interface::Socket => SOCKET_INTERFACE_NAME,
+			Interface::Table => TABLE_INTERFACE_NAME,
+			Interface::TableCell => TABLE_CELL_INTERFACE_NAME,
+			Interface::Text => TEXT_INTERFACE_NAME,
+			Interface::Value => VALUE_INTERFACE_NAME,
 		})
 	}
 }
@@ -287,7 +308,10 @@ mod tests {
 			// this is not *necessary* if Display wants to be implemented for some other reason.
 			// as of when this test is written, it should be the same.
 			// but if you've made a concious decision as a developer that there is a better use for Display, go ahead and remove this
-			assert_eq!(displayed, serde_val, "Serde's serialization does not match the Display trait implementation.");
+			assert_eq!(
+				displayed, serde_val,
+				"Serde's serialization does not match the Display trait implementation."
+			);
 			let from_str = Interface::try_from(&*displayed).unwrap();
 			assert_eq!(iface, from_str, "The display trait for {} became \"{}\", but was re-serialized as {} via TryFrom<&str>", iface, displayed, from_str);
 			let serde_from_str: Interface = serde_plain::from_str(&serde_val).unwrap();
@@ -327,26 +351,26 @@ impl TryFrom<&str> for Interface {
 impl std::fmt::Display for Interface {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		let interface_string = match self {
-			Interface::Accessible => "org.a11y.atspi.Accessible",
-			Interface::Action => "org.a11y.atspi.Action",
-			Interface::Application => "org.a11y.atspi.Application",
-			Interface::Collection => "org.a11y.atspi.Collection",
-			Interface::Component => "org.a11y.atspi.Component",
-			Interface::Document => "org.a11y.atspi.Document",
-			Interface::Hypertext => "org.a11y.atspi.Hypertext",
-			Interface::Hyperlink => "org.a11y.atspi.Hyperlink",
-			Interface::Image => "org.a11y.atspi.Image",
-			Interface::Socket => "org.a11y.atspi.Socket",
-			Interface::Selection => "org.a11y.atspi.Selection",
-			Interface::Table => "org.a11y.atspi.Table",
-			Interface::TableCell => "org.a11y.atspi.TableCell",
-			Interface::Text => "org.a11y.atspi.Text",
-			Interface::EditableText => "org.a11y.atspi.EditableText",
-			Interface::Cache => "org.a11y.atspi.Cache",
-			Interface::Value => "org.a11y.atspi.Value",
-			Interface::Registry => "org.a11y.atspi.Registry",
-			Interface::DeviceEventController => "org.a11y.atspi.DeviceEventController",
-			Interface::DeviceEventListener => "org.a11y.atspi.DeviceEventListener",
+			Interface::Accessible => ACCESSIBLE_INTERFACE_NAME,
+			Interface::Action => ACTION_INTERFACE_NAME,
+			Interface::Application => APPLICATION_INTERFACE_NAME,
+			Interface::Cache => CACHE_INTERFACE_NAME,
+			Interface::Collection => COLLECTION_INTERFACE_NAME,
+			Interface::Component => COMPONENT_INTERFACE_NAME,
+			Interface::DeviceEventController => DEVICE_EVENT_CONTROLLER_INTERFACE_NAME,
+			Interface::DeviceEventListener => DEVICE_EVENT_LISTENER_INTERFACE_NAME,
+			Interface::Document => DOCUMENT_INTERFACE_NAME,
+			Interface::EditableText => EDITABLE_TEXT_INTERFACE_NAME,
+			Interface::Hypertext => HYPERTEXT_INTERFACE_NAME,
+			Interface::Hyperlink => HYPERLINK_INTERFACE_NAME,
+			Interface::Image => IMAGE_INTERFACE_NAME,
+			Interface::Registry => REGISTRY_INTERFACE_NAME,
+			Interface::Socket => SOCKET_INTERFACE_NAME,
+			Interface::Selection => SELECTION_INTERFACE_NAME,
+			Interface::Table => TABLE_INTERFACE_NAME,
+			Interface::TableCell => TABLE_CELL_INTERFACE_NAME,
+			Interface::Text => TEXT_INTERFACE_NAME,
+			Interface::Value => VALUE_INTERFACE_NAME,
 		}
 		.to_string();
 		write!(f, "{interface_string}")
