@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
-	Event,
+	Event, State,
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
@@ -58,7 +58,7 @@ pub struct LinkSelectedEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
 	pub item: crate::events::Accessible,
-	pub state: String,
+	pub state: State,
 	pub enabled: i32,
 }
 
@@ -280,7 +280,7 @@ impl GenericEvent<'_> for StateChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, state: body.kind, enabled: body.detail1 })
+		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
 	}
 	fn sender(&self) -> UniqueName<'_> {
 		self.item.name.clone().into()
@@ -1066,7 +1066,7 @@ impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.state,
+			kind: event.state.into(),
 			detail1: event.enabled,
 			detail2: i32::default(),
 			any_data: zvariant::Value::U8(0).into(),
