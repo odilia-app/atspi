@@ -385,7 +385,11 @@ pub mod tests {
 			let zbus_role: Role =
 				from_slice(&encoded, ctxt).expect("Unable to convert {encoded} into Role");
 			assert_eq!(from_role, zbus_role, "The serde zvariant::from_slice(...) and From<u32> implementations have produced different results. The number used was {}, it produced a Role of {}, but the from_slice(...) implementation produced {}", role_num, from_role, zbus_role);
-			assert_eq!(from_role as u32, role_num, "The role number {role_num} does not match the representation of the role {}", from_role as u32);
+			assert_eq!(
+				from_role as u32, role_num,
+				"The role number {role_num} does not match the representation of the role {}",
+				from_role as u32
+			);
 		}
 	}
 }
