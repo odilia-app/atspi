@@ -194,7 +194,7 @@ impl AccessibilityConnection {
 	}
 
 	/// Add a registry event.
-	/// This tells accessible applications which events should be forwarded to the accessbility bus.
+	/// This tells accessible applications which events should be forwarded to the accessibility bus.
 	/// This is called by [`Self::register_event`].
 	///
 	/// ```rust
@@ -217,7 +217,7 @@ impl AccessibilityConnection {
 	}
 
 	/// Remove a registry event.
-	/// This tells accessible applications which events should be forwarded to the accessbility bus.
+	/// This tells accessible applications which events should be forwarded to the accessibility bus.
 	/// This is called by [`Self::deregister_event`].
 	/// It may be called like so:
 	///
@@ -240,7 +240,7 @@ impl AccessibilityConnection {
 		Ok(())
 	}
 
-	/// This calls [`Self::add_registry_event`] and [`Self::add_match_rule`], two components necessary to receive accessiblity events.
+	/// This calls [`Self::add_registry_event`] and [`Self::add_match_rule`], two components necessary to receive accessibility events.
 	/// # Errors
 	/// This will only fail if [`Self::add_registry_event`[ or [`Self::add_match_rule`] fails.
 	pub async fn register_event<T: HasRegistryEventString + HasMatchRule>(
@@ -251,7 +251,7 @@ impl AccessibilityConnection {
 		Ok(())
 	}
 
-	/// This calls [`Self::remove_registry_event`] and [`Self::remove_match_rule`], two components necessary to receive accessiblity events.
+	/// This calls [`Self::remove_registry_event`] and [`Self::remove_match_rule`], two components necessary to receive accessibility events.
 	/// # Errors
 	/// This will only fail if [`Self::remove_registry_event`] or [`Self::remove_match_rule`] fails.
 	pub async fn deregister_event<T: HasRegistryEventString + HasMatchRule>(
@@ -267,6 +267,7 @@ impl AccessibilityConnection {
 	pub fn connection(&self) -> &zbus::Connection {
 		self.registry.connection()
 	}
+
 	/// Send an event over the accessibility bus.
 	/// This converts the event into a [`zbus::Message`] using the [`GenericEvent`] trait.
 	///
@@ -325,7 +326,7 @@ pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), 
 	// Get a connection to the session bus.
 	let session = Box::pin(zbus::Connection::session()).await?;
 
-	// Aqcuire a `StatusProxy` for the session bus.
+	// Acquire a `StatusProxy` for the session bus.
 	let status_proxy = StatusProxy::new(&session).await?;
 
 	if status_proxy.is_enabled().await? != status {
