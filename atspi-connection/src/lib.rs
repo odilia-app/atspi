@@ -14,6 +14,8 @@ use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
 
+pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
+
 /// A connection to the at-spi bus
 pub struct AccessibilityConnection {
 	registry: RegistryProxy<'static>,
