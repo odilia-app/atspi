@@ -65,9 +65,9 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: Run Tests (tokio)
-        run: cargo test --workspace --no-default-features --features=unstable-traits,tokio -- --nocapture
+        run: cargo test --workspace --no-default-features --features=tokio -- --nocapture
       - name: Run Tests (async-std)
-        run: cargo test --workspace --no-default-features --features=unstable-traits,async-std -- --nocapture
+        run: cargo test --workspace --no-default-features --features=async-std -- --nocapture
   rustfmt:
     runs-on: ubuntu-latest
     steps:
@@ -103,7 +103,7 @@ jobs:
         with:
           toolchain: nightly
       - name: Generate Documentation
-        run: cargo doc --workspace --features unstable-traits --no-deps
+        run: cargo doc --workspace --no-deps
   no-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
@@ -219,7 +219,7 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: cargo llvm-cov
-        run: cargo llvm-cov --workspace --locked --features=unstable-traits --lcov --output-path lcov.info
+        run: cargo llvm-cov --workspace --locked --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:

@@ -10,6 +10,7 @@ use zvariant::{Signature, Type};
 /// Used by various interfaces indicating every possible state
 /// of an accessibility object.
 #[bitflags]
+#[non_exhaustive]
 #[repr(u64)]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 #[serde(rename_all = "kebab-case")]
