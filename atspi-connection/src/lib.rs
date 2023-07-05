@@ -333,3 +333,31 @@ pub async fn set_session_accessibility(status: bool) -> std::result::Result<(), 
 	}
 	Ok(())
 }
+
+/// Read the `IsEnabled` accessibility status property on the session bus.
+///
+/// # Examples
+/// ```rust
+///     # tokio_test::block_on( async {
+///     let status = atspi_connection::read_session_accessibility().await;
+///
+///     // The status is either true or false
+///        assert!(status.is_ok());
+///     # });
+/// ```
+///
+/// # Errors
+///
+/// - If no connection with the session bus could be established.
+/// - If creation of a [`atspi_proxies::bus::StatusProxy`] fails.
+/// - If the `IsEnabled` property cannot be read.
+pub async fn read_session_accessibility() -> AtspiResult<bool> {
+	// Get a connection to the session bus.
+	let session = Box::pin(zbus::Connection::session()).await?;
+
+	// Acquire a `StatusProxy` for the session bus.
+	let status_proxy = StatusProxy::new(&session).await?;
+
+	// Read the `IsEnabled` property.
+	status_proxy.is_enabled().await.map_err(Into::into)
+}
