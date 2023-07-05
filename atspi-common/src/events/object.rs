@@ -186,18 +186,6 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for PropertyChangeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::PropertyChange(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for BoundsChangedEvent {
 	const DBUS_MEMBER: &'static str = "BoundsChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -221,18 +209,6 @@ impl GenericEvent<'_> for BoundsChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for BoundsChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::BoundsChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for LinkSelectedEvent {
 	const DBUS_MEMBER: &'static str = "LinkSelected";
@@ -258,18 +234,6 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for LinkSelectedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::LinkSelected(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for StateChangedEvent {
 	const DBUS_MEMBER: &'static str = "StateChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -293,18 +257,6 @@ impl GenericEvent<'_> for StateChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for StateChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::StateChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ChildrenChangedEvent {
 	const DBUS_MEMBER: &'static str = "ChildrenChanged";
@@ -335,18 +287,6 @@ impl GenericEvent<'_> for ChildrenChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ChildrenChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ChildrenChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for VisibleDataChangedEvent {
 	const DBUS_MEMBER: &'static str = "VisibleDataChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -370,18 +310,6 @@ impl GenericEvent<'_> for VisibleDataChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for VisibleDataChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::VisibleDataChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for SelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "SelectionChanged";
@@ -407,18 +335,6 @@ impl GenericEvent<'_> for SelectionChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for SelectionChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::SelectionChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for ModelChangedEvent {
 	const DBUS_MEMBER: &'static str = "ModelChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -442,18 +358,6 @@ impl GenericEvent<'_> for ModelChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ModelChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ModelChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	const DBUS_MEMBER: &'static str = "ActiveDescendantChanged";
@@ -479,18 +383,6 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ActiveDescendantChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ActiveDescendantChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for AnnouncementEvent {
 	const DBUS_MEMBER: &'static str = "Announcement";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -514,18 +406,6 @@ impl GenericEvent<'_> for AnnouncementEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for AnnouncementEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::Announcement(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for AttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "AttributesChanged";
@@ -551,18 +431,6 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for AttributesChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::AttributesChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for RowInsertedEvent {
 	const DBUS_MEMBER: &'static str = "RowInserted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -586,18 +454,6 @@ impl GenericEvent<'_> for RowInsertedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RowInsertedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::RowInserted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for RowReorderedEvent {
 	const DBUS_MEMBER: &'static str = "RowReordered";
@@ -623,18 +479,6 @@ impl GenericEvent<'_> for RowReorderedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for RowReorderedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::RowReordered(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for RowDeletedEvent {
 	const DBUS_MEMBER: &'static str = "RowDeleted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -658,18 +502,6 @@ impl GenericEvent<'_> for RowDeletedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RowDeletedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::RowDeleted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ColumnInsertedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnInserted";
@@ -695,18 +527,6 @@ impl GenericEvent<'_> for ColumnInsertedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ColumnInsertedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ColumnInserted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for ColumnReorderedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnReordered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -730,18 +550,6 @@ impl GenericEvent<'_> for ColumnReorderedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ColumnReorderedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ColumnReordered(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ColumnDeletedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnDeleted";
@@ -767,18 +575,6 @@ impl GenericEvent<'_> for ColumnDeletedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for ColumnDeletedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ColumnDeleted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for TextBoundsChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextBoundsChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -803,18 +599,6 @@ impl GenericEvent<'_> for TextBoundsChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for TextBoundsChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextBoundsChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for TextSelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextSelectionChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -838,18 +622,6 @@ impl GenericEvent<'_> for TextSelectionChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for TextSelectionChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextSelectionChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for TextChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextChanged";
@@ -881,18 +653,6 @@ impl GenericEvent<'_> for TextChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for TextChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for TextAttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextAttributesChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -917,18 +677,6 @@ impl GenericEvent<'_> for TextAttributesChangedEvent {
 	}
 }
 
-/*
-impl TryFrom<Event> for TextAttributesChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextAttributesChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
-
 impl GenericEvent<'_> for TextCaretMovedEvent {
 	const DBUS_MEMBER: &'static str = "TextCaretMoved";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -952,18 +700,6 @@ impl GenericEvent<'_> for TextCaretMovedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for TextCaretMovedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextCaretMoved(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for ObjectEvents {
