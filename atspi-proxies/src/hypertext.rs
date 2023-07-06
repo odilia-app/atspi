@@ -11,11 +11,12 @@
 //!
 
 use crate::atspi_proxy;
+use atspi_common::Accessible;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Hypertext", assume_defaults = true)]
 trait Hypertext {
 	/// GetLink method
-	fn get_link(&self, link_index: i32) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn get_link(&self, link_index: i32) -> zbus::Result<Accessible>;
 
 	/// GetLinkIndex method
 	fn get_link_index(&self, character_index: i32) -> zbus::Result<i32>;

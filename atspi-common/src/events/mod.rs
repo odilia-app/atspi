@@ -32,7 +32,7 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
-	accessible::{Accessible, ACCESSIBLE_PAIR_SIGNATURE},
+	accessible::Accessible,
 	cache::{CacheItem, LegacyCacheItem},
 	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
@@ -42,6 +42,7 @@ use crate::{
 };
 //use atspi_macros::try_from_zbus_message;
 
+#[must_use]
 pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	fn has_outer_parentheses(bytes: &[u8]) -> bool {
 		bytes.starts_with(&[b'('])

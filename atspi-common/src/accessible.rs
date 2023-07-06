@@ -1,7 +1,6 @@
-use crate::{AtspiError, events::signatures_are_eq};
+use crate::events::signatures_are_eq;
 use serde::{Serialize, Deserialize};
 use zvariant::{Type, OwnedObjectPath, ObjectPath, Signature};
-use zbus_names::{OwnedBusName, BusName};
 
 pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 
