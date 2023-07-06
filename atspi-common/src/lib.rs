@@ -1,4 +1,4 @@
-#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, missing_docs)]
 #![allow(clippy::module_name_repetitions)]
 
 #[macro_use]
@@ -42,31 +42,49 @@ pub type MatchArgs<'a> = (
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
+/// Enumeration used by interface [`CollectionProxy`] to specify the way [`Accessible`] objects should be sorted.
 pub enum SortOrder {
+  /// Invalid sort order
 	Invalid,
+  /// Canonical sort order
 	Canonical,
+  /// Flow sort order
 	Flow,
+  /// Tab sort order
 	Tab,
+  /// Reverse canonical sort order
 	ReverseCanonical,
+  /// Reverse flow sort order
 	ReverseFlow,
+	/// Reverse tab sort order
 	ReverseTab,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 pub enum TreeTraversalType {
+	/// Restrict children tree traveral
 	RestrictChildren,
+  /// Restrict sibling tree traversal
 	RestrictSibling,
+  /// In-order tree traversal.
 	Inorder,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
+/// Enumeration used by [`MatchRule`] to specify how to interpret #AtspiAccessible objects.
 pub enum MatchType {
+	/// Invalid match type
 	Invalid,
+  /// true if all of the criteria are met.
 	All,
+  /// true if any of the criteria are met.
 	Any,
+  /// true if none of the criteria are met.
 	NA,
+	/// Same as [`All`] if the criteria is non-empty;
+	/// for empty criteria this rule requires returned value to also have empty set.
 	Empty,
 }
 
@@ -84,10 +102,15 @@ pub enum CoordType {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
+/// Enumeration used by `TextProxy` to indicate how to treat characters intersecting bounding boxes.
 pub enum ClipType {
+  /// No characters/glyphs are omitted.
 	Neither,
+  /// Characters/glyphs clipped by the minimum coordinate are omitted.
 	Min,
+  /// Characters/glyphs which intersect the maximum coordinate are omitted.
 	Max,
+	/// Only glyphs falling entirely within the region bounded by min and max are retained.
 	Both,
 }
 
