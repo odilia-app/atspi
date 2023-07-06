@@ -4,7 +4,7 @@
 //! Source: `Cache.xml`.
 //!
 
-use crate::{InterfaceSet, Accessible, Role, StateSet};
+use crate::{Accessible, InterfaceSet, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
@@ -38,15 +38,15 @@ impl Default for CacheItem {
 		Self {
 			object: Accessible {
 				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/object".try_into().unwrap()
+				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
 			},
 			app: Accessible {
 				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/application".try_into().unwrap()
+				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
 			},
 			parent: Accessible {
 				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap()
+				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
 			},
 			index: 0,
 			children: 0,

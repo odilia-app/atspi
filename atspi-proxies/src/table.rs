@@ -22,11 +22,7 @@ trait Table {
 	fn add_row_selection(&self, row: i32) -> zbus::Result<bool>;
 
 	/// GetAccessibleAt method
-	fn get_accessible_at(
-		&self,
-		row: i32,
-		column: i32,
-	) -> zbus::Result<Accessible>;
+	fn get_accessible_at(&self, row: i32, column: i32) -> zbus::Result<Accessible>;
 
 	/// GetColumnAtIndex method
 	fn get_column_at_index(&self, index: i32) -> zbus::Result<i32>;
@@ -38,10 +34,7 @@ trait Table {
 	fn get_column_extent_at(&self, row: i32, column: i32) -> zbus::Result<i32>;
 
 	/// GetColumnHeader method
-	fn get_column_header(
-		&self,
-		column: i32,
-	) -> zbus::Result<Accessible>;
+	fn get_column_header(&self, column: i32) -> zbus::Result<Accessible>;
 
 	/// GetIndexAt method
 	fn get_index_at(&self, row: i32, column: i32) -> zbus::Result<i32>;

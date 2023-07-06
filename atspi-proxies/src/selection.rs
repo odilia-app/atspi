@@ -25,10 +25,7 @@ trait Selection {
 	fn deselect_selected_child(&self, selected_child_index: i32) -> zbus::Result<bool>;
 
 	/// GetSelectedChild method
-	fn get_selected_child(
-		&self,
-		selected_child_index: i32,
-	) -> zbus::Result<Accessible>;
+	fn get_selected_child(&self, selected_child_index: i32) -> zbus::Result<Accessible>;
 
 	/// IsChildSelected method
 	fn is_child_selected(&self, child_index: i32) -> zbus::Result<bool>;

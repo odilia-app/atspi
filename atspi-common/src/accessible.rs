@@ -1,6 +1,6 @@
 use crate::events::signatures_are_eq;
-use serde::{Serialize, Deserialize};
-use zvariant::{Type, OwnedObjectPath, ObjectPath, Signature};
+use serde::{Deserialize, Serialize};
+use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
 pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 
@@ -54,5 +54,9 @@ impl Default for Accessible {
 
 #[test]
 fn test_accessible_signature() {
-	assert_eq!(Accessible::signature(), ACCESSIBLE_PAIR_SIGNATURE, "Accessible does not have the correct type.");
+	assert_eq!(
+		Accessible::signature(),
+		ACCESSIBLE_PAIR_SIGNATURE,
+		"Accessible does not have the correct type."
+	);
 }

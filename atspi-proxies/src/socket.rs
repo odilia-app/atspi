@@ -20,10 +20,7 @@ use atspi_common::Accessible;
 )]
 trait Socket {
 	/// Embed method
-	fn embed(
-		&self,
-		plug: &(&str, zbus::zvariant::ObjectPath<'_>),
-	) -> zbus::Result<Accessible>;
+	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<Accessible>;
 
 	/// Unembed method
 	fn unembed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
