@@ -798,18 +798,18 @@ mod tests {
 			let unique_bus_name = atspi.connection().unique_name().unwrap();
 
 			let add_body = CacheItem {
-				object: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
-				),
-				app: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
-				),
-				parent: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
-				),
+				object: Accessible {
+					name: ":1.1".to_string(),
+					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+				},
+				app: Accessible {
+					name: ":1.1".to_string(),
+					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
+				},
+				parent: Accessible {
+					name: ":1.1".to_string(),
+					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
+				},
 				index: 0,
 				children: 0,
 				ifaces: InterfaceSet::empty(),
@@ -853,15 +853,15 @@ mod tests {
 								node_added: cache_item,
 							})) => {
 								assert_eq!(
-									cache_item.object.1.as_str(),
+									cache_item.object.path.as_str(),
 									"/org/a11y/atspi/accessible/object"
 								);
 								assert_eq!(
-									cache_item.app.1.as_str(),
+									cache_item.app.path.as_str(),
 									"/org/a11y/atspi/accessible/application"
 								);
 								assert_eq!(
-									cache_item.parent.1.as_str(),
+									cache_item.parent.path.as_str(),
 									"/org/a11y/atspi/accessible/parent"
 								);
 								break;

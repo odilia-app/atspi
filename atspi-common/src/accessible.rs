@@ -17,12 +17,12 @@ pub struct Accessible {
 	pub path: OwnedObjectPath,
 }
 impl TryFrom<zvariant::OwnedValue> for Accessible {
-	type Error = AtspiError;
+	type Error = zvariant::Error;
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
 			zvariant::Value::Structure(s) => {
 				if !signatures_are_eq(&s.signature(), &ACCESSIBLE_PAIR_SIGNATURE) {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
+					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())));
 				}
 				let fields = s.fields();
 				let name: String =
@@ -31,7 +31,7 @@ impl TryFrom<zvariant::OwnedValue> for Accessible {
 					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				Ok(Accessible { name, path: path_value.into() })
 			}
-			_ => Err(zvariant::Error::IncorrectType.into()),
+			_ => Err(zvariant::Error::IncorrectType),
 		}
 	}
 }
