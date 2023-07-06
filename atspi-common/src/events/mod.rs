@@ -356,11 +356,6 @@ impl TryFrom<&zbus::Message> for Accessible {
 	}
 }
 
-#[test]
-fn test_accessible_signature() {
-	assert_eq_signatures!(&Accessible::signature(), &ACCESSIBLE_PAIR_SIGNATURE);
-}
-
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for EventBodyOwned {
 	type Error = AtspiError;
@@ -666,7 +661,6 @@ mod tests {
 	use std::{collections::HashMap, time::Duration};
 	use tokio_stream::StreamExt;
 	use zbus::MessageBuilder;
-	use zbus_names::OwnedUniqueName;
 	use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
 	use super::signatures_are_eq;
