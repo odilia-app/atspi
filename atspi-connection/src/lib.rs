@@ -6,13 +6,13 @@ compile_error!("You must specify either the async-std or tokio feature.");
 
 #[cfg(feature = "async-std")]
 use async_std::{
-	channel::{Sender, Receiver, bounded as channel, TrySendError},
+	channel::{bounded as channel, Receiver, Sender, TrySendError},
 	task::spawn,
 };
 
 #[cfg(feature = "tokio")]
 use tokio::{
-	sync::mpsc::{Sender, Receiver, channel, error::TrySendError},
+	sync::mpsc::{channel, error::TrySendError, Receiver, Sender},
 	task::spawn,
 };
 #[cfg(feature = "tokio")]
@@ -156,7 +156,10 @@ impl AccessibilityConnection {
 	/// # }
 	/// ```
 	pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
-		let (tx_out, rx_out): (Sender<Result<Event, AtspiError>>, Receiver<Result<Event, AtspiError>>) = channel(10_000);
+		let (tx_out, rx_out): (
+			Sender<Result<Event, AtspiError>>,
+			Receiver<Result<Event, AtspiError>>,
+		) = channel(10_000);
 		let mut msg_stream = MessageStream::from(self.registry.connection()).filter_map(|res| {
 			let msg = match res {
 				Ok(m) => m,
@@ -173,7 +176,7 @@ impl AccessibilityConnection {
 					// drop msg_stream and return from future if there are no messages left
 					// this should only happen if the connection is forceably terminated by the system
 					None => break,
-					Some(event) => { 
+					Some(event) => {
 						match tx_out.try_send(event) {
 							// discard happy path
 							Ok(_) => continue,
@@ -182,16 +185,19 @@ impl AccessibilityConnection {
 							// use conditional tracing
 							#[cfg(feature = "tracing")]
 							Err(TrySendError::Full(e)) => {
-								tracing::trace!("The channel of events is full. Can not send event {:?}", e);
+								tracing::trace!(
+									"The channel of events is full. Can not send event {:?}",
+									e
+								);
 								continue;
-							},
+							}
 							// if no tracing, then *only* continue
 							#[cfg(not(feature = "tracing"))]
 							Err(TrySendError::Full(_)) => {
 								continue;
-							},
+							}
 						}
-					},
+					}
 				}
 			}
 		});
