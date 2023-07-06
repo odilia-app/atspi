@@ -6,6 +6,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
+pub mod accessible;
+pub use accessible::Accessible;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;

@@ -20,7 +20,6 @@ pub mod window;
 pub const ATSPI_EVENT_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("(siiva{sv})");
 pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiv(so))");
-pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
@@ -33,6 +32,7 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
+	accessible::{Accessible, ACCESSIBLE_PAIR_SIGNATURE},
 	cache::{CacheItem, LegacyCacheItem},
 	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
@@ -42,7 +42,7 @@ use crate::{
 };
 //use atspi_macros::try_from_zbus_message;
 
-fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
+pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	fn has_outer_parentheses(bytes: &[u8]) -> bool {
 		bytes.starts_with(&[b'('])
 			&& bytes.ends_with(&[b')'])
@@ -297,37 +297,6 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 impl_from_dbus_message!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);
 
-// TODO: Try to make borrowed versions work,
-// check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
-// in `DefaultEvent` impl
-// then rename into Owned for this one.
-/// Owned Accessible type
-/// Emitted by `CacheRemove` and `Available`
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct Accessible {
-	pub name: String,
-	pub path: OwnedObjectPath,
-}
-impl TryFrom<zvariant::OwnedValue> for Accessible {
-	type Error = AtspiError;
-	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		match &*value {
-			zvariant::Value::Structure(s) => {
-				if !signatures_are_eq(&s.signature(), &ACCESSIBLE_PAIR_SIGNATURE) {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
-				}
-				let fields = s.fields();
-				let name: String =
-					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				let path_value: ObjectPath<'_> =
-					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				Ok(Accessible { name, path: path_value.into() })
-			}
-			_ => Err(zvariant::Error::IncorrectType.into()),
-		}
-	}
-}
-
 #[cfg(test)]
 pub mod accessible_deserialization_tests {
 	use crate::events::Accessible;
@@ -355,21 +324,6 @@ pub mod accessible_deserialization_tests {
 	fn try_from_value() {}
 }
 
-impl From<Accessible> for zvariant::Structure<'_> {
-	fn from(accessible: Accessible) -> Self {
-		(accessible.name.as_str().to_string(), accessible.path).into()
-	}
-}
-impl Default for Accessible {
-	fn default() -> Self {
-		Accessible {
-			name: ":0.0".into(),
-			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
-				.unwrap()
-				.into(),
-		}
-	}
-}
 #[cfg(test)]
 pub mod accessible_tests {
 	use super::Accessible;
@@ -703,11 +657,11 @@ pub trait HasRegistryEventString {
 #[cfg(test)]
 mod tests {
 	use atspi_common::events::{
-		Accessible, AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT,
-		RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
+		AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT,
+		RemoveAccessibleEvent, ATSPI_EVENT_SIGNATURE,
 		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
-	use atspi_common::{CacheItem, InterfaceSet, Role, StateSet};
+	use atspi_common::{Accessible, accessible::ACCESSIBLE_PAIR_SIGNATURE, CacheItem, InterfaceSet, Role, StateSet};
 	use atspi_connection::AccessibilityConnection;
 	use std::{collections::HashMap, time::Duration};
 	use tokio_stream::StreamExt;
