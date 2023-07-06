@@ -12,7 +12,7 @@
 
 use crate::atspi_proxy;
 use crate::AtspiError;
-use atspi_common::{InterfaceSet, Accessible, RelationType, Role, StateSet};
+use atspi_common::{Accessible, InterfaceSet, RelationType, Role, StateSet};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
@@ -80,7 +80,7 @@ impl TryFrom<AccessibleProxy<'_>> for Accessible {
 	fn try_from(proxy: AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
 		Ok(Accessible {
 			name: proxy.destination().to_string(),
-			path: proxy.path().to_string().try_into()?
+			path: proxy.path().to_string().try_into()?,
 		})
 	}
 }
@@ -89,7 +89,7 @@ impl TryFrom<&AccessibleProxy<'_>> for Accessible {
 	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
 		Ok(Accessible {
 			name: proxy.destination().to_string(),
-			path: proxy.path().to_string().try_into()?
+			path: proxy.path().to_string().try_into()?,
 		})
 	}
 }
