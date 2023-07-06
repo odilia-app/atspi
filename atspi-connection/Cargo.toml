@@ -14,8 +14,8 @@ readme = "README.md"
 [features]
 default = ["async-std"]
 tracing = ["dep:tracing"]
-async-std = ["zbus/async-io", "atspi-proxies/async-std", "atspi-common/async-std"]
-tokio = ["zbus/tokio", "atspi-proxies/tokio", "atspi-common/tokio"]
+async-std = ["zbus/async-io", "atspi-proxies/async-std", "atspi-common/async-std", "dep:async-std"]
+tokio = ["zbus/tokio", "atspi-proxies/tokio", "atspi-common/tokio", "dep:tokio"]
 
 [dependencies]
 atspi-proxies = { path = "../atspi-proxies/", version = "0.1.0", default-features = false }
@@ -23,6 +23,8 @@ atspi-common = { path = "../atspi-common/", version = "0.1.0", default-features 
 futures-lite = "1.13.0"
 zbus.workspace = true
 tracing = { optional = true, workspace = true }
+tokio = { optional = true, version = "1.0" }
+async-std = { optional = true, version = "1.12.0" }
 
 [dev-dependencies]
 tokio-test = "0.4.2"

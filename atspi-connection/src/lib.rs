@@ -4,6 +4,18 @@ compile_error!("You may not mix the async-std and tokio features.");
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
 compile_error!("You must specify either the async-std or tokio feature.");
 
+#[cfg(feature = "async-std")]
+use async_std::{
+	channel::{Sender, Receiver, bounded as channel, TrySendError},
+	task::spawn,
+};
+
+#[cfg(feature = "tokio")]
+use tokio::{
+	sync::mpsc::{Sender, Receiver, channel, error::TrySendError},
+	task::spawn,
+};
+
 use atspi_common::error::AtspiError;
 use atspi_common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use atspi_proxies::{
@@ -142,7 +154,8 @@ impl AccessibilityConnection {
 	/// # }
 	/// ```
 	pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
-		MessageStream::from(self.registry.connection()).filter_map(|res| {
+		let (tx_out, rx_out): (Sender<Result<Event, AtspiError>>, Receiver<Result<Event, AtspiError>>) = channel(10_000);
+		let mut msg_stream = MessageStream::from(self.registry.connection()).filter_map(|res| {
 			let msg = match res {
 				Ok(m) => m,
 				Err(e) => return Some(Err(e.into())),
@@ -151,7 +164,36 @@ impl AccessibilityConnection {
 				MessageType::Signal => Some(Event::try_from(&*msg)),
 				_ => None,
 			}
-		})
+		});
+		spawn(async move {
+			loop {
+				match msg_stream.next().await {
+					// drop msg_stream and return from future if there are no messages left
+					// this should only happen if the connection is forceably terminated by the system
+					None => break,
+					Some(event) => { 
+						match tx_out.try_send(event) {
+							// discard happy path
+							Ok(_) => continue,
+							// drop msg_stream and return from future if the receive side has been dropped
+							Err(TrySendError::Closed(_)) => break,
+							// use conditional tracing
+							#[cfg(feature = "tracing")]
+							Err(TrySendError::Full(e)) => {
+								tracing::trace!("The channel of events is full. Can not send event {:?}", e);
+								continue;
+							},
+							// if no tracing, then *only* continue
+							#[cfg(not(feature = "tracing"))]
+							Err(TrySendError::Full(_)) => {
+								continue;
+							},
+						}
+					},
+				}
+			}
+		});
+		rx_out
 	}
 
 	/// Registers an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
