@@ -38,5 +38,5 @@ trait TableCell {
 
 	/// Table property
 	#[dbus_proxy(property)]
-	fn table(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn table(&self) -> zbus::Result<Accessible>;
 }

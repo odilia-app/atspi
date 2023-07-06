@@ -11,6 +11,7 @@
 //!
 
 use crate::atspi_proxy;
+use atspi_common::Accessible;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
 trait Selection {
@@ -27,7 +28,7 @@ trait Selection {
 	fn get_selected_child(
 		&self,
 		selected_child_index: i32,
-	) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	) -> zbus::Result<Accessible>;
 
 	/// IsChildSelected method
 	fn is_child_selected(&self, child_index: i32) -> zbus::Result<bool>;
