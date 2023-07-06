@@ -208,8 +208,8 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -242,8 +242,8 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -283,8 +283,8 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -305,7 +305,7 @@ impl_to_dbus_message!(RemoveAccessibleEvent);
 /// Emitted by `CacheRemove` and `Available`
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct Accessible {
-	pub name: OwnedUniqueName,
+	pub name: String,
 	pub path: OwnedObjectPath,
 }
 impl TryFrom<zvariant::OwnedValue> for Accessible {
@@ -317,11 +317,10 @@ impl TryFrom<zvariant::OwnedValue> for Accessible {
 					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
 				}
 				let fields = s.fields();
-				let name_value: String =
+				let name: String =
 					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				let path_value: ObjectPath<'_> =
 					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				let name = UniqueName::try_from(name_value)?.into();
 				Ok(Accessible { name, path: path_value.into() })
 			}
 			_ => Err(zvariant::Error::IncorrectType.into()),
@@ -364,7 +363,7 @@ impl From<Accessible> for zvariant::Structure<'_> {
 impl Default for Accessible {
 	fn default() -> Self {
 		Accessible {
-			name: UniqueName::from_static_str(":0.0").unwrap().into(),
+			name: ":0.0".into(),
 			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
 				.unwrap()
 				.into(),
@@ -396,10 +395,9 @@ impl TryFrom<&zbus::Message> for Accessible {
 		let MessageField::Sender(unique_name) = sender else {
 			return Err(AtspiError::Conversion("Unable to convert zbus::Message to Accessible"));
 		};
-		let unique_name = unique_name.as_str();
-		let owned_name = OwnedUniqueName::try_from(unique_name)?;
+		let name_string = unique_name.as_str().to_owned();
 
-		Ok(Accessible { name: owned_name, path: owned_path })
+		Ok(Accessible { name: name_string, path: owned_path })
 	}
 }
 
@@ -487,8 +485,8 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -525,8 +523,8 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -572,8 +570,8 @@ impl GenericEvent<'_> for AvailableEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -686,7 +684,7 @@ pub trait GenericEvent<'a> {
 	/// ### Errors
 	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-	fn sender(&self) -> UniqueName<'_>;
+	fn sender(&self) -> String;
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body;
@@ -784,7 +782,7 @@ mod tests {
 
 			let unique_bus_name = atspi.connection().unique_name().unwrap();
 			let remove_body = Accessible {
-				name: OwnedUniqueName::try_from(":69.420").unwrap(),
+				name: ":69.420".into(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
 			};
 
