@@ -15,6 +15,8 @@ use tokio::{
 	sync::mpsc::{Sender, Receiver, channel, error::TrySendError},
 	task::spawn,
 };
+#[cfg(feature = "tokio")]
+use tokio_stream::wrappers::ReceiverStream;
 
 use atspi_common::error::AtspiError;
 use atspi_common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
@@ -193,7 +195,10 @@ impl AccessibilityConnection {
 				}
 			}
 		});
-		rx_out
+		#[cfg(feature = "tokio")]
+		return ReceiverStream::new(rx_out);
+		#[cfg(feature = "async-std")]
+		return rx_out;
 	}
 
 	/// Registers an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
