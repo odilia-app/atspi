@@ -81,6 +81,8 @@ pub struct LinkSelectedEvent {
 	pub item: crate::events::Accessible,
 }
 
+/// A state of an object has been modified.
+/// A [`State`] can be added or removed from any [`Accessible`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
 	/// The [`Accessible`] which the event applies to.
@@ -95,6 +97,7 @@ pub struct StateChangedEvent {
 	pub enabled: i32,
 }
 
+/// A child of an [`Accessible`] has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
 	/// The [`Accessible`] which the event applies to.
@@ -154,39 +157,45 @@ pub struct AttributesChangedEvent {
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowInsertedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The table which has had a row inserted.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been moved within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowReorderedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The table which has had a row re-ordered.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been deleted from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowDeletedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The table which has had a row removed.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnInsertedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The table which has had a column inserted.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been re-ordered within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnReorderedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The table which has had a column re-ordered.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been removed from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnDeletedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The table which has had a column removed.
 	pub item: crate::events::Accessible,
 }
 
@@ -202,6 +211,7 @@ pub struct TextSelectionChangedEvent {
 	pub item: crate::events::Accessible,
 }
 
+/// Text has changed within an [`Accessible`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
 	/// The [`Accessible`] which the event applies to.
@@ -230,9 +240,10 @@ pub struct TextAttributesChangedEvent {
 	pub item: crate::events::Accessible,
 }
 
+/// The caret of the user also known as a cursor (not to be confused with mouse pointer) has changed position.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextCaretMovedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The object on which the caret has been moved on.
 	pub item: crate::events::Accessible,
 	/// New position of the caret.
 	pub position: i32,
