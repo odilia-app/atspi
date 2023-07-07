@@ -457,6 +457,7 @@ const ROLE_NAMES: &[&str] = &[
 ];
 
 impl Role {
+	/// Get a readable, English name from the role.
 	#[must_use]
 	pub fn name(&self) -> &'static str {
 		ROLE_NAMES[*self as usize]
