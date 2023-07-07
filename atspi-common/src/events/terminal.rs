@@ -8,10 +8,15 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum TerminalEvents {
+	/// See: [`LineChangedEvent`].
 	LineChanged(LineChangedEvent),
+	/// See: [`ColumnCountChangedEvent`].
 	ColumnCountChanged(ColumnCountChangedEvent),
+	/// See: [`LineCountChangedEvent`].
 	LineCountChanged(LineCountChangedEvent),
+	/// See: [`ApplicationChangedEvent`].
 	ApplicationChanged(ApplicationChangedEvent),
+	/// See: [`CharWidthChangedEvent`].
 	CharWidthChanged(CharWidthChangedEvent),
 }
 impl_event_conversions!(TerminalEvents, Event::Terminal);

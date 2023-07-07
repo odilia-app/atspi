@@ -1,4 +1,4 @@
-//#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, missing_docs)]
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, missing_docs)]
 #![allow(clippy::module_name_repetitions)]
 
 #[macro_use]

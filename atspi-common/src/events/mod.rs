@@ -153,28 +153,36 @@ impl Default for EventBodyOwned {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum Event {
+	/// See: [`DocumentEvents`].
 	Document(DocumentEvents),
+	/// See: [`FocusEvents`].
 	Focus(FocusEvents),
+	/// See: [`KeyboardEvents`].
 	Keyboard(KeyboardEvents),
+	/// See: [`MouseEvents`].
 	Mouse(MouseEvents),
+	/// See: [`ObjectEvents`].
 	Object(ObjectEvents),
+	/// See: [`TerminalEvents`].
 	Terminal(TerminalEvents),
+	/// See: [`WindowEvents`].
 	Window(WindowEvents),
-	/// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
+	/// See: [`AvailableEvent`].
 	Available(AvailableEvent),
-	/// Both `CacheAdd` and `CacheRemove` signals
+	/// See: [`CacheEvents`].
 	Cache(CacheEvents),
-	/// Emitted on registration or de-registration of event listeners.
-	///
-	/// (eg. "Cache:AddAccessible:")
+	/// See: [`EventListenerEvents`].
 	Listener(EventListenerEvents),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
+	/// See: [`AddAccessibleEvent`].
 	Add(AddAccessibleEvent),
+	/// See: [`LegacyAddAccessibleEvent`].
 	LegacyAdd(LegacyAddAccessibleEvent),
+	/// See: [`RemoveAccessibleEvent`].
 	Remove(RemoveAccessibleEvent),
 }
 
@@ -457,7 +465,9 @@ fn test_event_listener_signature() {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
 pub enum EventListenerEvents {
+	/// See: [`EventListenerRegisteredEvent`].
 	Registered(EventListenerRegisteredEvent),
+	/// See: [`EventListenerDeregisteredEvent`].
 	Deregistered(EventListenerDeregisteredEvent),
 }
 

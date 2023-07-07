@@ -8,6 +8,7 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
+	/// See: [`ModifiersEvent`].
 	Modifiers(ModifiersEvent),
 }
 impl_event_conversions!(KeyboardEvents, Event::Keyboard);

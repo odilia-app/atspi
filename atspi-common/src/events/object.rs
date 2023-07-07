@@ -6,29 +6,52 @@ use crate::{
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
+/// All events which can arrive on the [`crate::interface::Interface::Object`] interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
+	/// See: [`PropertyChangeEvent`].
 	PropertyChange(PropertyChangeEvent),
+	/// See: [`BoundsChangedEvent`].
 	BoundsChanged(BoundsChangedEvent),
+	/// See: [`LinkSelectedEvent`].
 	LinkSelected(LinkSelectedEvent),
+	/// See: [`StateChangedEvent`].
 	StateChanged(StateChangedEvent),
+	/// See: [`ChildrenChangedEvent`].
 	ChildrenChanged(ChildrenChangedEvent),
+	/// See: [`VisibleDataChangedEvent`].
 	VisibleDataChanged(VisibleDataChangedEvent),
+	/// See: [`SelectionChangedEvent`].
 	SelectionChanged(SelectionChangedEvent),
+	/// See: [`ModelChangedEvent`].
 	ModelChanged(ModelChangedEvent),
+	/// See: [`ActiveDescendantChangedEvent`].
 	ActiveDescendantChanged(ActiveDescendantChangedEvent),
+	/// See: [`AnnouncementEvent`].
 	Announcement(AnnouncementEvent),
+	/// See: [`AttributesChangedEvent`].
 	AttributesChanged(AttributesChangedEvent),
+	/// See: [`RowInsertedEvent`].
 	RowInserted(RowInsertedEvent),
+	/// See: [`RowReorderedEvent`].
 	RowReordered(RowReorderedEvent),
+	/// See: [`RowDeletedEvent`].
 	RowDeleted(RowDeletedEvent),
+	/// See: [`ColumnInsertedEvent`].
 	ColumnInserted(ColumnInsertedEvent),
+	/// See: [`ColumnReorderedEvent`].
 	ColumnReordered(ColumnReorderedEvent),
+	/// See: [`ColumnDeletedEvent`].
 	ColumnDeleted(ColumnDeletedEvent),
+	/// See: [`TextBoundsChangedEvent`].
 	TextBoundsChanged(TextBoundsChangedEvent),
+	/// See: [`TextSelectionChangedEvent`].
 	TextSelectionChanged(TextSelectionChangedEvent),
+	/// See: [`TextChangedEvent`].
 	TextChanged(TextChangedEvent),
+	/// See: [`TextAttributesChangedEvent`].
 	TextAttributesChanged(TextAttributesChangedEvent),
+	/// See: [`TextCaretMovedEvent`].
 	TextCaretMoved(TextCaretMovedEvent),
 }
 impl_event_conversions!(ObjectEvents, Event::Object);

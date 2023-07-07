@@ -8,6 +8,7 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum FocusEvents {
+	/// See: [`FocusEvent`].
 	Focus(FocusEvent),
 }
 impl_event_conversions!(FocusEvents, Event::Focus);

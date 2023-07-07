@@ -8,24 +8,43 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum WindowEvents {
+	/// See: [`PropertyChangeEvent`].
 	PropertyChange(PropertyChangeEvent),
+	/// See: [`MinimizeEvent`].
 	Minimize(MinimizeEvent),
+	/// See: [`MaximizeEvent`].
 	Maximize(MaximizeEvent),
+	/// See: [`RestoreEvent`].
 	Restore(RestoreEvent),
+	/// See: [`CloseEvent`].
 	Close(CloseEvent),
+	/// See: [`CreateEvent`].
 	Create(CreateEvent),
+	/// See: [`ReparentEvent`].
 	Reparent(ReparentEvent),
+	/// See: [`DesktopCreateEvent`].
 	DesktopCreate(DesktopCreateEvent),
+	/// See: [`DesktopDestroyEvent`].
 	DesktopDestroy(DesktopDestroyEvent),
+	/// See: [`DestroyEvent`].
 	Destroy(DestroyEvent),
+	/// See: [`ActivateEvent`].
 	Activate(ActivateEvent),
+	/// See: [`DeactivateEvent`].
 	Deactivate(DeactivateEvent),
+	/// See: [`RaiseEvent`].
 	Raise(RaiseEvent),
+	/// See: [`LowerEvent`].
 	Lower(LowerEvent),
+	/// See: [`MoveEvent`].
 	Move(MoveEvent),
+	/// See: [`ResizeEvent`].
 	Resize(ResizeEvent),
+	/// See: [`ShadeEvent`].
 	Shade(ShadeEvent),
+	/// See: [`UUshadeEvent`].
 	UUshade(UUshadeEvent),
+	/// See: [`RestyleEvent`].
 	Restyle(RestyleEvent),
 }
 impl_event_conversions!(WindowEvents, Event::Window);

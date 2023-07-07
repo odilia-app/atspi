@@ -8,11 +8,17 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentEvents {
+	/// See: [`LoadCompleteEvent`].
 	LoadComplete(LoadCompleteEvent),
+	/// See: [`ReloadEvent`].
 	Reload(ReloadEvent),
+	/// See: [`LoadStoppedEvent`].
 	LoadStopped(LoadStoppedEvent),
+	/// See: [`ContentChangedEvent`].
 	ContentChanged(ContentChangedEvent),
+	/// See: [`AttributesChangedEvent`].
 	AttributesChanged(AttributesChangedEvent),
+	/// See: [`PageChangedEvent`].
 	PageChanged(PageChangedEvent),
 }
 impl_event_conversions!(DocumentEvents, Event::Document);

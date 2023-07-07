@@ -8,8 +8,11 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum MouseEvents {
+	/// See: [`AbsEvent`].
 	Abs(AbsEvent),
+	/// See: [`RelEvent`].
 	Rel(RelEvent),
+	/// See: [`ButtonEvent`].
 	Button(ButtonEvent),
 }
 impl_event_conversions!(MouseEvents, Event::Mouse);
