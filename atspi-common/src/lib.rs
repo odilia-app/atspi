@@ -1,6 +1,13 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, missing_docs)]
 #![allow(clippy::module_name_repetitions)]
 
+//! # atspi-common
+//!
+//! Defines all common types, events, and data structures for `atspi-proxies` and `atspi-connection`.
+//! Since `atspi-proxies` and `atspi-connection` are downstream crates, the documentation can not link to it directly.
+//! Any type ending in `*Proxy` is in `atspi-proxies`.
+//!
+
 #[macro_use]
 extern crate static_assertions;
 #[macro_use]
