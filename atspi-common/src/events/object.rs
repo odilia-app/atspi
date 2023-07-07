@@ -85,7 +85,13 @@ pub struct LinkSelectedEvent {
 pub struct StateChangedEvent {
 	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// The state to be enabled/disabled.
 	pub state: State,
+	/// Enabled or disabled the state.
+	///
+	/// 1 == enabled
+	///
+	/// 0 == disabled
 	pub enabled: i32,
 }
 
@@ -93,8 +99,19 @@ pub struct StateChangedEvent {
 pub struct ChildrenChangedEvent {
 	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Operation, which may be one of:
+	///
+	/// * "insert/system"
+	/// * "insert"
+	/// * "delete/system"
+	/// * "delete"
+	///
+	/// The operation is the same whether it contains the "/system" suffix or not.
+	/// TODO: This should be an enum.
 	pub operation: String,
+	/// Index to remove from/add to.
 	pub index_in_parent: i32,
+	/// A reference to the new child.
 	pub child: Accessible,
 }
 
@@ -127,6 +144,7 @@ pub struct ActiveDescendantChangedEvent {
 pub struct AnnouncementEvent {
 	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Text of the announcement.
 	pub text: String,
 }
 
@@ -188,9 +206,21 @@ pub struct TextSelectionChangedEvent {
 pub struct TextChangedEvent {
 	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Operation, which may be one of:
+	///
+	/// * "insert/system"
+	/// * "insert"
+	/// * "delete/system"
+	/// * "delete"
+	///
+	/// The operation is the same whether it contains the "/system" suffix or not.
+	/// TODO: This should be an enum.
 	pub operation: String,
+	/// starting index of the insertion/deletion
 	pub start_pos: i32,
+	/// length of the insertion/deletion
 	pub length: i32,
+	/// the text being inserted/deleted
 	pub text: String,
 }
 
@@ -204,6 +234,7 @@ pub struct TextAttributesChangedEvent {
 pub struct TextCaretMovedEvent {
 	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// New position of the caret.
 	pub position: i32,
 }
 
