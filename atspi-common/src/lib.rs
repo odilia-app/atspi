@@ -67,6 +67,7 @@ pub enum SortOrder {
 	ReverseTab,
 }
 
+/// Method of traversing a tree in the `CollectionProxy`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 pub enum TreeTraversalType {
