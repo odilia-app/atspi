@@ -169,14 +169,22 @@ pub enum Layer {
 	Window,
 }
 
+/// Enumeration used by interface the [`interface::Accessible`] to specify where an object should be placed on the screen when using `scroll_to`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub enum ScrollType {
+  /// Scroll the object to the top left corner of the window.
 	TopLeft,
+  /// Scroll the object to the bottom right corner of the window.
 	BottomRight,
+  /// Scroll the object to the top edge of the window.
 	TopEdge,
+  /// Scroll the object to the bottom edge of the window.
 	BottomEdge,
+  /// Scroll the object to the left edge of the window.
 	LeftEdge,
+  /// Scroll the object to the right edge of the window.
 	RightEdge,
+  /// Scroll the object to application-dependent position on the window.
 	Anywhere,
 }
 
