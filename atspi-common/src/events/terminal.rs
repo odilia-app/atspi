@@ -29,26 +29,31 @@ impl HasMatchRule for TerminalEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnCountChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineCountChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CharWidthChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 

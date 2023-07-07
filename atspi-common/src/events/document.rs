@@ -31,31 +31,37 @@ impl HasMatchRule for DocumentEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReloadEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadStoppedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ContentChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 

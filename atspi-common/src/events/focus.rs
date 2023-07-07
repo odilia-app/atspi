@@ -20,6 +20,7 @@ impl HasMatchRule for FocusEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct FocusEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 

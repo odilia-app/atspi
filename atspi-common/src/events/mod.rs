@@ -190,6 +190,7 @@ pub enum CacheEvents {
 /// the [`crate::cache::LegacyCacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct LegacyAddAccessibleEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	pub node_added: LegacyCacheItem,
 }
@@ -231,6 +232,7 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct AddAccessibleEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	pub node_added: CacheItem,
 }
@@ -273,6 +275,7 @@ impl_to_dbus_message!(AddAccessibleEvent);
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct RemoveAccessibleEvent {
 	/// The application that emitted the signal TODO Check Me
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	/// The node that was removed from the application tree  TODO Check Me
 	pub node_removed: Accessible,
@@ -475,6 +478,7 @@ pub enum EventListenerEvents {
 /// to no longer listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerDeregisteredEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	pub deregistered_event: EventListeners,
 }
@@ -513,6 +517,7 @@ impl_to_dbus_message!(EventListenerDeregisteredEvent);
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerRegisteredEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	pub registered_event: EventListeners,
 }
@@ -551,6 +556,7 @@ impl_to_dbus_message!(EventListenerRegisteredEvent);
 /// An event that is emitted when the registry daemon has started.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 pub struct AvailableEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	pub socket: Accessible,
 }

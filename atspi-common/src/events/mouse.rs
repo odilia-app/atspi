@@ -24,6 +24,7 @@ impl HasMatchRule for MouseEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub x: i32,
 	pub y: i32,
@@ -31,6 +32,7 @@ pub struct AbsEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RelEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub x: i32,
 	pub y: i32,
@@ -38,6 +40,7 @@ pub struct RelEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ButtonEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub detail: String,
 	pub mouse_x: i32,
