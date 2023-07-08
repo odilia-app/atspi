@@ -1,3 +1,8 @@
+//! Conversion functions and types representing a set of [`Interface`]s.
+//! 
+//! Each `AccessibleProxy` will implement some set of these interfaces,
+//! represened by a [`InterfaceSet`].
+
 use enumflags2::{bitflags, BitFlag, BitFlags};
 use serde::{
 	de::{self, Deserialize, Deserializer, Visitor},
