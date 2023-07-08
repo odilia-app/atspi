@@ -35,6 +35,8 @@ use zvariant::Type;
 /// NOTE: If you update the name of this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
 pub type ObjectPair = (String, zvariant::OwnedObjectPath);
 
+/// A set of arguments for the `CollectionProxy` interface which allows you to bulk query
+/// various objects by relation/direction/roles/etc.
 pub type MatchArgs<'a> = (
 	&'a [i32],
 	MatchType,
@@ -195,12 +197,3 @@ pub enum ScrollType {
   /// Scroll the object to application-dependent position on the window.
 	Anywhere,
 }
-
-pub type MatcherArgs = (
-	Vec<Role>,
-	MatchType,
-	std::collections::HashMap<String, String>,
-	MatchType,
-	InterfaceSet,
-	MatchType,
-);
