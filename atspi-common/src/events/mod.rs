@@ -203,6 +203,9 @@ pub enum Event {
 	Listener(EventListenerEvents),
 }
 
+/// All events related to the `org.a11y.atspi.Cache` interface.
+/// Note that these are not telling the client that an item *has been added* to a cache.
+/// It is telling the client "here is a bunch of information to store it in your cache".
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
@@ -346,7 +349,11 @@ impl_to_dbus_message!(RemoveAccessibleEvent);
 /// Emitted by `CacheRemove` and `Available`
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct Accessible {
+	/// A name of a bus ID that can be queried.
+	/// This can be thought of as an application ID.
 	pub name: OwnedUniqueName,
+	/// A path to a unique object.
+	/// This is only guaranteed to be unique *for each [`Self::name`]*.
 	pub path: OwnedObjectPath,
 }
 impl TryFrom<zvariant::OwnedValue> for Accessible {
@@ -510,6 +517,8 @@ pub enum EventListenerEvents {
 pub struct EventListenerDeregisteredEvent {
 	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A list of events that have been deregistered via the registry interface.
+	/// See `atspi-connection`.
 	pub deregistered_event: EventListeners,
 }
 impl_event_conversions!(
@@ -549,6 +558,8 @@ impl_to_dbus_message!(EventListenerDeregisteredEvent);
 pub struct EventListenerRegisteredEvent {
 	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A list of events that have been registered via the registry interface.
+	/// See `atspi-connection`.
 	pub registered_event: EventListeners,
 }
 impl_event_conversions!(
