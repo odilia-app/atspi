@@ -132,7 +132,7 @@ impl Serialize for Interface {
 	}
 }
 
-/// A collection type which encodes the AT-SPI interfaces an accellible object has implemented.
+/// A collection type which encodes the AT-SPI interfaces an accessible object has implemented.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct InterfaceSet(BitFlags<Interface>);
 
