@@ -93,7 +93,7 @@ pub struct EventBodyQT {
 	pub detail1: i32,
 	pub detail2: i32,
 	pub any_data: OwnedValue,
-	pub properties: (String, OwnedObjectPath),
+	pub properties: Accessible,
 }
 
 impl Default for EventBodyQT {
@@ -103,7 +103,7 @@ impl Default for EventBodyQT {
 			detail1: 0,
 			detail2: 0,
 			any_data: Value::U8(0u8).into(),
-			properties: (String::new(), ObjectPath::from_static_str_unchecked("/").into()),
+			properties: Accessible::default(),
 		}
 	}
 }
@@ -121,11 +121,9 @@ pub struct EventBodyOwned {
 
 impl From<EventBodyQT> for EventBodyOwned {
 	fn from(body: EventBodyQT) -> Self {
+		let accessible = Accessible { name: body.properties.name, path: body.properties.path };
 		let mut props = HashMap::new();
-		props.insert(
-			body.properties.0,
-			Value::ObjectPath(body.properties.1.into_inner()).to_owned(),
-		);
+		props.insert(accessible.name, Value::ObjectPath(accessible.path.into()).to_owned());
 		Self {
 			kind: body.kind,
 			detail1: body.detail1,
@@ -679,9 +677,12 @@ mod tests {
 
 	#[test]
 	fn test_event_body_qt_to_event_body_owned_conversion() {
-		let event_body: EventBodyOwned =
-			EventBodyQT { kind: "remove".into(), ..Default::default() }.into();
-		let props = HashMap::from([(String::new(), ObjectPath::try_from("/").unwrap().into())]);
+		let event_body: EventBodyOwned = EventBodyQT::default().into();
+
+		let accessible = crate::Accessible::default();
+		let name = accessible.name;
+		let path = accessible.path;
+		let props = HashMap::from([(name, ObjectPath::try_from(path).unwrap().into())]);
 		assert_eq!(event_body.properties, props);
 	}
 
