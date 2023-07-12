@@ -15,6 +15,63 @@ pub struct Accessible {
 	pub name: String,
 	pub path: OwnedObjectPath,
 }
+
+impl Default for Accessible {
+	fn default() -> Self {
+		Accessible {
+			name: ":0.0".into(),
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
+				.unwrap()
+				.into(),
+		}
+	}
+}
+
+#[test]
+fn test_accessible_signature() {
+	assert_eq!(
+		Accessible::signature(),
+		ACCESSIBLE_PAIR_SIGNATURE,
+		"Accessible does not have the correct type."
+	);
+}
+
+#[test]
+fn test_accessible_from_dbus_ctxt_to_accessible() {
+	use zvariant::{from_slice, to_bytes, EncodingContext as Context, Value};
+
+	let acc = Accessible::default();
+	let ctxt = Context::<byteorder::LE>::new_dbus(0);
+	let encoded = to_bytes(ctxt, &acc).unwrap();
+	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
+	let accessible: Accessible = decoded.try_into().unwrap();
+
+	assert_eq!(accessible.name.as_str(), ":0.0");
+	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+}
+
+#[test]
+fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
+	use zvariant::{from_slice, to_bytes, EncodingContext as Context, Value};
+
+	let acc = Accessible::default();
+	let value: zvariant::Value = acc.into();
+	let ctxt = Context::<byteorder::LE>::new_dbus(0);
+	let encoded = to_bytes(ctxt, &value).unwrap();
+	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
+	let accessible: Accessible = decoded.try_into().unwrap();
+
+	assert_eq!(accessible.name.as_str(), ":0.0");
+	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+}
+
+impl<'a> TryFrom<zvariant::Value<'a>> for Accessible {
+	type Error = zvariant::Error;
+	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
+		value.to_owned().try_into()
+	}
+}
+
 impl TryFrom<zvariant::OwnedValue> for Accessible {
 	type Error = zvariant::Error;
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
@@ -39,24 +96,4 @@ impl From<Accessible> for zvariant::Structure<'_> {
 	fn from(accessible: Accessible) -> Self {
 		(accessible.name.as_str().to_string(), accessible.path).into()
 	}
-}
-
-impl Default for Accessible {
-	fn default() -> Self {
-		Accessible {
-			name: ":0.0".into(),
-			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
-				.unwrap()
-				.into(),
-		}
-	}
-}
-
-#[test]
-fn test_accessible_signature() {
-	assert_eq!(
-		Accessible::signature(),
-		ACCESSIBLE_PAIR_SIGNATURE,
-		"Accessible does not have the correct type."
-	);
 }
