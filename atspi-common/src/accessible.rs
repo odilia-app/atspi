@@ -42,7 +42,8 @@ fn test_accessible_from_dbus_ctxt_to_accessible() {
 
 	let acc = Accessible::default();
 	let ctxt = Context::<byteorder::LE>::new_dbus(0);
-	let encoded = to_bytes(ctxt, &acc).unwrap();
+	let acc_value: Value<'_> = acc.try_into().unwrap();
+	let encoded = to_bytes(ctxt, &acc_value).unwrap();
 	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
 	let accessible: Accessible = decoded.try_into().unwrap();
 
