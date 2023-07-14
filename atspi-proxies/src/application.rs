@@ -14,14 +14,8 @@ use crate::atspi_proxy;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
 trait Application {
-	/// DeregisterEventListener method
-	fn deregister_event_listener(&self, event: &str) -> zbus::Result<()>;
-
 	/// GetLocale method
 	fn get_locale(&self, lctype: u32) -> zbus::Result<String>;
-
-	/// RegisterEventListener method
-	fn register_event_listener(&self, event: &str) -> zbus::Result<()>;
 
 	/// AtspiVersion property
 	#[dbus_proxy(property)]
