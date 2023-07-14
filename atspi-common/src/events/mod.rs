@@ -20,7 +20,6 @@ pub mod window;
 pub const ATSPI_EVENT_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("(siiva{sv})");
 pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiv(so))");
-pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
@@ -33,6 +32,7 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
+	accessible::Accessible,
 	cache::{CacheItem, LegacyCacheItem},
 	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
@@ -42,7 +42,8 @@ use crate::{
 };
 //use atspi_macros::try_from_zbus_message;
 
-fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
+#[must_use]
+pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	fn has_outer_parentheses(bytes: &[u8]) -> bool {
 		bytes.starts_with(&[b'('])
 			&& bytes.ends_with(&[b')'])
@@ -208,8 +209,8 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -242,8 +243,8 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -283,8 +284,8 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -296,38 +297,6 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 
 impl_from_dbus_message!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);
-
-// TODO: Try to make borrowed versions work,
-// check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
-// in `DefaultEvent` impl
-// then rename into Owned for this one.
-/// Owned Accessible type
-/// Emitted by `CacheRemove` and `Available`
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct Accessible {
-	pub name: OwnedUniqueName,
-	pub path: OwnedObjectPath,
-}
-impl TryFrom<zvariant::OwnedValue> for Accessible {
-	type Error = AtspiError;
-	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		match &*value {
-			zvariant::Value::Structure(s) => {
-				if !signatures_are_eq(&s.signature(), &ACCESSIBLE_PAIR_SIGNATURE) {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
-				}
-				let fields = s.fields();
-				let name_value: String =
-					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				let path_value: ObjectPath<'_> =
-					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				let name = UniqueName::try_from(name_value)?.into();
-				Ok(Accessible { name, path: path_value.into() })
-			}
-			_ => Err(zvariant::Error::IncorrectType.into()),
-		}
-	}
-}
 
 #[cfg(test)]
 pub mod accessible_deserialization_tests {
@@ -356,21 +325,6 @@ pub mod accessible_deserialization_tests {
 	fn try_from_value() {}
 }
 
-impl From<Accessible> for zvariant::Structure<'_> {
-	fn from(accessible: Accessible) -> Self {
-		(accessible.name.as_str().to_string(), accessible.path).into()
-	}
-}
-impl Default for Accessible {
-	fn default() -> Self {
-		Accessible {
-			name: UniqueName::from_static_str(":0.0").unwrap().into(),
-			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
-				.unwrap()
-				.into(),
-		}
-	}
-}
 #[cfg(test)]
 pub mod accessible_tests {
 	use super::Accessible;
@@ -396,16 +350,10 @@ impl TryFrom<&zbus::Message> for Accessible {
 		let MessageField::Sender(unique_name) = sender else {
 			return Err(AtspiError::Conversion("Unable to convert zbus::Message to Accessible"));
 		};
-		let unique_name = unique_name.as_str();
-		let owned_name = OwnedUniqueName::try_from(unique_name)?;
+		let name_string = unique_name.as_str().to_owned();
 
-		Ok(Accessible { name: owned_name, path: owned_path })
+		Ok(Accessible { name: name_string, path: owned_path })
 	}
-}
-
-#[test]
-fn test_accessible_signature() {
-	assert_eq_signatures!(&Accessible::signature(), &ACCESSIBLE_PAIR_SIGNATURE);
 }
 
 #[cfg(feature = "zbus")]
@@ -487,8 +435,8 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -525,8 +473,8 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -572,8 +520,8 @@ impl GenericEvent<'_> for AvailableEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -688,7 +636,7 @@ pub trait GenericEvent<'a> {
 	/// ### Errors
 	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-	fn sender(&self) -> UniqueName<'_>;
+	fn sender(&self) -> String;
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body;
@@ -705,16 +653,16 @@ pub trait HasRegistryEventString {
 #[cfg(test)]
 mod tests {
 	use atspi_common::events::{
-		Accessible, AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT,
-		RemoveAccessibleEvent, ACCESSIBLE_PAIR_SIGNATURE, ATSPI_EVENT_SIGNATURE,
-		CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
+		AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT, RemoveAccessibleEvent,
+		ATSPI_EVENT_SIGNATURE, CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
-	use atspi_common::{CacheItem, InterfaceSet, Role, StateSet};
+	use atspi_common::{
+		accessible::ACCESSIBLE_PAIR_SIGNATURE, Accessible, CacheItem, InterfaceSet, Role, StateSet,
+	};
 	use atspi_connection::AccessibilityConnection;
 	use std::{collections::HashMap, time::Duration};
 	use tokio_stream::StreamExt;
 	use zbus::MessageBuilder;
-	use zbus_names::OwnedUniqueName;
 	use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
 	use super::signatures_are_eq;
@@ -786,7 +734,7 @@ mod tests {
 
 			let unique_bus_name = atspi.connection().unique_name().unwrap();
 			let remove_body = Accessible {
-				name: OwnedUniqueName::try_from(":69.420").unwrap(),
+				name: ":69.420".into(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
 			};
 
@@ -846,18 +794,19 @@ mod tests {
 			let unique_bus_name = atspi.connection().unique_name().unwrap();
 
 			let add_body = CacheItem {
-				object: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
-				),
-				app: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
-				),
-				parent: (
-					":1.1".to_string(),
-					OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
-				),
+				object: Accessible {
+					name: ":1.1".to_string(),
+					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
+				},
+				app: Accessible {
+					name: ":1.1".to_string(),
+					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application")
+						.unwrap(),
+				},
+				parent: Accessible {
+					name: ":1.1".to_string(),
+					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
+				},
 				index: 0,
 				children: 0,
 				ifaces: InterfaceSet::empty(),
@@ -901,15 +850,15 @@ mod tests {
 								node_added: cache_item,
 							})) => {
 								assert_eq!(
-									cache_item.object.1.as_str(),
+									cache_item.object.path.as_str(),
 									"/org/a11y/atspi/accessible/object"
 								);
 								assert_eq!(
-									cache_item.app.1.as_str(),
+									cache_item.app.path.as_str(),
 									"/org/a11y/atspi/accessible/application"
 								);
 								assert_eq!(
-									cache_item.parent.1.as_str(),
+									cache_item.parent.path.as_str(),
 									"/org/a11y/atspi/accessible/parent"
 								);
 								break;

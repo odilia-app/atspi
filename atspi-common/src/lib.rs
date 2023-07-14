@@ -6,6 +6,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
+pub mod accessible;
+pub use accessible::Accessible;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;
@@ -23,10 +25,6 @@ pub use relation_type::RelationType;
 
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
-
-/// A pair of (`sender`, `object path with id`) which constitutes the fundemental parts of an Accessible object in `atspi`.
-/// NOTE: If you update the name of this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
-pub type ObjectPair = (String, zvariant::OwnedObjectPath);
 
 pub type MatchArgs<'a> = (
 	&'a [i32],

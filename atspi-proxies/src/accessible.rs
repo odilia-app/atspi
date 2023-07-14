@@ -12,21 +12,21 @@
 
 use crate::atspi_proxy;
 use crate::AtspiError;
-use atspi_common::{InterfaceSet, ObjectPair, RelationType, Role, StateSet};
+use atspi_common::{Accessible, InterfaceSet, RelationType, Role, StateSet};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
 	/// GetApplication method
-	fn get_application(&self) -> zbus::Result<ObjectPair>;
+	fn get_application(&self) -> zbus::Result<Accessible>;
 
 	/// GetAttributes method
 	fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
 	/// GetChildAtIndex method
-	fn get_child_at_index(&self, index: i32) -> zbus::Result<ObjectPair>;
+	fn get_child_at_index(&self, index: i32) -> zbus::Result<Accessible>;
 
 	/// GetChildren method
-	fn get_children(&self) -> zbus::Result<Vec<ObjectPair>>;
+	fn get_children(&self) -> zbus::Result<Vec<Accessible>>;
 
 	/// GetIndexInParent method; this will give an index between 0 and n, where n is the number of children in the parent.
 	fn get_index_in_parent(&self) -> zbus::Result<i32>;
@@ -38,7 +38,7 @@ trait Accessible {
 	fn get_localized_role_name(&self) -> zbus::Result<String>;
 
 	/// GetRelationSet method
-	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<ObjectPair>)>>;
+	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<Accessible>)>>;
 
 	/// GetRole method
 	fn get_role(&self) -> zbus::Result<Role>;
@@ -72,19 +72,25 @@ trait Accessible {
 
 	/// Parent property
 	#[dbus_proxy(property)]
-	fn parent(&self) -> zbus::Result<ObjectPair>;
+	fn parent(&self) -> zbus::Result<Accessible>;
 }
 
-impl TryFrom<AccessibleProxy<'_>> for ObjectPair {
+impl TryFrom<AccessibleProxy<'_>> for Accessible {
 	type Error = AtspiError;
-	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectPair, Self::Error> {
-		Ok((proxy.destination().to_string(), proxy.path().to_string().try_into()?))
+	fn try_from(proxy: AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
+		Ok(Accessible {
+			name: proxy.destination().to_string(),
+			path: proxy.path().to_string().try_into()?,
+		})
 	}
 }
-impl TryFrom<&AccessibleProxy<'_>> for ObjectPair {
+impl TryFrom<&AccessibleProxy<'_>> for Accessible {
 	type Error = AtspiError;
-	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectPair, Self::Error> {
-		Ok((proxy.destination().to_string(), proxy.path().to_string().try_into()?))
+	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
+		Ok(Accessible {
+			name: proxy.destination().to_string(),
+			path: proxy.path().to_string().try_into()?,
+		})
 	}
 }
 
