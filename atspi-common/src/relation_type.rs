@@ -63,9 +63,9 @@ pub enum RelationType {
 	/// onscreen object. Similar to `TooltipFor`, but more general.
 	/// Useful for windows which are technically toplevels but which, for one or more reasons,
 	/// do not explicitly cause their associated window to lose 'window focus'.
-	/// Creation of an [`Role::Window`] object with the `PopupFor` relation usually requires
+	/// Creation of an [`crate::Role::Window`] object with the `PopupFor` relation usually requires
 	/// some presentation action on the part of assistive technology clients,
-	/// even though the previous toplevel [`Role::Frame`] object may still be the active window.
+	/// even though the previous toplevel [`crate::Role::Frame`] object may still be the active window.
 	PopupFor,
 
 	/// This is the reciprocal relation to `PopupFor`.
@@ -107,7 +107,7 @@ pub enum RelationType {
 	/// Reciprocal of `ErrorFor`.
 	/// Indicates that this object has one or more errors, the nature of which is
 	/// described in the contents of the target object(s). Objects that have this
-	/// relation type should also contain [`State::InvalidEntry`] when their
+	/// relation type should also contain [`crate::state::State::InvalidEntry`] when their
 	/// `GetState` method is called.  
 	/// Included in upstream [AT-SPI2-CORE](https://gitlab.gnome.org/GNOME/at-spi2-core) since 2.26.
 	ErrorMessage,
