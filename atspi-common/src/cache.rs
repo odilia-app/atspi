@@ -4,7 +4,7 @@
 //! Source: `Cache.xml`.
 //!
 
-use crate::{InterfaceSet, ObjectPair, Role, StateSet};
+use crate::{Accessible, InterfaceSet, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
@@ -13,11 +13,11 @@ use zvariant::Type;
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct CacheItem {
 	/// The accessible object (within the application)   (so)
-	pub object: ObjectPair,
+	pub object: Accessible,
 	/// The application (root object(?)    (so)
-	pub app: ObjectPair,
+	pub app: Accessible,
 	/// The parent object.  (so)
-	pub parent: ObjectPair,
+	pub parent: Accessible,
 	/// The accessbile index in parent.  i
 	pub index: i32,
 	/// Child count of the accessible  i
@@ -36,9 +36,18 @@ pub struct CacheItem {
 impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
-			object: (":0.0".to_string(), "/org/a11y/atspi/accessible/object".try_into().unwrap()),
-			app: (":0.0".to_string(), "/org/a11y/atspi/accessible/application".try_into().unwrap()),
-			parent: (":0.0".to_string(), "/org/a11y/atspi/accessible/parent".try_into().unwrap()),
+			object: Accessible {
+				name: ":0.0".into(),
+				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
+			},
+			app: Accessible {
+				name: ":0.0".into(),
+				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
+			},
+			parent: Accessible {
+				name: ":0.0".into(),
+				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
+			},
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
@@ -63,13 +72,13 @@ fn zvariant_type_signature_of_cache_item() {
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct LegacyCacheItem {
 	/// The accessible object (within the application)   (so)
-	pub object: ObjectPair,
+	pub object: Accessible,
 	/// The application (root object(?)    (so)
-	pub app: ObjectPair,
+	pub app: Accessible,
 	/// The parent object.  (so)
-	pub parent: ObjectPair,
-	/// List of references to the accessible's children.  (so)
-	pub children: Vec<ObjectPair>,
+	pub parent: Accessible,
+	/// List of references to the accessible's children.  a(so)
+	pub children: Vec<Accessible>,
 	/// The exposed interfece(s) set.  as
 	pub ifaces: InterfaceSet,
 	/// The short localized name.  s
@@ -84,9 +93,18 @@ pub struct LegacyCacheItem {
 impl Default for LegacyCacheItem {
 	fn default() -> Self {
 		Self {
-			object: (":0.0".to_string(), "/org/a11y/atspi/accessible/object".try_into().unwrap()),
-			app: (":0.0".to_string(), "/org/a11y/atspi/accessible/application".try_into().unwrap()),
-			parent: (":0.0".to_string(), "/org/a11y/atspi/accessible/parent".try_into().unwrap()),
+			object: Accessible {
+				name: ":0.0".into(),
+				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
+			},
+			app: Accessible {
+				name: ":0.0".into(),
+				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
+			},
+			parent: Accessible {
+				name: ":0.0".into(),
+				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
+			},
 			children: Vec::new(),
 			ifaces: InterfaceSet::empty(),
 			short_name: String::default(),

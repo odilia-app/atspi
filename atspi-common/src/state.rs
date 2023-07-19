@@ -10,11 +10,13 @@ use zvariant::{Signature, Type};
 /// Used by various interfaces indicating every possible state
 /// of an accessibility object.
 #[bitflags]
+#[non_exhaustive]
 #[repr(u64)]
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum State {
 	/// Indicates an invalid state - probably an error condition.
+	#[default]
 	Invalid,
 	/// Indicates a window is currently the active window, or
 	/// an object is the active subelement within a container or table.
@@ -219,6 +221,115 @@ pub enum State {
 	ReadOnly,
 }
 
+impl From<State> for String {
+	fn from(state: State) -> String {
+		match state {
+			State::Invalid => "invalid",
+			State::Active => "active",
+			State::Armed => "armed",
+			State::Busy => "busy",
+			State::Checked => "checked",
+			State::Collapsed => "collapsed",
+			State::Defunct => "defunct",
+			State::Editable => "editable",
+			State::Enabled => "enabled",
+			State::Expandable => "expandable",
+			State::Expanded => "expanded",
+			State::Focusable => "focusable",
+			State::Focused => "focused",
+			State::HasTooltip => "has-tooltip",
+			State::Horizontal => "horizontal",
+			State::Iconified => "iconified",
+			State::Modal => "modal",
+			State::MultiLine => "multi-line",
+			State::Multiselectable => "multiselectable",
+			State::Opaque => "opaque",
+			State::Pressed => "pressed",
+			State::Resizable => "resizable",
+			State::Selectable => "selectable",
+			State::Selected => "selected",
+			State::Sensitive => "sensitive",
+			State::Showing => "showing",
+			State::SingleLine => "single-line",
+			State::Stale => "stale",
+			State::Transient => "transient",
+			State::Vertical => "vertical",
+			State::Visible => "visible",
+			State::ManagesDescendants => "manages-descendants",
+			State::Indeterminate => "indeterminate",
+			State::Required => "required",
+			State::Truncated => "truncated",
+			State::Animated => "animated",
+			State::InvalidEntry => "invalid-entry",
+			State::SupportsAutocompletion => "supports-autocompletion",
+			State::SelectableText => "selectable-text",
+			State::IsDefault => "is-default",
+			State::Visited => "visited",
+			State::Checkable => "checkable",
+			State::HasPopup => "has-popup",
+			State::ReadOnly => "read-only",
+		}
+		.to_string()
+	}
+}
+
+impl From<String> for State {
+	fn from(string: String) -> State {
+		(&*string).into()
+	}
+}
+
+impl From<&str> for State {
+	fn from(string: &str) -> State {
+		match string {
+			"active" => State::Active,
+			"armed" => State::Armed,
+			"busy" => State::Busy,
+			"checked" => State::Checked,
+			"collapsed" => State::Collapsed,
+			"defunct" => State::Defunct,
+			"editable" => State::Editable,
+			"enabled" => State::Enabled,
+			"expandable" => State::Expandable,
+			"expanded" => State::Expanded,
+			"focusable" => State::Focusable,
+			"focused" => State::Focused,
+			"has-tooltip" => State::HasTooltip,
+			"horizontal" => State::Horizontal,
+			"iconified" => State::Iconified,
+			"modal" => State::Modal,
+			"multi-line" => State::MultiLine,
+			"multiselectable" => State::Multiselectable,
+			"opaque" => State::Opaque,
+			"pressed" => State::Pressed,
+			"resizable" => State::Resizable,
+			"selectable" => State::Selectable,
+			"selected" => State::Selected,
+			"sensitive" => State::Sensitive,
+			"showing" => State::Showing,
+			"single-line" => State::SingleLine,
+			"stale" => State::Stale,
+			"transient" => State::Transient,
+			"vertical" => State::Vertical,
+			"visible" => State::Visible,
+			"manages-descendants" => State::ManagesDescendants,
+			"indeterminate" => State::Indeterminate,
+			"required" => State::Required,
+			"truncated" => State::Truncated,
+			"animated" => State::Animated,
+			"invalid-entry" => State::InvalidEntry,
+			"supports-autocompletion" => State::SupportsAutocompletion,
+			"selectable-text" => State::SelectableText,
+			"is-default" => State::IsDefault,
+			"visited" => State::Visited,
+			"checkable" => State::Checkable,
+			"has-popup" => State::HasPopup,
+			"read-only" => State::ReadOnly,
+			_ => State::Invalid,
+		}
+	}
+}
+
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 /// The bitflag representation of all states an object may have.
@@ -400,6 +511,7 @@ impl std::ops::BitAndAssign for StateSet {
 mod tests {
 	use super::*;
 	use byteorder::LE;
+	use serde_plain;
 	use zbus::zvariant::{from_slice, to_bytes, EncodingContext as Context};
 
 	#[test]
@@ -484,5 +596,33 @@ mod tests {
 		let ctxt = Context::<LE>::new_dbus(0);
 		let decoded = from_slice::<_, StateSet>(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32], ctxt);
 		assert!(decoded.is_err());
+	}
+
+	#[test]
+	fn convert_state_direct_string() {
+		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
+			.unwrap()
+			.iter()
+		{
+			let state_str: String = state.into();
+			let state_two: State = state_str.clone().into();
+			assert_eq!(
+				state, state_two,
+				"The {state:?} was serialized as {state_str}, which deserializes to {state_two:?}"
+			);
+		}
+	}
+	#[test]
+	fn convert_state_direct_string_is_equal_to_serde_output() {
+		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
+			.unwrap()
+			.iter()
+		{
+			let serde_state_str: String = serde_plain::to_string(&state).unwrap();
+			let state_str: String = state.into();
+			assert_eq!(serde_state_str, state_str);
+			let state_two: State = serde_plain::from_str(&state_str).unwrap();
+			assert_eq!(state, state_two, "The {state:?} was serialized as {state_str}, which deserializes to {state_two:?} (serde)");
+		}
 	}
 }

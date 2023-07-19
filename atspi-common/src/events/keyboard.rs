@@ -3,7 +3,6 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
-use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -37,8 +36,8 @@ impl GenericEvent<'_> for ModifiersEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -48,18 +47,6 @@ impl GenericEvent<'_> for ModifiersEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ModifiersEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Keyboard(KeyboardEvents::Modifiers(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for KeyboardEvents {
@@ -91,12 +78,6 @@ impl From<ModifiersEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for ModifiersEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
-}*/
-/*impl HasRegistryEventString for ModifiersEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:Modifiers";
-}*/
 impl HasRegistryEventString for KeyboardEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 }

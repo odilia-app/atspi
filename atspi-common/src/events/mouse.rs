@@ -3,7 +3,6 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
-use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -53,8 +52,8 @@ impl GenericEvent<'_> for AbsEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -64,18 +63,6 @@ impl GenericEvent<'_> for AbsEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for AbsEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Mouse(MouseEvents::Abs(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for RelEvent {
 	const DBUS_MEMBER: &'static str = "Rel";
@@ -89,8 +76,8 @@ impl GenericEvent<'_> for RelEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -100,18 +87,6 @@ impl GenericEvent<'_> for RelEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RelEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Mouse(MouseEvents::Rel(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ButtonEvent {
 	const DBUS_MEMBER: &'static str = "Button";
@@ -125,8 +100,8 @@ impl GenericEvent<'_> for ButtonEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -136,18 +111,6 @@ impl GenericEvent<'_> for ButtonEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ButtonEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Mouse(MouseEvents::Button(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for MouseEvents {
@@ -213,24 +176,6 @@ impl From<ButtonEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for AbsEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
-}*/
-/*impl HasMatchRule for RelEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
-}*/
-/*impl HasMatchRule for ButtonEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
-}*/
-/*impl HasRegistryEventString for AbsEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:Abs";
-}*/
-/*impl HasRegistryEventString for RelEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:Rel";
-}*/
-/*impl HasRegistryEventString for ButtonEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:Button";
-}*/
 impl HasRegistryEventString for MouseEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 }

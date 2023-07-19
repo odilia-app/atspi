@@ -3,7 +3,6 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
-use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -34,8 +33,8 @@ impl GenericEvent<'_> for FocusEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -45,18 +44,6 @@ impl GenericEvent<'_> for FocusEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for FocusEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Focus(FocusEvents::Focus(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for FocusEvents {
@@ -88,12 +75,6 @@ impl From<FocusEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for FocusEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
-}*/
-/*impl HasRegistryEventString for FocusEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:Focus";
-}*/
 impl HasRegistryEventString for FocusEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 }

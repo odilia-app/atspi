@@ -3,7 +3,6 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
-use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -59,8 +58,8 @@ impl GenericEvent<'_> for LineChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -70,18 +69,6 @@ impl GenericEvent<'_> for LineChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for LineChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::LineChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ColumnCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "ColumncountChanged";
@@ -95,8 +82,8 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -106,18 +93,6 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ColumnCountChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::ColumnCountChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for LineCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "LinecountChanged";
@@ -131,8 +106,8 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -142,18 +117,6 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for LineCountChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::LineCountChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ApplicationChangedEvent {
 	const DBUS_MEMBER: &'static str = "ApplicationChanged";
@@ -167,8 +130,8 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -178,18 +141,6 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ApplicationChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::ApplicationChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for CharWidthChangedEvent {
 	const DBUS_MEMBER: &'static str = "CharwidthChanged";
@@ -203,8 +154,8 @@ impl GenericEvent<'_> for CharWidthChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -214,18 +165,6 @@ impl GenericEvent<'_> for CharWidthChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for CharWidthChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Terminal(TerminalEvents::CharWidthChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for TerminalEvents {
@@ -350,36 +289,6 @@ impl From<CharWidthChangedEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for LineChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
-}*/
-/*impl HasMatchRule for ColumnCountChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
-}*/
-/*impl HasMatchRule for LineCountChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
-}*/
-/*impl HasMatchRule for ApplicationChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
-}*/
-/*impl HasMatchRule for CharWidthChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
-}*/
-/*impl HasRegistryEventString for LineChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:LineChanged";
-}*/
-/*impl HasRegistryEventString for ColumnCountChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:ColumncountChanged";
-}*/
-/*impl HasRegistryEventString for LineCountChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:LinecountChanged";
-}*/
-/*impl HasRegistryEventString for ApplicationChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:ApplicationChanged";
-}*/
-/*impl HasRegistryEventString for CharWidthChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:CharwidthChanged";
-}*/
 impl HasRegistryEventString for TerminalEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }

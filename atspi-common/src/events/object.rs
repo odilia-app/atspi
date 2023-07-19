@@ -3,9 +3,8 @@ use std::hash::Hash;
 use crate::{
 	error::AtspiError,
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
-	Event,
+	Event, State,
 };
-use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -195,7 +194,7 @@ pub struct LinkSelectedEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
 	pub item: crate::events::Accessible,
-	pub state: String,
+	pub state: State,
 	pub enabled: i32,
 }
 
@@ -313,8 +312,8 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -324,18 +323,6 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for PropertyChangeEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::PropertyChange(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for BoundsChangedEvent {
 	const DBUS_MEMBER: &'static str = "BoundsChanged";
@@ -349,8 +336,8 @@ impl GenericEvent<'_> for BoundsChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -360,18 +347,6 @@ impl GenericEvent<'_> for BoundsChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for BoundsChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::BoundsChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for LinkSelectedEvent {
 	const DBUS_MEMBER: &'static str = "LinkSelected";
@@ -385,8 +360,8 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -396,18 +371,6 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for LinkSelectedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::LinkSelected(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for StateChangedEvent {
 	const DBUS_MEMBER: &'static str = "StateChanged";
@@ -419,10 +382,10 @@ impl GenericEvent<'_> for StateChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, state: body.kind, enabled: body.detail1 })
+		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -432,18 +395,6 @@ impl GenericEvent<'_> for StateChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for StateChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::StateChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ChildrenChangedEvent {
 	const DBUS_MEMBER: &'static str = "ChildrenChanged";
@@ -462,8 +413,8 @@ impl GenericEvent<'_> for ChildrenChangedEvent {
 			child: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -473,18 +424,6 @@ impl GenericEvent<'_> for ChildrenChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ChildrenChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ChildrenChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for VisibleDataChangedEvent {
 	const DBUS_MEMBER: &'static str = "VisibleDataChanged";
@@ -498,8 +437,8 @@ impl GenericEvent<'_> for VisibleDataChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -509,18 +448,6 @@ impl GenericEvent<'_> for VisibleDataChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for VisibleDataChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::VisibleDataChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for SelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "SelectionChanged";
@@ -534,8 +461,8 @@ impl GenericEvent<'_> for SelectionChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -545,18 +472,6 @@ impl GenericEvent<'_> for SelectionChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for SelectionChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::SelectionChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ModelChangedEvent {
 	const DBUS_MEMBER: &'static str = "ModelChanged";
@@ -570,8 +485,8 @@ impl GenericEvent<'_> for ModelChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -581,18 +496,6 @@ impl GenericEvent<'_> for ModelChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ModelChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ModelChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	const DBUS_MEMBER: &'static str = "ActiveDescendantChanged";
@@ -606,8 +509,8 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -617,18 +520,6 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ActiveDescendantChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ActiveDescendantChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for AnnouncementEvent {
 	const DBUS_MEMBER: &'static str = "Announcement";
@@ -642,8 +533,8 @@ impl GenericEvent<'_> for AnnouncementEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, text: body.kind })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -653,18 +544,6 @@ impl GenericEvent<'_> for AnnouncementEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for AnnouncementEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::Announcement(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for AttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "AttributesChanged";
@@ -678,8 +557,8 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -689,18 +568,6 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for AttributesChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::AttributesChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for RowInsertedEvent {
 	const DBUS_MEMBER: &'static str = "RowInserted";
@@ -714,8 +581,8 @@ impl GenericEvent<'_> for RowInsertedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -725,18 +592,6 @@ impl GenericEvent<'_> for RowInsertedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RowInsertedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::RowInserted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for RowReorderedEvent {
 	const DBUS_MEMBER: &'static str = "RowReordered";
@@ -750,8 +605,8 @@ impl GenericEvent<'_> for RowReorderedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -761,18 +616,6 @@ impl GenericEvent<'_> for RowReorderedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RowReorderedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::RowReordered(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for RowDeletedEvent {
 	const DBUS_MEMBER: &'static str = "RowDeleted";
@@ -786,8 +629,8 @@ impl GenericEvent<'_> for RowDeletedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -797,18 +640,6 @@ impl GenericEvent<'_> for RowDeletedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for RowDeletedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::RowDeleted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ColumnInsertedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnInserted";
@@ -822,8 +653,8 @@ impl GenericEvent<'_> for ColumnInsertedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -833,18 +664,6 @@ impl GenericEvent<'_> for ColumnInsertedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ColumnInsertedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ColumnInserted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ColumnReorderedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnReordered";
@@ -858,8 +677,8 @@ impl GenericEvent<'_> for ColumnReorderedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -869,18 +688,6 @@ impl GenericEvent<'_> for ColumnReorderedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ColumnReorderedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ColumnReordered(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ColumnDeletedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnDeleted";
@@ -894,8 +701,8 @@ impl GenericEvent<'_> for ColumnDeletedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -905,18 +712,6 @@ impl GenericEvent<'_> for ColumnDeletedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ColumnDeletedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::ColumnDeleted(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for TextBoundsChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextBoundsChanged";
@@ -930,8 +725,8 @@ impl GenericEvent<'_> for TextBoundsChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -941,18 +736,6 @@ impl GenericEvent<'_> for TextBoundsChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for TextBoundsChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextBoundsChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for TextSelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextSelectionChanged";
@@ -966,8 +749,8 @@ impl GenericEvent<'_> for TextSelectionChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -977,18 +760,6 @@ impl GenericEvent<'_> for TextSelectionChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for TextSelectionChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextSelectionChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for TextChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextChanged";
@@ -1008,8 +779,8 @@ impl GenericEvent<'_> for TextChangedEvent {
 			text: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -1019,18 +790,6 @@ impl GenericEvent<'_> for TextChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for TextChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for TextAttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextAttributesChanged";
@@ -1044,8 +803,8 @@ impl GenericEvent<'_> for TextAttributesChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -1055,18 +814,6 @@ impl GenericEvent<'_> for TextAttributesChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for TextAttributesChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextAttributesChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for TextCaretMovedEvent {
 	const DBUS_MEMBER: &'static str = "TextCaretMoved";
@@ -1080,8 +827,8 @@ impl GenericEvent<'_> for TextCaretMovedEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -1091,18 +838,6 @@ impl GenericEvent<'_> for TextCaretMovedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for TextCaretMovedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Object(ObjectEvents::TextCaretMoved(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for ObjectEvents {
@@ -1207,7 +942,7 @@ impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.state,
+			kind: event.state.into(),
 			detail1: event.enabled,
 			detail2: i32::default(),
 			any_data: zvariant::Value::U8(0).into(),

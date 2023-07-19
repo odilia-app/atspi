@@ -3,7 +3,6 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
-use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -65,8 +64,8 @@ impl GenericEvent<'_> for LoadCompleteEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -76,18 +75,6 @@ impl GenericEvent<'_> for LoadCompleteEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for LoadCompleteEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Document(DocumentEvents::LoadComplete(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ReloadEvent {
 	const DBUS_MEMBER: &'static str = "Reload";
@@ -101,8 +88,8 @@ impl GenericEvent<'_> for ReloadEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -112,18 +99,6 @@ impl GenericEvent<'_> for ReloadEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ReloadEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Document(DocumentEvents::Reload(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for LoadStoppedEvent {
 	const DBUS_MEMBER: &'static str = "LoadStopped";
@@ -137,8 +112,8 @@ impl GenericEvent<'_> for LoadStoppedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -148,18 +123,6 @@ impl GenericEvent<'_> for LoadStoppedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for LoadStoppedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Document(DocumentEvents::LoadStopped(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for ContentChangedEvent {
 	const DBUS_MEMBER: &'static str = "ContentChanged";
@@ -173,8 +136,8 @@ impl GenericEvent<'_> for ContentChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -184,18 +147,6 @@ impl GenericEvent<'_> for ContentChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for ContentChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Document(DocumentEvents::ContentChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for AttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "AttributesChanged";
@@ -209,8 +160,8 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -220,18 +171,6 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for AttributesChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Document(DocumentEvents::AttributesChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 impl GenericEvent<'_> for PageChangedEvent {
 	const DBUS_MEMBER: &'static str = "PageChanged";
@@ -245,8 +184,8 @@ impl GenericEvent<'_> for PageChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -256,18 +195,6 @@ impl GenericEvent<'_> for PageChangedEvent {
 		copy.into()
 	}
 }
-
-/*
-impl TryFrom<Event> for PageChangedEvent {
-type Error = AtspiError;
-fn try_from(event: Event) -> Result<Self, Self::Error> {
-	 if let Event::Document(DocumentEvents::PageChanged(inner_event)) = event {
-			Ok(inner_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}*/
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for DocumentEvents {
@@ -409,42 +336,6 @@ impl From<PageChangedEvent> for EventBodyOwned {
 	}
 }
 
-/*impl HasMatchRule for LoadCompleteEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'";
-}*/
-/*impl HasMatchRule for ReloadEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
-}*/
-/*impl HasMatchRule for LoadStoppedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'";
-}*/
-/*impl HasMatchRule for ContentChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
-}*/
-/*impl HasMatchRule for AttributesChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'";
-}*/
-/*impl HasMatchRule for PageChangedEvent {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
-}*/
-/*impl HasRegistryEventString for LoadCompleteEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:LoadComplete";
-}*/
-/*impl HasRegistryEventString for ReloadEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:Reload";
-}*/
-/*impl HasRegistryEventString for LoadStoppedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:LoadStopped";
-}*/
-/*impl HasRegistryEventString for ContentChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:ContentChanged";
-}*/
-/*impl HasRegistryEventString for AttributesChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:AttributesChanged";
-}*/
-/*impl HasRegistryEventString for PageChangedEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:PageChanged";
-}*/
 impl HasRegistryEventString for DocumentEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
