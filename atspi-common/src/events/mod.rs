@@ -545,7 +545,7 @@ impl TryFrom<&zbus::Message> for Event {
 		// Therefore no outer parentheses.
 		match body_signature {
 			// Marshalled Accessible signature
-			"so" => match member_str {
+			"so" | "(so)" => match member_str {
 				"RemoveAccessible" => {
 					let ev = RemoveAccessibleEvent::try_from(msg)?;
 					Ok(Event::Cache(CacheEvents::Remove(ev)))
@@ -557,7 +557,7 @@ impl TryFrom<&zbus::Message> for Event {
 				_ => Err(AtspiError::UnknownSignal),
 			},
 			// Atspi / Qspi signature
-			"siiva{sv}" | "siiv(so)" => {
+			"siiva{sv}" | "siiv(so)" | "(siiva{sv})" | "(siiv(so))" => {
 				let Some(interface) = msg.interface() else {
 					return Err(AtspiError::MissingInterface);
 				};
@@ -582,7 +582,7 @@ impl TryFrom<&zbus::Message> for Event {
 					_ => Err(AtspiError::UnknownInterface),
 				}
 			}
-			"ss" => {
+			"ss" | "(ss)" => {
 				if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg) {
 					return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
 				}
@@ -592,16 +592,16 @@ impl TryFrom<&zbus::Message> for Event {
 				Err(AtspiError::UnknownSignal)
 			}
 			// Marshalled `AddAccessible` signature
-			"(so)(so)(so)iiassusau" => {
+			"(so)(so)(so)iiassusau" | "((so)(so)(so)iiassusau)" => {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
 			// LegacyCacheAdd signature
-			"(so)(so)(so)a(so)assusau" => {
+			"(so)(so)(so)a(so)assusau" | "((so)(so)(so)a(so)assusau)" => {
 				let ev = LegacyAddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
 			}
-			_ => Err(AtspiError::UnknownBusSignature),
+			sig => Err(AtspiError::UnknownBusSignature(sig.to_string())),
 		}
 	}
 }
