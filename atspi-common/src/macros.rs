@@ -151,66 +151,6 @@ macro_rules! impl_try_from_event_for_user_facing_type {
 	};
 }
 
-/// Expands to 2 or more conversions. It is not apparent at the call site
-/// that this macro expands to multiple conversions - and which ones.
-///
-/// 1. Implements `From<$outer_type>` for `Event`.
-/// 2. Implements `TryFrom<Event>` for `$outer_type`.
-/// 3. Implements `From<$inner_type>` for `$outer_type`.
-/// 4. Implements `From<$inner_type>` for `Event`.
-/// 5. Implements `TryFrom<Event>` for `$inner_type`.
-///
-/// The strategy for replacing this macro is to
-/// 1. find instances with two arguments and replace them with the
-/// `impl_from_interface_event_enum_for_event!` macro and the
-/// `impl_try_from_event_for_user_facing_event_type!` macro.
-///
-/// 2. find instances with four arguments and replace them with these macros:
-/// `impl_from_user_facing_event_for_interface_event_enum!`
-/// `impl_from_user_facing_type_for_event_enum!`
-/// `impl_try_from_event_for_user_facing_type`
-macro_rules! impl_event_conversions {
-	($outer_type:ty, $outer_variant:path) => {
-		impl From<$outer_type> for Event {
-			fn from(event_variant: $outer_type) -> Event {
-				$outer_variant(event_variant.into())
-			}
-		}
-		impl TryFrom<Event> for $outer_type {
-			type Error = AtspiError;
-			fn try_from(generic_event: Event) -> Result<$outer_type, Self::Error> {
-				if let $outer_variant(event_type) = generic_event {
-					Ok(event_type)
-				} else {
-					Err(AtspiError::Conversion("Invalid type"))
-				}
-			}
-		}
-	};
-	($inner_type:ty, $outer_type:ty, $inner_variant:path, $outer_variant:path) => {
-		impl From<$inner_type> for $outer_type {
-			fn from(specific_event: $inner_type) -> $outer_type {
-				$inner_variant(specific_event)
-			}
-		}
-		impl From<$inner_type> for Event {
-			fn from(event_variant: $inner_type) -> Event {
-				$outer_variant(event_variant.into())
-			}
-		}
-		impl TryFrom<Event> for $inner_type {
-			type Error = AtspiError;
-			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {
-				if let $outer_variant($inner_variant(specific_event)) = generic_event {
-					Ok(specific_event)
-				} else {
-					Err(AtspiError::Conversion("Invalid type"))
-				}
-			}
-		}
-	};
-}
-
 macro_rules! impl_to_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
