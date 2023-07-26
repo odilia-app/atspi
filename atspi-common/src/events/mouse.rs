@@ -11,7 +11,10 @@ pub enum MouseEvents {
 	Rel(RelEvent),
 	Button(ButtonEvent),
 }
-impl_event_conversions!(MouseEvents, Event::Mouse);
+
+impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
+impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
+
 event_wrapper_test_cases!(MouseEvents, AbsEvent);
 
 impl HasMatchRule for MouseEvents {

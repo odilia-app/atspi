@@ -30,7 +30,10 @@ pub enum ObjectEvents {
 	TextAttributesChanged(TextAttributesChangedEvent),
 	TextCaretMoved(TextCaretMovedEvent),
 }
-impl_event_conversions!(ObjectEvents, Event::Object);
+
+impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
+impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+
 event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
 
 impl HasMatchRule for ObjectEvents {

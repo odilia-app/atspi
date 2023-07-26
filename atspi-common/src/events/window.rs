@@ -27,7 +27,10 @@ pub enum WindowEvents {
 	UUshade(UUshadeEvent),
 	Restyle(RestyleEvent),
 }
-impl_event_conversions!(WindowEvents, Event::Window);
+
+impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);
+impl_try_from_event_for_user_facing_event_type!(WindowEvents, Event::Window);
+
 event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
 impl HasMatchRule for WindowEvents {

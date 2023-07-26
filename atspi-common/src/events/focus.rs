@@ -9,7 +9,10 @@ use zvariant::ObjectPath;
 pub enum FocusEvents {
 	Focus(FocusEvent),
 }
-impl_event_conversions!(FocusEvents, Event::Focus);
+
+impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
+impl_try_from_event_for_user_facing_event_type!(FocusEvents, Event::Focus);
+
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
 
 impl HasMatchRule for FocusEvents {

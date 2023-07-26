@@ -13,7 +13,10 @@ pub enum TerminalEvents {
 	ApplicationChanged(ApplicationChangedEvent),
 	CharWidthChanged(CharWidthChangedEvent),
 }
-impl_event_conversions!(TerminalEvents, Event::Terminal);
+
+impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
+impl_try_from_event_for_user_facing_event_type!(TerminalEvents, Event::Terminal);
+
 event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
 
 impl HasMatchRule for TerminalEvents {

@@ -149,6 +149,14 @@ macro_rules! impl_try_from_event_for_user_facing_type {
 /// 3. Implements `From<$inner_type>` for `$outer_type`.
 /// 4. Implements `From<$inner_type>` for `Event`.
 /// 5. Implements `TryFrom<Event>` for `$inner_type`.
+///
+/// The strategy for replacing this macro is to
+/// 1. find instances with two arguments and replace them with the
+/// `impl_from_interface_event_enum_for_event!` macro and the
+/// `impl_try_from_event_for_user_facing_event_type!` macro.
+///
+/// 2. find instances with four arguments and replace them with the
+
 macro_rules! impl_event_conversions {
 	($outer_type:ty, $outer_variant:path) => {
 		impl From<$outer_type> for Event {

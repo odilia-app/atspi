@@ -14,7 +14,8 @@ pub enum DocumentEvents {
 	AttributesChanged(AttributesChangedEvent),
 	PageChanged(PageChangedEvent),
 }
-impl_event_conversions!(DocumentEvents, Event::Document);
+impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
+impl_try_from_event_for_user_facing_event_type!(DocumentEvents, Event::Document);
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
 
 impl HasMatchRule for DocumentEvents {

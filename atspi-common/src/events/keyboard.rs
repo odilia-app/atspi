@@ -9,7 +9,10 @@ use zvariant::ObjectPath;
 pub enum KeyboardEvents {
 	Modifiers(ModifiersEvent),
 }
-impl_event_conversions!(KeyboardEvents, Event::Keyboard);
+
+impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
+impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard);
+
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
 impl HasMatchRule for KeyboardEvents {
