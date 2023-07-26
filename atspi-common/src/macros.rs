@@ -1,5 +1,154 @@
 #[macro_export]
 
+/// Expands to a conversion given the enclosed event type and outer `Event` variant.
+///
+/// eg
+/// ```impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);```
+/// expands to:
+///
+/// ```rust
+/// impl From<ObjectEvents> for Event {
+///     fn from(event_variant: ObjectEvents) -> Event {
+///         Event::Object(event_variant.into())
+///     }
+/// }
+/// ```
+macro_rules! impl_from_interface_event_enum_for_event {
+	($outer_type:ty, $outer_variant:path) => {
+		impl From<$outer_type> for Event {
+			fn from(event_variant: $outer_type) -> Event {
+				$outer_variant(event_variant.into())
+			}
+		}
+	};
+}
+
+/// Expands to a conversion given the enclosed event enum type and outer `Event` variant.
+///
+/// eg
+/// ```impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);```
+/// expands to:
+///
+/// ```rust
+/// impl TryFrom<Event> for ObjectEvents {
+///     type Error = AtspiError;
+///     fn try_from(generic_event: Event) -> Result<ObjectEvents, Self::Error> {
+///         if let Event::Object(event_type) = generic_event {
+///             Ok(event_type)
+///         } else {
+///             Err(AtspiError::Conversion("Invalid type"))
+///         }
+///     }
+/// }
+/// ```
+macro_rules! impl_try_from_event_for_user_facing_event_type {
+	($outer_type:ty, $outer_variant:path) => {
+		impl TryFrom<Event> for $outer_type {
+			type Error = AtspiError;
+			fn try_from(generic_event: Event) -> Result<$outer_type, Self::Error> {
+				if let $outer_variant(event_type) = generic_event {
+					Ok(event_type)
+				} else {
+					Err(AtspiError::Conversion("Invalid type"))
+				}
+			}
+		}
+	};
+}
+
+/// Expands to a conversion given the user facing event type and outer `Event::Interface(<InterfaceEnum>)` variant.,
+/// the enum type and outtermost variant.
+///
+///                                             user facing type,  enum type,    outer variant
+/// `impl_from_user_facing_event_for_interface_event_enum!(StateChangedEvent, ObjectEvents, ObjectEvents::StateChanged);`
+///
+/// expands to:
+///
+/// ```rust
+/// impl From<StateChangedEvent> for ObjectEvents {
+///     fn from(specific_event: StateChangedEvent) -> ObjectEvents {
+///         ObjectEvents::StateChanged(specific_event)
+///     }
+/// }
+/// ```
+macro_rules! impl_from_user_facing_event_for_interface_event_enum {
+	($inner_type:ty, $outer_type:ty, $inner_variant:path) => {
+		impl From<$inner_type> for $outer_type {
+			fn from(specific_event: $inner_type) -> $outer_type {
+				$inner_variant(specific_event)
+			}
+		}
+	};
+}
+
+/// Expands to a conversion given two arguments,
+/// 1. the user facing event type (inner_type)
+/// which relies on a conversion to its interface variant enum type variant.
+/// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.,
+/// the enum type and outtermost variant.
+///                                              user facing type,  outer variant
+/// `impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object(ObjectEvents::StateChanged));` //CHECKME
+///
+/// expands to:
+///
+/// ```rust
+/// impl From<StateChangedEvent> for Event {
+///    fn from(event_variant: StateChangedEvent) -> Event {
+///       Event::Object(ObjectEvents::StateChanged(event_variant))
+///   }
+/// }
+/// ```
+macro_rules! impl_from_user_facing_type_for_event_enum {
+	($inner_type:ty, $outer_variant:path) => {
+		impl From<$inner_type> for Event {
+			fn from(event_variant: $inner_type) -> Event {
+				$outer_variant(event_variant.into())
+			}
+		}
+	};
+}
+
+/// Expands to a conversion given two arguments,
+/// 1. the user facing event type (inner_type)
+/// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.
+///
+/// eg `impl_try_from_event_for_user_facing_type!(StateChangedEvent, ObjectEvents::StateChanged);`
+/// expands to:
+///
+/// ```rust
+/// impl TryFrom<Event> for StateChangedEvent {
+///    type Error = AtspiError;
+///   fn try_from(generic_event: Event) -> Result<StateChangedEvent, Self::Error> {
+///      if let Event::Object(ObjectEvents::StateChanged(specific_event)) = generic_event {
+///          Ok(specific_event)
+///         } else {
+///          Err(AtspiError::Conversion("Invalid type"))
+///         }
+/// }
+/// ```
+macro_rules! impl_try_from_event_for_user_facing_type {
+	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
+		impl TryFrom<Event> for $inner_type {
+			type Error = AtspiError;
+			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {
+				if let $outer_variant($inner_variant(specific_event)) = generic_event {
+					Ok(specific_event)
+				} else {
+					Err(AtspiError::Conversion("Invalid type"))
+				}
+			}
+		}
+	};
+}
+
+/// Expands to 2 or more conversions. It is not apparent at the call site
+/// that this macro expands to multiple conversions - and which ones.
+///
+/// 1. Implements `From<$outer_type>` for `Event`.
+/// 2. Implements `TryFrom<Event>` for `$outer_type`.
+/// 3. Implements `From<$inner_type>` for `$outer_type`.
+/// 4. Implements `From<$inner_type>` for `Event`.
+/// 5. Implements `TryFrom<Event>` for `$inner_type`.
 macro_rules! impl_event_conversions {
 	($outer_type:ty, $outer_variant:path) => {
 		impl From<$outer_type> for Event {
@@ -201,8 +350,8 @@ macro_rules! zbus_message_test_case {
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
 			let fake_msg = zbus::MessageBuilder::signal(
-				"/org/a11y/sixynine/fourtwenty",
-				"org.a11y.atspi.accesible.technically.valid",
+				"/org/a11y/sixtynine/fourtwenty",
+				"org.a11y.atspi.accessible.technically.valid",
 				"FakeMember",
 			)
 			.unwrap()
