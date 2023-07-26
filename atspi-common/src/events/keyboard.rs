@@ -65,7 +65,18 @@ impl TryFrom<&zbus::Message> for KeyboardEvents {
 	}
 }
 
-impl_event_conversions!(ModifiersEvent, KeyboardEvents, KeyboardEvents::Modifiers, Event::Keyboard);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ModifiersEvent,
+	KeyboardEvents,
+	KeyboardEvents::Modifiers
+);
+impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
+impl_try_from_event_for_user_facing_type!(
+	ModifiersEvent,
+	KeyboardEvents::Modifiers,
+	Event::Keyboard
+);
+
 event_test_cases!(ModifiersEvent);
 impl_to_dbus_message!(ModifiersEvent);
 impl_from_dbus_message!(ModifiersEvent);

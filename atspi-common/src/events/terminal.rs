@@ -187,9 +187,14 @@ impl TryFrom<&zbus::Message> for TerminalEvents {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	LineChangedEvent,
 	TerminalEvents,
+	TerminalEvents::LineChanged
+);
+impl_from_user_facing_type_for_event_enum!(LineChangedEvent, Event::Terminal);
+impl_try_from_event_for_user_facing_type!(
+	LineChangedEvent,
 	TerminalEvents::LineChanged,
 	Event::Terminal
 );
@@ -208,9 +213,14 @@ impl From<LineChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnCountChangedEvent,
 	TerminalEvents,
+	TerminalEvents::ColumnCountChanged
+);
+impl_from_user_facing_type_for_event_enum!(ColumnCountChangedEvent, Event::Terminal);
+impl_try_from_event_for_user_facing_type!(
+	ColumnCountChangedEvent,
 	TerminalEvents::ColumnCountChanged,
 	Event::Terminal
 );
@@ -229,9 +239,14 @@ impl From<ColumnCountChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	LineCountChangedEvent,
 	TerminalEvents,
+	TerminalEvents::LineCountChanged
+);
+impl_from_user_facing_type_for_event_enum!(LineCountChangedEvent, Event::Terminal);
+impl_try_from_event_for_user_facing_type!(
+	LineCountChangedEvent,
 	TerminalEvents::LineCountChanged,
 	Event::Terminal
 );
@@ -250,9 +265,14 @@ impl From<LineCountChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ApplicationChangedEvent,
 	TerminalEvents,
+	TerminalEvents::ApplicationChanged
+);
+impl_from_user_facing_type_for_event_enum!(ApplicationChangedEvent, Event::Terminal);
+impl_try_from_event_for_user_facing_type!(
+	ApplicationChangedEvent,
 	TerminalEvents::ApplicationChanged,
 	Event::Terminal
 );
@@ -271,9 +291,14 @@ impl From<ApplicationChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	CharWidthChangedEvent,
 	TerminalEvents,
+	TerminalEvents::CharWidthChanged
+);
+impl_from_user_facing_type_for_event_enum!(CharWidthChangedEvent, Event::Terminal);
+impl_try_from_event_for_user_facing_type!(
+	CharWidthChangedEvent,
 	TerminalEvents::CharWidthChanged,
 	Event::Terminal
 );

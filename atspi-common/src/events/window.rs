@@ -621,9 +621,14 @@ impl TryFrom<&zbus::Message> for WindowEvents {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	PropertyChangeEvent,
 	WindowEvents,
+	WindowEvents::PropertyChange
+);
+impl_from_user_facing_type_for_event_enum!(PropertyChangeEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(
+	PropertyChangeEvent,
 	WindowEvents::PropertyChange,
 	Event::Window
 );
@@ -642,7 +647,13 @@ impl From<PropertyChangeEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(MinimizeEvent, WindowEvents, WindowEvents::Minimize, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	MinimizeEvent,
+	WindowEvents,
+	WindowEvents::Minimize
+);
+impl_from_user_facing_type_for_event_enum!(MinimizeEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(MinimizeEvent, WindowEvents::Minimize, Event::Window);
 event_test_cases!(MinimizeEvent);
 impl_to_dbus_message!(MinimizeEvent);
 impl_from_dbus_message!(MinimizeEvent);
@@ -658,7 +669,13 @@ impl From<MinimizeEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(MaximizeEvent, WindowEvents, WindowEvents::Maximize, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	MaximizeEvent,
+	WindowEvents,
+	WindowEvents::Maximize
+);
+impl_from_user_facing_type_for_event_enum!(MaximizeEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(MaximizeEvent, WindowEvents::Maximize, Event::Window);
 event_test_cases!(MaximizeEvent);
 impl_to_dbus_message!(MaximizeEvent);
 impl_from_dbus_message!(MaximizeEvent);
@@ -674,7 +691,13 @@ impl From<MaximizeEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RestoreEvent, WindowEvents, WindowEvents::Restore, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RestoreEvent,
+	WindowEvents,
+	WindowEvents::Restore
+);
+impl_from_user_facing_type_for_event_enum!(RestoreEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(RestoreEvent, WindowEvents::Restore, Event::Window);
 event_test_cases!(RestoreEvent);
 impl_to_dbus_message!(RestoreEvent);
 impl_from_dbus_message!(RestoreEvent);
@@ -690,7 +713,13 @@ impl From<RestoreEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(CloseEvent, WindowEvents, WindowEvents::Close, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	CloseEvent,
+	WindowEvents,
+	WindowEvents::Close
+);
+impl_from_user_facing_type_for_event_enum!(CloseEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(CloseEvent, WindowEvents::Close, Event::Window);
 event_test_cases!(CloseEvent);
 impl_to_dbus_message!(CloseEvent);
 impl_from_dbus_message!(CloseEvent);
@@ -706,7 +735,13 @@ impl From<CloseEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(CreateEvent, WindowEvents, WindowEvents::Create, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	CreateEvent,
+	WindowEvents,
+	WindowEvents::Create
+);
+impl_from_user_facing_type_for_event_enum!(CreateEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(CreateEvent, WindowEvents::Create, Event::Window);
 event_test_cases!(CreateEvent);
 impl_to_dbus_message!(CreateEvent);
 impl_from_dbus_message!(CreateEvent);
@@ -722,7 +757,13 @@ impl From<CreateEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ReparentEvent, WindowEvents, WindowEvents::Reparent, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ReparentEvent,
+	WindowEvents,
+	WindowEvents::Reparent
+);
+impl_from_user_facing_type_for_event_enum!(ReparentEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(ReparentEvent, WindowEvents::Reparent, Event::Window);
 event_test_cases!(ReparentEvent);
 impl_to_dbus_message!(ReparentEvent);
 impl_from_dbus_message!(ReparentEvent);
@@ -738,9 +779,14 @@ impl From<ReparentEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	DesktopCreateEvent,
 	WindowEvents,
+	WindowEvents::DesktopCreate
+);
+impl_from_user_facing_type_for_event_enum!(DesktopCreateEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(
+	DesktopCreateEvent,
 	WindowEvents::DesktopCreate,
 	Event::Window
 );
@@ -759,9 +805,14 @@ impl From<DesktopCreateEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	DesktopDestroyEvent,
 	WindowEvents,
+	WindowEvents::DesktopDestroy
+);
+impl_from_user_facing_type_for_event_enum!(DesktopDestroyEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(
+	DesktopDestroyEvent,
 	WindowEvents::DesktopDestroy,
 	Event::Window
 );
@@ -780,7 +831,13 @@ impl From<DesktopDestroyEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(DestroyEvent, WindowEvents, WindowEvents::Destroy, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	DestroyEvent,
+	WindowEvents,
+	WindowEvents::Destroy
+);
+impl_from_user_facing_type_for_event_enum!(DestroyEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(DestroyEvent, WindowEvents::Destroy, Event::Window);
 event_test_cases!(DestroyEvent);
 impl_to_dbus_message!(DestroyEvent);
 impl_from_dbus_message!(DestroyEvent);
@@ -796,7 +853,13 @@ impl From<DestroyEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ActivateEvent, WindowEvents, WindowEvents::Activate, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ActivateEvent,
+	WindowEvents,
+	WindowEvents::Activate
+);
+impl_from_user_facing_type_for_event_enum!(ActivateEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(ActivateEvent, WindowEvents::Activate, Event::Window);
 event_test_cases!(ActivateEvent);
 impl_to_dbus_message!(ActivateEvent);
 impl_from_dbus_message!(ActivateEvent);
@@ -812,7 +875,13 @@ impl From<ActivateEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(DeactivateEvent, WindowEvents, WindowEvents::Deactivate, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	DeactivateEvent,
+	WindowEvents,
+	WindowEvents::Deactivate
+);
+impl_from_user_facing_type_for_event_enum!(DeactivateEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(DeactivateEvent, WindowEvents::Deactivate, Event::Window);
 event_test_cases!(DeactivateEvent);
 impl_to_dbus_message!(DeactivateEvent);
 impl_from_dbus_message!(DeactivateEvent);
@@ -828,7 +897,13 @@ impl From<DeactivateEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RaiseEvent, WindowEvents, WindowEvents::Raise, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RaiseEvent,
+	WindowEvents,
+	WindowEvents::Raise
+);
+impl_from_user_facing_type_for_event_enum!(RaiseEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(RaiseEvent, WindowEvents::Raise, Event::Window);
 event_test_cases!(RaiseEvent);
 impl_to_dbus_message!(RaiseEvent);
 impl_from_dbus_message!(RaiseEvent);
@@ -844,7 +919,13 @@ impl From<RaiseEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(LowerEvent, WindowEvents, WindowEvents::Lower, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	LowerEvent,
+	WindowEvents,
+	WindowEvents::Lower
+);
+impl_from_user_facing_type_for_event_enum!(LowerEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(LowerEvent, WindowEvents::Lower, Event::Window);
 event_test_cases!(LowerEvent);
 impl_to_dbus_message!(LowerEvent);
 impl_from_dbus_message!(LowerEvent);
@@ -860,7 +941,9 @@ impl From<LowerEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(MoveEvent, WindowEvents, WindowEvents::Move, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(MoveEvent, WindowEvents, WindowEvents::Move);
+impl_from_user_facing_type_for_event_enum!(MoveEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(MoveEvent, WindowEvents::Move, Event::Window);
 event_test_cases!(MoveEvent);
 impl_to_dbus_message!(MoveEvent);
 impl_from_dbus_message!(MoveEvent);
@@ -876,7 +959,13 @@ impl From<MoveEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ResizeEvent, WindowEvents, WindowEvents::Resize, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ResizeEvent,
+	WindowEvents,
+	WindowEvents::Resize
+);
+impl_from_user_facing_type_for_event_enum!(ResizeEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(ResizeEvent, WindowEvents::Resize, Event::Window);
 event_test_cases!(ResizeEvent);
 impl_to_dbus_message!(ResizeEvent);
 impl_from_dbus_message!(ResizeEvent);
@@ -892,7 +981,13 @@ impl From<ResizeEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ShadeEvent, WindowEvents, WindowEvents::Shade, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ShadeEvent,
+	WindowEvents,
+	WindowEvents::Shade
+);
+impl_from_user_facing_type_for_event_enum!(ShadeEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(ShadeEvent, WindowEvents::Shade, Event::Window);
 event_test_cases!(ShadeEvent);
 impl_to_dbus_message!(ShadeEvent);
 impl_from_dbus_message!(ShadeEvent);
@@ -908,7 +1003,13 @@ impl From<ShadeEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(UUshadeEvent, WindowEvents, WindowEvents::UUshade, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	UUshadeEvent,
+	WindowEvents,
+	WindowEvents::UUshade
+);
+impl_from_user_facing_type_for_event_enum!(UUshadeEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(UUshadeEvent, WindowEvents::UUshade, Event::Window);
 event_test_cases!(UUshadeEvent);
 impl_to_dbus_message!(UUshadeEvent);
 impl_from_dbus_message!(UUshadeEvent);
@@ -924,7 +1025,13 @@ impl From<UUshadeEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RestyleEvent, WindowEvents, WindowEvents::Restyle, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RestyleEvent,
+	WindowEvents,
+	WindowEvents::Restyle
+);
+impl_from_user_facing_type_for_event_enum!(RestyleEvent, Event::Window);
+impl_try_from_event_for_user_facing_type!(RestyleEvent, WindowEvents::Restyle, Event::Window);
 event_test_cases!(RestyleEvent);
 impl_to_dbus_message!(RestyleEvent);
 impl_from_dbus_message!(RestyleEvent);

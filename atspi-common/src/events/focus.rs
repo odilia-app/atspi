@@ -62,7 +62,10 @@ impl TryFrom<&zbus::Message> for FocusEvents {
 	}
 }
 
-impl_event_conversions!(FocusEvent, FocusEvents, FocusEvents::Focus, Event::Focus);
+impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
+impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
+impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
+
 event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);

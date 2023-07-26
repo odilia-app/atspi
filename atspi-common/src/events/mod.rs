@@ -184,9 +184,15 @@ pub struct LegacyAddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: LegacyCacheItem,
 }
-impl_event_conversions!(
+
+impl_from_user_facing_event_for_interface_event_enum!(
 	LegacyAddAccessibleEvent,
 	CacheEvents,
+	CacheEvents::LegacyAdd
+);
+impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
+impl_try_from_event_for_user_facing_type!(
+	LegacyAddAccessibleEvent,
 	CacheEvents::LegacyAdd,
 	Event::Cache
 );
@@ -225,7 +231,14 @@ pub struct AddAccessibleEvent {
 	pub item: Accessible,
 	pub node_added: CacheItem,
 }
-impl_event_conversions!(AddAccessibleEvent, CacheEvents, CacheEvents::Add, Event::Cache);
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	AddAccessibleEvent,
+	CacheEvents,
+	CacheEvents::Add
+);
+impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
+impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
 event_test_cases!(AddAccessibleEvent);
 
 impl GenericEvent<'_> for AddAccessibleEvent {
@@ -268,7 +281,14 @@ pub struct RemoveAccessibleEvent {
 	/// The node that was removed from the application tree  TODO Check Me
 	pub node_removed: Accessible,
 }
-impl_event_conversions!(RemoveAccessibleEvent, CacheEvents, CacheEvents::Remove, Event::Cache);
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	RemoveAccessibleEvent,
+	CacheEvents,
+	CacheEvents::Remove
+);
+impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
+impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent);
 impl GenericEvent<'_> for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
@@ -407,16 +427,22 @@ pub enum EventListenerEvents {
 	Deregistered(EventListenerDeregisteredEvent),
 }
 
-/// An event that is emitted by the regostry daemon to signal that an event has been deregistered
+/// An event that is emitted by the registry daemon, to inform that an event has been deregistered
 /// to no longer listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerDeregisteredEvent {
 	pub item: Accessible,
 	pub deregistered_event: EventListeners,
 }
-impl_event_conversions!(
+
+impl_from_user_facing_event_for_interface_event_enum!(
 	EventListenerDeregisteredEvent,
 	EventListenerEvents,
+	EventListenerEvents::Deregistered
+);
+impl_from_user_facing_type_for_event_enum!(EventListenerDeregisteredEvent, Event::Listener);
+impl_try_from_event_for_user_facing_type!(
+	EventListenerDeregisteredEvent,
 	EventListenerEvents::Deregistered,
 	Event::Listener
 );
@@ -452,9 +478,15 @@ pub struct EventListenerRegisteredEvent {
 	pub item: Accessible,
 	pub registered_event: EventListeners,
 }
-impl_event_conversions!(
+
+impl_from_user_facing_event_for_interface_event_enum!(
 	EventListenerRegisteredEvent,
 	EventListenerEvents,
+	EventListenerEvents::Registered
+);
+impl_from_user_facing_type_for_event_enum!(EventListenerRegisteredEvent, Event::Listener);
+impl_try_from_event_for_user_facing_type!(
+	EventListenerRegisteredEvent,
 	EventListenerEvents::Registered,
 	Event::Listener
 );

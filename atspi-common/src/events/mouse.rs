@@ -131,7 +131,10 @@ impl TryFrom<&zbus::Message> for MouseEvents {
 	}
 }
 
-impl_event_conversions!(AbsEvent, MouseEvents, MouseEvents::Abs, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
+impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
+impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
+
 event_test_cases!(AbsEvent);
 impl_to_dbus_message!(AbsEvent);
 impl_from_dbus_message!(AbsEvent);
@@ -147,7 +150,9 @@ impl From<AbsEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RelEvent, MouseEvents, MouseEvents::Rel, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(RelEvent, MouseEvents, MouseEvents::Rel);
+impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
+impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mouse);
 event_test_cases!(RelEvent);
 impl_to_dbus_message!(RelEvent);
 impl_from_dbus_message!(RelEvent);
@@ -163,7 +168,13 @@ impl From<RelEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ButtonEvent, MouseEvents, MouseEvents::Button, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ButtonEvent,
+	MouseEvents,
+	MouseEvents::Button
+);
+impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
+impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Event::Mouse);
 event_test_cases!(ButtonEvent);
 impl_to_dbus_message!(ButtonEvent);
 impl_from_dbus_message!(ButtonEvent);

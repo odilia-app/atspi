@@ -3,10 +3,12 @@
 /// Expands to a conversion given the enclosed event type and outer `Event` variant.
 ///
 /// eg
-/// ```impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);```
+/// ```ignore
+/// impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
+/// ```
 /// expands to:
 ///
-/// ```rust
+/// ```ignore
 /// impl From<ObjectEvents> for Event {
 ///     fn from(event_variant: ObjectEvents) -> Event {
 ///         Event::Object(event_variant.into())
@@ -26,10 +28,12 @@ macro_rules! impl_from_interface_event_enum_for_event {
 /// Expands to a conversion given the enclosed event enum type and outer `Event` variant.
 ///
 /// eg
-/// ```impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);```
+/// ```ignore
+/// impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+/// ```
 /// expands to:
 ///
-/// ```rust
+/// ```ignore
 /// impl TryFrom<Event> for ObjectEvents {
 ///     type Error = AtspiError;
 ///     fn try_from(generic_event: Event) -> Result<ObjectEvents, Self::Error> {
@@ -59,12 +63,13 @@ macro_rules! impl_try_from_event_for_user_facing_event_type {
 /// Expands to a conversion given the user facing event type and outer `Event::Interface(<InterfaceEnum>)` variant.,
 /// the enum type and outtermost variant.
 ///
-///                                             user facing type,  enum type,    outer variant
-/// `impl_from_user_facing_event_for_interface_event_enum!(StateChangedEvent, ObjectEvents, ObjectEvents::StateChanged);`
+/// ```ignore                                            user facing type,  enum type,    outer variant
+/// impl_from_user_facing_event_for_interface_event_enum!(StateChangedEvent, ObjectEvents, ObjectEvents::StateChanged);
+/// ```
 ///
 /// expands to:
 ///
-/// ```rust
+/// ```ignore
 /// impl From<StateChangedEvent> for ObjectEvents {
 ///     fn from(specific_event: StateChangedEvent) -> ObjectEvents {
 ///         ObjectEvents::StateChanged(specific_event)
@@ -82,16 +87,18 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 }
 
 /// Expands to a conversion given two arguments,
-/// 1. the user facing event type (inner_type)
+/// 1. the user facing event type `(inner_type)`
 /// which relies on a conversion to its interface variant enum type variant.
 /// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.,
 /// the enum type and outtermost variant.
-///                                              user facing type,  outer variant
-/// `impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object(ObjectEvents::StateChanged));` //CHECKME
+///
+/// ```ignore                                   user facing type, outer event variant
+/// impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
+/// ```
 ///
 /// expands to:
 ///
-/// ```rust
+/// ```ignore
 /// impl From<StateChangedEvent> for Event {
 ///    fn from(event_variant: StateChangedEvent) -> Event {
 ///       Event::Object(ObjectEvents::StateChanged(event_variant))
@@ -109,13 +116,16 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 }
 
 /// Expands to a conversion given two arguments,
-/// 1. the user facing event type (inner_type)
+/// 1. the user facing event type `(inner_type)`
 /// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.
 ///
-/// eg `impl_try_from_event_for_user_facing_type!(StateChangedEvent, ObjectEvents::StateChanged);`
+/// eg
+/// ```ignore
+/// impl_try_from_event_for_user_facing_type!(StateChangedEvent, ObjectEvents::StateChanged);
+/// ```
 /// expands to:
 ///
-/// ```rust
+/// ```ignore
 /// impl TryFrom<Event> for StateChangedEvent {
 ///    type Error = AtspiError;
 ///   fn try_from(generic_event: Event) -> Result<StateChangedEvent, Self::Error> {
@@ -155,8 +165,10 @@ macro_rules! impl_try_from_event_for_user_facing_type {
 /// `impl_from_interface_event_enum_for_event!` macro and the
 /// `impl_try_from_event_for_user_facing_event_type!` macro.
 ///
-/// 2. find instances with four arguments and replace them with the
-
+/// 2. find instances with four arguments and replace them with these macros:
+/// `impl_from_user_facing_event_for_interface_event_enum!`
+/// `impl_from_user_facing_type_for_event_enum!`
+/// `impl_try_from_event_for_user_facing_type`
 macro_rules! impl_event_conversions {
 	($outer_type:ty, $outer_variant:path) => {
 		impl From<$outer_type> for Event {
