@@ -15,7 +15,7 @@ pub enum AtspiError {
 	/// On specific types, if the event / message member does not match the Event's name.
 	InterfaceMatch(String),
 
-	/// To indicate a match or equality test on a signa body signature failed.
+	/// To indicate a match or equality test on a signal body signature failed.
 	UnknownBusSignature(String),
 
 	/// When matching on an unknown interface
