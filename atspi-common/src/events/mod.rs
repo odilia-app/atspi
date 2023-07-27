@@ -111,7 +111,7 @@ pub struct EventBodyQT {
 	pub any_data: OwnedValue,
 	/// A tuple of properties.
 	/// Not in use.
-	pub properties: (String, OwnedObjectPath),
+	pub properties: Accessible,
 }
 
 impl Default for EventBodyQT {
@@ -339,42 +339,6 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 
 impl_from_dbus_message!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);
-
-// TODO: Try to make borrowed versions work,
-// check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
-// in `DefaultEvent` impl
-// then rename into Owned for this one.
-/// Owned Accessible type
-/// Emitted by `CacheRemove` and `Available`
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct Accessible {
-	/// A name of a bus ID that can be queried.
-	/// This can be thought of as an application ID.
-	pub name: OwnedUniqueName,
-	/// A path to a unique object.
-	/// This is only guaranteed to be unique *for each [`Self::name`]*.
-	pub path: OwnedObjectPath,
-}
-impl TryFrom<zvariant::OwnedValue> for Accessible {
-	type Error = AtspiError;
-	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		match &*value {
-			zvariant::Value::Structure(s) => {
-				if !signatures_are_eq(&s.signature(), &ACCESSIBLE_PAIR_SIGNATURE) {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())).into());
-				}
-				let fields = s.fields();
-				let name_value: String =
-					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				let path_value: ObjectPath<'_> =
-					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				let name = UniqueName::try_from(name_value)?.into();
-				Ok(Accessible { name, path: path_value.into() })
-			}
-			_ => Err(zvariant::Error::IncorrectType.into()),
-		}
-	}
-}
 
 #[cfg(test)]
 pub mod accessible_deserialization_tests {
