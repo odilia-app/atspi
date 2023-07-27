@@ -45,23 +45,28 @@ use crate::{
 #[must_use]
 pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	fn has_outer_parentheses(bytes: &[u8]) -> bool {
-		bytes.starts_with(&[b'('])
-			&& bytes.ends_with(&[b')'])
-			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+		if let [b'(', inner @ .., b')'] = bytes {
+			inner.iter().fold(0, |count, byte| match byte {
 				b'(' => count + 1,
-				b')' if count > 0 => count - 1,
+				b')' if count != 0 => count - 1,
 				_ => count,
 			}) == 0
-			{
-				return sub;
-			}
+		} else {
+			false
 		}
-		bytes
 	}
 
-	let lhs = strip_outer_parentheses(lhs.as_bytes());
-	let rhs = strip_outer_parentheses(rhs.as_bytes());
-	lhs == rhs
+	let bytes = lhs.as_bytes();
+	let lhs_sig_has_outer_parens = has_outer_parentheses(bytes);
+
+	let bytes = rhs.as_bytes();
+	let rhs_sig_has_outer_parens = has_outer_parentheses(bytes);
+
+	match (lhs_sig_has_outer_parens, rhs_sig_has_outer_parens) {
+		(true, false) => lhs.slice(1..lhs.len() - 1).as_bytes() == rhs.as_bytes(),
+		(false, true) => lhs.as_bytes() == rhs.slice(1..rhs.len() - 1).as_bytes(),
+		_ => lhs.as_bytes() == rhs.as_bytes(),
+	}
 }
 
 #[derive(Debug, Serialize, Deserialize)]
