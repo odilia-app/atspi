@@ -11,7 +11,7 @@ keywords = ["screen-reader", "accessibility", "a11y", "tts", "linux"]
 categories = ["accessibility", "api-bindings"]
 edition = "2021"
 rust-version = "1.65"
-include = ["src/**/*", "atspi-macros/**/*", "LICENSE-*", "README.md"]
+include = ["src/**/*", "LICENSE-*", "README.md"]
 
 [package.metadata.release]
 release = true
