@@ -55,7 +55,12 @@ trait Accessible {
 
 	/// Retrieves a list of the object's accessible children.
 	///
-	/// Each array element is an [`Accessible`] representing the accessible child.
+	/// Each array element is an [`Accessible`] representing the accessible child object.
+	///
+	/// ## Registry
+	///
+	/// On the `Accessible` interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
+	/// of all accessible applications' root objects on the bus.
 	///
 	/// [`Accessible`]: ../atspi_common::events::Accessible
 	fn get_children(&self) -> zbus::Result<Vec<Accessible>>;
