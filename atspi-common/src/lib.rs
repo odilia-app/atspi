@@ -13,6 +13,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
+pub mod accessible;
+pub use accessible::Accessible;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;
@@ -31,12 +33,6 @@ pub use relation_type::RelationType;
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
-/// A pair of (`sender`, `object path with id`) which constitutes the fundemental parts of an Accessible object in `atspi`.
-/// NOTE: If you update the name of this type alias, also update the constant in `atspi_macros::OBJECT_PAIR_NAME`.
-pub type ObjectPair = (String, zvariant::OwnedObjectPath);
-
-/// A set of arguments for the `CollectionProxy` interface which allows you to bulk query
-/// various objects by relation/direction/roles/etc.
 pub type MatchArgs<'a> = (
 	&'a [i32],
 	MatchType,
@@ -182,18 +178,18 @@ pub enum Layer {
 /// Enumeration used by interface the [`interface::Accessible`] to specify where an object should be placed on the screen when using `scroll_to`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub enum ScrollType {
-  /// Scroll the object to the top left corner of the window.
+	/// Scroll the object to the top left corner of the window.
 	TopLeft,
-  /// Scroll the object to the bottom right corner of the window.
+	/// Scroll the object to the bottom right corner of the window.
 	BottomRight,
-  /// Scroll the object to the top edge of the window.
+	/// Scroll the object to the top edge of the window.
 	TopEdge,
-  /// Scroll the object to the bottom edge of the window.
+	/// Scroll the object to the bottom edge of the window.
 	BottomEdge,
-  /// Scroll the object to the left edge of the window.
+	/// Scroll the object to the left edge of the window.
 	LeftEdge,
-  /// Scroll the object to the right edge of the window.
+	/// Scroll the object to the right edge of the window.
 	RightEdge,
-  /// Scroll the object to application-dependent position on the window.
+	/// Scroll the object to application-dependent position on the window.
 	Anywhere,
 }
