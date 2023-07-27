@@ -6,12 +6,12 @@ compile_error!("You must specify either the async-std or tokio feature.");
 
 pub use atspi_common as common;
 
-use common::error::AtspiError;
-use common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use atspi_proxies::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
+use common::error::AtspiError;
+use common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};

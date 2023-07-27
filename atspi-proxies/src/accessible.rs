@@ -7,8 +7,8 @@
 //!
 
 use crate::atspi_proxy;
-use crate::AtspiError;
 use crate::common::{Accessible, InterfaceSet, RelationType, Role, StateSet};
+use crate::AtspiError;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
