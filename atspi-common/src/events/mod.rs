@@ -67,7 +67,7 @@ pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
 	/// A generic "kind" type, defined by AT-SPI:
-	/// usually a `&'a str`, but can be another type like [`State`].
+	/// usually a `&'a str`, but can be another type like [`crate::state::State`].
 	#[serde(rename = "type")]
 	pub kind: T,
 	/// Generic first detail defined by AT-SPI.
@@ -702,14 +702,14 @@ pub trait GenericEvent<'a> {
 pub trait HasMatchRule {
 	/// A static match rule string for `DBus`.
 	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
-	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
+	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
 }
 
 /// A specific trait *only* to define registry event matches.
 pub trait HasRegistryEventString {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
-	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
+	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 

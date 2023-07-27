@@ -5,7 +5,6 @@ use crate::{
 };
 use zvariant::ObjectPath;
 
-/// All events which can arrive on the [`crate::interface::Interface::Object`] interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
 	/// See: [`PropertyChangeEvent`].

@@ -47,7 +47,7 @@ pub type MatchArgs<'a> = (
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-/// Enumeration used by interface `CollectionProxy` to specify the way [`events::Accessible`] objects should be sorted.
+/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::accessible::Accessible`] objects should be sorted.
 pub enum SortOrder {
 	/// Invalid sort order
 	Invalid,
@@ -79,7 +79,7 @@ pub enum TreeTraversalType {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`events::Accessible`] objects.
+/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::accessible::Accessible`] objects.
 pub enum MatchType {
 	/// Invalid match type
 	Invalid,
@@ -175,7 +175,7 @@ pub enum Layer {
 	Window,
 }
 
-/// Enumeration used by interface the [`interface::Accessible`] to specify where an object should be placed on the screen when using `scroll_to`.
+/// Enumeration used by interface the [`crate::interface::Interface::Accessible`] to specify where an object should be placed on the screen when using `scroll_to`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub enum ScrollType {
 	/// Scroll the object to the top left corner of the window.
