@@ -19,10 +19,6 @@ pub mod window;
 //  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
 const ATSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiva{sv})");
 const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiv(so))");
-const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
-const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-const CACHE_ADD_SIGNATURE: Signature<'_> =
-	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
 
 use std::collections::HashMap;
 
@@ -661,14 +657,14 @@ impl TryFrom<&zbus::Message> for Event {
 
 /// Shared behavior of bus `Signal` events.
 pub trait GenericEvent<'a> {
-	/// The DBus member for the event.
-	/// For example, for an [`object::TextChangedEvent`] this should be "TextChanged"
+	/// The `DBus` member for the event.
+	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
 	const DBUS_MEMBER: &'static str;
-	/// The DBus interface name for this event.
+	/// The `DBus` interface name for this event.
 	/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
 	const DBUS_INTERFACE: &'static str;
-	/// A static match rule string for DBus.
-	/// This should usually be a string that looks like this: "type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
+	/// A static match rule string for `DBus`.
+	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
 	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
@@ -704,8 +700,8 @@ pub trait GenericEvent<'a> {
 
 /// A specific trait *only* to define match rules.
 pub trait HasMatchRule {
-	/// A static match rule string for DBus.
-	/// This should usually be a string that looks like this: "type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
+	/// A static match rule string for `DBus`.
+	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
 	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
 }

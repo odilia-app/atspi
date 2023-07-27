@@ -30,7 +30,7 @@ impl HasMatchRule for DocumentEvents {
 
 /// An event triggered by the completion of a document load action.
 /// For example: a web page has finished loading its initial payload, or
-/// LibreOffice has loaded a document from disk.
+/// `LibreOffice` has loaded a document from disk.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
 	/// The [`Accessible`] which the event applies to.
