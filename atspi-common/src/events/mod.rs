@@ -670,11 +670,11 @@ pub trait HasRegistryEventString {
 
 #[cfg(test)]
 mod tests {
-	use atspi_common::events::{
+	use atspi_connection::common::events::{
 		AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT, RemoveAccessibleEvent,
 		ATSPI_EVENT_SIGNATURE, CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
-	use atspi_common::{
+	use atspi_connection::common::{
 		accessible::ACCESSIBLE_PAIR_SIGNATURE, Accessible, CacheItem, InterfaceSet, Role, StateSet,
 	};
 	use atspi_connection::AccessibilityConnection;

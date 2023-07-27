@@ -4,8 +4,10 @@ compile_error!("You may not mix the async-std and tokio features.");
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
 compile_error!("You must specify either the async-std or tokio feature.");
 
-use atspi_common::error::AtspiError;
-use atspi_common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
+pub use atspi_common as common;
+
+use common::error::AtspiError;
+use common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
 use atspi_proxies::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
@@ -83,9 +85,9 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_connection::AccessibilityConnection;
 	/// use enumflags2::BitFlag;
-	/// use atspi_common::events::object::{ObjectEvents, StateChangedEvent};
+	/// use atspi_connection::common::events::object::{ObjectEvents, StateChangedEvent};
 	/// use zbus::{fdo::DBusProxy, MatchRule, MessageType};
-	/// use atspi_common::events::Event;
+	/// use atspi_connection::common::events::Event;
 	/// # use futures_lite::StreamExt;
 	/// # use std::error::Error;
 	///
@@ -158,7 +160,7 @@ impl AccessibilityConnection {
 
 	/// Registers an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi_common::events::object::StateChangedEvent;
+	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.register_event::<StateChangedEvent>().await.unwrap();
@@ -176,7 +178,7 @@ impl AccessibilityConnection {
 
 	/// Deregisters an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
 	/// ```rust
-	/// use atspi_common::events::object::StateChangedEvent;
+	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
@@ -198,7 +200,7 @@ impl AccessibilityConnection {
 	/// This is called by [`Self::register_event`].
 	///
 	/// ```rust
-	/// use atspi_common::events::object::StateChangedEvent;
+	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
@@ -222,7 +224,7 @@ impl AccessibilityConnection {
 	/// It may be called like so:
 	///
 	/// ```rust
-	/// use atspi_common::events::object::StateChangedEvent;
+	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
