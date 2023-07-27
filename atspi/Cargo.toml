@@ -24,6 +24,7 @@ proxies-tokio = ["atspi-proxies/tokio", "proxies"]
 connection = []
 connection-async-std = ["atspi-connection/async-std", "connection"]
 connection-tokio = ["atspi-connection/tokio", "connection"]
+tracing = ["atspi-connection/tracing"]
 
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.1.0", default-features = false }
