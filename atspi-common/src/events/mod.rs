@@ -23,6 +23,7 @@ const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "zbus")]
 use zbus::{MessageField, MessageFieldCode};
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
@@ -41,13 +42,15 @@ use crate::{
 #[must_use]
 pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	fn has_outer_parentheses(bytes: &[u8]) -> bool {
-		bytes.starts_with(&[b'('])
-			&& bytes.ends_with(&[b')'])
-			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+		if let [b'(', inner @ .., b')'] = bytes {
+			inner.iter().fold(0, |count, byte| match byte {
 				b'(' => count + 1,
-				b')' if count > 0 => count - 1,
+				b')' if count != 0 => count - 1,
 				_ => count,
-			}) == 0)
+			}) == 0
+		} else {
+			false
+		}
 	}
 
 	let bytes = lhs.as_bytes();
@@ -196,6 +199,23 @@ pub enum Event {
 	Cache(CacheEvents),
 	/// See: [`EventListenerEvents`].
 	Listener(EventListenerEvents),
+}
+
+impl HasMatchRule for CacheEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Cache'";
+}
+
+impl HasRegistryEventString for CacheEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache";
+}
+
+impl HasMatchRule for EventListenerEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Registry'";
+}
+
+impl HasRegistryEventString for EventListenerEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Event";
 }
 
 /// All events related to the `org.a11y.atspi.Cache` interface.
