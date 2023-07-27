@@ -27,6 +27,9 @@ pub enum AtspiError {
 	/// No member on event.
 	MissingMember,
 
+	/// When matching on an unknown role
+	UnknownRole(u32),
+
 	/// No name on bus.
 	MissingName,
 
@@ -79,11 +82,12 @@ impl std::fmt::Display for AtspiError {
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),
 			Self::MissingMember => f.write_str("Missing member."),
+			Self::UnknownRole(e) => f.write_str(&format!("atspi: Unknown role: {e}")),
 			Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
 			Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
 			Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
 			Self::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
-			Self::Zvariant(e) => f.write_str(&format!("Zvariant erron: {e}")),
+			Self::Zvariant(e) => f.write_str(&format!("Zvariant error: {e}")),
 			Self::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
 			Self::ParseError(e) => f.write_str(e),
 			Self::PathConversionError(e) => {

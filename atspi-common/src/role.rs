@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
+use crate::AtspiError;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 /// An accessible object role.
 /// To think of it in terms of HTML, any semantic element likely has a corollary in this enum.
@@ -219,6 +221,177 @@ pub enum Role {
 	Mark,
 	Suggestion,
 	PushButtonMenu,
+}
+
+impl TryFrom<u32> for Role {
+	type Error = AtspiError;
+
+	#[allow(clippy::too_many_lines)]
+	fn try_from(value: u32) -> Result<Self, Self::Error> {
+		#[allow(clippy::enum_glob_use)]
+		use Role::*;
+		let res = match value {
+			0 => Invalid,
+			1 => AcceleratorLabel,
+			2 => Alert,
+			3 => Animation,
+			4 => Arrow,
+			5 => Calendar,
+			6 => Canvas,
+			7 => CheckBox,
+			8 => CheckMenuItem,
+			9 => ColorChooser,
+			10 => ColumnHeader,
+			11 => ComboBox,
+			12 => DateEditor,
+			13 => DesktopIcon,
+			14 => DesktopFrame,
+			15 => Dial,
+			16 => Dialog,
+			17 => DirectoryPane,
+			18 => DrawingArea,
+			19 => FileChooser,
+			20 => Filler,
+			21 => FocusTraversable,
+			22 => FontChooser,
+			23 => Frame,
+			24 => GlassPane,
+			25 => HTMLContainer,
+			26 => Icon,
+			27 => Image,
+			28 => InternalFrame,
+			29 => Label,
+			30 => LayeredPane,
+			31 => List,
+			32 => ListItem,
+			33 => Menu,
+			34 => MenuBar,
+			35 => MenuItem,
+			36 => OptionPane,
+			37 => PageTab,
+			38 => PageTabList,
+			39 => Panel,
+			40 => PasswordText,
+			41 => PopupMenu,
+			42 => ProgressBar,
+			43 => PushButton,
+			44 => RadioButton,
+			45 => RadioMenuItem,
+			46 => RootPane,
+			47 => RowHeader,
+			48 => ScrollBar,
+			49 => ScrollPane,
+			50 => Separator,
+			51 => Slider,
+			52 => SpinButton,
+			53 => SplitPane,
+			54 => StatusBar,
+			55 => Table,
+			56 => TableCell,
+			57 => TableColumnHeader,
+			58 => TableRowHeader,
+			59 => TearoffMenuItem,
+			60 => Terminal,
+			61 => Text,
+			62 => ToggleButton,
+			63 => ToolBar,
+			64 => ToolTip,
+			65 => Tree,
+			66 => TreeTable,
+			67 => Unknown,
+			68 => Viewport,
+			69 => Window,
+			70 => Extended,
+			71 => Header,
+			72 => Footer,
+			73 => Paragraph,
+			74 => Ruler,
+			75 => Application,
+			76 => Autocomplete,
+			77 => Editbar,
+			78 => Embedded,
+			79 => Entry,
+			80 => CHART,
+			81 => Caption,
+			82 => DocumentFrame,
+			83 => Heading,
+			84 => Page,
+			85 => Section,
+			86 => RedundantObject,
+			87 => Form,
+			88 => Link,
+			89 => InputMethodWindow,
+			90 => TableRow,
+			91 => TreeItem,
+			92 => DocumentSpreadsheet,
+			93 => DocumentPresentation,
+			94 => DocumentText,
+			95 => DocumentWeb,
+			96 => DocumentEmail,
+			97 => Comment,
+			98 => ListBox,
+			99 => Grouping,
+			100 => ImageMap,
+			101 => Notification,
+			102 => InfoBar,
+			103 => LevelBar,
+			104 => TitleBar,
+			105 => BlockQuote,
+			106 => Audio,
+			107 => Video,
+			108 => Definition,
+			109 => Article,
+			110 => Landmark,
+			111 => Log,
+			112 => Marquee,
+			113 => Math,
+			114 => Rating,
+			115 => Timer,
+			116 => Static,
+			117 => MathFraction,
+			118 => MathRoot,
+			119 => Subscript,
+			120 => Superscript,
+			121 => DescriptionList,
+			122 => DescriptionTerm,
+			123 => DescriptionValue,
+			124 => Footnote,
+			125 => ContentDeletion,
+			126 => ContentInsertion,
+			127 => Mark,
+			128 => Suggestion,
+			129 => PushButtonMenu,
+			_ => return Err(AtspiError::UnknownRole(value)),
+		};
+		Ok(res)
+	}
+}
+
+#[cfg(test)]
+pub mod tests {
+	use super::Role;
+	use zvariant::{from_slice, to_bytes, EncodingContext};
+
+	const HIGHEST_ROLE_VALUE: u32 = 129;
+
+	#[test]
+	fn test_serialization_matches_from_impl() {
+		let ctxt = EncodingContext::<byteorder::LE>::new_dbus(0);
+		for role_num in 1..HIGHEST_ROLE_VALUE + 1 {
+			let from_role =
+				Role::try_from(role_num).expect(&format!("Unable to convert {role_num} into Role"));
+			let encoded = to_bytes(ctxt, &from_role).expect("Unable to encode {from_role}");
+			println!("ENCODED: {:?}", encoded);
+			let zbus_role: Role =
+				from_slice(&encoded, ctxt).expect("Unable to convert {encoded} into Role");
+			assert_eq!(from_role, zbus_role, "The serde zvariant::from_slice(...) and From<u32> implementations have produced different results. The number used was {}, it produced a Role of {}, but the from_slice(...) implementation produced {}", role_num, from_role, zbus_role);
+			assert_eq!(
+				from_role as u32, role_num,
+				"The role number {role_num} does not match the representation of the role {}",
+				from_role as u32
+			);
+		}
+	}
 }
 
 const ROLE_NAMES: &[&str] = &[
