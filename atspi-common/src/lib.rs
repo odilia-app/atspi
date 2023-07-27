@@ -1,4 +1,4 @@
-#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, missing_docs)]
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
 #![allow(clippy::module_name_repetitions)]
 
 //! # atspi-common
