@@ -671,16 +671,11 @@ pub trait HasRegistryEventString {
 #[cfg(test)]
 mod tests {
 	use super::{
-		AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT, RemoveAccessibleEvent,
-		ATSPI_EVENT_SIGNATURE, CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE, signatures_are_eq,
+		EventBodyOwned, EventBodyQT,
+		ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE, signatures_are_eq,
 	};
-	use crate::{
-		accessible::ACCESSIBLE_PAIR_SIGNATURE, Accessible, CacheItem, InterfaceSet, Role, StateSet,
-	};
-	use std::{collections::HashMap, time::Duration};
-	use tokio_stream::StreamExt;
-	use zbus::MessageBuilder;
-	use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
+	use std::collections::HashMap;
+	use zvariant::{ObjectPath, Signature, Type};
 
 	#[test]
 	fn check_event_body_qt_signature() {
