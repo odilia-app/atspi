@@ -8,15 +8,15 @@ pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_
 // check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
 // in `DefaultEvent` impl
 // then rename into Owned for this one.
-/// Owned Accessible type
+/// Owned ObjectReference type
 /// Emitted by `CacheRemove` and `Available`
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct Accessible {
+pub struct ObjectReference {
 	pub name: String,
 	pub path: OwnedObjectPath,
 }
 
-impl Default for Accessible {
+impl Default for ObjectReference {
 	fn default() -> Self {
 		Accessible {
 			name: ":0.0".into(),
@@ -45,7 +45,7 @@ fn test_accessible_from_dbus_ctxt_to_accessible() {
 	let acc_value: Value<'_> = acc.try_into().unwrap();
 	let encoded = to_bytes(ctxt, &acc_value).unwrap();
 	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
-	let accessible: Accessible = decoded.try_into().unwrap();
+	let accessible: ObjectReference = decoded.try_into().unwrap();
 
 	assert_eq!(accessible.name.as_str(), ":0.0");
 	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
@@ -60,20 +60,20 @@ fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
 	let ctxt = Context::<byteorder::LE>::new_dbus(0);
 	let encoded = to_bytes(ctxt, &value).unwrap();
 	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
-	let accessible: Accessible = decoded.try_into().unwrap();
+	let accessible: ObjectReference = decoded.try_into().unwrap();
 
 	assert_eq!(accessible.name.as_str(), ":0.0");
 	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
 }
 
-impl<'a> TryFrom<zvariant::Value<'a>> for Accessible {
+impl<'a> TryFrom<zvariant::Value<'a>> for ObjectReference {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
 		value.to_owned().try_into()
 	}
 }
 
-impl TryFrom<zvariant::OwnedValue> for Accessible {
+impl TryFrom<zvariant::OwnedValue> for ObjectReference {
 	type Error = zvariant::Error;
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {

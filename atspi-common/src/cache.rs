@@ -23,7 +23,7 @@ pub struct CacheItem {
 	pub ifaces: InterfaceSet,
 	/// The short localized name.  s
 	pub short_name: String,
-	/// Accessible role. u
+	/// ObjectReference role. u
 	pub role: Role,
 	/// More detailed localized name.
 	pub name: String,
@@ -33,15 +33,15 @@ pub struct CacheItem {
 impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
-			object: Accessible {
+			object: ObjectReference {
 				name: ":0.0".into(),
 				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
 			},
-			app: Accessible {
+			app: ObjectReference {
 				name: ":0.0".into(),
 				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
 			},
-			parent: Accessible {
+			parent: ObjectReference {
 				name: ":0.0".into(),
 				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
 			},
@@ -80,7 +80,7 @@ pub struct LegacyCacheItem {
 	pub ifaces: InterfaceSet,
 	/// The short localized name.  s
 	pub short_name: String,
-	/// Accessible role. u
+	/// ObjectReference role. u
 	pub role: Role,
 	/// More detailed localized name.
 	pub name: String,
@@ -90,15 +90,15 @@ pub struct LegacyCacheItem {
 impl Default for LegacyCacheItem {
 	fn default() -> Self {
 		Self {
-			object: Accessible {
+			object: ObjectReference {
 				name: ":0.0".into(),
 				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
 			},
-			app: Accessible {
+			app: ObjectReference {
 				name: ":0.0".into(),
 				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
 			},
-			parent: Accessible {
+			parent: ObjectReference {
 				name: ":0.0".into(),
 				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
 			},

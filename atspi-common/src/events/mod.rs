@@ -152,7 +152,7 @@ pub struct EventBodyOwned {
 
 impl From<EventBodyQT> for EventBodyOwned {
 	fn from(body: EventBodyQT) -> Self {
-		let accessible = Accessible { name: body.properties.name, path: body.properties.path };
+		let accessible = ObjectReference { name: body.properties.name, path: body.properties.path };
 		let mut props = HashMap::new();
 		props.insert(accessible.name, Value::ObjectPath(accessible.path.into()).to_owned());
 		Self {
@@ -399,7 +399,7 @@ pub mod accessible_tests {
 	}
 }
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for Accessible {
+impl TryFrom<&zbus::Message> for ObjectReference {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		let path = message.path().expect("returned path is either Some or panics");
@@ -617,7 +617,7 @@ impl TryFrom<&zbus::Message> for Event {
 		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
 		// Therefore no outer parentheses.
 		match body_signature {
-			// Marshalled Accessible signature
+			// Marshalled ObjectReference signature
 			"so" | "(so)" => match member_str {
 				"RemoveAccessible" => {
 					let ev = RemoveAccessibleEvent::try_from(msg)?;

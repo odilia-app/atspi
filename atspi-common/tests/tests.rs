@@ -25,7 +25,7 @@ async fn test_recv_remove_accessible() {
 		let member = "RemoveAccessible";
 
 		let unique_bus_name = atspi.connection().unique_name().unwrap();
-		let remove_body = Accessible {
+		let remove_body = ObjectReference {
 			name: ":69.420".into(),
 			path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
 		};
@@ -86,15 +86,15 @@ async fn test_recv_add_accessible() {
 		let unique_bus_name = atspi.connection().unique_name().unwrap();
 
 		let add_body = CacheItem {
-			object: Accessible {
+			object: ObjectReference {
 				name: ":1.1".to_string(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
 			},
-			app: Accessible {
+			app: ObjectReference {
 				name: ":1.1".to_string(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
 			},
-			parent: Accessible {
+			parent: ObjectReference {
 				name: ":1.1".to_string(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
 			},
