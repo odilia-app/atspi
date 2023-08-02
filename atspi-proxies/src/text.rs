@@ -13,7 +13,7 @@
 // this is to silience clippy due to zbus expanding parameter expressions
 
 use crate::atspi_proxy;
-use atspi_common::{ClipType, CoordType, Granularity};
+use crate::common::{ClipType, CoordType, Granularity};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
 trait Text {

@@ -7,8 +7,8 @@
 //!
 
 use crate::atspi_proxy;
+use crate::common::{Accessible, InterfaceSet, RelationType, Role, StateSet};
 use crate::AtspiError;
-use atspi_common::{Accessible, InterfaceSet, RelationType, Role, StateSet};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
@@ -23,7 +23,7 @@ trait Accessible {
 	/// guaranteed to be persistent for the lifetime of the application.
 	/// All other objects in the accessibility hierarchy may be created and destroyed dynamically.
 	///
-	/// [`Accessible`]: ../atspi_common::events::Accessible
+	/// [`Accessible`]: ../crate::common::events::Accessible
 	/// [`Application`]: <https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/application/struct.ApplicationProxy.html>
 	fn get_application(&self) -> zbus::Result<Accessible>;
 
@@ -57,7 +57,7 @@ trait Accessible {
 	///
 	/// Each array element is an [`Accessible`] representing the accessible child.
 	///
-	/// [`Accessible`]: ../atspi_common::events::Accessible
+	/// [`Accessible`]: ../crate::common::events::Accessible
 	fn get_children(&self) -> zbus::Result<Vec<Accessible>>;
 
 	/// This object resides in its parent's list of children.
@@ -68,7 +68,7 @@ trait Accessible {
 	fn get_index_in_parent(&self) -> zbus::Result<i32>;
 
 	/// Returns an [`InterfaceSet`] accessible interface names supported by the `self` object.
-	/// [`InterfaceSet`]: atspi_common::InterfaceSet
+	/// [`InterfaceSet`]: crate::common::InterfaceSet
 	fn get_interfaces(&self) -> zbus::Result<InterfaceSet>;
 
 	/// Gets a `String` corresponding to the name of the role played by an object,
@@ -102,11 +102,11 @@ trait Accessible {
 	/// and/or the other UI components that are directly affected by user interactions with the valuator.
 	/// Common examples include the association of scrollbars with the viewport or panel that they control.
 	///
-	/// [`RelationType`]: atspi_common::RelationType
-	/// [`RelationType::LabelledBy`]: atspi_common::RelationType::LabelledBy
-	/// [`RelationType::ControllerFor`]: atspi_common::RelationType::ControllerFor
+	/// [`RelationType`]: crate::common::RelationType
+	/// [`RelationType::LabelledBy`]: crate::common::RelationType::LabelledBy
+	/// [`RelationType::ControllerFor`]: crate::common::RelationType::ControllerFor
 	/// [`name`]: #method.name
-	/// [`Accessible`]: ../atspi_common::events::Accessible
+	/// [`Accessible`]: ../crate::common::events::Accessible
 	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<Accessible>)>>;
 
 	/// Gets the [`Role`] that the current accessible object represents.
@@ -118,8 +118,8 @@ trait Accessible {
 	/// (appears unpressed; presses	when acted upon; invokes a certain action
 	/// when pressed) can expose an	[`Role::PushButton`] role.
 	///
-	/// [`Role::PushButton`]: atspi_common::Role::PushButton
-	/// [`Role`]: atspi_common::Role
+	/// [`Role::PushButton`]: crate::common::Role::PushButton
+	/// [`Role`]: crate::common::Role
 	fn get_role(&self) -> zbus::Result<Role>;
 
 	/// Gets a `String` corresponding to the name of the role played by an object,
@@ -138,7 +138,7 @@ trait Accessible {
 	fn get_role_name(&self) -> zbus::Result<String>;
 
 	/// Method to retrieve the [`StateSet`] of states currently held by `self`.
-	/// [`StateSet`]: atspi_common::StateSet
+	/// [`StateSet`]: crate::common::StateSet
 	fn get_state(&self) -> zbus::Result<StateSet>;
 
 	/// Application-specific identifier for the current object.
@@ -200,7 +200,7 @@ trait Accessible {
 	/// slider had a `LabeledBy` relation to corresponding labels visible in the user
 	/// interface.
 	///
-	/// [`RelationType::LabelledBy`]: atspi_common::RelationType::LabelledBy
+	/// [`RelationType::LabelledBy`]: crate::common::RelationType::LabelledBy
 	#[dbus_proxy(property)]
 	fn name(&self) -> zbus::Result<String>;
 
