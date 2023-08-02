@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{ObjectReference, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -34,7 +34,7 @@ impl HasMatchRule for DocumentEvents {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// An event triggered by a reloading of a document.
@@ -42,7 +42,7 @@ pub struct LoadCompleteEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReloadEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// An event triggered by the cancelling of a document load.
@@ -50,25 +50,25 @@ pub struct ReloadEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadStoppedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ContentChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 impl GenericEvent<'_> for LoadCompleteEvent {
@@ -80,7 +80,7 @@ impl GenericEvent<'_> for LoadCompleteEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -104,7 +104,7 @@ impl GenericEvent<'_> for ReloadEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -128,7 +128,7 @@ impl GenericEvent<'_> for LoadStoppedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -152,7 +152,7 @@ impl GenericEvent<'_> for ContentChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -176,7 +176,7 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -200,7 +200,7 @@ impl GenericEvent<'_> for PageChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {

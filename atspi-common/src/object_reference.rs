@@ -18,7 +18,7 @@ pub struct ObjectReference {
 
 impl Default for ObjectReference {
 	fn default() -> Self {
-		Accessible {
+		ObjectReference {
 			name: ":0.0".into(),
 			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
 				.unwrap()
@@ -30,9 +30,9 @@ impl Default for ObjectReference {
 #[test]
 fn test_accessible_signature() {
 	assert_eq!(
-		Accessible::signature(),
+		ObjectReference::signature(),
 		ACCESSIBLE_PAIR_SIGNATURE,
-		"Accessible does not have the correct type."
+		"ObjectReference does not have the correct type."
 	);
 }
 
@@ -40,7 +40,7 @@ fn test_accessible_signature() {
 fn test_accessible_from_dbus_ctxt_to_accessible() {
 	use zvariant::{from_slice, to_bytes, EncodingContext as Context, Value};
 
-	let acc = Accessible::default();
+	let acc = ObjectReference::default();
 	let ctxt = Context::<byteorder::LE>::new_dbus(0);
 	let acc_value: Value<'_> = acc.try_into().unwrap();
 	let encoded = to_bytes(ctxt, &acc_value).unwrap();
@@ -55,7 +55,7 @@ fn test_accessible_from_dbus_ctxt_to_accessible() {
 fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
 	use zvariant::{from_slice, to_bytes, EncodingContext as Context, Value};
 
-	let acc = Accessible::default();
+	let acc = ObjectReference::default();
 	let value: zvariant::Value = acc.into();
 	let ctxt = Context::<byteorder::LE>::new_dbus(0);
 	let encoded = to_bytes(ctxt, &value).unwrap();
@@ -79,22 +79,22 @@ impl TryFrom<zvariant::OwnedValue> for ObjectReference {
 		match &*value {
 			zvariant::Value::Structure(s) => {
 				if !signatures_are_eq(&s.signature(), &ACCESSIBLE_PAIR_SIGNATURE) {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::Accessible, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())));
+					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::ObjectReference, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())));
 				}
 				let fields = s.fields();
 				let name: String =
 					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				let path_value: ObjectPath<'_> =
 					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				Ok(Accessible { name, path: path_value.into() })
+				Ok(ObjectReference { name, path: path_value.into() })
 			}
 			_ => Err(zvariant::Error::IncorrectType),
 		}
 	}
 }
 
-impl From<Accessible> for zvariant::Structure<'_> {
-	fn from(accessible: Accessible) -> Self {
+impl From<ObjectReference> for zvariant::Structure<'_> {
+	fn from(accessible: ObjectReference) -> Self {
 		(accessible.name.as_str().to_string(), accessible.path).into()
 	}
 }

@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use crate::{
 	error::AtspiError,
-	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{ObjectReference, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event, State,
 };
 use zvariant::{ObjectPath, OwnedValue, Value};
@@ -65,7 +65,7 @@ impl HasMatchRule for ObjectEvents {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 	pub property: String,
 	pub value: Property,
 }
@@ -85,7 +85,7 @@ impl Eq for PropertyChangeEvent {}
 impl Default for PropertyChangeEvent {
 	fn default() -> Self {
 		Self {
-			item: Accessible::default(),
+			item: ObjectReference::default(),
 			property: String::default(),
 			value: Property::default(),
 		}
@@ -98,7 +98,7 @@ pub enum Property {
 	Name(String),
 	Description(String),
 	Role(crate::Role),
-	Parent(Accessible),
+	Parent(ObjectReference),
 	TableCaption(String),
 	TableColumnDescription(String),
 	TableColumnHeader(String),
@@ -207,13 +207,13 @@ impl From<Property> for OwnedValue {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A state of an object has been modified.
@@ -221,7 +221,7 @@ pub struct LinkSelectedEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 	/// The state to be enabled/disabled.
 	pub state: State,
 	/// Enabled or disabled the state.
@@ -236,7 +236,7 @@ pub struct StateChangedEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 	/// Operation, which may be one of:
 	///
 	/// * "insert/system"
@@ -250,38 +250,38 @@ pub struct ChildrenChangedEvent {
 	/// Index to remove from/add to.
 	pub index_in_parent: i32,
 	/// A reference to the new child.
-	pub child: Accessible,
+	pub child: ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
-	pub child: Accessible,
+	pub item: crate::events::ObjectReference,
+	pub child: ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 	/// Text of the announcement.
 	pub text: String,
 }
@@ -289,68 +289,68 @@ pub struct AnnouncementEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A row has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowInsertedEvent {
 	/// The table which has had a row inserted.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A row has been moved within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowReorderedEvent {
 	/// The table which has had a row re-ordered.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A row has been deleted from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowDeletedEvent {
 	/// The table which has had a row removed.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A column has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnInsertedEvent {
 	/// The table which has had a column inserted.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A column has been re-ordered within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnReorderedEvent {
 	/// The table which has had a column re-ordered.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A column has been removed from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnDeletedEvent {
 	/// The table which has had a column removed.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// Text has changed within an [`Accessible`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 	/// Operation, which may be one of:
 	///
 	/// * "insert/system"
@@ -372,14 +372,14 @@ pub struct TextChangedEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// The caret of the user also known as a cursor (not to be confused with mouse pointer) has changed position.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextCaretMovedEvent {
 	/// The object on which the caret has been moved on.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 	/// New position of the caret.
 	pub position: i32,
 }
@@ -393,7 +393,7 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		let property = body.kind.clone();
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
@@ -419,7 +419,7 @@ impl GenericEvent<'_> for BoundsChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -443,7 +443,7 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -467,7 +467,7 @@ impl GenericEvent<'_> for StateChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
 	}
 	fn sender(&self) -> String {
@@ -491,7 +491,7 @@ impl GenericEvent<'_> for ChildrenChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind,
@@ -520,7 +520,7 @@ impl GenericEvent<'_> for VisibleDataChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -544,7 +544,7 @@ impl GenericEvent<'_> for SelectionChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -568,7 +568,7 @@ impl GenericEvent<'_> for ModelChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -592,7 +592,7 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
 	}
 	fn sender(&self) -> String {
@@ -616,7 +616,7 @@ impl GenericEvent<'_> for AnnouncementEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, text: body.kind })
 	}
 	fn sender(&self) -> String {
@@ -640,7 +640,7 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -664,7 +664,7 @@ impl GenericEvent<'_> for RowInsertedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -688,7 +688,7 @@ impl GenericEvent<'_> for RowReorderedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -712,7 +712,7 @@ impl GenericEvent<'_> for RowDeletedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -736,7 +736,7 @@ impl GenericEvent<'_> for ColumnInsertedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -760,7 +760,7 @@ impl GenericEvent<'_> for ColumnReorderedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -784,7 +784,7 @@ impl GenericEvent<'_> for ColumnDeletedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -808,7 +808,7 @@ impl GenericEvent<'_> for TextBoundsChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -832,7 +832,7 @@ impl GenericEvent<'_> for TextSelectionChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -856,7 +856,7 @@ impl GenericEvent<'_> for TextChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind,
@@ -886,7 +886,7 @@ impl GenericEvent<'_> for TextAttributesChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -910,7 +910,7 @@ impl GenericEvent<'_> for TextCaretMovedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
 	}
 	fn sender(&self) -> String {

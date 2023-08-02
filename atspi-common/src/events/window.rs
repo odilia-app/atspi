@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{ObjectReference, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -57,7 +57,7 @@ impl HasMatchRule for WindowEvents {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 	pub property: String,
 }
 
@@ -65,115 +65,115 @@ pub struct PropertyChangeEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MinimizeEvent {
 	/// The application which has been minimized.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// The window has been maximized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MaximizeEvent {
 	/// The application which has been maximized.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestoreEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A window has been closed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CloseEvent {
 	/// The application which has been closed.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A new window has been created.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CreateEvent {
 	/// An application to query for additional events from.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReparentEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A new virtual desktop has been created.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopCreateEvent {
 	/// A reference to a new desktop
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A virtual destkop has been deleted.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopDestroyEvent {
 	/// A reference to the destroyed desktop.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DestroyEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActivateEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DeactivateEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RaiseEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LowerEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MoveEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 /// A window has been resized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ResizeEvent {
 	/// The application which has been resized.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ShadeEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct UUshadeEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestyleEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 impl GenericEvent<'_> for PropertyChangeEvent {
@@ -185,7 +185,7 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, property: body.kind })
 	}
 	fn sender(&self) -> String {
@@ -209,7 +209,7 @@ impl GenericEvent<'_> for MinimizeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -233,7 +233,7 @@ impl GenericEvent<'_> for MaximizeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -257,7 +257,7 @@ impl GenericEvent<'_> for RestoreEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -281,7 +281,7 @@ impl GenericEvent<'_> for CloseEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -305,7 +305,7 @@ impl GenericEvent<'_> for CreateEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -329,7 +329,7 @@ impl GenericEvent<'_> for ReparentEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -353,7 +353,7 @@ impl GenericEvent<'_> for DesktopCreateEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -377,7 +377,7 @@ impl GenericEvent<'_> for DesktopDestroyEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -401,7 +401,7 @@ impl GenericEvent<'_> for DestroyEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -425,7 +425,7 @@ impl GenericEvent<'_> for ActivateEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -449,7 +449,7 @@ impl GenericEvent<'_> for DeactivateEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -473,7 +473,7 @@ impl GenericEvent<'_> for RaiseEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -497,7 +497,7 @@ impl GenericEvent<'_> for LowerEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -521,7 +521,7 @@ impl GenericEvent<'_> for MoveEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -545,7 +545,7 @@ impl GenericEvent<'_> for ResizeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -569,7 +569,7 @@ impl GenericEvent<'_> for ShadeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -593,7 +593,7 @@ impl GenericEvent<'_> for UUshadeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -617,7 +617,7 @@ impl GenericEvent<'_> for RestyleEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {

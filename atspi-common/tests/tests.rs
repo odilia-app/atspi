@@ -1,7 +1,7 @@
 use atspi_common::events::{signatures_are_eq, AddAccessibleEvent, Event, RemoveAccessibleEvent};
 use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
 use atspi_common::{
-	accessible::ACCESSIBLE_PAIR_SIGNATURE, assert_eq_signatures, Accessible, CacheItem,
+	object_reference::ACCESSIBLE_PAIR_SIGNATURE, assert_eq_signatures, ObjectReference, CacheItem,
 	InterfaceSet, Role, StateSet,
 };
 use atspi_connection::AccessibilityConnection;
@@ -117,7 +117,7 @@ async fn test_recv_add_accessible() {
 
 	assert_eq_signatures!(
 		&msg.body_signature()
-			.expect("marshalled AddAccessible body signature != expected"),
+			.expect("marshalled AddObjectReference body signature != expected"),
 		&CACHE_ADD_SIGNATURE
 	);
 	atspi

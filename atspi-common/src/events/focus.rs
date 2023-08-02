@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{ObjectReference, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -20,7 +20,7 @@ impl HasMatchRule for FocusEvents {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct FocusEvent {
 	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	pub item: crate::events::ObjectReference,
 }
 
 impl GenericEvent<'_> for FocusEvent {
@@ -32,7 +32,7 @@ impl GenericEvent<'_> for FocusEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {

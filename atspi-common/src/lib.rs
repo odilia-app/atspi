@@ -47,7 +47,7 @@ pub type MatchArgs<'a> = (
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::accessible::Accessible`] objects should be sorted.
+/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::object_reference::ObjectReference`] objects should be sorted.
 pub enum SortOrder {
 	/// Invalid sort order
 	Invalid,
@@ -79,7 +79,7 @@ pub enum TreeTraversalType {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::accessible::Accessible`] objects.
+/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::object_reference::ObjectReference`] objects.
 pub enum MatchType {
 	/// Invalid match type
 	Invalid,

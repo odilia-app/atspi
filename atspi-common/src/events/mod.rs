@@ -33,7 +33,7 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
-	accessible::Accessible,
+	object_reference::ObjectReference,
 	cache::{CacheItem, LegacyCacheItem},
 	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
@@ -114,7 +114,7 @@ pub struct EventBodyQT {
 	pub any_data: OwnedValue,
 	/// A tuple of properties.
 	/// Not in use.
-	pub properties: Accessible,
+	pub properties: ObjectReference,
 }
 
 impl Default for EventBodyQT {
@@ -124,7 +124,7 @@ impl Default for EventBodyQT {
 			detail1: 0,
 			detail2: 0,
 			any_data: Value::U8(0u8).into(),
-			properties: Accessible::default(),
+			properties: ObjectReference::default(),
 		}
 	}
 }
@@ -241,7 +241,7 @@ pub enum CacheEvents {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct LegacyAddAccessibleEvent {
 	/// The [`Accessible`] the event applies to.
-	pub item: Accessible,
+	pub item: ObjectReference,
 	/// A cache item to add to the internal cache.
 	pub node_added: LegacyCacheItem,
 }
@@ -264,7 +264,7 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 
 	type Body = LegacyCacheItem;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -284,7 +284,7 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct AddAccessibleEvent {
 	/// The [`Accessible`] the event applies to.
-	pub item: Accessible,
+	pub item: ObjectReference,
 	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
 }
@@ -300,7 +300,7 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 
 	type Body = CacheItem;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -328,9 +328,9 @@ impl_to_dbus_message!(AddAccessibleEvent);
 pub struct RemoveAccessibleEvent {
 	/// The application that emitted the signal TODO Check Me
 	/// The [`Accessible`] the event applies to.
-	pub item: Accessible,
+	pub item: ObjectReference,
 	/// The node that was removed from the application tree  TODO Check Me
-	pub node_removed: Accessible,
+	pub node_removed: ObjectReference,
 }
 impl_event_conversions!(RemoveAccessibleEvent, CacheEvents, CacheEvents::Remove, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent);
@@ -341,9 +341,9 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 	const DBUS_MEMBER: &'static str = "RemoveAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-	type Body = Accessible;
+	type Body = ObjectReference;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
 	fn sender(&self) -> String {
@@ -367,7 +367,7 @@ pub mod accessible_deserialization_tests {
 
 	#[test]
 	fn try_into_value() {
-		let acc = Accessible::default();
+		let acc = ObjectReference::default();
 		let value_struct = Value::try_from(acc).expect("Unable to convert into a zvariant::Value");
 		let Value::Structure(structure) = value_struct else {
 			panic!("Unable to destructure a structure out of the Value.");
@@ -393,7 +393,7 @@ pub mod accessible_tests {
 
 	#[test]
 	fn test_accessible_default_doesnt_panic() {
-		let acc = Accessible::default();
+		let acc = ObjectReference::default();
 		assert_eq!(acc.name.as_str(), ":0.0");
 		assert_eq!(acc.path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
@@ -414,7 +414,7 @@ impl TryFrom<&zbus::Message> for ObjectReference {
 		};
 		let name_string = unique_name.as_str().to_owned();
 
-		Ok(Accessible { name: name_string, path: owned_path })
+		Ok(ObjectReference { name: name_string, path: owned_path })
 	}
 }
 
@@ -478,7 +478,7 @@ pub enum EventListenerEvents {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerDeregisteredEvent {
 	/// The [`Accessible`] the event applies to.
-	pub item: Accessible,
+	pub item: ObjectReference,
 	/// A list of events that have been deregistered via the registry interface.
 	/// See `atspi-connection`.
 	pub deregistered_event: EventListeners,
@@ -499,7 +499,7 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
 	fn sender(&self) -> String {
@@ -519,7 +519,7 @@ impl_to_dbus_message!(EventListenerDeregisteredEvent);
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerRegisteredEvent {
 	/// The [`Accessible`] the event applies to.
-	pub item: Accessible,
+	pub item: ObjectReference,
 	/// A list of events that have been registered via the registry interface.
 	/// See `atspi-connection`.
 	pub registered_event: EventListeners,
@@ -540,7 +540,7 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
 	fn sender(&self) -> String {
@@ -560,8 +560,8 @@ impl_to_dbus_message!(EventListenerRegisteredEvent);
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 pub struct AvailableEvent {
 	/// The [`Accessible`] the event applies to.
-	pub item: Accessible,
-	pub socket: Accessible,
+	pub item: ObjectReference,
+	pub socket: ObjectReference,
 }
 impl From<AvailableEvent> for Event {
 	fn from(ev: AvailableEvent) -> Event {
@@ -586,9 +586,9 @@ impl GenericEvent<'_> for AvailableEvent {
 	const DBUS_MEMBER: &'static str = "Available";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
 
-	type Body = Accessible;
+	type Body = ObjectReference;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
 	fn sender(&self) -> String {
@@ -698,13 +698,13 @@ pub trait GenericEvent<'a> {
 	/// What is the body type of this event.
 	type Body: Type + Serialize + Deserialize<'a>;
 
-	/// Build the event from the object pair (Accessible and the Body).
+	/// Build the event from the object pair (ObjectReference and the Body).
 	///
 	/// # Errors
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
 	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError>
+	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 
@@ -759,7 +759,7 @@ mod tests {
 	fn test_event_body_qt_to_event_body_owned_conversion() {
 		let event_body: EventBodyOwned = EventBodyQT::default().into();
 
-		let accessible = crate::Accessible::default();
+		let accessible = crate::ObjectReference::default();
 		let name = accessible.name;
 		let path = accessible.path;
 		let props = HashMap::from([(name, ObjectPath::try_from(path).unwrap().into())]);

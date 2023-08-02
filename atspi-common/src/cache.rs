@@ -1,7 +1,7 @@
 //! Common types for `org.a11y.atspi.Cache` events.
 //!
 
-use crate::{Accessible, InterfaceSet, Role, StateSet};
+use crate::{ObjectReference, InterfaceSet, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
@@ -10,11 +10,11 @@ use zvariant::Type;
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct CacheItem {
 	/// The accessible object (within the application)   (so)
-	pub object: Accessible,
+	pub object: ObjectReference,
 	/// The application (root object(?)    (so)
-	pub app: Accessible,
+	pub app: ObjectReference,
 	/// The parent object.  (so)
-	pub parent: Accessible,
+	pub parent: ObjectReference,
 	/// The accessbile index in parent.  i
 	pub index: i32,
 	/// Child count of the accessible  i
@@ -69,13 +69,13 @@ fn zvariant_type_signature_of_cache_item() {
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct LegacyCacheItem {
 	/// The accessible object (within the application)   (so)
-	pub object: Accessible,
+	pub object: ObjectReference,
 	/// The application (root object(?)    (so)
-	pub app: Accessible,
+	pub app: ObjectReference,
 	/// The parent object.  (so)
-	pub parent: Accessible,
+	pub parent: ObjectReference,
 	/// List of references to the accessible's children.  a(so)
-	pub children: Vec<Accessible>,
+	pub children: Vec<ObjectReference>,
 	/// The exposed interfece(s) set.  as
 	pub ifaces: InterfaceSet,
 	/// The short localized name.  s
