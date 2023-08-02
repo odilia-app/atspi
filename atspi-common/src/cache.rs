@@ -1,7 +1,7 @@
 //! Common types for `org.a11y.atspi.Cache` events.
 //!
 
-use crate::{ObjectReference, InterfaceSet, Role, StateSet};
+use crate::{InterfaceSet, ObjectReference, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 

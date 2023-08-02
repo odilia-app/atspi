@@ -7,7 +7,7 @@
 //!
 
 use crate::atspi_proxy;
-use crate::common::{ObjectReference, InterfaceSet, RelationType, Role, StateSet};
+use crate::common::{InterfaceSet, ObjectReference, RelationType, Role, StateSet};
 use crate::AtspiError;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]

@@ -1,8 +1,8 @@
 use atspi_common::events::{signatures_are_eq, AddAccessibleEvent, Event, RemoveAccessibleEvent};
 use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
 use atspi_common::{
-	object_reference::ACCESSIBLE_PAIR_SIGNATURE, assert_eq_signatures, ObjectReference, CacheItem,
-	InterfaceSet, Role, StateSet,
+	assert_eq_signatures, object_reference::ACCESSIBLE_PAIR_SIGNATURE, CacheItem, InterfaceSet,
+	ObjectReference, Role, StateSet,
 };
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;

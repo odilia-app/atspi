@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use crate::{
 	error::AtspiError,
-	events::{ObjectReference, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectReference},
 	Event, State,
 };
 use zvariant::{ObjectPath, OwnedValue, Value};

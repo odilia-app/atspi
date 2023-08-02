@@ -11,7 +11,7 @@
 //!
 
 use crate::atspi_proxy;
-use crate::common::{ObjectReference, CoordType, Layer, ScrollType};
+use crate::common::{CoordType, Layer, ObjectReference, ScrollType};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
 trait Component {

@@ -33,12 +33,12 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
-	object_reference::ObjectReference,
 	cache::{CacheItem, LegacyCacheItem},
 	events::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
 		object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 	},
+	object_reference::ObjectReference,
 	AtspiError,
 };
 //use atspi_macros::try_from_zbus_message;
