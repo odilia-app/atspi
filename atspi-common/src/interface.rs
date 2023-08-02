@@ -1,3 +1,8 @@
+//! Conversion functions and types representing a set of [`Interface`]s.
+//!
+//! Each `AccessibleProxy` will implement some set of these interfaces,
+//! represened by a [`InterfaceSet`].
+
 use enumflags2::{bitflags, BitFlag, BitFlags};
 use serde::{
 	de::{self, Deserialize, Deserializer, Visitor},
@@ -32,25 +37,45 @@ const VALUE_INTERFACE_NAME: &str = "org.a11y.atspi.Value";
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Interface {
+	/// Interface to indicate implementation of `AccessibleProxy`.
 	Accessible,
+	/// Interface to indicate implementation of `ActionProxy`.
 	Action,
+	/// Interface to indicate implementation of `ApplicationProxy`.
 	Application,
+	/// Interface to indicate implementation of `CacheProxy`.
 	Cache,
+	/// Interface to indicate implementation of `CollectionProxy`.
 	Collection,
+	/// Interface to indicate implementation of `ComponentProxy`.
 	Component,
+	/// Interface to indicate implementation of `DocumentProxy`.
 	Document,
+	/// Interface to indicate implementation of `DeviceEventControllerProxy`.
 	DeviceEventController,
+	/// Interface to indicate implementation of `DeviceEventListenerProxy`.
 	DeviceEventListener,
+	/// Interface to indicate implementation of `EditableTextProxy`.
 	EditableText,
+	/// Interface to indicate implementation of `HyperlinkProxy`.
 	Hyperlink,
+	/// Interface to indicate implementation of `HypertextProxy`.
 	Hypertext,
+	/// Interface to indicate implementation of `ImageProxy`.
 	Image,
+	/// Interface to indicate implementation of `RegistryProxy`.
 	Registry,
+	/// Interface to indicate implementation of `SelectionProxy`.
 	Selection,
+	/// Interface to indicate implementation of `SocketProxy`.
 	Socket,
+	/// Interface to indicate implementation of `TableProxy`.
 	Table,
+	/// Interface to indicate implementation of `TableCellProxy`.
 	TableCell,
+	/// Interface to indicate implementation of `TextProxy`.
 	Text,
+	/// Interface to indicate implementation of `ValueProxy`.
 	Value,
 }
 
@@ -132,7 +157,7 @@ impl Serialize for Interface {
 	}
 }
 
-/// A collection type which encodes the AT-SPI interfaces an accellible object has implemented.
+/// A collection type which encodes the AT-SPI interfaces an accessible object has implemented.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct InterfaceSet(BitFlags<Interface>);
 
@@ -303,7 +328,7 @@ mod tests {
 	#[test]
 	fn match_various_de_serialization_methods() {
 		for iface in InterfaceSet::all().iter() {
-			let displayed = format!("{}", iface);
+			let displayed = format!("{iface}");
 			let serde_val = serde_plain::to_string(&iface).expect("Unable to serialize {iface}");
 			// this is not *necessary* if Display wants to be implemented for some other reason.
 			// as of when this test is written, it should be the same.
@@ -313,9 +338,9 @@ mod tests {
 				"Serde's serialization does not match the Display trait implementation."
 			);
 			let from_str = Interface::try_from(&*displayed).unwrap();
-			assert_eq!(iface, from_str, "The display trait for {} became \"{}\", but was re-serialized as {} via TryFrom<&str>", iface, displayed, from_str);
+			assert_eq!(iface, from_str, "The display trait for {iface} became \"{displayed}\", but was re-serialized as {from_str} via TryFrom<&str>");
 			let serde_from_str: Interface = serde_plain::from_str(&serde_val).unwrap();
-			assert_eq!(serde_from_str, iface, "Serde's deserialization does not match its serialization. {} was serialized to \"{}\", but deserialized into {}", iface, serde_val, serde_from_str);
+			assert_eq!(serde_from_str, iface, "Serde's deserialization does not match its serialization. {iface} was serialized to \"{serde_val}\", but deserialized into {serde_from_str}");
 		}
 	}
 }

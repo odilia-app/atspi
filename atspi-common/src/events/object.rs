@@ -1,34 +1,57 @@
+use std::hash::Hash;
+
 use crate::{
 	error::AtspiError,
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event, State,
 };
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
+use zvariant::{ObjectPath, OwnedValue, Value};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
+	/// See: [`PropertyChangeEvent`].
 	PropertyChange(PropertyChangeEvent),
+	/// See: [`BoundsChangedEvent`].
 	BoundsChanged(BoundsChangedEvent),
+	/// See: [`LinkSelectedEvent`].
 	LinkSelected(LinkSelectedEvent),
+	/// See: [`StateChangedEvent`].
 	StateChanged(StateChangedEvent),
+	/// See: [`ChildrenChangedEvent`].
 	ChildrenChanged(ChildrenChangedEvent),
+	/// See: [`VisibleDataChangedEvent`].
 	VisibleDataChanged(VisibleDataChangedEvent),
+	/// See: [`SelectionChangedEvent`].
 	SelectionChanged(SelectionChangedEvent),
+	/// See: [`ModelChangedEvent`].
 	ModelChanged(ModelChangedEvent),
+	/// See: [`ActiveDescendantChangedEvent`].
 	ActiveDescendantChanged(ActiveDescendantChangedEvent),
+	/// See: [`AnnouncementEvent`].
 	Announcement(AnnouncementEvent),
+	/// See: [`AttributesChangedEvent`].
 	AttributesChanged(AttributesChangedEvent),
+	/// See: [`RowInsertedEvent`].
 	RowInserted(RowInsertedEvent),
+	/// See: [`RowReorderedEvent`].
 	RowReordered(RowReorderedEvent),
+	/// See: [`RowDeletedEvent`].
 	RowDeleted(RowDeletedEvent),
+	/// See: [`ColumnInsertedEvent`].
 	ColumnInserted(ColumnInsertedEvent),
+	/// See: [`ColumnReorderedEvent`].
 	ColumnReordered(ColumnReorderedEvent),
+	/// See: [`ColumnDeletedEvent`].
 	ColumnDeleted(ColumnDeletedEvent),
+	/// See: [`TextBoundsChangedEvent`].
 	TextBoundsChanged(TextBoundsChangedEvent),
+	/// See: [`TextSelectionChangedEvent`].
 	TextSelectionChanged(TextSelectionChangedEvent),
+	/// See: [`TextChangedEvent`].
 	TextChanged(TextChangedEvent),
+	/// See: [`TextAttributesChangedEvent`].
 	TextAttributesChanged(TextAttributesChangedEvent),
+	/// See: [`TextCaretMovedEvent`].
 	TextCaretMoved(TextCaretMovedEvent),
 }
 impl_event_conversions!(ObjectEvents, Event::Object);
@@ -38,127 +61,326 @@ impl HasMatchRule for ObjectEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
 }
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+/// The `org.a11y.atspi.Event.Object:PropertyChange` event.
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub property: String,
-	pub value: String,
+	pub value: Property,
+}
+
+impl Hash for PropertyChangeEvent {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.item.hash(state);
+		self.property.hash(state);
+	}
+}
+
+// Do not derive Eq if not all fields implement Eq
+impl Eq for PropertyChangeEvent {}
+
+// Looks like a false positive Clippy lint
+#[allow(clippy::derivable_impls)]
+impl Default for PropertyChangeEvent {
+	fn default() -> Self {
+		Self {
+			item: Accessible::default(),
+			property: String::default(),
+			value: Property::default(),
+		}
+	}
+}
+
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
+#[non_exhaustive]
+pub enum Property {
+	Name(String),
+	Description(String),
+	Role(crate::Role),
+	Parent(Accessible),
+	TableCaption(String),
+	TableColumnDescription(String),
+	TableColumnHeader(String),
+	TableRowDescription(String),
+	TableRowHeader(String),
+	TableSummary(String),
+	Other((String, OwnedValue)),
+}
+
+impl Default for Property {
+	fn default() -> Self {
+		Self::Other((String::default(), zvariant::Value::U64(0).into()))
+	}
+}
+
+impl TryFrom<EventBodyOwned> for Property {
+	type Error = AtspiError;
+
+	fn try_from(body: EventBodyOwned) -> Result<Self, Self::Error> {
+		let property = body.kind;
+
+		match property.as_str() {
+			"accessible-name" => Ok(Self::Name(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
+			)),
+			"accessible-description" => Ok(Self::Description(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
+			)),
+			"accessible-role" => Ok(Self::Role({
+				let role_int: u32 = body
+					.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				let role: crate::Role = crate::Role::try_from(role_int)
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				role
+			})),
+			"accessible-parent" => Ok(Self::Parent(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
+			)),
+			"accessible-table-caption" => Ok(Self::TableCaption(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
+			)),
+			"table-column-description" => Ok(Self::TableColumnDescription(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-description"))?,
+			)),
+			"table-column-header" => Ok(Self::TableColumnHeader(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
+			)),
+			"table-row-description" => Ok(Self::TableRowDescription(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-description"))?,
+			)),
+			"table-row-header" => Ok(Self::TableRowHeader(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
+			)),
+			"table-summary" => Ok(Self::TableSummary(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-summary"))?,
+			)),
+			_ => Ok(Self::Other((property, body.any_data))),
+		}
+	}
+}
+
+impl From<Property> for OwnedValue {
+	fn from(property: Property) -> Self {
+		match property {
+			Property::Name(name) => Value::from(name).into(),
+			Property::Description(description) => Value::from(description).into(),
+			Property::Role(role) => Value::from(role as u32).into(),
+			Property::Parent(parent) => Value::from(parent).into(),
+			Property::TableCaption(table_caption) => Value::from(table_caption).into(),
+			Property::TableColumnDescription(table_column_description) => {
+				Value::from(table_column_description).into()
+			}
+			Property::TableColumnHeader(table_column_header) => {
+				Value::from(table_column_header).into()
+			}
+			Property::TableRowDescription(table_row_description) => {
+				Value::from(table_row_description).into()
+			}
+			Property::TableRowHeader(table_row_header) => Value::from(table_row_header).into(),
+			Property::TableSummary(table_summary) => Value::from(table_summary).into(),
+			Property::Other((_, value)) => value,
+		}
+	}
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// A state of an object has been modified.
+/// A [`State`] can be added or removed from any [`Accessible`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// The state to be enabled/disabled.
 	pub state: State,
+	/// Enabled or disabled the state.
+	///
+	/// 1 == enabled
+	///
+	/// 0 == disabled
 	pub enabled: i32,
 }
 
+/// A child of an [`Accessible`] has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Operation, which may be one of:
+	///
+	/// * "insert/system"
+	/// * "insert"
+	/// * "delete/system"
+	/// * "delete"
+	///
+	/// The operation is the same whether it contains the "/system" suffix or not.
+	/// TODO: This should be an enum.
 	pub operation: String,
+	/// Index to remove from/add to.
 	pub index_in_parent: i32,
+	/// A reference to the new child.
 	pub child: Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub child: Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Text of the announcement.
 	pub text: String,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowInsertedEvent {
+	/// The table which has had a row inserted.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been moved within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowReorderedEvent {
+	/// The table which has had a row re-ordered.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been deleted from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowDeletedEvent {
+	/// The table which has had a row removed.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnInsertedEvent {
+	/// The table which has had a column inserted.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been re-ordered within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnReorderedEvent {
+	/// The table which has had a column re-ordered.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been removed from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnDeletedEvent {
+	/// The table which has had a column removed.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// Text has changed within an [`Accessible`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Operation, which may be one of:
+	///
+	/// * "insert/system"
+	/// * "insert"
+	/// * "delete/system"
+	/// * "delete"
+	///
+	/// The operation is the same whether it contains the "/system" suffix or not.
+	/// TODO: This should be an enum.
 	pub operation: String,
+	/// starting index of the insertion/deletion
 	pub start_pos: i32,
+	/// length of the insertion/deletion
 	pub length: i32,
+	/// the text being inserted/deleted
 	pub text: String,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The caret of the user also known as a cursor (not to be confused with mouse pointer) has changed position.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextCaretMovedEvent {
+	/// The object on which the caret has been moved on.
 	pub item: crate::events::Accessible,
+	/// New position of the caret.
 	pub position: i32,
 }
 
@@ -172,10 +394,12 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, property: body.kind, value: body.any_data.try_into()? })
+		let property = body.kind.clone();
+		let value: Property = body.try_into()?;
+		Ok(Self { item, property, value })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -198,8 +422,8 @@ impl GenericEvent<'_> for BoundsChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -222,8 +446,8 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -246,8 +470,8 @@ impl GenericEvent<'_> for StateChangedEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -275,8 +499,8 @@ impl GenericEvent<'_> for ChildrenChangedEvent {
 			child: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -299,8 +523,8 @@ impl GenericEvent<'_> for VisibleDataChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -323,8 +547,8 @@ impl GenericEvent<'_> for SelectionChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -347,8 +571,8 @@ impl GenericEvent<'_> for ModelChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -371,8 +595,8 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -395,8 +619,8 @@ impl GenericEvent<'_> for AnnouncementEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, text: body.kind })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -419,8 +643,8 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -443,8 +667,8 @@ impl GenericEvent<'_> for RowInsertedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -467,8 +691,8 @@ impl GenericEvent<'_> for RowReorderedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -491,8 +715,8 @@ impl GenericEvent<'_> for RowDeletedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -515,8 +739,8 @@ impl GenericEvent<'_> for ColumnInsertedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -539,8 +763,8 @@ impl GenericEvent<'_> for ColumnReorderedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -563,8 +787,8 @@ impl GenericEvent<'_> for ColumnDeletedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -587,8 +811,8 @@ impl GenericEvent<'_> for TextBoundsChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -611,8 +835,8 @@ impl GenericEvent<'_> for TextSelectionChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -641,8 +865,8 @@ impl GenericEvent<'_> for TextChangedEvent {
 			text: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -665,8 +889,8 @@ impl GenericEvent<'_> for TextAttributesChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -689,8 +913,8 @@ impl GenericEvent<'_> for TextCaretMovedEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -742,9 +966,11 @@ impl_event_conversions!(
 	ObjectEvents::PropertyChange,
 	Event::Object
 );
+
 event_test_cases!(PropertyChangeEvent);
 impl_to_dbus_message!(PropertyChangeEvent);
 impl_from_dbus_message!(PropertyChangeEvent);
+
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned {
@@ -752,7 +978,7 @@ impl From<PropertyChangeEvent> for EventBodyOwned {
 			kind: event.property,
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::from(event.value).into(),
+			any_data: event.value.into(),
 		}
 	}
 }

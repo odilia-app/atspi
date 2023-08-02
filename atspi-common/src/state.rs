@@ -600,7 +600,7 @@ mod tests {
 
 	#[test]
 	fn convert_state_direct_string() {
-		for state in StateSet::from_bits(0b11111111111111111111111111111111111111111111)
+		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
 			.unwrap()
 			.iter()
 		{
@@ -614,7 +614,7 @@ mod tests {
 	}
 	#[test]
 	fn convert_state_direct_string_is_equal_to_serde_output() {
-		for state in StateSet::from_bits(0b11111111111111111111111111111111111111111111)
+		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
 			.unwrap()
 			.iter()
 		{

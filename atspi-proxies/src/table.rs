@@ -11,6 +11,7 @@
 //!
 
 use crate::atspi_proxy;
+use crate::common::Accessible;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
 trait Table {
@@ -21,11 +22,7 @@ trait Table {
 	fn add_row_selection(&self, row: i32) -> zbus::Result<bool>;
 
 	/// GetAccessibleAt method
-	fn get_accessible_at(
-		&self,
-		row: i32,
-		column: i32,
-	) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn get_accessible_at(&self, row: i32, column: i32) -> zbus::Result<Accessible>;
 
 	/// GetColumnAtIndex method
 	fn get_column_at_index(&self, index: i32) -> zbus::Result<i32>;
@@ -37,10 +34,7 @@ trait Table {
 	fn get_column_extent_at(&self, row: i32, column: i32) -> zbus::Result<i32>;
 
 	/// GetColumnHeader method
-	fn get_column_header(
-		&self,
-		column: i32,
-	) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn get_column_header(&self, column: i32) -> zbus::Result<Accessible>;
 
 	/// GetIndexAt method
 	fn get_index_at(&self, row: i32, column: i32) -> zbus::Result<i32>;
@@ -61,7 +55,7 @@ trait Table {
 	fn get_row_extent_at(&self, row: i32, column: i32) -> zbus::Result<i32>;
 
 	/// GetRowHeader method
-	fn get_row_header(&self, row: i32) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn get_row_header(&self, row: i32) -> zbus::Result<Accessible>;
 
 	/// GetSelectedColumns method
 	fn get_selected_columns(&self) -> zbus::Result<Vec<i32>>;
@@ -86,7 +80,7 @@ trait Table {
 
 	/// Caption property
 	#[dbus_proxy(property)]
-	fn caption(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn caption(&self) -> zbus::Result<Accessible>;
 
 	/// NColumns property
 	#[dbus_proxy(property)]
@@ -106,5 +100,5 @@ trait Table {
 
 	/// Summary property
 	#[dbus_proxy(property)]
-	fn summary(&self) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	fn summary(&self) -> zbus::Result<Accessible>;
 }

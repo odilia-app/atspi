@@ -3,13 +3,15 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
-use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum MouseEvents {
+	/// See: [`AbsEvent`].
 	Abs(AbsEvent),
+	/// See: [`RelEvent`].
 	Rel(RelEvent),
+	/// See: [`ButtonEvent`].
 	Button(ButtonEvent),
 }
 impl_event_conversions!(MouseEvents, Event::Mouse);
@@ -21,6 +23,7 @@ impl HasMatchRule for MouseEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub x: i32,
 	pub y: i32,
@@ -28,6 +31,7 @@ pub struct AbsEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RelEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub x: i32,
 	pub y: i32,
@@ -35,6 +39,7 @@ pub struct RelEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ButtonEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub detail: String,
 	pub mouse_x: i32,
@@ -53,8 +58,8 @@ impl GenericEvent<'_> for AbsEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -77,8 +82,8 @@ impl GenericEvent<'_> for RelEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -101,8 +106,8 @@ impl GenericEvent<'_> for ButtonEvent {
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()

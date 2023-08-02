@@ -11,7 +11,7 @@
 //!
 
 use crate::atspi_proxy;
-use atspi_common::{CoordType, Layer, ScrollType};
+use crate::common::{Accessible, CoordType, Layer, ScrollType};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
 trait Component {
@@ -24,7 +24,7 @@ trait Component {
 		x: i32,
 		y: i32,
 		coord_type: CoordType,
-	) -> zbus::Result<(String, zbus::zvariant::OwnedObjectPath)>;
+	) -> zbus::Result<Accessible>;
 
 	/// GetAlpha method
 	fn get_alpha(&self) -> zbus::Result<f64>;

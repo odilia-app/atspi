@@ -3,15 +3,20 @@ use crate::{
 	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
 	Event,
 };
-use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
+/// All events related to the `org.a11y.atspi.Event.Terminal` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum TerminalEvents {
+	/// See: [`LineChangedEvent`].
 	LineChanged(LineChangedEvent),
+	/// See: [`ColumnCountChangedEvent`].
 	ColumnCountChanged(ColumnCountChangedEvent),
+	/// See: [`LineCountChangedEvent`].
 	LineCountChanged(LineCountChangedEvent),
+	/// See: [`ApplicationChangedEvent`].
 	ApplicationChanged(ApplicationChangedEvent),
+	/// See: [`CharWidthChangedEvent`].
 	CharWidthChanged(CharWidthChangedEvent),
 }
 impl_event_conversions!(TerminalEvents, Event::Terminal);
@@ -22,28 +27,40 @@ impl HasMatchRule for TerminalEvents {
 		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 }
 
+/// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The width of a terminal emulator has changed sufficiently such that the number of characters
+/// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnCountChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The height of a terminal emulator has changed sufficiently such that the number of lines
+/// able to fit within the terminal has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineCountChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The width of a terminal emulator has changed sufficiently such that the number of characters
+/// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CharWidthChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
@@ -59,8 +76,8 @@ impl GenericEvent<'_> for LineChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -83,8 +100,8 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -107,8 +124,8 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -131,8 +148,8 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -155,8 +172,8 @@ impl GenericEvent<'_> for CharWidthChangedEvent {
 	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> UniqueName<'_> {
-		self.item.name.clone().into()
+	fn sender(&self) -> String {
+		self.item.name.clone()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
