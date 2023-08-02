@@ -671,8 +671,7 @@ pub trait HasRegistryEventString {
 #[cfg(test)]
 mod tests {
 	use super::{
-		EventBodyOwned, EventBodyQT,
-		ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE, signatures_are_eq,
+		signatures_are_eq, EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
 	use std::collections::HashMap;
 	use zvariant::{ObjectPath, Signature, Type};

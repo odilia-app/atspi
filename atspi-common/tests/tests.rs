@@ -1,11 +1,9 @@
-use atspi_common::events::{
-	CacheEvents, CACHE_ADD_SIGNATURE,
-};
+use atspi_common::events::{signatures_are_eq, AddAccessibleEvent, Event, RemoveAccessibleEvent};
+use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
 use atspi_common::{
-	accessible::ACCESSIBLE_PAIR_SIGNATURE, Accessible, CacheItem, InterfaceSet, Role, StateSet,
-	assert_eq_signatures,
+	accessible::ACCESSIBLE_PAIR_SIGNATURE, assert_eq_signatures, Accessible, CacheItem,
+	InterfaceSet, Role, StateSet,
 };
-use atspi_common::events::{Event, AddAccessibleEvent, RemoveAccessibleEvent, signatures_are_eq};
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;
 use tokio_stream::StreamExt;
@@ -94,8 +92,7 @@ async fn test_recv_add_accessible() {
 			},
 			app: Accessible {
 				name: ":1.1".to_string(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application")
-					.unwrap(),
+				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
 			},
 			parent: Accessible {
 				name: ":1.1".to_string(),
