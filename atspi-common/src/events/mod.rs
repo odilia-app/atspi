@@ -362,7 +362,7 @@ impl_to_dbus_message!(RemoveAccessibleEvent);
 
 #[cfg(test)]
 pub mod accessible_deserialization_tests {
-	use crate::events::Accessible;
+	use crate::events::ObjectReference;
 	use zvariant::Value;
 
 	#[test]
@@ -389,7 +389,7 @@ pub mod accessible_deserialization_tests {
 
 #[cfg(test)]
 pub mod accessible_tests {
-	use super::Accessible;
+	use super::ObjectReference;
 
 	#[test]
 	fn test_accessible_default_doesnt_panic() {
