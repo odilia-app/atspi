@@ -1,11 +1,8 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
 #![allow(clippy::multiple_crate_versions)]
 
-#[cfg(all(feature = "async-std", feature = "tokio"))]
-compile_error!("You may not mix the async-std and tokio features.");
-
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
-compile_error!("You must specify either the async-std or tokio feature.");
+compile_error!("You must specify at least one of the `async-std` or `tokio` features.");
 
 pub use atspi_common as common;
 use zbus::dbus_proxy as atspi_proxy;
