@@ -151,6 +151,8 @@ macro_rules! impl_try_from_event_for_user_facing_type {
 	};
 }
 
+/// Performs the following conversions:
+/// `TryFrom` type for `zbus::Message`
 macro_rules! impl_to_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
@@ -169,6 +171,8 @@ macro_rules! impl_to_dbus_message {
 	};
 }
 
+/// Performs the following conversions:
+/// `TryFrom<&zbus::Message> for $type`
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]

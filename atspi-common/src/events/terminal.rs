@@ -5,12 +5,18 @@ use crate::{
 };
 use zvariant::ObjectPath;
 
+/// All events related to the `org.a11y.atspi.Event.Terminal` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum TerminalEvents {
+	/// See: [`LineChangedEvent`].
 	LineChanged(LineChangedEvent),
+	/// See: [`ColumnCountChangedEvent`].
 	ColumnCountChanged(ColumnCountChangedEvent),
+	/// See: [`LineCountChangedEvent`].
 	LineCountChanged(LineCountChangedEvent),
+	/// See: [`ApplicationChangedEvent`].
 	ApplicationChanged(ApplicationChangedEvent),
+	/// See: [`CharWidthChangedEvent`].
 	CharWidthChanged(CharWidthChangedEvent),
 }
 
@@ -24,28 +30,40 @@ impl HasMatchRule for TerminalEvents {
 		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 }
 
+/// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The width of a terminal emulator has changed sufficiently such that the number of characters
+/// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnCountChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The height of a terminal emulator has changed sufficiently such that the number of lines
+/// able to fit within the terminal has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineCountChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The width of a terminal emulator has changed sufficiently such that the number of characters
+/// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CharWidthChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 

@@ -5,26 +5,46 @@ use crate::{
 };
 use zvariant::ObjectPath;
 
+/// All events on the `org.a11y.atspi.Event.Window` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum WindowEvents {
+	/// See: [`PropertyChangeEvent`].
 	PropertyChange(PropertyChangeEvent),
+	/// See: [`MinimizeEvent`].
 	Minimize(MinimizeEvent),
+	/// See: [`MaximizeEvent`].
 	Maximize(MaximizeEvent),
+	/// See: [`RestoreEvent`].
 	Restore(RestoreEvent),
+	/// See: [`CloseEvent`].
 	Close(CloseEvent),
+	/// See: [`CreateEvent`].
 	Create(CreateEvent),
+	/// See: [`ReparentEvent`].
 	Reparent(ReparentEvent),
+	/// See: [`DesktopCreateEvent`].
 	DesktopCreate(DesktopCreateEvent),
+	/// See: [`DesktopDestroyEvent`].
 	DesktopDestroy(DesktopDestroyEvent),
+	/// See: [`DestroyEvent`].
 	Destroy(DestroyEvent),
+	/// See: [`ActivateEvent`].
 	Activate(ActivateEvent),
+	/// See: [`DeactivateEvent`].
 	Deactivate(DeactivateEvent),
+	/// See: [`RaiseEvent`].
 	Raise(RaiseEvent),
+	/// See: [`LowerEvent`].
 	Lower(LowerEvent),
+	/// See: [`MoveEvent`].
 	Move(MoveEvent),
+	/// See: [`ResizeEvent`].
 	Resize(ResizeEvent),
+	/// See: [`ShadeEvent`].
 	Shade(ShadeEvent),
+	/// See: [`UUshadeEvent`].
 	UUshade(UUshadeEvent),
+	/// See: [`RestyleEvent`].
 	Restyle(RestyleEvent),
 }
 
@@ -39,97 +59,123 @@ impl HasMatchRule for WindowEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub property: String,
 }
 
+/// The window has been minimized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MinimizeEvent {
+	/// The application which has been minimized.
 	pub item: crate::events::Accessible,
 }
 
+/// The window has been maximized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MaximizeEvent {
+	/// The application which has been maximized.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestoreEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// A window has been closed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CloseEvent {
+	/// The application which has been closed.
 	pub item: crate::events::Accessible,
 }
 
+/// A new window has been created.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CreateEvent {
+	/// An application to query for additional events from.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReparentEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// A new virtual desktop has been created.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopCreateEvent {
+	/// A reference to a new desktop
 	pub item: crate::events::Accessible,
 }
 
+/// A virtual destkop has been deleted.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopDestroyEvent {
+	/// A reference to the destroyed desktop.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DestroyEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActivateEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DeactivateEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RaiseEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LowerEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MoveEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// A window has been resized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ResizeEvent {
+	/// The application which has been resized.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ShadeEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct UUshadeEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestyleEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 

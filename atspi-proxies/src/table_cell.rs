@@ -11,7 +11,7 @@
 //!
 
 use crate::atspi_proxy;
-use atspi_common::Accessible;
+use crate::common::Accessible;
 
 #[atspi_proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 trait TableCell {

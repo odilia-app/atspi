@@ -27,6 +27,7 @@ pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "zbus")]
 use zbus::{MessageField, MessageFieldCode};
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
@@ -45,13 +46,15 @@ use crate::{
 #[must_use]
 pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	fn has_outer_parentheses(bytes: &[u8]) -> bool {
-		bytes.starts_with(&[b'('])
-			&& bytes.ends_with(&[b')'])
-			&& (bytes[1..bytes.len() - 1].iter().fold(0, |count, byte| match byte {
+		if let [b'(', inner @ .., b')'] = bytes {
+			inner.iter().fold(0, |count, byte| match byte {
 				b'(' => count + 1,
-				b')' if count > 0 => count - 1,
+				b')' if count != 0 => count - 1,
 				_ => count,
-			}) == 0)
+			}) == 0
+		} else {
+			false
+		}
 	}
 
 	let bytes = lhs.as_bytes();
@@ -67,14 +70,23 @@ pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	}
 }
 
+/// A borrowed body for events.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
+	/// A generic "kind" type, defined by AT-SPI:
+	/// usually a `&'a str`, but can be another type like [`crate::state::State`].
 	#[serde(rename = "type")]
 	pub kind: T,
+	/// Generic first detail defined by AT-SPI.
 	pub detail1: i32,
+	/// Generic second detail defined by AT-SPI.
 	pub detail2: i32,
+	/// Generic "any_data" field defined in AT-SPI.
+	/// Can contain any type.
 	#[serde(borrow)]
 	pub any_data: Value<'a>,
+	/// Map of string to an any type.
+	/// This is not used for anything, but it is defined by AT-SPI.
 	#[serde(borrow)]
 	pub properties: HashMap<&'a str, Value<'a>>,
 }
@@ -85,14 +97,23 @@ impl<T> Type for EventBody<'_, T> {
 	}
 }
 
-// Signature:  "siiv(so)",
+/// Qt event body, which is not the same as other GUI frameworks.
+/// Signature:  "siiv(so)"
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyQT {
+	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
 	pub kind: String,
+	/// Generic detail1 value descibed by AT-SPI.
 	pub detail1: i32,
+	/// Generic detail2 value descibed by AT-SPI.
 	pub detail2: i32,
+	/// Generic any_data value descibed by AT-SPI.
+	/// This can be any type.
 	pub any_data: OwnedValue,
+	/// A tuple of properties.
+	/// Not in use.
 	pub properties: Accessible,
 }
 
@@ -108,14 +129,24 @@ impl Default for EventBodyQT {
 	}
 }
 
-// Signature (siiva{sv}),
+/// Standard event body (GTK, `egui`, etc.)
+/// NOTE: Qt has its own signature: [`EventBodyQT`].
+/// Signature `(siiva{sv})`,
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyOwned {
+	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
 	pub kind: String,
+	/// Generic detail1 value descibed by AT-SPI.
 	pub detail1: i32,
+	/// Generic detail2 value descibed by AT-SPI.
 	pub detail2: i32,
+	/// Generic any_data value descibed by AT-SPI.
+	/// This can be any type.
 	pub any_data: OwnedValue,
+	/// A map of properties.
+	/// Not in use.
 	pub properties: HashMap<String, OwnedValue>,
 }
 
@@ -152,28 +183,56 @@ impl Default for EventBodyOwned {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum Event {
+	/// See: [`DocumentEvents`].
 	Document(DocumentEvents),
+	/// See: [`FocusEvents`].
 	Focus(FocusEvents),
+	/// See: [`KeyboardEvents`].
 	Keyboard(KeyboardEvents),
+	/// See: [`MouseEvents`].
 	Mouse(MouseEvents),
+	/// See: [`ObjectEvents`].
 	Object(ObjectEvents),
+	/// See: [`TerminalEvents`].
 	Terminal(TerminalEvents),
+	/// See: [`WindowEvents`].
 	Window(WindowEvents),
-	/// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
+	/// See: [`AvailableEvent`].
 	Available(AvailableEvent),
-	/// Both `CacheAdd` and `CacheRemove` signals
+	/// See: [`CacheEvents`].
 	Cache(CacheEvents),
-	/// Emitted on registration or de-registration of event listeners.
-	///
-	/// (eg. "Cache:AddAccessible:")
+	/// See: [`EventListenerEvents`].
 	Listener(EventListenerEvents),
 }
 
+impl HasMatchRule for CacheEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Cache'";
+}
+
+impl HasRegistryEventString for CacheEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Cache";
+}
+
+impl HasMatchRule for EventListenerEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Registry'";
+}
+
+impl HasRegistryEventString for EventListenerEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Event";
+}
+
+/// All events related to the `org.a11y.atspi.Cache` interface.
+/// Note that these are not telling the client that an item *has been added* to a cache.
+/// It is telling the client "here is a bunch of information to store it in your cache".
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
+	/// See: [`AddAccessibleEvent`].
 	Add(AddAccessibleEvent),
+	/// See: [`LegacyAddAccessibleEvent`].
 	LegacyAdd(LegacyAddAccessibleEvent),
+	/// See: [`RemoveAccessibleEvent`].
 	Remove(RemoveAccessibleEvent),
 }
 
@@ -181,7 +240,9 @@ pub enum CacheEvents {
 /// the [`crate::cache::LegacyCacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct LegacyAddAccessibleEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A cache item to add to the internal cache.
 	pub node_added: LegacyCacheItem,
 }
 
@@ -228,7 +289,9 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct AddAccessibleEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
 }
 
@@ -277,6 +340,7 @@ impl_to_dbus_message!(AddAccessibleEvent);
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct RemoveAccessibleEvent {
 	/// The application that emitted the signal TODO Check Me
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	/// The node that was removed from the application tree  TODO Check Me
 	pub node_removed: Accessible,
@@ -423,7 +487,9 @@ fn test_event_listener_signature() {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
 pub enum EventListenerEvents {
+	/// See: [`EventListenerRegisteredEvent`].
 	Registered(EventListenerRegisteredEvent),
+	/// See: [`EventListenerDeregisteredEvent`].
 	Deregistered(EventListenerDeregisteredEvent),
 }
 
@@ -431,7 +497,10 @@ pub enum EventListenerEvents {
 /// to no longer listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerDeregisteredEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A list of events that have been deregistered via the registry interface.
+	/// See `atspi-connection`.
 	pub deregistered_event: EventListeners,
 }
 
@@ -475,7 +544,10 @@ impl_to_dbus_message!(EventListenerDeregisteredEvent);
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerRegisteredEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A list of events that have been registered via the registry interface.
+	/// See `atspi-connection`.
 	pub registered_event: EventListeners,
 }
 
@@ -519,6 +591,7 @@ impl_to_dbus_message!(EventListenerRegisteredEvent);
 /// An event that is emitted when the registry daemon has started.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 pub struct AvailableEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	pub socket: Accessible,
 }
@@ -577,7 +650,7 @@ impl TryFrom<&zbus::Message> for Event {
 		// Therefore no outer parentheses.
 		match body_signature {
 			// Marshalled Accessible signature
-			"so" => match member_str {
+			"so" | "(so)" => match member_str {
 				"RemoveAccessible" => {
 					let ev = RemoveAccessibleEvent::try_from(msg)?;
 					Ok(Event::Cache(CacheEvents::Remove(ev)))
@@ -589,7 +662,7 @@ impl TryFrom<&zbus::Message> for Event {
 				_ => Err(AtspiError::UnknownSignal),
 			},
 			// Atspi / Qspi signature
-			"siiva{sv}" | "siiv(so)" => {
+			"siiva{sv}" | "siiv(so)" | "(siiva{sv})" | "(siiv(so))" => {
 				let Some(interface) = msg.interface() else {
 					return Err(AtspiError::MissingInterface);
 				};
@@ -614,7 +687,7 @@ impl TryFrom<&zbus::Message> for Event {
 					_ => Err(AtspiError::UnknownInterface),
 				}
 			}
-			"ss" => {
+			"ss" | "(ss)" => {
 				if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg) {
 					return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
 				}
@@ -624,25 +697,34 @@ impl TryFrom<&zbus::Message> for Event {
 				Err(AtspiError::UnknownSignal)
 			}
 			// Marshalled `AddAccessible` signature
-			"(so)(so)(so)iiassusau" => {
+			"(so)(so)(so)iiassusau" | "((so)(so)(so)iiassusau)" => {
 				let ev = AddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::Add(ev)))
 			}
 			// LegacyCacheAdd signature
-			"(so)(so)(so)a(so)assusau" => {
+			"(so)(so)(so)a(so)assusau" | "((so)(so)(so)a(so)assusau)" => {
 				let ev = LegacyAddAccessibleEvent::try_from(msg)?;
 				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
 			}
-			_ => Err(AtspiError::UnknownBusSignature),
+			sig => Err(AtspiError::UnknownBusSignature(sig.to_string())),
 		}
 	}
 }
 
 /// Shared behavior of bus `Signal` events.
 pub trait GenericEvent<'a> {
+	/// The `DBus` member for the event.
+	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
 	const DBUS_MEMBER: &'static str;
+	/// The `DBus` interface name for this event.
+	/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
 	const DBUS_INTERFACE: &'static str;
+	/// A static match rule string for `DBus`.
+	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
+	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
+	/// A registry event string for registering for event receiving via the `RegistryProxy`.
+	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 
 	/// What is the body type of this event.
@@ -672,30 +754,28 @@ pub trait GenericEvent<'a> {
 	fn body(&self) -> Self::Body;
 }
 
+/// A specific trait *only* to define match rules.
 pub trait HasMatchRule {
+	/// A static match rule string for `DBus`.
+	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
+	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
 }
 
+/// A specific trait *only* to define registry event matches.
 pub trait HasRegistryEventString {
+	/// A registry event string for registering for event receiving via the `RegistryProxy`.
+	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
 #[cfg(test)]
 mod tests {
-	use atspi_common::events::{
-		AddAccessibleEvent, CacheEvents, Event, EventBodyOwned, EventBodyQT, RemoveAccessibleEvent,
-		ATSPI_EVENT_SIGNATURE, CACHE_ADD_SIGNATURE, QSPI_EVENT_SIGNATURE,
+	use super::{
+		signatures_are_eq, EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
 	};
-	use atspi_common::{
-		accessible::ACCESSIBLE_PAIR_SIGNATURE, Accessible, CacheItem, InterfaceSet, Role, StateSet,
-	};
-	use atspi_connection::AccessibilityConnection;
-	use std::{collections::HashMap, time::Duration};
-	use tokio_stream::StreamExt;
-	use zbus::MessageBuilder;
-	use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
-
-	use super::signatures_are_eq;
+	use std::collections::HashMap;
+	use zvariant::{ObjectPath, Signature, Type};
 
 	#[test]
 	fn check_event_body_qt_signature() {
@@ -749,161 +829,5 @@ mod tests {
 		let with_parentheses = &Signature::from_static_str_unchecked("((ii)(ii))");
 		let without_parentheses = &Signature::from_static_str_unchecked("((((ii)(ii))))");
 		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
-	}
-
-	#[tokio::test]
-	async fn test_recv_remove_accessible() {
-		let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
-
-		atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
-
-		let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
-		tokio::pin!(events);
-
-		let msg: zbus::Message = {
-			let path = "/org/a11y/atspi/accessible/null";
-			let iface = "org.a11y.atspi.Cache";
-			let member = "RemoveAccessible";
-
-			let unique_bus_name = atspi.connection().unique_name().unwrap();
-			let remove_body = Accessible {
-				name: ":69.420".into(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
-			};
-
-			MessageBuilder::signal(path, iface, member)
-				.expect("Could not create signal")
-				.sender(unique_bus_name.clone())
-				.expect("Could not set sender to {unique_bus_name:?}")
-				.build(&remove_body)
-				.unwrap()
-		};
-
-		assert_eq_signatures!(&msg.body_signature().unwrap(), &ACCESSIBLE_PAIR_SIGNATURE);
-		atspi.connection().send_message(msg).await.unwrap();
-
-		loop {
-			let to = events.try_next().await;
-			assert!(to.is_ok(), "Stream timed out");
-			let opt = to.unwrap();
-
-			match opt {
-				Some(res) => {
-					match res {
-						Ok(event) => match event {
-							Event::Cache(CacheEvents::Remove(event)) => {
-								let removed_accessible = event.node_removed;
-								assert_eq!(
-									removed_accessible.path.as_str(),
-									"/org/a11y/atspi/accessible/remove"
-								);
-								break;
-							}
-							_ => continue,
-						},
-						// Stream yields a Some(Err(Error)) when a message is received
-						Err(e) => panic!("Error: conversion to Event failed {e:?}"),
-					}
-				}
-				// Stream yields a None when the stream is closed
-				None => panic!("Stream closed"),
-			}
-		}
-	}
-
-	#[tokio::test]
-	async fn test_recv_add_accessible() {
-		let atspi = AccessibilityConnection::open().await.unwrap();
-		atspi.register_event::<AddAccessibleEvent>().await.unwrap();
-
-		let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
-		tokio::pin!(events);
-
-		let msg: zbus::Message = {
-			let path = "/org/a11y/atspi/accessible/null";
-			let iface = "org.a11y.atspi.Cache";
-			let member = "AddAccessible";
-
-			let unique_bus_name = atspi.connection().unique_name().unwrap();
-
-			let add_body = CacheItem {
-				object: Accessible {
-					name: ":1.1".to_string(),
-					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
-				},
-				app: Accessible {
-					name: ":1.1".to_string(),
-					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application")
-						.unwrap(),
-				},
-				parent: Accessible {
-					name: ":1.1".to_string(),
-					path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
-				},
-				index: 0,
-				children: 0,
-				ifaces: InterfaceSet::empty(),
-				short_name: String::new(),
-				role: Role::Application,
-				name: "Hi".to_string(),
-				states: StateSet::empty(),
-			};
-
-			MessageBuilder::signal(path, iface, member)
-				.expect("Could not create signal")
-				.sender(unique_bus_name.clone())
-				.expect("Could not set sender to {unique_bus_name:?}")
-				.build(&add_body)
-				.unwrap()
-		};
-
-		assert_eq_signatures!(
-			&msg.body_signature()
-				.expect("marshalled AddAccessible body signature != expected"),
-			&CACHE_ADD_SIGNATURE
-		);
-		atspi
-			.connection()
-			.send_message(msg)
-			.await
-			.expect("Message sending unsuccesful");
-
-		loop {
-			let to = events.try_next().await;
-			assert!(to.is_ok(), "Stream timed out");
-			let opt = to.unwrap();
-
-			match opt {
-				Some(res) => {
-					// This result comes from inner event-stream, Stream yields a Result<Event, AtspiError>
-					match res {
-						Ok(event) => match event {
-							Event::Cache(CacheEvents::Add(AddAccessibleEvent {
-								item: _,
-								node_added: cache_item,
-							})) => {
-								assert_eq!(
-									cache_item.object.path.as_str(),
-									"/org/a11y/atspi/accessible/object"
-								);
-								assert_eq!(
-									cache_item.app.path.as_str(),
-									"/org/a11y/atspi/accessible/application"
-								);
-								assert_eq!(
-									cache_item.parent.path.as_str(),
-									"/org/a11y/atspi/accessible/parent"
-								);
-								break;
-							}
-							_any_other_event => continue,
-						},
-						Err(e) => panic!("Error: conversion to Event failed {e:?}"),
-					}
-				}
-				// Stream yields a None when the stream is closed
-				None => panic!("Stream closed"),
-			}
-		}
 	}
 }

@@ -5,7 +5,7 @@
 //!
 
 use crate::atspi_proxy;
-use atspi_common::{CacheItem, LegacyCacheItem};
+use crate::common::{CacheItem, LegacyCacheItem};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 trait Cache {

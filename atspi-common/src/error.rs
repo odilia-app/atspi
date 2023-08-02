@@ -15,8 +15,8 @@ pub enum AtspiError {
 	/// On specific types, if the event / message member does not match the Event's name.
 	InterfaceMatch(String),
 
-	/// To indicate a match or equality test on a signa body signature failed.
-	UnknownBusSignature,
+	/// To indicate a match or equality test on a signal body signature failed.
+	UnknownBusSignature(String),
 
 	/// When matching on an unknown interface
 	UnknownInterface,
@@ -26,6 +26,9 @@ pub enum AtspiError {
 
 	/// No member on event.
 	MissingMember,
+
+	/// When matching on an unknown role
+	UnknownRole(u32),
 
 	/// No name on bus.
 	MissingName,
@@ -73,15 +76,18 @@ impl std::fmt::Display for AtspiError {
 			Self::InterfaceMatch(e) => {
 				f.write_str(format!("atspi: interface mismatch in conversion: {e}").as_str())
 			}
-			Self::UnknownBusSignature => f.write_str("atspi: Unknown bus body signature."),
+			Self::UnknownBusSignature(e) => {
+				f.write_str(format!("atspi: Unknown bus body signature: {e:?}").as_str())
+			}
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),
 			Self::MissingMember => f.write_str("Missing member."),
+			Self::UnknownRole(e) => f.write_str(&format!("atspi: Unknown role: {e}")),
 			Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
 			Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
 			Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
 			Self::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
-			Self::Zvariant(e) => f.write_str(&format!("Zvariant erron: {e}")),
+			Self::Zvariant(e) => f.write_str(&format!("Zvariant error: {e}")),
 			Self::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
 			Self::ParseError(e) => f.write_str(e),
 			Self::PathConversionError(e) => {

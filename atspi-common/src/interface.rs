@@ -1,3 +1,8 @@
+//! Conversion functions and types representing a set of [`Interface`]s.
+//!
+//! Each `AccessibleProxy` will implement some set of these interfaces,
+//! represened by a [`InterfaceSet`].
+
 use enumflags2::{bitflags, BitFlag, BitFlags};
 use serde::{
 	de::{self, Deserialize, Deserializer, Visitor},
@@ -32,25 +37,45 @@ const VALUE_INTERFACE_NAME: &str = "org.a11y.atspi.Value";
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Interface {
+	/// Interface to indicate implementation of `AccessibleProxy`.
 	Accessible,
+	/// Interface to indicate implementation of `ActionProxy`.
 	Action,
+	/// Interface to indicate implementation of `ApplicationProxy`.
 	Application,
+	/// Interface to indicate implementation of `CacheProxy`.
 	Cache,
+	/// Interface to indicate implementation of `CollectionProxy`.
 	Collection,
+	/// Interface to indicate implementation of `ComponentProxy`.
 	Component,
+	/// Interface to indicate implementation of `DocumentProxy`.
 	Document,
+	/// Interface to indicate implementation of `DeviceEventControllerProxy`.
 	DeviceEventController,
+	/// Interface to indicate implementation of `DeviceEventListenerProxy`.
 	DeviceEventListener,
+	/// Interface to indicate implementation of `EditableTextProxy`.
 	EditableText,
+	/// Interface to indicate implementation of `HyperlinkProxy`.
 	Hyperlink,
+	/// Interface to indicate implementation of `HypertextProxy`.
 	Hypertext,
+	/// Interface to indicate implementation of `ImageProxy`.
 	Image,
+	/// Interface to indicate implementation of `RegistryProxy`.
 	Registry,
+	/// Interface to indicate implementation of `SelectionProxy`.
 	Selection,
+	/// Interface to indicate implementation of `SocketProxy`.
 	Socket,
+	/// Interface to indicate implementation of `TableProxy`.
 	Table,
+	/// Interface to indicate implementation of `TableCellProxy`.
 	TableCell,
+	/// Interface to indicate implementation of `TextProxy`.
 	Text,
+	/// Interface to indicate implementation of `ValueProxy`.
 	Value,
 }
 
