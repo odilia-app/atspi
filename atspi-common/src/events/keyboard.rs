@@ -20,7 +20,7 @@ impl HasMatchRule for KeyboardEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,

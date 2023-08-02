@@ -30,7 +30,7 @@ impl HasMatchRule for TerminalEvents {
 /// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -38,7 +38,7 @@ pub struct LineChangedEvent {
 /// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnCountChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -46,13 +46,13 @@ pub struct ColumnCountChangedEvent {
 /// able to fit within the terminal has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineCountChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -60,7 +60,7 @@ pub struct ApplicationChangedEvent {
 /// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CharWidthChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 

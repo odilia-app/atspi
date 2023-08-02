@@ -64,7 +64,7 @@ impl HasMatchRule for ObjectEvents {
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	pub property: String,
 	pub value: Property,
@@ -206,21 +206,21 @@ impl From<Property> for OwnedValue {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 /// A state of an object has been modified.
-/// A [`State`] can be added or removed from any [`Accessible`].
+/// A [`State`] can be added or removed from any [`ObjectReference`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	/// The state to be enabled/disabled.
 	pub state: State,
@@ -232,10 +232,10 @@ pub struct StateChangedEvent {
 	pub enabled: i32,
 }
 
-/// A child of an [`Accessible`] has been added or removed.
+/// A child of an [`ObjectReference`] has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	/// Operation, which may be one of:
 	///
@@ -255,32 +255,32 @@ pub struct ChildrenChangedEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	pub child: ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	/// Text of the announcement.
 	pub text: String,
@@ -288,7 +288,7 @@ pub struct AnnouncementEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -336,20 +336,20 @@ pub struct ColumnDeletedEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
-/// Text has changed within an [`Accessible`].
+/// Text has changed within an [`ObjectReference`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	/// Operation, which may be one of:
 	///
@@ -371,7 +371,7 @@ pub struct TextChangedEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 

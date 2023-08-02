@@ -56,7 +56,7 @@ impl HasMatchRule for WindowEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 	pub property: String,
 }
@@ -77,7 +77,7 @@ pub struct MaximizeEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestoreEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -97,7 +97,7 @@ pub struct CreateEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReparentEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -117,37 +117,37 @@ pub struct DesktopDestroyEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DestroyEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActivateEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DeactivateEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RaiseEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LowerEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MoveEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -160,19 +160,19 @@ pub struct ResizeEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ShadeEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct UUshadeEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestyleEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 

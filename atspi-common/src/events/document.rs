@@ -33,7 +33,7 @@ impl HasMatchRule for DocumentEvents {
 /// `LibreOffice` has loaded a document from disk.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -41,7 +41,7 @@ pub struct LoadCompleteEvent {
 /// For example: pressing F5, or `Control + r` will reload a page in a web browser.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReloadEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
@@ -49,25 +49,25 @@ pub struct ReloadEvent {
 /// For example: during the loading of a large web page, a user may press `Escape` to stop loading the page.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadStoppedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ContentChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
-	/// The [`Accessible`] which the event applies to.
+	/// The [`ObjectReference`] which the event applies to.
 	pub item: crate::events::ObjectReference,
 }
 
