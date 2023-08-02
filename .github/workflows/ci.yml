@@ -37,8 +37,8 @@ jobs:
         with:
           components: clippy
           toolchain: ${{ matrix.toolchain }}
-      - name: Run tests
-        run: cargo clippy --workspace --no-deps -- -D warnings 
+      - name: Clippy
+        run: cargo clippy --tests --workspace --no-deps -- -D warnings 
   tests:
     runs-on: ubuntu-latest
     steps:
