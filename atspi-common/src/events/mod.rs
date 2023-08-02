@@ -698,7 +698,7 @@ pub trait GenericEvent<'a> {
 	/// What is the body type of this event.
 	type Body: Type + Serialize + Deserialize<'a>;
 
-	/// Build the event from the object pair (ObjectReference and the Body).
+	/// Build the event from the object pair (`ObjectReference` and the Body).
 	///
 	/// # Errors
 	///

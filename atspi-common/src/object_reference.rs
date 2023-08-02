@@ -8,7 +8,7 @@ pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_
 // check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
 // in `DefaultEvent` impl
 // then rename into Owned for this one.
-/// Owned ObjectReference type
+/// Owned `ObjectReference` type
 /// Emitted by `CacheRemove` and `Available`
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectReference {
