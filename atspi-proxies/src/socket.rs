@@ -11,7 +11,7 @@
 //!
 
 use crate::atspi_proxy;
-use crate::common::Accessible;
+use crate::common::ObjectReference;
 
 #[atspi_proxy(
 	interface = "org.a11y.atspi.Socket",
@@ -20,7 +20,7 @@ use crate::common::Accessible;
 )]
 trait Socket {
 	/// Embed method
-	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<Accessible>;
+	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<ObjectReference>;
 
 	/// Unembed method
 	fn unembed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;

@@ -3,11 +3,11 @@
 //! A handle for a remote object implementing the `org.a11y.atspi.Accessible`
 //! interface.
 //!
-//! Accessible is the interface which is implemented by all accessible objects.
+//! ObjectReference is the interface which is implemented by all accessible objects.
 //!
 
 use crate::atspi_proxy;
-use crate::common::{Accessible, InterfaceSet, RelationType, Role, StateSet};
+use crate::common::{ObjectReference, InterfaceSet, RelationType, Role, StateSet};
 use crate::AtspiError;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
@@ -25,7 +25,7 @@ trait Accessible {
 	///
 	/// [`Accessible`]: ../crate::common::events::Accessible
 	/// [`Application`]: <https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/application/struct.ApplicationProxy.html>
-	fn get_application(&self) -> zbus::Result<Accessible>;
+	fn get_application(&self) -> zbus::Result<ObjectReference>;
 
 	/// Gets a list of name/value pairs of attributes or annotations for this object.
 	///
@@ -51,7 +51,7 @@ trait Accessible {
 	/// out of range, to "keep the type system gods happy".
 	///
 	/// [`get_children`]: #method.get_children
-	fn get_child_at_index(&self, index: i32) -> zbus::Result<Accessible>;
+	fn get_child_at_index(&self, index: i32) -> zbus::Result<ObjectReference>;
 
 	/// Retrieves a list of the object's accessible children.
 	///
@@ -63,7 +63,7 @@ trait Accessible {
 	/// of all accessible applications' root objects on the bus.
 	///
 	/// [`Accessible`]: ../crate::common::events::Accessible
-	fn get_children(&self) -> zbus::Result<Vec<Accessible>>;
+	fn get_children(&self) -> zbus::Result<Vec<ObjectReference>>;
 
 	/// This object resides in its parent's list of children.
 	/// This returns its position in this list of children, starting from 0.
@@ -112,7 +112,7 @@ trait Accessible {
 	/// [`RelationType::ControllerFor`]: crate::common::RelationType::ControllerFor
 	/// [`name`]: #method.name
 	/// [`Accessible`]: ../crate::common::events::Accessible
-	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<Accessible>)>>;
+	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<ObjectReference>)>>;
 
 	/// Gets the [`Role`] that the current accessible object represents.
 	///
@@ -149,7 +149,7 @@ trait Accessible {
 	/// Application-specific identifier for the current object.
 	///
 	/// A special id given to an object.
-	/// Accessible application developers can use this to give a special id to an object
+	/// ObjectReference application developers can use this to give a special id to an object
 	/// to use in tests, for example, "my_widget".
 	///
 	/// Note that there is no way to directly find an object by its id;
@@ -209,7 +209,7 @@ trait Accessible {
 	#[dbus_proxy(property)]
 	fn name(&self) -> zbus::Result<String>;
 
-	/// Accessible parent object of the current object.
+	/// ObjectReference parent object of the current object.
 	///
 	/// Null parent:
 	/// If the object has no parent (e.g. the application's root object is being queried),
@@ -220,22 +220,22 @@ trait Accessible {
 	/// An application must have a single root object, called "/org/a11y/atspi/accessible/root".
 	/// All other objects should have that one as their highest-level ancestor.
 	#[dbus_proxy(property)]
-	fn parent(&self) -> zbus::Result<Accessible>;
+	fn parent(&self) -> zbus::Result<ObjectReference>;
 }
 
-impl TryFrom<AccessibleProxy<'_>> for Accessible {
+impl TryFrom<AccessibleProxy<'_>> for ObjectReference {
 	type Error = AtspiError;
-	fn try_from(proxy: AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
-		Ok(Accessible {
+	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectReference, Self::Error> {
+		Ok(ObjectReference {
 			name: proxy.destination().to_string(),
 			path: proxy.path().to_string().try_into()?,
 		})
 	}
 }
-impl TryFrom<&AccessibleProxy<'_>> for Accessible {
+impl TryFrom<&AccessibleProxy<'_>> for ObjectReference {
 	type Error = AtspiError;
-	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
-		Ok(Accessible {
+	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectReference, Self::Error> {
+		Ok(ObjectReference {
 			name: proxy.destination().to_string(),
 			path: proxy.path().to_string().try_into()?,
 		})
