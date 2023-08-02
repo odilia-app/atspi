@@ -7,6 +7,7 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum FocusEvents {
+	/// See: [`FocusEvent`].
 	Focus(FocusEvent),
 }
 impl_event_conversions!(FocusEvents, Event::Focus);
@@ -18,6 +19,7 @@ impl HasMatchRule for FocusEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct FocusEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 

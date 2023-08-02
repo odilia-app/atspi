@@ -9,27 +9,49 @@ use zvariant::{ObjectPath, OwnedValue, Value};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
+	/// See: [`PropertyChangeEvent`].
 	PropertyChange(PropertyChangeEvent),
+	/// See: [`BoundsChangedEvent`].
 	BoundsChanged(BoundsChangedEvent),
+	/// See: [`LinkSelectedEvent`].
 	LinkSelected(LinkSelectedEvent),
+	/// See: [`StateChangedEvent`].
 	StateChanged(StateChangedEvent),
+	/// See: [`ChildrenChangedEvent`].
 	ChildrenChanged(ChildrenChangedEvent),
+	/// See: [`VisibleDataChangedEvent`].
 	VisibleDataChanged(VisibleDataChangedEvent),
+	/// See: [`SelectionChangedEvent`].
 	SelectionChanged(SelectionChangedEvent),
+	/// See: [`ModelChangedEvent`].
 	ModelChanged(ModelChangedEvent),
+	/// See: [`ActiveDescendantChangedEvent`].
 	ActiveDescendantChanged(ActiveDescendantChangedEvent),
+	/// See: [`AnnouncementEvent`].
 	Announcement(AnnouncementEvent),
+	/// See: [`AttributesChangedEvent`].
 	AttributesChanged(AttributesChangedEvent),
+	/// See: [`RowInsertedEvent`].
 	RowInserted(RowInsertedEvent),
+	/// See: [`RowReorderedEvent`].
 	RowReordered(RowReorderedEvent),
+	/// See: [`RowDeletedEvent`].
 	RowDeleted(RowDeletedEvent),
+	/// See: [`ColumnInsertedEvent`].
 	ColumnInserted(ColumnInsertedEvent),
+	/// See: [`ColumnReorderedEvent`].
 	ColumnReordered(ColumnReorderedEvent),
+	/// See: [`ColumnDeletedEvent`].
 	ColumnDeleted(ColumnDeletedEvent),
+	/// See: [`TextBoundsChangedEvent`].
 	TextBoundsChanged(TextBoundsChangedEvent),
+	/// See: [`TextSelectionChangedEvent`].
 	TextSelectionChanged(TextSelectionChangedEvent),
+	/// See: [`TextChangedEvent`].
 	TextChanged(TextChangedEvent),
+	/// See: [`TextAttributesChangedEvent`].
 	TextAttributesChanged(TextAttributesChangedEvent),
+	/// See: [`TextCaretMovedEvent`].
 	TextCaretMoved(TextCaretMovedEvent),
 }
 impl_event_conversions!(ObjectEvents, Event::Object);
@@ -42,6 +64,7 @@ impl HasMatchRule for ObjectEvents {
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub property: String,
 	pub value: Property,
@@ -183,118 +206,181 @@ impl From<Property> for OwnedValue {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// A state of an object has been modified.
+/// A [`State`] can be added or removed from any [`Accessible`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// The state to be enabled/disabled.
 	pub state: State,
+	/// Enabled or disabled the state.
+	///
+	/// 1 == enabled
+	///
+	/// 0 == disabled
 	pub enabled: i32,
 }
 
+/// A child of an [`Accessible`] has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Operation, which may be one of:
+	///
+	/// * "insert/system"
+	/// * "insert"
+	/// * "delete/system"
+	/// * "delete"
+	///
+	/// The operation is the same whether it contains the "/system" suffix or not.
+	/// TODO: This should be an enum.
 	pub operation: String,
+	/// Index to remove from/add to.
 	pub index_in_parent: i32,
+	/// A reference to the new child.
 	pub child: Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 	pub child: Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Text of the announcement.
 	pub text: String,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowInsertedEvent {
+	/// The table which has had a row inserted.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been moved within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowReorderedEvent {
+	/// The table which has had a row re-ordered.
 	pub item: crate::events::Accessible,
 }
 
+/// A row has been deleted from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowDeletedEvent {
+	/// The table which has had a row removed.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnInsertedEvent {
+	/// The table which has had a column inserted.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been re-ordered within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnReorderedEvent {
+	/// The table which has had a column re-ordered.
 	pub item: crate::events::Accessible,
 }
 
+/// A column has been removed from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnDeletedEvent {
+	/// The table which has had a column removed.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// Text has changed within an [`Accessible`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
+	/// Operation, which may be one of:
+	///
+	/// * "insert/system"
+	/// * "insert"
+	/// * "delete/system"
+	/// * "delete"
+	///
+	/// The operation is the same whether it contains the "/system" suffix or not.
+	/// TODO: This should be an enum.
 	pub operation: String,
+	/// starting index of the insertion/deletion
 	pub start_pos: i32,
+	/// length of the insertion/deletion
 	pub length: i32,
+	/// the text being inserted/deleted
 	pub text: String,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// The caret of the user also known as a cursor (not to be confused with mouse pointer) has changed position.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextCaretMovedEvent {
+	/// The object on which the caret has been moved on.
 	pub item: crate::events::Accessible,
+	/// New position of the caret.
 	pub position: i32,
 }
 

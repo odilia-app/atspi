@@ -7,11 +7,17 @@ use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentEvents {
+	/// See: [`LoadCompleteEvent`].
 	LoadComplete(LoadCompleteEvent),
+	/// See: [`ReloadEvent`].
 	Reload(ReloadEvent),
+	/// See: [`LoadStoppedEvent`].
 	LoadStopped(LoadStoppedEvent),
+	/// See: [`ContentChangedEvent`].
 	ContentChanged(ContentChangedEvent),
+	/// See: [`AttributesChangedEvent`].
 	AttributesChanged(AttributesChangedEvent),
+	/// See: [`PageChangedEvent`].
 	PageChanged(PageChangedEvent),
 }
 impl_event_conversions!(DocumentEvents, Event::Document);
@@ -22,33 +28,46 @@ impl HasMatchRule for DocumentEvents {
 		"type='signal',interface='org.a11y.atspi.Event.Document'";
 }
 
+/// An event triggered by the completion of a document load action.
+/// For example: a web page has finished loading its initial payload, or
+/// `LibreOffice` has loaded a document from disk.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// An event triggered by a reloading of a document.
+/// For example: pressing F5, or `Control + r` will reload a page in a web browser.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReloadEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
+/// An event triggered by the cancelling of a document load.
+/// For example: during the loading of a large web page, a user may press `Escape` to stop loading the page.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadStoppedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ContentChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
+	/// The [`Accessible`] which the event applies to.
 	pub item: crate::events::Accessible,
 }
 

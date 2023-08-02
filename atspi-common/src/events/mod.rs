@@ -70,14 +70,23 @@ pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
 	}
 }
 
+/// A borrowed body for events.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventBody<'a, T> {
+	/// A generic "kind" type, defined by AT-SPI:
+	/// usually a `&'a str`, but can be another type like [`crate::state::State`].
 	#[serde(rename = "type")]
 	pub kind: T,
+	/// Generic first detail defined by AT-SPI.
 	pub detail1: i32,
+	/// Generic second detail defined by AT-SPI.
 	pub detail2: i32,
+	/// Generic "any_data" field defined in AT-SPI.
+	/// Can contain any type.
 	#[serde(borrow)]
 	pub any_data: Value<'a>,
+	/// Map of string to an any type.
+	/// This is not used for anything, but it is defined by AT-SPI.
 	#[serde(borrow)]
 	pub properties: HashMap<&'a str, Value<'a>>,
 }
@@ -88,14 +97,23 @@ impl<T> Type for EventBody<'_, T> {
 	}
 }
 
-// Signature:  "siiv(so)",
+/// Qt event body, which is not the same as other GUI frameworks.
+/// Signature:  "siiv(so)"
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyQT {
+	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
 	pub kind: String,
+	/// Generic detail1 value descibed by AT-SPI.
 	pub detail1: i32,
+	/// Generic detail2 value descibed by AT-SPI.
 	pub detail2: i32,
+	/// Generic any_data value descibed by AT-SPI.
+	/// This can be any type.
 	pub any_data: OwnedValue,
+	/// A tuple of properties.
+	/// Not in use.
 	pub properties: Accessible,
 }
 
@@ -111,14 +129,24 @@ impl Default for EventBodyQT {
 	}
 }
 
-// Signature (siiva{sv}),
+/// Standard event body (GTK, `egui`, etc.)
+/// NOTE: Qt has its own signature: [`EventBodyQT`].
+/// Signature `(siiva{sv})`,
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyOwned {
+	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
 	pub kind: String,
+	/// Generic detail1 value descibed by AT-SPI.
 	pub detail1: i32,
+	/// Generic detail2 value descibed by AT-SPI.
 	pub detail2: i32,
+	/// Generic any_data value descibed by AT-SPI.
+	/// This can be any type.
 	pub any_data: OwnedValue,
+	/// A map of properties.
+	/// Not in use.
 	pub properties: HashMap<String, OwnedValue>,
 }
 
@@ -155,20 +183,25 @@ impl Default for EventBodyOwned {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum Event {
+	/// See: [`DocumentEvents`].
 	Document(DocumentEvents),
+	/// See: [`FocusEvents`].
 	Focus(FocusEvents),
+	/// See: [`KeyboardEvents`].
 	Keyboard(KeyboardEvents),
+	/// See: [`MouseEvents`].
 	Mouse(MouseEvents),
+	/// See: [`ObjectEvents`].
 	Object(ObjectEvents),
+	/// See: [`TerminalEvents`].
 	Terminal(TerminalEvents),
+	/// See: [`WindowEvents`].
 	Window(WindowEvents),
-	/// Emitted when the ` Registry` interface on `org.a11y.atspi.Registry` becomes available.
+	/// See: [`AvailableEvent`].
 	Available(AvailableEvent),
-	/// Both `CacheAdd` and `CacheRemove` signals
+	/// See: [`CacheEvents`].
 	Cache(CacheEvents),
-	/// Emitted on registration or de-registration of event listeners.
-	///
-	/// (eg. "Cache:AddAccessible:")
+	/// See: [`EventListenerEvents`].
 	Listener(EventListenerEvents),
 }
 
@@ -189,11 +222,17 @@ impl HasRegistryEventString for EventListenerEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Event";
 }
 
+/// All events related to the `org.a11y.atspi.Cache` interface.
+/// Note that these are not telling the client that an item *has been added* to a cache.
+/// It is telling the client "here is a bunch of information to store it in your cache".
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
+	/// See: [`AddAccessibleEvent`].
 	Add(AddAccessibleEvent),
+	/// See: [`LegacyAddAccessibleEvent`].
 	LegacyAdd(LegacyAddAccessibleEvent),
+	/// See: [`RemoveAccessibleEvent`].
 	Remove(RemoveAccessibleEvent),
 }
 
@@ -201,7 +240,9 @@ pub enum CacheEvents {
 /// the [`crate::cache::LegacyCacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct LegacyAddAccessibleEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A cache item to add to the internal cache.
 	pub node_added: LegacyCacheItem,
 }
 impl_event_conversions!(
@@ -242,7 +283,9 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct AddAccessibleEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
 }
 impl_event_conversions!(AddAccessibleEvent, CacheEvents, CacheEvents::Add, Event::Cache);
@@ -284,6 +327,7 @@ impl_to_dbus_message!(AddAccessibleEvent);
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct RemoveAccessibleEvent {
 	/// The application that emitted the signal TODO Check Me
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	/// The node that was removed from the application tree  TODO Check Me
 	pub node_removed: Accessible,
@@ -423,7 +467,9 @@ fn test_event_listener_signature() {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
 pub enum EventListenerEvents {
+	/// See: [`EventListenerRegisteredEvent`].
 	Registered(EventListenerRegisteredEvent),
+	/// See: [`EventListenerDeregisteredEvent`].
 	Deregistered(EventListenerDeregisteredEvent),
 }
 
@@ -431,7 +477,10 @@ pub enum EventListenerEvents {
 /// to no longer listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerDeregisteredEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A list of events that have been deregistered via the registry interface.
+	/// See `atspi-connection`.
 	pub deregistered_event: EventListeners,
 }
 impl_event_conversions!(
@@ -469,7 +518,10 @@ impl_to_dbus_message!(EventListenerDeregisteredEvent);
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerRegisteredEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
+	/// A list of events that have been registered via the registry interface.
+	/// See `atspi-connection`.
 	pub registered_event: EventListeners,
 }
 impl_event_conversions!(
@@ -507,6 +559,7 @@ impl_to_dbus_message!(EventListenerRegisteredEvent);
 /// An event that is emitted when the registry daemon has started.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 pub struct AvailableEvent {
+	/// The [`Accessible`] the event applies to.
 	pub item: Accessible,
 	pub socket: Accessible,
 }
@@ -628,9 +681,18 @@ impl TryFrom<&zbus::Message> for Event {
 
 /// Shared behavior of bus `Signal` events.
 pub trait GenericEvent<'a> {
+	/// The `DBus` member for the event.
+	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
 	const DBUS_MEMBER: &'static str;
+	/// The `DBus` interface name for this event.
+	/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
 	const DBUS_INTERFACE: &'static str;
+	/// A static match rule string for `DBus`.
+	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
+	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
+	/// A registry event string for registering for event receiving via the `RegistryProxy`.
+	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 
 	/// What is the body type of this event.
@@ -660,11 +722,18 @@ pub trait GenericEvent<'a> {
 	fn body(&self) -> Self::Body;
 }
 
+/// A specific trait *only* to define match rules.
 pub trait HasMatchRule {
+	/// A static match rule string for `DBus`.
+	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
+	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
 }
 
+/// A specific trait *only* to define registry event matches.
 pub trait HasRegistryEventString {
+	/// A registry event string for registering for event receiving via the `RegistryProxy`.
+	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
