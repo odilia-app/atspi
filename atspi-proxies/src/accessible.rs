@@ -3,7 +3,7 @@
 //! A handle for a remote object implementing the `org.a11y.atspi.Accessible`
 //! interface.
 //!
-//! ObjectReference is the interface which is implemented by all accessible objects.
+//! Accessible is the interface which is implemented by all accessible objects.
 //!
 
 use crate::atspi_proxy;
