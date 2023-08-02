@@ -9,5 +9,5 @@ pub use atspi_proxies as proxy;
 #[cfg(feature = "connection")]
 pub use atspi_connection as connection;
 
-#[cfg(feature = "client")]
-pub use atspi_client as client;
+#[cfg(feature = "zbus")]
+pub use zbus;
