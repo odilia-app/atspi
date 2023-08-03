@@ -1,6 +1,7 @@
 [package]
 name = "atspi"
 version = "0.18.0"
+authors.workspace = true
 edition = "2021"
 description = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
 license = "Apache-2.0 OR MIT" 

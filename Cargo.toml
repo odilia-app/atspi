@@ -7,6 +7,15 @@ members = [
   "atspi-connection",
 ]
 
+[workspace.package]
+authors = [
+  "Michael Connor Buchan <mikey@blindcomputing.org>", 
+  "Tait Hoyem <tait@tait.tech>", 
+  "Alberto Tirla <albertotirla@gmail.com>", 
+  "DataTriny <datatriny@gmail.com>", 
+  "Luuk van der Duim <luukvanderduim@gmail.com>"
+]
+
 [workspace.dependencies]
 zbus = "3.12.0"
 tracing = "0.1.37"
