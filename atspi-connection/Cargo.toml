@@ -2,10 +2,10 @@
 name = "atspi-connection"
 version = "0.2.0"
 edition = "2021"
-description = "A method of connecting, querying, sending and recieving over AT-SPI."
+description = "A method of connecting, querying, sending and receiving over AT-SPI."
 license = "Apache-2.0 OR MIT" 
 keywords = ["screen-reader", "accessibility", "a11y", "linux"]
-categories = ["accessibility"]
+categories = ["accessibility", "API bindings"]
 repository = "https://github.com/odilia-app/atspi/"
 readme = "README.md"
 include = ["src/**/*", "LICENSE-*", "README.md"]
