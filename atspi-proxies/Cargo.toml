@@ -3,7 +3,7 @@ name = "atspi-proxies"
 version = "0.2.0"
 authors = ["Michael Connor Buchan <mikey@blindcomputing.org>", "Tait Hoyem <tait@tait.tech>", "Alberto Tirla <albertotirla@gmail.com>", "DataTriny <datatriny@gmail.com>", "Luuk Duim <luukvanderduim@gmail.com>"]
 description = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
-license = "Apache-2.0 OR MIT" # For ease of integration in the Rust ecosystem.
+license = "Apache-2.0 OR MIT"
 readme = "README.md"
 repository = "https://github.com/odilia-app/atspi"
 homepage = "https://github.com/odilia-app/atspi"
@@ -11,7 +11,7 @@ keywords = ["screen-reader", "accessibility", "a11y", "tts", "linux"]
 categories = ["accessibility", "api-bindings"]
 edition = "2021"
 rust-version = "1.65"
-include = ["src/**/*", "LICENSE-*", "README.md"]
+include = ["src/**/*", "README.md"]
 
 [package.metadata.release]
 release = true
@@ -27,7 +27,7 @@ tokio = ["zbus/tokio", "atspi-common/tokio"]
 atspi-common = { path = "../atspi-common", version = "0.2.0", default-features = false }
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
 zbus.workspace = true
-# optioanl dependencies
+# optional dependencies
 async-trait = { version = "^0.1.59", optional = true }
 futures-lite = { version = "1.12", default-features = false, optional = true }
 
