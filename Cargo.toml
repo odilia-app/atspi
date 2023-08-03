@@ -7,6 +7,16 @@ members = [
   "atspi-connection",
 ]
 
+[workspace.package]
+description = "AT-SPI2 protocol implementation in Rust"
+authors = [
+  "Michael Connor Buchan <mikey@blindcomputing.org>", 
+  "Tait Hoyem <tait@tait.tech>", 
+  "Alberto Tirla <albertotirla@gmail.com>", 
+  "DataTriny <datatriny@gmail.com>", 
+  "Luuk van der Duim <luukvanderduim@gmail.com>"
+]
+
 [workspace.dependencies]
 zbus = { version = "3.12.0", default-features = false }
 tracing = "0.1.37"
