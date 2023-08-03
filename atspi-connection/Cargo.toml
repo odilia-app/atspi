@@ -6,6 +6,7 @@ description = "A method of connecting, querying, sending and receiving over AT-S
 license = "Apache-2.0 OR MIT" 
 keywords = ["screen-reader", "accessibility", "a11y", "linux"]
 categories = ["accessibility", "API bindings"]
+rust-version = "1.68.2"
 repository = "https://github.com/odilia-app/atspi/"
 readme = "README.md"
 include = ["src/**/*", "LICENSE-*", "README.md"]
