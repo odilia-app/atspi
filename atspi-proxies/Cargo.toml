@@ -1,8 +1,7 @@
 [package]
 name = "atspi-proxies"
 version = "0.2.0"
-authors = ["Michael Connor Buchan <mikey@blindcomputing.org>", "Tait Hoyem <tait@tait.tech>", "Alberto Tirla <albertotirla@gmail.com>", "DataTriny <datatriny@gmail.com>", "Luuk Duim <luukvanderduim@gmail.com>"]
-description = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
+description = "AT-SPI2 proxies to query or manipulate UI objects"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 repository = "https://github.com/odilia-app/atspi"

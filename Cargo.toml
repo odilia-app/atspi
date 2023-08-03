@@ -8,6 +8,7 @@ members = [
 ]
 
 [workspace.package]
+description = "AT-SPI2 protocol implementation in Rust"
 authors = [
   "Michael Connor Buchan <mikey@blindcomputing.org>", 
   "Tait Hoyem <tait@tait.tech>", 
