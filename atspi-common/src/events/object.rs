@@ -284,6 +284,8 @@ pub struct AnnouncementEvent {
 	pub item: crate::events::Accessible,
 	/// Text of the announcement.
 	pub text: String,
+	/// Politeness level.
+	pub live: crate::Live,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -617,7 +619,11 @@ impl GenericEvent<'_> for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
 	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, text: body.kind })
+		Ok(Self {
+			item,
+			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
+			live: body.detail1.try_into()?,
+		})
 	}
 	fn sender(&self) -> String {
 		self.item.name.clone()
@@ -1143,11 +1149,9 @@ impl_from_dbus_message!(AnnouncementEvent);
 impl From<AnnouncementEvent> for EventBodyOwned {
 	fn from(event: AnnouncementEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: event.text,
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			detail1: event.live as i32,
+			any_data: zvariant::Value::from(event.text).into(),
+			..Default::default()
 		}
 	}
 }
