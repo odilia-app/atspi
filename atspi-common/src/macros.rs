@@ -152,6 +152,29 @@ macro_rules! impl_try_from_event_for_user_facing_type {
 	};
 }
 
+/// Implements the `TryFrom` trait for a given event type.
+/// Converts a user facing event type into a `zbus::Message`.
+///
+/// # Example
+/// ```ignore
+/// impl_to_dbus_message!(StateChangedEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl TryFrom<StateChangedEvent> for zbus::Message {
+///   type Error = AtspiError;
+///   fn try_from(event: StateChangedEvent) -> Result<Self, Self::Error> {
+///     Ok(zbus::MessageBuilder::signal(
+///         event.path(),
+///         StateChangedEvent::DBUS_INTERFACE,
+///         StateChangedEvent::DBUS_MEMBER,
+///     )?
+///     .sender(event.sender())?
+///     .build(&event.body())?)
+///  }
+/// }
+///
 macro_rules! impl_to_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
