@@ -1,6 +1,13 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
 #![allow(clippy::module_name_repetitions)]
 
+//! # atspi-common
+//!
+//! Defines all common types, events, and data structures for `atspi-proxies` and `atspi-connection`.
+//! Since `atspi-proxies` and `atspi-connection` are downstream crates, the documentation can not link to it directly.
+//! Any type ending in `*Proxy` is in `atspi-proxies`.
+//!
+
 #[macro_use]
 extern crate static_assertions;
 #[macro_use]
@@ -40,31 +47,50 @@ pub type MatchArgs<'a> = (
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
+/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::accessible::Accessible`] objects should be sorted.
 pub enum SortOrder {
+	/// Invalid sort order
 	Invalid,
+	/// Canonical sort order
 	Canonical,
+	/// Flow sort order
 	Flow,
+	/// Tab sort order
 	Tab,
+	/// Reverse canonical sort order
 	ReverseCanonical,
+	/// Reverse flow sort order
 	ReverseFlow,
+	/// Reverse tab sort order
 	ReverseTab,
 }
 
+/// Method of traversing a tree in the `CollectionProxy`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 pub enum TreeTraversalType {
+	/// Restrict children tree traveral
 	RestrictChildren,
+	/// Restrict sibling tree traversal
 	RestrictSibling,
+	/// In-order tree traversal.
 	Inorder,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
+/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::accessible::Accessible`] objects.
 pub enum MatchType {
+	/// Invalid match type
 	Invalid,
+	/// true if all of the criteria are met.
 	All,
+	/// true if any of the criteria are met.
 	Any,
+	/// true if none of the criteria are met.
 	NA,
+	/// Same as [`Self::All`] if the criteria is non-empty;
+	/// for empty criteria this rule requires returned value to also have empty set.
 	Empty,
 }
 
@@ -82,10 +108,15 @@ pub enum CoordType {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
+/// Enumeration used by `TextProxy` to indicate how to treat characters intersecting bounding boxes.
 pub enum ClipType {
+	/// No characters/glyphs are omitted.
 	Neither,
+	/// Characters/glyphs clipped by the minimum coordinate are omitted.
 	Min,
+	/// Characters/glyphs which intersect the maximum coordinate are omitted.
 	Max,
+	/// Only glyphs falling entirely within the region bounded by min and max are retained.
 	Both,
 }
 
@@ -144,22 +175,69 @@ pub enum Layer {
 	Window,
 }
 
+/// Enumeration used by interface the [`crate::interface::Interface::Accessible`] to specify where an object should be placed on the screen when using `scroll_to`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub enum ScrollType {
+	/// Scroll the object to the top left corner of the window.
 	TopLeft,
+	/// Scroll the object to the bottom right corner of the window.
 	BottomRight,
+	/// Scroll the object to the top edge of the window.
 	TopEdge,
+	/// Scroll the object to the bottom edge of the window.
 	BottomEdge,
+	/// Scroll the object to the left edge of the window.
 	LeftEdge,
+	/// Scroll the object to the right edge of the window.
 	RightEdge,
+	/// Scroll the object to application-dependent position on the window.
 	Anywhere,
 }
 
-pub type MatcherArgs = (
-	Vec<Role>,
-	MatchType,
-	std::collections::HashMap<String, String>,
-	MatchType,
-	InterfaceSet,
-	MatchType,
-);
+/// Enumeration used to indicate a type of live region and how assertive it
+/// should be in terms of speaking notifications. Currently, this is only used
+/// for "announcement" events, but it may be used for additional purposes
+/// in the future.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[repr(u32)]
+pub enum Live {
+	/// No live region.
+	None,
+	/// This live region should be considered polite.
+	Polite,
+	/// This live region should be considered assertive.
+	Assertive,
+}
+
+impl Default for Live {
+	fn default() -> Self {
+		Self::None
+	}
+}
+
+impl TryFrom<i32> for Live {
+	type Error = AtspiError;
+
+	fn try_from(value: i32) -> Result<Self, Self::Error> {
+		match value {
+			0 => Ok(Live::None),
+			1 => Ok(Live::Polite),
+			2 => Ok(Live::Assertive),
+			_ => Err(AtspiError::Conversion("Unknown Live variant")),
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn convert_i32_to_live() {
+		assert_eq!(Live::None, Live::try_from(0).unwrap());
+		assert_eq!(Live::Polite, Live::try_from(1).unwrap());
+		assert_eq!(Live::Assertive, Live::try_from(2).unwrap());
+		assert!(Live::try_from(3).is_err());
+		assert!(Live::try_from(-1).is_err());
+	}
+}
