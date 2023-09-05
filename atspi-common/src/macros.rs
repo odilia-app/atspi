@@ -207,15 +207,12 @@ macro_rules! impl_to_dbus_message {
 ///   type Error = AtspiError;
 ///   fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
 ///    if msg.interface().ok_or(AtspiError::MissingInterface)? != StateChangedEvent::DBUS_INTERFACE {
-///       return Err(AtspiError::InterfaceMatch(format!(
-///         "The interface {} does not match the signal's interface: {}",
+///       return Err(AtspiError::InterfaceMatch(format!("The interface {} does not match the signal's interface: {}",
 ///         msg.interface().unwrap(),
 ///         StateChangedEvent::DBUS_INTERFACE)));
 ///     }
 ///     if msg.member().ok_or(AtspiError::MissingMember)? != StateChangedEvent::DBUS_MEMBER {
-///       return Err(AtspiError::MemberMatch(format!(
-///         "The member {} does not match the signal's member: {}",
-///         // unwrap is safe here because of guard above
+///       return Err(AtspiError::MemberMatch(format!("The member {} does not match the signal's member: {}",
 ///         msg.member().unwrap(),
 ///         StateChangedEvent::DBUS_MEMBER)));
 ///     }
@@ -252,6 +249,13 @@ macro_rules! impl_from_dbus_message {
 	};
 }
 
+/// Tests `Default` and `GenericEvent::build` for a given event struct.
+///
+/// Obtains a default for the given event struct.
+/// Asserts that the path and sender are the default.
+///
+/// Breaks the struct down into item (the associated object) and body.
+/// Then tests `GenericEvent::build` with the item and body.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
@@ -268,6 +272,12 @@ macro_rules! generic_event_test_case {
 	};
 }
 
+/// Tests conversion to and from the `Event` enum.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Converts the `Event` enum into the given event struct.
+/// Asserts that the original struct and the converted struct are equal.
 #[cfg(test)]
 macro_rules! event_enum_test_case {
 	($type:ty) => {
