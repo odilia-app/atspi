@@ -20,7 +20,8 @@ pub enum DocumentEvents {
 	/// See: [`PageChangedEvent`].
 	PageChanged(PageChangedEvent),
 }
-impl_event_conversions!(DocumentEvents, Event::Document);
+impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
+impl_try_from_event_for_user_facing_event_type!(DocumentEvents, Event::Document);
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
 
 impl HasMatchRule for DocumentEvents {
@@ -234,12 +235,18 @@ impl TryFrom<&zbus::Message> for DocumentEvents {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	LoadCompleteEvent,
 	DocumentEvents,
+	DocumentEvents::LoadComplete
+);
+impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent, Event::Document);
+impl_try_from_event_for_user_facing_type!(
+	LoadCompleteEvent,
 	DocumentEvents::LoadComplete,
 	Event::Document
 );
+
 event_test_cases!(LoadCompleteEvent);
 impl_to_dbus_message!(LoadCompleteEvent);
 impl_from_dbus_message!(LoadCompleteEvent);
@@ -255,7 +262,14 @@ impl From<LoadCompleteEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ReloadEvent, DocumentEvents, DocumentEvents::Reload, Event::Document);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ReloadEvent,
+	DocumentEvents,
+	DocumentEvents::Reload
+);
+impl_from_user_facing_type_for_event_enum!(ReloadEvent, Event::Document);
+impl_try_from_event_for_user_facing_type!(ReloadEvent, DocumentEvents::Reload, Event::Document);
+
 event_test_cases!(ReloadEvent);
 impl_to_dbus_message!(ReloadEvent);
 impl_from_dbus_message!(ReloadEvent);
@@ -271,12 +285,18 @@ impl From<ReloadEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	LoadStoppedEvent,
 	DocumentEvents,
+	DocumentEvents::LoadStopped
+);
+impl_from_user_facing_type_for_event_enum!(LoadStoppedEvent, Event::Document);
+impl_try_from_event_for_user_facing_type!(
+	LoadStoppedEvent,
 	DocumentEvents::LoadStopped,
 	Event::Document
 );
+
 event_test_cases!(LoadStoppedEvent);
 impl_to_dbus_message!(LoadStoppedEvent);
 impl_from_dbus_message!(LoadStoppedEvent);
@@ -292,12 +312,18 @@ impl From<LoadStoppedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ContentChangedEvent,
 	DocumentEvents,
+	DocumentEvents::ContentChanged
+);
+impl_from_user_facing_type_for_event_enum!(ContentChangedEvent, Event::Document);
+impl_try_from_event_for_user_facing_type!(
+	ContentChangedEvent,
 	DocumentEvents::ContentChanged,
 	Event::Document
 );
+
 event_test_cases!(ContentChangedEvent);
 impl_to_dbus_message!(ContentChangedEvent);
 impl_from_dbus_message!(ContentChangedEvent);
@@ -313,12 +339,18 @@ impl From<ContentChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	AttributesChangedEvent,
 	DocumentEvents,
+	DocumentEvents::AttributesChanged
+);
+impl_from_user_facing_type_for_event_enum!(AttributesChangedEvent, Event::Document);
+impl_try_from_event_for_user_facing_type!(
+	AttributesChangedEvent,
 	DocumentEvents::AttributesChanged,
 	Event::Document
 );
+
 event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
@@ -334,12 +366,18 @@ impl From<AttributesChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	PageChangedEvent,
 	DocumentEvents,
+	DocumentEvents::PageChanged
+);
+impl_from_user_facing_type_for_event_enum!(PageChangedEvent, Event::Document);
+impl_try_from_event_for_user_facing_type!(
+	PageChangedEvent,
 	DocumentEvents::PageChanged,
 	Event::Document
 );
+
 event_test_cases!(PageChangedEvent);
 impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);

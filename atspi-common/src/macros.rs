@@ -1,16 +1,52 @@
 #[macro_export]
 
-/// Performs the following conversions:
-/// - `From<$inner_type> for $outer_type`
-/// - `From<$inner_type> for Event`
-/// - `TryFrom<Event> for $inner_type`
-macro_rules! impl_event_conversions {
+/// Expands to a conversion given the enclosed event type and outer `Event` variant.
+///
+/// eg
+/// ```ignore
+/// impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl From<ObjectEvents> for Event {
+///     fn from(event_variant: ObjectEvents) -> Event {
+///         Event::Object(event_variant.into())
+///     }
+/// }
+/// ```
+macro_rules! impl_from_interface_event_enum_for_event {
 	($outer_type:ty, $outer_variant:path) => {
 		impl From<$outer_type> for Event {
 			fn from(event_variant: $outer_type) -> Event {
 				$outer_variant(event_variant.into())
 			}
 		}
+	};
+}
+
+/// Expands to a conversion given the enclosed event enum type and outer `Event` variant.
+///
+/// eg
+/// ```ignore
+/// impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl TryFrom<Event> for ObjectEvents {
+///     type Error = AtspiError;
+///     fn try_from(generic_event: Event) -> Result<ObjectEvents, Self::Error> {
+///         if let Event::Object(event_type) = generic_event {
+///             Ok(event_type)
+///         } else {
+///             Err(AtspiError::Conversion("Invalid type"))
+///         }
+///     }
+/// }
+/// ```
+macro_rules! impl_try_from_event_for_user_facing_event_type {
+	($outer_type:ty, $outer_variant:path) => {
 		impl TryFrom<Event> for $outer_type {
 			type Error = AtspiError;
 			fn try_from(generic_event: Event) -> Result<$outer_type, Self::Error> {
@@ -22,17 +58,87 @@ macro_rules! impl_event_conversions {
 			}
 		}
 	};
-	($inner_type:ty, $outer_type:ty, $inner_variant:path, $outer_variant:path) => {
+}
+
+/// Expands to a conversion given the user facing event type and outer `Event::Interface(<InterfaceEnum>)` variant.,
+/// the enum type and outtermost variant.
+///
+/// ```ignore                                            user facing type,  enum type,    outer variant
+/// impl_from_user_facing_event_for_interface_event_enum!(StateChangedEvent, ObjectEvents, ObjectEvents::StateChanged);
+/// ```
+///
+/// expands to:
+///
+/// ```ignore
+/// impl From<StateChangedEvent> for ObjectEvents {
+///     fn from(specific_event: StateChangedEvent) -> ObjectEvents {
+///         ObjectEvents::StateChanged(specific_event)
+///     }
+/// }
+/// ```
+macro_rules! impl_from_user_facing_event_for_interface_event_enum {
+	($inner_type:ty, $outer_type:ty, $inner_variant:path) => {
 		impl From<$inner_type> for $outer_type {
 			fn from(specific_event: $inner_type) -> $outer_type {
 				$inner_variant(specific_event)
 			}
 		}
+	};
+}
+
+/// Expands to a conversion given two arguments,
+/// 1. the user facing event type `(inner_type)`
+/// which relies on a conversion to its interface variant enum type variant.
+/// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.,
+/// the enum type and outtermost variant.
+///
+/// ```ignore                                   user facing type, outer event variant
+/// impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
+/// ```
+///
+/// expands to:
+///
+/// ```ignore
+/// impl From<StateChangedEvent> for Event {
+///    fn from(event_variant: StateChangedEvent) -> Event {
+///       Event::Object(ObjectEvents::StateChanged(event_variant))
+///   }
+/// }
+/// ```
+macro_rules! impl_from_user_facing_type_for_event_enum {
+	($inner_type:ty, $outer_variant:path) => {
 		impl From<$inner_type> for Event {
 			fn from(event_variant: $inner_type) -> Event {
 				$outer_variant(event_variant.into())
 			}
 		}
+	};
+}
+
+/// Expands to a conversion given two arguments,
+/// 1. the user facing event type `(inner_type)`
+/// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.
+///
+/// eg
+/// ```ignore
+/// impl_try_from_event_for_user_facing_type!(StateChangedEvent, ObjectEvents::StateChanged);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl TryFrom<Event> for StateChangedEvent {
+///    type Error = AtspiError;
+///   fn try_from(generic_event: Event) -> Result<StateChangedEvent, Self::Error> {
+///      if let Event::Object(ObjectEvents::StateChanged(specific_event)) = generic_event {
+///          Ok(specific_event)
+///         } else {
+///          Err(AtspiError::Conversion("Invalid type"))
+///         }
+///   }
+/// }
+/// ```
+macro_rules! impl_try_from_event_for_user_facing_type {
+	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
 		impl TryFrom<Event> for $inner_type {
 			type Error = AtspiError;
 			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {
@@ -46,8 +152,29 @@ macro_rules! impl_event_conversions {
 	};
 }
 
-/// Performs the following conversions:
-/// `TryFrom` type for `zbus::Message`
+/// Implements the `TryFrom` trait for a given event type.
+/// Converts a user facing event type into a `zbus::Message`.
+///
+/// # Example
+/// ```ignore
+/// impl_to_dbus_message!(StateChangedEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl TryFrom<StateChangedEvent> for zbus::Message {
+///   type Error = AtspiError;
+///   fn try_from(event: StateChangedEvent) -> Result<Self, Self::Error> {
+///     Ok(zbus::MessageBuilder::signal(
+///         event.path(),
+///         StateChangedEvent::DBUS_INTERFACE,
+///         StateChangedEvent::DBUS_MEMBER,
+///     )?
+///     .sender(event.sender())?
+///     .build(&event.body())?)
+///  }
+/// }
+///
 macro_rules! impl_to_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
@@ -66,8 +193,33 @@ macro_rules! impl_to_dbus_message {
 	};
 }
 
-/// Performs the following conversions:
-/// `TryFrom<&zbus::Message> for $type`
+/// Implements the `TryFrom` trait for a given event type.
+/// Converts a `zbus::Message` into a user facing event type.
+///
+/// # Example
+/// ```ignore
+/// impl_from_dbus_message!(StateChangedEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl TryFrom<&zbus::Message> for StateChangedEvent {
+///   type Error = AtspiError;
+///   fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+///    if msg.interface().ok_or(AtspiError::MissingInterface)? != StateChangedEvent::DBUS_INTERFACE {
+///       return Err(AtspiError::InterfaceMatch(format!("The interface {} does not match the signal's interface: {}",
+///         msg.interface().unwrap(),
+///         StateChangedEvent::DBUS_INTERFACE)));
+///     }
+///     if msg.member().ok_or(AtspiError::MissingMember)? != StateChangedEvent::DBUS_MEMBER {
+///       return Err(AtspiError::MemberMatch(format!("The member {} does not match the signal's member: {}",
+///         msg.member().unwrap(),
+///         StateChangedEvent::DBUS_MEMBER)));
+///     }
+///     StateChangedEvent::build(msg.try_into()?, msg.body::<StateChangedEvent::Body>()?)
+///  }
+/// }
+/// ```
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
 		#[cfg(feature = "zbus")]
@@ -97,6 +249,13 @@ macro_rules! impl_from_dbus_message {
 	};
 }
 
+/// Tests `Default` and `GenericEvent::build` for a given event struct.
+///
+/// Obtains a default for the given event struct.
+/// Asserts that the path and sender are the default.
+///
+/// Breaks the struct down into item (the associated object) and body.
+/// Then tests `GenericEvent::build` with the item and body.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
@@ -113,6 +272,12 @@ macro_rules! generic_event_test_case {
 	};
 }
 
+/// Tests conversion to and from the `Event` enum.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Converts the `Event` enum into the given event struct.
+/// Asserts that the original struct and the converted struct are equal.
 #[cfg(test)]
 macro_rules! event_enum_test_case {
 	($type:ty) => {
