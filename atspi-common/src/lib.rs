@@ -193,3 +193,51 @@ pub enum ScrollType {
 	/// Scroll the object to application-dependent position on the window.
 	Anywhere,
 }
+
+/// Enumeration used to indicate a type of live region and how assertive it
+/// should be in terms of speaking notifications. Currently, this is only used
+/// for "announcement" events, but it may be used for additional purposes
+/// in the future.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[repr(u32)]
+pub enum Live {
+	/// No live region.
+	None,
+	/// This live region should be considered polite.
+	Polite,
+	/// This live region should be considered assertive.
+	Assertive,
+}
+
+impl Default for Live {
+	fn default() -> Self {
+		Self::None
+	}
+}
+
+impl TryFrom<i32> for Live {
+	type Error = AtspiError;
+
+	fn try_from(value: i32) -> Result<Self, Self::Error> {
+		match value {
+			0 => Ok(Live::None),
+			1 => Ok(Live::Polite),
+			2 => Ok(Live::Assertive),
+			_ => Err(AtspiError::Conversion("Unknown Live variant")),
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn convert_i32_to_live() {
+		assert_eq!(Live::None, Live::try_from(0).unwrap());
+		assert_eq!(Live::Polite, Live::try_from(1).unwrap());
+		assert_eq!(Live::Assertive, Live::try_from(2).unwrap());
+		assert!(Live::try_from(3).is_err());
+		assert!(Live::try_from(-1).is_err());
+	}
+}

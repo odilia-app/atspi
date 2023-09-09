@@ -54,7 +54,10 @@ pub enum ObjectEvents {
 	/// See: [`TextCaretMovedEvent`].
 	TextCaretMoved(TextCaretMovedEvent),
 }
-impl_event_conversions!(ObjectEvents, Event::Object);
+
+impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
+impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+
 event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
 
 impl HasMatchRule for ObjectEvents {
@@ -284,6 +287,8 @@ pub struct AnnouncementEvent {
 	pub item: crate::events::ObjectRef,
 	/// Text of the announcement.
 	pub text: String,
+	/// Politeness level.
+	pub live: crate::Live,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -616,8 +621,12 @@ impl GenericEvent<'_> for AnnouncementEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, text: body.kind })
+	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self {
+			item,
+			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
+			live: body.detail1.try_into()?,
+		})
 	}
 	fn sender(&self) -> String {
 		self.item.name.clone()
@@ -960,9 +969,14 @@ impl TryFrom<&zbus::Message> for ObjectEvents {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	PropertyChangeEvent,
 	ObjectEvents,
+	ObjectEvents::PropertyChange
+);
+impl_from_user_facing_type_for_event_enum!(PropertyChangeEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	PropertyChangeEvent,
 	ObjectEvents::PropertyChange,
 	Event::Object
 );
@@ -983,9 +997,14 @@ impl From<PropertyChangeEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	BoundsChangedEvent,
 	ObjectEvents,
+	ObjectEvents::BoundsChanged
+);
+impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	BoundsChangedEvent,
 	ObjectEvents::BoundsChanged,
 	Event::Object
 );
@@ -1004,7 +1023,17 @@ impl From<BoundsChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(LinkSelectedEvent, ObjectEvents, ObjectEvents::LinkSelected, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	LinkSelectedEvent,
+	ObjectEvents,
+	ObjectEvents::LinkSelected
+);
+impl_from_user_facing_type_for_event_enum!(LinkSelectedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	LinkSelectedEvent,
+	ObjectEvents::LinkSelected,
+	Event::Object
+);
 event_test_cases!(LinkSelectedEvent);
 impl_to_dbus_message!(LinkSelectedEvent);
 impl_from_dbus_message!(LinkSelectedEvent);
@@ -1020,7 +1049,17 @@ impl From<LinkSelectedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(StateChangedEvent, ObjectEvents, ObjectEvents::StateChanged, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	StateChangedEvent,
+	ObjectEvents,
+	ObjectEvents::StateChanged
+);
+impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	StateChangedEvent,
+	ObjectEvents::StateChanged,
+	Event::Object
+);
 event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
@@ -1036,9 +1075,14 @@ impl From<StateChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ChildrenChangedEvent,
 	ObjectEvents,
+	ObjectEvents::ChildrenChanged
+);
+impl_from_user_facing_type_for_event_enum!(ChildrenChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	ChildrenChangedEvent,
 	ObjectEvents::ChildrenChanged,
 	Event::Object
 );
@@ -1057,9 +1101,14 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	VisibleDataChangedEvent,
 	ObjectEvents,
+	ObjectEvents::VisibleDataChanged
+);
+impl_from_user_facing_type_for_event_enum!(VisibleDataChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	VisibleDataChangedEvent,
 	ObjectEvents::VisibleDataChanged,
 	Event::Object
 );
@@ -1078,9 +1127,14 @@ impl From<VisibleDataChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	SelectionChangedEvent,
 	ObjectEvents,
+	ObjectEvents::SelectionChanged
+);
+impl_from_user_facing_type_for_event_enum!(SelectionChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	SelectionChangedEvent,
 	ObjectEvents::SelectionChanged,
 	Event::Object
 );
@@ -1099,7 +1153,17 @@ impl From<SelectionChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ModelChangedEvent, ObjectEvents, ObjectEvents::ModelChanged, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ModelChangedEvent,
+	ObjectEvents,
+	ObjectEvents::ModelChanged
+);
+impl_from_user_facing_type_for_event_enum!(ModelChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	ModelChangedEvent,
+	ObjectEvents::ModelChanged,
+	Event::Object
+);
 event_test_cases!(ModelChangedEvent);
 impl_to_dbus_message!(ModelChangedEvent);
 impl_from_dbus_message!(ModelChangedEvent);
@@ -1115,9 +1179,14 @@ impl From<ModelChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ActiveDescendantChangedEvent,
 	ObjectEvents,
+	ObjectEvents::ActiveDescendantChanged
+);
+impl_from_user_facing_type_for_event_enum!(ActiveDescendantChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	ActiveDescendantChangedEvent,
 	ObjectEvents::ActiveDescendantChanged,
 	Event::Object
 );
@@ -1136,25 +1205,38 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(AnnouncementEvent, ObjectEvents, ObjectEvents::Announcement, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	AnnouncementEvent,
+	ObjectEvents,
+	ObjectEvents::Announcement
+);
+impl_from_user_facing_type_for_event_enum!(AnnouncementEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	AnnouncementEvent,
+	ObjectEvents::Announcement,
+	Event::Object
+);
 event_test_cases!(AnnouncementEvent);
 impl_to_dbus_message!(AnnouncementEvent);
 impl_from_dbus_message!(AnnouncementEvent);
 impl From<AnnouncementEvent> for EventBodyOwned {
 	fn from(event: AnnouncementEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: event.text,
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			detail1: event.live as i32,
+			any_data: zvariant::Value::from(event.text).into(),
+			..Default::default()
 		}
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	AttributesChangedEvent,
 	ObjectEvents,
+	ObjectEvents::AttributesChanged
+);
+impl_from_user_facing_type_for_event_enum!(AttributesChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	AttributesChangedEvent,
 	ObjectEvents::AttributesChanged,
 	Event::Object
 );
@@ -1173,7 +1255,17 @@ impl From<AttributesChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RowInsertedEvent, ObjectEvents, ObjectEvents::RowInserted, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RowInsertedEvent,
+	ObjectEvents,
+	ObjectEvents::RowInserted
+);
+impl_from_user_facing_type_for_event_enum!(RowInsertedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	RowInsertedEvent,
+	ObjectEvents::RowInserted,
+	Event::Object
+);
 event_test_cases!(RowInsertedEvent);
 impl_to_dbus_message!(RowInsertedEvent);
 impl_from_dbus_message!(RowInsertedEvent);
@@ -1189,7 +1281,17 @@ impl From<RowInsertedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RowReorderedEvent, ObjectEvents, ObjectEvents::RowReordered, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RowReorderedEvent,
+	ObjectEvents,
+	ObjectEvents::RowReordered
+);
+impl_from_user_facing_type_for_event_enum!(RowReorderedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	RowReorderedEvent,
+	ObjectEvents::RowReordered,
+	Event::Object
+);
 event_test_cases!(RowReorderedEvent);
 impl_to_dbus_message!(RowReorderedEvent);
 impl_from_dbus_message!(RowReorderedEvent);
@@ -1205,7 +1307,13 @@ impl From<RowReorderedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RowDeletedEvent, ObjectEvents, ObjectEvents::RowDeleted, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RowDeletedEvent,
+	ObjectEvents,
+	ObjectEvents::RowDeleted
+);
+impl_from_user_facing_type_for_event_enum!(RowDeletedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(RowDeletedEvent, ObjectEvents::RowDeleted, Event::Object);
 event_test_cases!(RowDeletedEvent);
 impl_to_dbus_message!(RowDeletedEvent);
 impl_from_dbus_message!(RowDeletedEvent);
@@ -1221,9 +1329,14 @@ impl From<RowDeletedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnInsertedEvent,
 	ObjectEvents,
+	ObjectEvents::ColumnInserted
+);
+impl_from_user_facing_type_for_event_enum!(ColumnInsertedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	ColumnInsertedEvent,
 	ObjectEvents::ColumnInserted,
 	Event::Object
 );
@@ -1242,9 +1355,14 @@ impl From<ColumnInsertedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnReorderedEvent,
 	ObjectEvents,
+	ObjectEvents::ColumnReordered
+);
+impl_from_user_facing_type_for_event_enum!(ColumnReorderedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	ColumnReorderedEvent,
 	ObjectEvents::ColumnReordered,
 	Event::Object
 );
@@ -1263,9 +1381,14 @@ impl From<ColumnReorderedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnDeletedEvent,
 	ObjectEvents,
+	ObjectEvents::ColumnDeleted
+);
+impl_from_user_facing_type_for_event_enum!(ColumnDeletedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	ColumnDeletedEvent,
 	ObjectEvents::ColumnDeleted,
 	Event::Object
 );
@@ -1284,9 +1407,14 @@ impl From<ColumnDeletedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	TextBoundsChangedEvent,
 	ObjectEvents,
+	ObjectEvents::TextBoundsChanged
+);
+impl_from_user_facing_type_for_event_enum!(TextBoundsChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	TextBoundsChangedEvent,
 	ObjectEvents::TextBoundsChanged,
 	Event::Object
 );
@@ -1305,9 +1433,14 @@ impl From<TextBoundsChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	TextSelectionChangedEvent,
 	ObjectEvents,
+	ObjectEvents::TextSelectionChanged
+);
+impl_from_user_facing_type_for_event_enum!(TextSelectionChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	TextSelectionChangedEvent,
 	ObjectEvents::TextSelectionChanged,
 	Event::Object
 );
@@ -1326,7 +1459,17 @@ impl From<TextSelectionChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(TextChangedEvent, ObjectEvents, ObjectEvents::TextChanged, Event::Object);
+impl_from_user_facing_event_for_interface_event_enum!(
+	TextChangedEvent,
+	ObjectEvents,
+	ObjectEvents::TextChanged
+);
+impl_from_user_facing_type_for_event_enum!(TextChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	TextChangedEvent,
+	ObjectEvents::TextChanged,
+	Event::Object
+);
 event_test_cases!(TextChangedEvent);
 impl_to_dbus_message!(TextChangedEvent);
 impl_from_dbus_message!(TextChangedEvent);
@@ -1342,9 +1485,14 @@ impl From<TextChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	TextAttributesChangedEvent,
 	ObjectEvents,
+	ObjectEvents::TextAttributesChanged
+);
+impl_from_user_facing_type_for_event_enum!(TextAttributesChangedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	TextAttributesChangedEvent,
 	ObjectEvents::TextAttributesChanged,
 	Event::Object
 );
@@ -1363,9 +1511,14 @@ impl From<TextAttributesChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(
+impl_from_user_facing_event_for_interface_event_enum!(
 	TextCaretMovedEvent,
 	ObjectEvents,
+	ObjectEvents::TextCaretMoved
+);
+impl_from_user_facing_type_for_event_enum!(TextCaretMovedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	TextCaretMovedEvent,
 	ObjectEvents::TextCaretMoved,
 	Event::Object
 );
