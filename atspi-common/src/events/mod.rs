@@ -38,7 +38,7 @@ use crate::{
 		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
 		object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 	},
-	object_reference::ObjectReference,
+	object_reference::ObjectRef,
 	AtspiError,
 };
 //use atspi_macros::try_from_zbus_message;
@@ -114,7 +114,7 @@ pub struct EventBodyQT {
 	pub any_data: OwnedValue,
 	/// A tuple of properties.
 	/// Not in use.
-	pub properties: ObjectReference,
+	pub properties: ObjectRef,
 }
 
 impl Default for EventBodyQT {
@@ -124,7 +124,7 @@ impl Default for EventBodyQT {
 			detail1: 0,
 			detail2: 0,
 			any_data: Value::U8(0u8).into(),
-			properties: ObjectReference::default(),
+			properties: ObjectRef::default(),
 		}
 	}
 }
@@ -152,7 +152,7 @@ pub struct EventBodyOwned {
 
 impl From<EventBodyQT> for EventBodyOwned {
 	fn from(body: EventBodyQT) -> Self {
-		let accessible = ObjectReference { name: body.properties.name, path: body.properties.path };
+		let accessible = ObjectRef { name: body.properties.name, path: body.properties.path };
 		let mut props = HashMap::new();
 		props.insert(accessible.name, Value::ObjectPath(accessible.path.into()).to_owned());
 		Self {
@@ -240,8 +240,8 @@ pub enum CacheEvents {
 /// the [`crate::cache::LegacyCacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct LegacyAddAccessibleEvent {
-	/// The [`ObjectReference`] the event applies to.
-	pub item: ObjectReference,
+	/// The [`ObjectRef`] the event applies to.
+	pub item: ObjectRef,
 	/// A cache item to add to the internal cache.
 	pub node_added: LegacyCacheItem,
 }
@@ -264,7 +264,7 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 
 	type Body = LegacyCacheItem;
 
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -283,8 +283,8 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct AddAccessibleEvent {
-	/// The [`ObjectReference`] the event applies to.
-	pub item: ObjectReference,
+	/// The [`ObjectRef`] the event applies to.
+	pub item: ObjectRef,
 	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
 }
@@ -300,7 +300,7 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 
 	type Body = CacheItem;
 
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -327,10 +327,10 @@ impl_to_dbus_message!(AddAccessibleEvent);
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct RemoveAccessibleEvent {
 	/// The application that emitted the signal TODO Check Me
-	/// The [`ObjectReference`] the event applies to.
-	pub item: ObjectReference,
+	/// The [`ObjectRef`] the event applies to.
+	pub item: ObjectRef,
 	/// The node that was removed from the application tree  TODO Check Me
-	pub node_removed: ObjectReference,
+	pub node_removed: ObjectRef,
 }
 impl_event_conversions!(RemoveAccessibleEvent, CacheEvents, CacheEvents::Remove, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent);
@@ -341,9 +341,9 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 	const DBUS_MEMBER: &'static str = "RemoveAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 
-	type Body = ObjectReference;
+	type Body = ObjectRef;
 
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
 	fn sender(&self) -> String {
@@ -362,12 +362,12 @@ impl_to_dbus_message!(RemoveAccessibleEvent);
 
 #[cfg(test)]
 pub mod accessible_deserialization_tests {
-	use crate::events::ObjectReference;
+	use crate::events::ObjectRef;
 	use zvariant::Value;
 
 	#[test]
 	fn try_into_value() {
-		let acc = ObjectReference::default();
+		let acc = ObjectRef::default();
 		let value_struct = Value::try_from(acc).expect("Unable to convert into a zvariant::Value");
 		let Value::Structure(structure) = value_struct else {
 			panic!("Unable to destructure a structure out of the Value.");
@@ -389,17 +389,17 @@ pub mod accessible_deserialization_tests {
 
 #[cfg(test)]
 pub mod accessible_tests {
-	use super::ObjectReference;
+	use super::ObjectRef;
 
 	#[test]
 	fn test_accessible_default_doesnt_panic() {
-		let acc = ObjectReference::default();
+		let acc = ObjectRef::default();
 		assert_eq!(acc.name.as_str(), ":0.0");
 		assert_eq!(acc.path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
 }
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for ObjectReference {
+impl TryFrom<&zbus::Message> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		let path = message.path().expect("returned path is either Some or panics");
@@ -414,7 +414,7 @@ impl TryFrom<&zbus::Message> for ObjectReference {
 		};
 		let name_string = unique_name.as_str().to_owned();
 
-		Ok(ObjectReference { name: name_string, path: owned_path })
+		Ok(ObjectRef { name: name_string, path: owned_path })
 	}
 }
 
@@ -477,8 +477,8 @@ pub enum EventListenerEvents {
 /// to no longer listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerDeregisteredEvent {
-	/// The [`ObjectReference`] the event applies to.
-	pub item: ObjectReference,
+	/// The [`ObjectRef`] the event applies to.
+	pub item: ObjectRef,
 	/// A list of events that have been deregistered via the registry interface.
 	/// See `atspi-connection`.
 	pub deregistered_event: EventListeners,
@@ -499,7 +499,7 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
 	fn sender(&self) -> String {
@@ -518,8 +518,8 @@ impl_to_dbus_message!(EventListenerDeregisteredEvent);
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerRegisteredEvent {
-	/// The [`ObjectReference`] the event applies to.
-	pub item: ObjectReference,
+	/// The [`ObjectRef`] the event applies to.
+	pub item: ObjectRef,
 	/// A list of events that have been registered via the registry interface.
 	/// See `atspi-connection`.
 	pub registered_event: EventListeners,
@@ -540,7 +540,7 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
 	fn sender(&self) -> String {
@@ -559,9 +559,9 @@ impl_to_dbus_message!(EventListenerRegisteredEvent);
 /// An event that is emitted when the registry daemon has started.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 pub struct AvailableEvent {
-	/// The [`ObjectReference`] the event applies to.
-	pub item: ObjectReference,
-	pub socket: ObjectReference,
+	/// The [`ObjectRef`] the event applies to.
+	pub item: ObjectRef,
+	pub socket: ObjectRef,
 }
 impl From<AvailableEvent> for Event {
 	fn from(ev: AvailableEvent) -> Event {
@@ -586,9 +586,9 @@ impl GenericEvent<'_> for AvailableEvent {
 	const DBUS_MEMBER: &'static str = "Available";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
 
-	type Body = ObjectReference;
+	type Body = ObjectRef;
 
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
 	fn sender(&self) -> String {
@@ -617,7 +617,7 @@ impl TryFrom<&zbus::Message> for Event {
 		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
 		// Therefore no outer parentheses.
 		match body_signature {
-			// Marshalled ObjectReference signature
+			// Marshalled ObjectRef signature
 			"so" | "(so)" => match member_str {
 				"RemoveAccessible" => {
 					let ev = RemoveAccessibleEvent::try_from(msg)?;
@@ -698,13 +698,13 @@ pub trait GenericEvent<'a> {
 	/// What is the body type of this event.
 	type Body: Type + Serialize + Deserialize<'a>;
 
-	/// Build the event from the object pair (`ObjectReference` and the Body).
+	/// Build the event from the object pair (`ObjectRef` and the Body).
 	///
 	/// # Errors
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
 	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError>
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 
@@ -759,7 +759,7 @@ mod tests {
 	fn test_event_body_qt_to_event_body_owned_conversion() {
 		let event_body: EventBodyOwned = EventBodyQT::default().into();
 
-		let accessible = crate::ObjectReference::default();
+		let accessible = crate::ObjectRef::default();
 		let name = accessible.name;
 		let path = accessible.path;
 		let props = HashMap::from([(name, ObjectPath::try_from(path).unwrap().into())]);

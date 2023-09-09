@@ -11,18 +11,18 @@
 //!
 
 use crate::atspi_proxy;
-use crate::common::ObjectReference;
+use crate::common::ObjectRef;
 
 #[atspi_proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 trait TableCell {
 	/// GetColumnHeaderCells method
-	fn get_column_header_cells(&self) -> zbus::Result<Vec<ObjectReference>>;
+	fn get_column_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// GetRowColumnSpan method
 	fn get_row_column_span(&self) -> zbus::Result<(bool, i32, i32, i32, i32)>;
 
 	/// GetRowHeaderCells method
-	fn get_row_header_cells(&self) -> zbus::Result<Vec<ObjectReference>>;
+	fn get_row_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// ColumnSpan property
 	#[dbus_proxy(property)]
@@ -38,5 +38,5 @@ trait TableCell {
 
 	/// Table property
 	#[dbus_proxy(property)]
-	fn table(&self) -> zbus::Result<ObjectReference>;
+	fn table(&self) -> zbus::Result<ObjectRef>;
 }

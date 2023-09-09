@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectReference},
+	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -20,8 +20,8 @@ impl HasMatchRule for KeyboardEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
-	/// The [`ObjectReference`] which the event applies to.
-	pub item: crate::events::ObjectReference,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,
 }
@@ -35,7 +35,7 @@ impl GenericEvent<'_> for ModifiersEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectReference, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
 	fn sender(&self) -> String {

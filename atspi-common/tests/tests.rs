@@ -2,7 +2,7 @@ use atspi_common::events::{signatures_are_eq, AddAccessibleEvent, Event, RemoveA
 use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
 use atspi_common::{
 	assert_eq_signatures, object_reference::ACCESSIBLE_PAIR_SIGNATURE, CacheItem, InterfaceSet,
-	ObjectReference, Role, StateSet,
+	ObjectRef, Role, StateSet,
 };
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;
@@ -25,7 +25,7 @@ async fn test_recv_remove_accessible() {
 		let member = "RemoveAccessible";
 
 		let unique_bus_name = atspi.connection().unique_name().unwrap();
-		let remove_body = ObjectReference {
+		let remove_body = ObjectRef {
 			name: ":69.420".into(),
 			path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
 		};
@@ -86,15 +86,15 @@ async fn test_recv_add_accessible() {
 		let unique_bus_name = atspi.connection().unique_name().unwrap();
 
 		let add_body = CacheItem {
-			object: ObjectReference {
+			object: ObjectRef {
 				name: ":1.1".to_string(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
 			},
-			app: ObjectReference {
+			app: ObjectRef {
 				name: ":1.1".to_string(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
 			},
-			parent: ObjectReference {
+			parent: ObjectRef {
 				name: ":1.1".to_string(),
 				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
 			},
@@ -117,7 +117,7 @@ async fn test_recv_add_accessible() {
 
 	assert_eq_signatures!(
 		&msg.body_signature()
-			.expect("marshalled AddObjectReference body signature != expected"),
+			.expect("marshalled AddObjectRef body signature != expected"),
 		&CACHE_ADD_SIGNATURE
 	);
 	atspi

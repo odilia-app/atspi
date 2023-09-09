@@ -13,12 +13,12 @@
 // this allow zbus to change the number of parameters in a function without setting off clippy
 
 use crate::atspi_proxy;
-use crate::common::{MatchArgs, ObjectReference, SortOrder, TreeTraversalType};
+use crate::common::{MatchArgs, ObjectRef, SortOrder, TreeTraversalType};
 
 #[atspi_proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
 	/// GetActiveDescendant method
-	fn get_active_descendant(&self) -> zbus::Result<ObjectReference>;
+	fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
 
 	/* ROLE fields:
 	  &[i32]: AtspiStateSet,
@@ -38,7 +38,7 @@ trait Collection {
 		sortby: SortOrder,
 		count: i32,
 		traverse: bool,
-	) -> zbus::Result<Vec<ObjectReference>>;
+	) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// GetMatchesFrom method
 	fn get_matches_from(
@@ -49,7 +49,7 @@ trait Collection {
 		tree: TreeTraversalType,
 		count: i32,
 		traverse: bool,
-	) -> zbus::Result<Vec<ObjectReference>>;
+	) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// GetMatchesTo method
 	fn get_matches_to(
@@ -61,5 +61,5 @@ trait Collection {
 		limit_scope: bool,
 		count: i32,
 		traverse: bool,
-	) -> zbus::Result<Vec<ObjectReference>>;
+	) -> zbus::Result<Vec<ObjectRef>>;
 }

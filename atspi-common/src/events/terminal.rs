@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectReference},
+	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -30,38 +30,38 @@ impl HasMatchRule for TerminalEvents {
 /// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
-	/// The [`ObjectReference`] which the event applies to.
-	pub item: crate::events::ObjectReference,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 }
 
 /// The width of a terminal emulator has changed sufficiently such that the number of characters
 /// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnCountChangedEvent {
-	/// The [`ObjectReference`] which the event applies to.
-	pub item: crate::events::ObjectReference,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 }
 
 /// The height of a terminal emulator has changed sufficiently such that the number of lines
 /// able to fit within the terminal has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineCountChangedEvent {
-	/// The [`ObjectReference`] which the event applies to.
-	pub item: crate::events::ObjectReference,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
-	/// The [`ObjectReference`] which the event applies to.
-	pub item: crate::events::ObjectReference,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 }
 
 /// The width of a terminal emulator has changed sufficiently such that the number of characters
 /// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CharWidthChangedEvent {
-	/// The [`ObjectReference`] which the event applies to.
-	pub item: crate::events::ObjectReference,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 }
 
 impl GenericEvent<'_> for LineChangedEvent {
@@ -73,7 +73,7 @@ impl GenericEvent<'_> for LineChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -97,7 +97,7 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -121,7 +121,7 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -145,7 +145,7 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -169,7 +169,7 @@ impl GenericEvent<'_> for CharWidthChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectReference, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {

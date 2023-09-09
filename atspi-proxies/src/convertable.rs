@@ -1,5 +1,5 @@
 use crate::{
-	accessible::{ObjectReference, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking},
+	accessible::{ObjectRef, AccessibleBlocking, AccessibleProxy, AccessibleProxyBlocking},
 	action::{Action, ActionBlocking, ActionProxy, ActionProxyBlocking},
 	application::{Application, ApplicationBlocking, ApplicationProxy, ApplicationProxyBlocking},
 	collection::{Collection, CollectionBlocking, CollectionProxy, CollectionProxyBlocking},
@@ -52,7 +52,7 @@ pub trait Convertable {
 	/// Generally, it fails if the accessible item does not implement to accessible interface.
 	/// This shouldn't be possible, but this function may fail for other reasons.
 	/// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`crate::accessible::AccessibleProxy`].
-	async fn to_accessible(&self) -> Result<Self::ObjectReference, Self::Error>;
+	async fn to_accessible(&self) -> Result<Self::ObjectRef, Self::Error>;
 	/// Creates an [`Self::Action`] from the existing accessible item.
 	/// # Errors
 	///
@@ -115,7 +115,7 @@ pub trait ConvertableBlocking {
 	/// Generally, it fails if the accessible item does not implement to accessible interface.
 	/// This shouldn't be possible, but this function may fail for other reasons.
 	/// For example, to convert a [`zbus::Proxy`] into a [`Self::Accessible`], it may fail to create the new [`crate::accessible::AccessibleProxyBlocking`].
-	fn to_accessible(&self) -> Result<Self::ObjectReference, Self::Error>;
+	fn to_accessible(&self) -> Result<Self::ObjectRef, Self::Error>;
 	/// Creates an [`Self::Action`] from the existing accessible item.
 	/// # Errors
 	///
