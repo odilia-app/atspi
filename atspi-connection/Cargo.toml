@@ -2,12 +2,14 @@
 name = "atspi-connection"
 version = "0.2.0"
 edition = "2021"
-description = "A method of connecting, querying, sending and recieving over AT-SPI."
-license = "Apache-2.0 OR MIT"
+description = "A method of connecting, querying, sending and receiving over AT-SPI."
+license = "Apache-2.0 OR MIT" 
 keywords = ["screen-reader", "accessibility", "a11y", "linux"]
-categories = ["accessibility"]
+categories = ["accessibility", "API bindings"]
+rust-version = "1.68.2"
 repository = "https://github.com/odilia-app/atspi/"
 readme = "README.md"
+include = ["src/**/*", "LICENSE-*", "README.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

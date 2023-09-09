@@ -613,68 +613,51 @@ impl TryFrom<&zbus::Message> for Event {
 		let body_signature = body_signature.as_str();
 		let signal_member = msg.member().ok_or(AtspiError::MissingMember)?;
 		let member_str = signal_member.as_str();
+		let Some(interface) = msg.interface() else {  return Err(AtspiError::MissingInterface);  };
 
 		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
 		// Therefore no outer parentheses.
-		match body_signature {
-			// Marshalled ObjectRef signature
-			"so" | "(so)" => match member_str {
-				"RemoveAccessible" => {
-					let ev = RemoveAccessibleEvent::try_from(msg)?;
-					Ok(Event::Cache(CacheEvents::Remove(ev)))
-				}
-				"Available" => {
-					let ev = AvailableEvent::try_from(msg)?;
-					Ok(Event::Available(ev))
-				}
-				_ => Err(AtspiError::UnknownSignal),
-			},
-			// Atspi / Qspi signature
-			"siiva{sv}" | "siiv(so)" | "(siiva{sv})" | "(siiv(so))" => {
-				let Some(interface) = msg.interface() else {
-					return Err(AtspiError::MissingInterface);
-				};
-				match interface.as_str() {
-					"org.a11y.atspi.Event.Document" => {
-						Ok(Event::Document(DocumentEvents::try_from(msg)?))
-					}
-					"org.a11y.atspi.Event.Focus" => Ok(Event::Focus(FocusEvents::try_from(msg)?)),
-					"org.a11y.atspi.Event.Keyboard" => {
-						Ok(Event::Keyboard(KeyboardEvents::try_from(msg)?))
-					}
-					"org.a11y.atspi.Event.Mouse" => Ok(Event::Mouse(MouseEvents::try_from(msg)?)),
-					"org.a11y.atspi.Event.Object" => {
-						Ok(Event::Object(ObjectEvents::try_from(msg)?))
-					}
-					"org.a11y.atspi.Event.Terminal" => {
-						Ok(Event::Terminal(TerminalEvents::try_from(msg)?))
-					}
-					"org.a11y.atspi.Event.Window" => {
-						Ok(Event::Window(WindowEvents::try_from(msg)?))
-					}
-					_ => Err(AtspiError::UnknownInterface),
-				}
+		match (interface.as_str(), member_str, body_signature) {
+			("org.a11y.atspi.Socket", "Available", "so") => {
+				Ok(AvailableEvent::try_from(msg)?.into())
 			}
-			"ss" | "(ss)" => {
-				if let Ok(ev) = EventListenerRegisteredEvent::try_from(msg) {
-					return Ok(Event::Listener(EventListenerEvents::Registered(ev)));
-				}
-				if let Ok(ev) = EventListenerDeregisteredEvent::try_from(msg) {
-					return Ok(Event::Listener(EventListenerEvents::Deregistered(ev)));
-				}
-				Err(AtspiError::UnknownSignal)
+			("org.a11y.atspi.Event.Object", _, "siiva{sv}" | "siiv(so)") => {
+				Ok(Event::Object(ObjectEvents::try_from(msg)?))
 			}
-			// Marshalled `AddAccessible` signature
-			"(so)(so)(so)iiassusau" | "((so)(so)(so)iiassusau)" => {
-				let ev = AddAccessibleEvent::try_from(msg)?;
-				Ok(Event::Cache(CacheEvents::Add(ev)))
+			("org.a11y.atspi.Event.Document", _, "siiva{sv}" | "siiv(so)") => {
+				Ok(Event::Document(DocumentEvents::try_from(msg)?))
 			}
-			// LegacyCacheAdd signature
-			"(so)(so)(so)a(so)assusau" | "((so)(so)(so)a(so)assusau)" => {
-				let ev = LegacyAddAccessibleEvent::try_from(msg)?;
-				Ok(Event::Cache(CacheEvents::LegacyAdd(ev)))
+			("org.a11y.atspi.Event.Window", _, "siiva{sv}" | "siiv(so)") => {
+				Ok(Event::Window(WindowEvents::try_from(msg)?))
 			}
-			sig => Err(AtspiError::UnknownBusSignature(sig.to_string())),
+			("org.a11y.atspi.Event.Terminal", _, "siiva{sv}" | "siiv(so)") => {
+				Ok(Event::Terminal(TerminalEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Mouse", _, "siiva{sv}" | "siiv(so)") => {
+				Ok(Event::Mouse(MouseEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Focus", _, "siiva{sv}" | "siiv(so)") => {
+				Ok(Event::Focus(FocusEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Keyboard", _, "siiva{sv}" | "siiv(so)") => {
+				Ok(Event::Keyboard(KeyboardEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Registry", "EventListenerRegistered", "ss") => {
+				Ok(EventListenerRegisteredEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Registry", "EventListenerDeregistered", "ss") => {
+				Ok(EventListenerDeregisteredEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Cache", "AddAccessible", "(so)(so)(so)iiassusau") => {
+				Ok(AddAccessibleEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Cache", "AddAccessible", "(so)(so)(so)a(so)assusau") => {
+				Ok(LegacyAddAccessibleEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Cache", "RemoveAccessible", "so") => {
+				Ok(RemoveAccessibleEvent::try_from(msg)?.into())
+			}
+			(_iface, _method, sig) => Err(AtspiError::UnknownBusSignature(sig.to_string())),
 		}
 	}
 }

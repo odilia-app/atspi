@@ -3,11 +3,13 @@ name = "atspi-common"
 version = "0.2.0"
 edition = "2021"
 readme = "README.md"
-categories = ["macros", "accessibility"]
+categories = ["accessibility", "api-bindings"]
 keywords = ["Macros", "Accessibility"]
 repository = "https://github.com/odilia-app/atspi"
 description = "Primitive types used for sending and receiving Linux accessibility events."
-license = "Apache-2.0 OR MIT"
+license = "Apache-2.0 OR MIT" 
+include = ["src/**/*", "LICENSE-*", "README.md"]
+rust-version = "1.68.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -22,11 +24,12 @@ serde = "1.0"
 static_assertions = "1.1.0"
 zbus_names = "2.5.0"
 zvariant = { version = "3", default-features = false }
-zbus = { version = "3", optional = true, default-features = false }
+zbus = { workspace = true, optional = true, default-features = false }
 
 [dev-dependencies]
-zbus = { version = "3", default-features = false }
-atspi-connection = { path = "../atspi-connection", default-features = false }  
+zbus = { workspace = true }
+atspi-connection = { path = "../atspi-connection" }
+atspi-proxies = { path = "../atspi-proxies"  }
 tokio-stream = { version = "0.1", default-features = false, features = ["time"] }
 tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
 byteorder = "1.4.3"
