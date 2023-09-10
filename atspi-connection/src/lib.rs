@@ -28,6 +28,9 @@ pub struct AccessibilityConnection {
 
 impl AccessibilityConnection {
 	/// Open a new connection to the bus
+	/// # Errors
+	/// May error when a bus is not available,
+	/// or when the accessibility bus (AT-SPI) can not be found.
 	#[cfg_attr(feature = "tracing", tracing::instrument)]
 	pub async fn open() -> zbus::Result<Self> {
 		// Grab the a11y bus address from the session bus
