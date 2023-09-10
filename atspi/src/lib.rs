@@ -1,3 +1,9 @@
+//! `atspi` root crate, which may bring in various subcrates:
+//! * `atspi_common` (required)
+//! * `atspi_proxies` (with use of `proxies` feature flag)
+//! * `atspi_connection` (with use of `connection` feature flag)
+//! * `zbus` re-export (with use of `zbus` feature flag)
+
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
 
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
