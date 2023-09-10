@@ -621,7 +621,7 @@ impl GenericEvent<'_> for AnnouncementEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
