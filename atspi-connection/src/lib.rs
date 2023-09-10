@@ -1,3 +1,6 @@
+//! A connection to AT-SPI.
+//!  connection may receive any [`atspi_common::events::Event`] structures.
+
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
 
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
