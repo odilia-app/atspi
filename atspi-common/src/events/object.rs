@@ -87,11 +87,7 @@ impl Eq for PropertyChangeEvent {}
 #[allow(clippy::derivable_impls)]
 impl Default for PropertyChangeEvent {
 	fn default() -> Self {
-		Self {
-			item: ObjectRef::default(),
-			property: String::default(),
-			value: Property::default(),
-		}
+		Self { item: ObjectRef::default(), property: String::default(), value: Property::default() }
 	}
 }
 

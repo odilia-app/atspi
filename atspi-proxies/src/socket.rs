@@ -20,8 +20,7 @@ use crate::common::ObjectRef;
 )]
 trait Socket {
 	/// Embed method
-	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>))
-		-> zbus::Result<ObjectRef>;
+	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<ObjectRef>;
 
 	/// Unembed method
 	fn unembed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
