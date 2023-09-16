@@ -85,27 +85,7 @@ async fn test_recv_add_accessible() {
 
 		let unique_bus_name = atspi.connection().unique_name().unwrap();
 
-		let add_body = CacheItem {
-			object: Accessible {
-				name: ":1.1".to_string(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
-			},
-			app: Accessible {
-				name: ":1.1".to_string(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
-			},
-			parent: Accessible {
-				name: ":1.1".to_string(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
-			},
-			index: 0,
-			children: 0,
-			ifaces: InterfaceSet::empty(),
-			short_name: String::new(),
-			role: Role::Application,
-			name: "Hi".to_string(),
-			states: StateSet::empty(),
-		};
+		let add_body = CacheItem::default();
 
 		MessageBuilder::signal(path, iface, member)
 			.expect("Could not create signal")
