@@ -124,7 +124,7 @@ async fn test_recv_add_accessible() {
 		.connection()
 		.send_message(msg)
 		.await
-		.expect("Message sending unsuccesful");
+		.expect("Message sending unsuccessful");
 
 	loop {
 		let to = events.try_next().await;
