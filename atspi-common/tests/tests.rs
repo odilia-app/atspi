@@ -2,7 +2,6 @@ use atspi_common::events::{signatures_are_eq, AddAccessibleEvent, Event, RemoveA
 use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
 use atspi_common::{
 	accessible::ACCESSIBLE_PAIR_SIGNATURE, assert_eq_signatures, Accessible, CacheItem,
-	InterfaceSet, Role, StateSet,
 };
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;
@@ -104,7 +103,7 @@ async fn test_recv_add_accessible() {
 		.connection()
 		.send_message(msg)
 		.await
-		.expect("Message sending unsuccesful");
+		.expect("Message sending unsuccessful");
 
 	loop {
 		let to = events.try_next().await;
