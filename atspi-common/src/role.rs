@@ -125,7 +125,7 @@ pub enum Role {
 	SplitPane,
 	/// Object displays non-quantitative status information (c.f. [`Self::ProgressBar`])
 	StatusBar,
-	/// An object used to repesent information in terms of rows and columns.
+	/// An object used to represent information in terms of rows and columns.
 	Table,
 	/// A 'cell' or discrete child within a Table.
 	/// Note: Table cells need not have [`Self::TableCell`], other [`crate::Role`] values are valid as well.
@@ -147,7 +147,7 @@ pub enum Role {
 	/// For widgets whose purpose is to solicit input from the user, see [`Self::Entry`] and [`Self::PasswordText`].
 	/// For generic objects which display a brief amount of textual information, see [`Self::Static`].
 	Text,
-	/// A specialized push button that can be checked or unchecked, but does not procide a separate indicator for the current state.
+	/// A specialized push button that can be checked or unchecked, but does not provide a separate indicator for the current state.
 	ToggleButton,
 	/// A bar or palette usually composed of push buttons or toggle buttons.
 	ToolBar,
@@ -203,7 +203,7 @@ pub enum Role {
 	DocumentFrame,
 	/// Heading: this is a heading with a level (usually 1-6). This is represented by `<h1>` through `<h6>` in HTML.
 	/// The object serves as a heading for content which follows it in a document.
-	/// The 'heading level' of the heading, if availabe, may be obtained by querying the object's attributes.
+	/// The 'heading level' of the heading, if available, may be obtained by querying the object's attributes.
 	Heading,
 	/// The object is a containing instance which encapsulates a page of information.
 	/// [`Self::Page`] is used in documents and content which support a paginated navigation model.
@@ -221,7 +221,7 @@ pub enum Role {
 	/// Unlike other GUI containers and dialogs which occur inside application instances, [`Self::Form`] containers' components are associated with the current document, rather than the current foreground application or viewer instance.
 	Form,
 	/// The object is a hypertext anchor, i.e. a "link" in a hypertext document.
-	/// Such objects are distinct from 'inline' content which may also use the [`crate::Interface::Hypertext`]/[`crate::Interface::Hyperlink`] interfacesto indicate the range/location within a text object where an inline or embedded object lies.
+	/// Such objects are distinct from 'inline' content which may also use the [`crate::Interface::Hypertext`]/[`crate::Interface::Hyperlink`] interfaces to indicate the range/location within a text object where an inline or embedded object lies.
 	Link,
 	/// The object is a window or similar viewport which is used to allow composition or input of a 'complex character', in other words it is an "input method window".
 	InputMethodWindow,

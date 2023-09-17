@@ -10,7 +10,7 @@
 //! section of the zbus documentation.
 //!
 #![allow(clippy::too_many_arguments)]
-// this is to silience clippy due to zbus expanding parameter expressions
+// this is to silence clippy due to zbus expanding parameter expressions
 
 use crate::atspi_proxy;
 use crate::common::{ClipType, CoordType, Granularity};

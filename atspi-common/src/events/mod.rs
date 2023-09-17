@@ -101,15 +101,15 @@ impl<T> Type for EventBody<'_, T> {
 /// Signature:  "siiv(so)"
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyQT {
-	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
-	#[serde(rename = "type")]
+	// #[serde(rename = "type")]
 	pub kind: String,
-	/// Generic detail1 value descibed by AT-SPI.
+	/// Generic detail1 value described by AT-SPI.
 	pub detail1: i32,
-	/// Generic detail2 value descibed by AT-SPI.
+	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value descibed by AT-SPI.
+	/// Generic any_data value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A tuple of properties.
@@ -134,15 +134,15 @@ impl Default for EventBodyQT {
 /// Signature `(siiva{sv})`,
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyOwned {
-	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
 	pub kind: String,
-	/// Generic detail1 value descibed by AT-SPI.
+	/// Generic detail1 value described by AT-SPI.
 	pub detail1: i32,
-	/// Generic detail2 value descibed by AT-SPI.
+	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value descibed by AT-SPI.
+	/// Generic any_data value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A map of properties.
@@ -816,7 +816,7 @@ mod tests {
 		let with_parentheses = &Signature::from_static_str_unchecked("(ii)(ii)");
 		let without_parentheses = &Signature::from_static_str_unchecked("((ii)(ii)");
 		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
-		// test case with more than oune extra outer parentheses
+		// test case with more than one extra outer parentheses
 		let with_parentheses = &Signature::from_static_str_unchecked("((ii)(ii))");
 		let without_parentheses = &Signature::from_static_str_unchecked("((((ii)(ii))))");
 		assert!(!signatures_are_eq(with_parentheses, without_parentheses));

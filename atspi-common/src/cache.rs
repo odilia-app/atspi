@@ -76,7 +76,7 @@ pub struct LegacyCacheItem {
 	pub parent: Accessible,
 	/// List of references to the accessible's children.  a(so)
 	pub children: Vec<Accessible>,
-	/// The exposed interfece(s) set.  as
+	/// The exposed interface(s) set.  as
 	pub ifaces: InterfaceSet,
 	/// The short localized name.  s
 	pub short_name: String,
