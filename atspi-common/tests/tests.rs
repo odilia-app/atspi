@@ -2,7 +2,6 @@ use atspi_common::events::{signatures_are_eq, AddAccessibleEvent, Event, RemoveA
 use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
 use atspi_common::{
 	accessible::ACCESSIBLE_PAIR_SIGNATURE, assert_eq_signatures, Accessible, CacheItem,
-	InterfaceSet, Role, StateSet,
 };
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;
@@ -85,27 +84,7 @@ async fn test_recv_add_accessible() {
 
 		let unique_bus_name = atspi.connection().unique_name().unwrap();
 
-		let add_body = CacheItem {
-			object: Accessible {
-				name: ":1.1".to_string(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/object").unwrap(),
-			},
-			app: Accessible {
-				name: ":1.1".to_string(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/application").unwrap(),
-			},
-			parent: Accessible {
-				name: ":1.1".to_string(),
-				path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/parent").unwrap(),
-			},
-			index: 0,
-			children: 0,
-			ifaces: InterfaceSet::empty(),
-			short_name: String::new(),
-			role: Role::Application,
-			name: "Hi".to_string(),
-			states: StateSet::empty(),
-		};
+		let add_body = CacheItem::default();
 
 		MessageBuilder::signal(path, iface, member)
 			.expect("Could not create signal")
@@ -120,6 +99,85 @@ async fn test_recv_add_accessible() {
 			.expect("marshalled AddAccessible body signature != expected"),
 		&CACHE_ADD_SIGNATURE
 	);
+	atspi
+		.connection()
+		.send_message(msg)
+		.await
+		.expect("Message sending unsuccessful");
+
+	loop {
+		let to = events.try_next().await;
+		assert!(to.is_ok(), "Stream timed out");
+		let opt = to.unwrap();
+
+		match opt {
+			Some(res) => {
+				// This result comes from inner event-stream, Stream yields a Result<Event, AtspiError>
+				match res {
+					Ok(event) => match event {
+						Event::Cache(CacheEvents::Add(AddAccessibleEvent {
+							item: _,
+							node_added: cache_item,
+						})) => {
+							assert_eq!(
+								cache_item.object.path.as_str(),
+								"/org/a11y/atspi/accessible/object"
+							);
+							assert_eq!(
+								cache_item.app.path.as_str(),
+								"/org/a11y/atspi/accessible/application"
+							);
+							assert_eq!(
+								cache_item.parent.path.as_str(),
+								"/org/a11y/atspi/accessible/parent"
+							);
+							break;
+						}
+						_any_other_event => continue,
+					},
+					Err(e) => panic!("Error: conversion to Event failed {e:?}"),
+				}
+			}
+			// Stream yields a None when the stream is closed
+			None => panic!("Stream closed"),
+		}
+	}
+}
+
+// It appears to be common practice to send the `Cache` signals with the
+// body sent unmarshalled - with outer paretheses. This is a test to ensure
+// that we can handle that case.
+#[tokio::test]
+async fn test_recv_add_accessible_unmarshalled_body() {
+	let atspi = AccessibilityConnection::open().await.unwrap();
+	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
+
+	let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
+	tokio::pin!(events);
+
+	let msg: zbus::Message = {
+		let path = "/org/a11y/atspi/accessible/null";
+		let iface = "org.a11y.atspi.Cache";
+		let member = "AddAccessible";
+
+		let unique_bus_name = atspi.connection().unique_name().unwrap();
+
+		let add_body = CacheItem::default();
+
+		MessageBuilder::signal(path, iface, member)
+			.expect("Could not create signal")
+			.sender(unique_bus_name.clone())
+			.expect("Could not set sender to {unique_bus_name:?}")
+			.build(&(add_body,)) // Note the (unnecessary) outer parens
+			.unwrap()
+	};
+
+	assert_eq!(
+		&msg.body_signature()
+			.expect("Could not retrieve AddAccessible body signature from message"),
+		&CACHE_ADD_SIGNATURE
+	);
+
 	atspi
 		.connection()
 		.send_message(msg)
