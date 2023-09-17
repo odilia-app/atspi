@@ -111,7 +111,7 @@ pub struct DesktopCreateEvent {
 	pub item: crate::events::Accessible,
 }
 
-/// A virtual destkop has been deleted.
+/// A virtual desktop has been deleted.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopDestroyEvent {
 	/// A reference to the destroyed desktop.
