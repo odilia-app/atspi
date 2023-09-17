@@ -1,6 +1,6 @@
 [package]
 name = "atspi-proxies"
-version = "0.2.1"
+version = "0.3.0"
 description = "AT-SPI2 proxies to query or manipulate UI objects"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
@@ -23,7 +23,7 @@ gvariant = ["zbus/gvariant"]
 tokio = ["zbus/tokio", "atspi-common/tokio"]
 
 [dependencies]
-atspi-common = { path = "../atspi-common", version = "0.2.1", default-features = false }
+atspi-common = { path = "../atspi-common", version = "0.3.0", default-features = false }
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
 zbus = { workspace = true, default-features = false } 
 # optional dependencies
@@ -31,7 +31,7 @@ async-trait = { version = "^0.1.59", optional = true }
 futures-lite = { version = "1.12", default-features = false, optional = true }
 
 [dev-dependencies]
-atspi-common = { path = "../atspi-common", version = "0.2.0", features = ["async-std"] }
+atspi-common = { path = "../atspi-common", version = "0.3.0", features = ["async-std"] }
 byteorder = "1.4"
 serde_plain = "1.0.1"
 lazy_static = "1.0"

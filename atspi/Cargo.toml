@@ -1,6 +1,6 @@
 [package]
 name = "atspi"
-version = "0.18.1"
+version = "0.19.0"
 authors.workspace = true
 edition = "2021"
 description = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
@@ -29,6 +29,6 @@ connection-tokio = ["atspi-connection/tokio", "connection"]
 tracing = ["atspi-connection/tracing"]
 
 [dependencies]
-atspi-common = { path = "../atspi-common", version = "0.2.1", default-features = false }
-atspi-proxies = { path = "../atspi-proxies", version = "0.2.1", default-features = false, optional = true }
-atspi-connection = { path = "../atspi-connection", version = "0.2.1", default-features = false, optional = true }
+atspi-common = { path = "../atspi-common", version = "0.3.0", default-features = false }
+atspi-proxies = { path = "../atspi-proxies", version = "0.3.0", default-features = false, optional = true }
+atspi-connection = { path = "../atspi-connection", version = "0.3.0", default-features = false, optional = true }
