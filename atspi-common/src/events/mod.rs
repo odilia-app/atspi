@@ -649,8 +649,10 @@ impl TryFrom<&zbus::Message> for Event {
 			return Err(AtspiError::MissingInterface);
 		};
 
-		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
-		// Therefore no outer parentheses.
+		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures,
+		// we do not expect outer parentheses.
+		// However, `Cache` signals are often emitted with an outer parentheses, so we also try to
+		// match against the same signature, but with outer parentheses.
 		match (interface.as_str(), member_str, body_signature) {
 			("org.a11y.atspi.Socket", "Available", "so") => {
 				Ok(AvailableEvent::try_from(msg)?.into())
@@ -682,13 +684,17 @@ impl TryFrom<&zbus::Message> for Event {
 			("org.a11y.atspi.Registry", "EventListenerDeregistered", "ss") => {
 				Ok(EventListenerDeregisteredEvent::try_from(msg)?.into())
 			}
-			("org.a11y.atspi.Cache", "AddAccessible", "(so)(so)(so)iiassusau") => {
-				Ok(AddAccessibleEvent::try_from(msg)?.into())
-			}
-			("org.a11y.atspi.Cache", "AddAccessible", "(so)(so)(so)a(so)assusau") => {
-				Ok(LegacyAddAccessibleEvent::try_from(msg)?.into())
-			}
-			("org.a11y.atspi.Cache", "RemoveAccessible", "so") => {
+			(
+				"org.a11y.atspi.Cache",
+				"AddAccessible",
+				"(so)(so)(so)iiassusau" | "((so)(so)(so)iiassusau)",
+			) => Ok(AddAccessibleEvent::try_from(msg)?.into()),
+			(
+				"org.a11y.atspi.Cache",
+				"AddAccessible",
+				"(so)(so)(so)a(so)assusau" | "((so)(so)(so)a(so)assusau)",
+			) => Ok(LegacyAddAccessibleEvent::try_from(msg)?.into()),
+			("org.a11y.atspi.Cache", "RemoveAccessible", "so" | "(so)") => {
 				Ok(RemoveAccessibleEvent::try_from(msg)?.into())
 			}
 			(_iface, _method, sig) => Err(AtspiError::UnknownBusSignature(sig.to_string())),
