@@ -154,7 +154,8 @@ jobs:
           toolchain: stable
       - name: Install Semver Checks
         # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
-        uses: taiki-e/install-action@cargo-semver-checks
+        uses: taiki-e/install-action@main
+        tool: cargo-semver-checks
       - name: Check Semver Compliance
         run: cargo semver-checks check-release -p atspi --default-features
   msrv-compliance:
