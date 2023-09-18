@@ -151,7 +151,7 @@ pub struct EventBodyOwned {
 
 impl From<EventBodyQT> for EventBodyOwned {
 	fn from(body: EventBodyQT) -> Self {
-		let accessible = ObjectRef { name: body.properties.name, path: body.properties.path };
+		let object = ObjectRef { name: body.properties.name, path: body.properties.path };
 		let mut props = HashMap::new();
 		props.insert(accessible.name, Value::ObjectPath(accessible.path.into()).to_owned());
 		Self {
