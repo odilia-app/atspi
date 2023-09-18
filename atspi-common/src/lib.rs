@@ -13,8 +13,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
-pub mod object_reference;
-pub use object_reference::ObjectRef;
+pub mod object_ref;
+pub use object_ref::ObjectRef;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;
