@@ -153,7 +153,7 @@ impl From<EventBodyQT> for EventBodyOwned {
 	fn from(body: EventBodyQT) -> Self {
 		let object = ObjectRef { name: body.properties.name, path: body.properties.path };
 		let mut props = HashMap::new();
-		props.insert(accessible.name, Value::ObjectPath(accessible.path.into()).to_owned());
+		props.insert(object.name, Value::ObjectPath(object.path.into()).to_owned());
 		Self {
 			kind: body.kind,
 			detail1: body.detail1,
