@@ -127,7 +127,7 @@ jobs:
         with:
           toolchain: stable
       - name: Install Cargo Machete
-        run: cargo install cargo-machete
+        uses: taki-e/install-action@cargo-machete
       - name: Check For Unused Depdencies
         run: cargo machete
   semver-compliance:
@@ -154,7 +154,7 @@ jobs:
           toolchain: stable
       - name: Install Semver Checks
         # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
-        run: cargo install cargo-semver-checks --no-default-features
+        uses: taki-e/install-action@cargo-semver-checks
       - name: Check Semver Compliance
         run: cargo semver-checks check-release -p atspi --default-features
   msrv-compliance:
