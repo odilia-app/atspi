@@ -11,12 +11,12 @@
 //!
 
 use crate::atspi_proxy;
-use crate::common::Accessible;
+use crate::common::ObjectRef;
 
 #[atspi_proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
 trait Hyperlink {
 	/// GetObject method
-	fn get_object(&self, i: i32) -> zbus::Result<Accessible>;
+	fn get_object(&self, i: i32) -> zbus::Result<ObjectRef>;
 
 	/// GetURI method
 	fn get_uri(&self, i: i32) -> zbus::Result<String>;

@@ -13,8 +13,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
-pub mod accessible;
-pub use accessible::Accessible;
+pub mod object_ref;
+pub use object_ref::ObjectRef;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;
@@ -47,7 +47,7 @@ pub type MatchArgs<'a> = (
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::accessible::Accessible`] objects should be sorted.
+/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::object_reference::ObjectRef`] objects should be sorted.
 pub enum SortOrder {
 	/// Invalid sort order
 	Invalid,
@@ -79,7 +79,7 @@ pub enum TreeTraversalType {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::accessible::Accessible`] objects.
+/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::object_reference::ObjectRef`] objects.
 pub enum MatchType {
 	/// Invalid match type
 	Invalid,
