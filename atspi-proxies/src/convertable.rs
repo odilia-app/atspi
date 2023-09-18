@@ -211,7 +211,7 @@ async fn convert_to_new_type<
 >(
 	from: &U,
 ) -> zbus::Result<T> {
-	// first thing is first, we need to creat an accessible to query the interfaces.
+	// first thing is first, we need to create an accessible to query the interfaces.
 	let accessible = AccessibleProxy::builder(from.connection())
 		.destination(from.destination())?
 		.cache_properties(CacheProperties::No)
@@ -247,7 +247,7 @@ fn convert_to_new_type_blocking<
 >(
 	from: &U,
 ) -> zbus::Result<T> {
-	// first thing is first, we need to creat an accessible to query the interfaces.
+	// first thing is first, we need to create an accessible to query the interfaces.
 	let accessible = AccessibleProxyBlocking::builder(from.connection())
 		.destination(from.destination())?
 		.cache_properties(CacheProperties::No)

@@ -1,5 +1,2 @@
 /target
 Cargo.lock
-/atspi-macros/target
-/atspi-matcros/Cargo.lock
-/atspi-codegen/target

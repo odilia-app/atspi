@@ -100,15 +100,15 @@ impl<T> Type for EventBody<'_, T> {
 /// Signature:  "siiv(so)"
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct EventBodyQT {
-	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
-	#[serde(rename = "type")]
+	// #[serde(rename = "type")]
 	pub kind: String,
-	/// Generic detail1 value descibed by AT-SPI.
+	/// Generic detail1 value described by AT-SPI.
 	pub detail1: i32,
-	/// Generic detail2 value descibed by AT-SPI.
+	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value descibed by AT-SPI.
+	/// Generic any_data value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A tuple of properties.
@@ -133,15 +133,15 @@ impl Default for EventBodyQT {
 /// Signature `(siiva{sv})`,
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyOwned {
-	/// kind variant, used for specifying an event tripple "object:state-changed:focused",
+	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
 	pub kind: String,
-	/// Generic detail1 value descibed by AT-SPI.
+	/// Generic detail1 value described by AT-SPI.
 	pub detail1: i32,
-	/// Generic detail2 value descibed by AT-SPI.
+	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value descibed by AT-SPI.
+	/// Generic any_data value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A map of properties.
@@ -648,8 +648,10 @@ impl TryFrom<&zbus::Message> for Event {
 			return Err(AtspiError::MissingInterface);
 		};
 
-		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
-		// Therefore no outer parentheses.
+		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures,
+		// we do not expect outer parentheses.
+		// However, `Cache` signals are often emitted with an outer parentheses, so we also try to
+		// match against the same signature, but with outer parentheses.
 		match (interface.as_str(), member_str, body_signature) {
 			("org.a11y.atspi.Socket", "Available", "so") => {
 				Ok(AvailableEvent::try_from(msg)?.into())
@@ -681,13 +683,17 @@ impl TryFrom<&zbus::Message> for Event {
 			("org.a11y.atspi.Registry", "EventListenerDeregistered", "ss") => {
 				Ok(EventListenerDeregisteredEvent::try_from(msg)?.into())
 			}
-			("org.a11y.atspi.Cache", "AddAccessible", "(so)(so)(so)iiassusau") => {
-				Ok(AddAccessibleEvent::try_from(msg)?.into())
-			}
-			("org.a11y.atspi.Cache", "AddAccessible", "(so)(so)(so)a(so)assusau") => {
-				Ok(LegacyAddAccessibleEvent::try_from(msg)?.into())
-			}
-			("org.a11y.atspi.Cache", "RemoveAccessible", "so") => {
+			(
+				"org.a11y.atspi.Cache",
+				"AddAccessible",
+				"(so)(so)(so)iiassusau" | "((so)(so)(so)iiassusau)",
+			) => Ok(AddAccessibleEvent::try_from(msg)?.into()),
+			(
+				"org.a11y.atspi.Cache",
+				"AddAccessible",
+				"(so)(so)(so)a(so)assusau" | "((so)(so)(so)a(so)assusau)",
+			) => Ok(LegacyAddAccessibleEvent::try_from(msg)?.into()),
+			("org.a11y.atspi.Cache", "RemoveAccessible", "so" | "(so)") => {
 				Ok(RemoveAccessibleEvent::try_from(msg)?.into())
 			}
 			(_iface, _method, sig) => Err(AtspiError::UnknownBusSignature(sig.to_string())),
@@ -809,7 +815,7 @@ mod tests {
 		let with_parentheses = &Signature::from_static_str_unchecked("(ii)(ii)");
 		let without_parentheses = &Signature::from_static_str_unchecked("((ii)(ii)");
 		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
-		// test case with more than oune extra outer parentheses
+		// test case with more than one extra outer parentheses
 		let with_parentheses = &Signature::from_static_str_unchecked("((ii)(ii))");
 		let without_parentheses = &Signature::from_static_str_unchecked("((((ii)(ii))))");
 		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
