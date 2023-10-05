@@ -10,6 +10,13 @@ use crate::atspi_proxy;
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
 
+/// # `AccessibleProxy`
+///
+/// A handle for a remote object implementing the `org.a11y.atspi.Accessible`
+/// interface.
+///
+/// Accessible is the interface which is implemented by all accessible objects.
+///
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
 	/// Returns an [`Accessible`] which refers to the `Application` object of the application.
