@@ -64,7 +64,16 @@ trait Application {
 	/// GetLocale method
 	fn get_locale(&self, lctype: u32) -> zbus::Result<String>;
 
-	/// AtspiVersion property
+	/// retrieves AT-SPI2 version.
+	///
+	/// Applications are advised to return "2.1" here, thus that is what is what
+	/// users should expect.
+	///
+	/// This was intended to be the version of the atspi interfaces
+	/// that the application supports, but atspi will probably move to
+	/// using versioned interface names instead.
+	///
+	/// member: "AtspiVersion", type: property
 	#[dbus_proxy(property)]
 	fn atspi_version(&self) -> zbus::Result<String>;
 
