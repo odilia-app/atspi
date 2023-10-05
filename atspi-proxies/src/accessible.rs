@@ -30,8 +30,8 @@ trait Accessible {
 	/// guaranteed to be persistent for the lifetime of the application.
 	/// All other objects in the accessibility hierarchy may be created and destroyed dynamically.
 	///
-	/// [`Accessible`]: ../crate::common::events::Accessible
-	/// [`Application`]: <https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/application/struct.ApplicationProxy.html>
+	/// [`ObjectRef`]: ../crate::common::events::ObjectRef
+	/// [`Application`]: crate::application::ApplicationProxy
 	fn get_application(&self) -> zbus::Result<ObjectRef>;
 
 	/// Gets a list of name/value pairs of attributes or annotations for this object.
