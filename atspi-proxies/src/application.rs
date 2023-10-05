@@ -33,6 +33,32 @@
 
 use crate::atspi_proxy;
 
+/// `Application` is the interface which is implemented by each accessible application.
+/// It is implemented for the root object of an application.
+///
+/// It provides information about the application itself.
+///
+/// ## Status
+///
+/// A number of methods and properties of this interface have fallen in disuse or
+/// are / may be deprecated in the future.
+///
+/// * [`id`]
+/// * [`set_id`]
+/// * [`atspi_version`]
+/// * [`get_locale`]
+///  
+/// [`toolkit_name`] and [`version`] are still in use.
+///
+/// See the documentation of the individual methods and properties for details.
+///
+/// [`id`]: ApplicationProxy#method.id
+/// [`set_id`]: ApplicationProxy#method.set_id
+/// [`atspi_version`]: ApplicationProxy#method.atspi_version
+/// [`get_locale`]: ApplicationProxy#method.get_locale
+/// [`toolkit_name`]: ApplicationProxy#method.toolkit_name
+/// [`version`]: ApplicationProxy#method.version
+///
 #[atspi_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
 trait Application {
 	/// GetLocale method
