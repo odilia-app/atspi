@@ -19,7 +19,7 @@ use crate::AtspiError;
 ///
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
-	/// Returns an [`Accessible`] which refers to the `Application` object of the application.
+	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.
 	///
 	/// The application object is the root of the accessibility hierarchy for the application.
