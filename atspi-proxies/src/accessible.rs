@@ -40,8 +40,8 @@ trait Accessible {
 	/// For	typographic, textual, or textually-semantic attributes,
 	/// see [`TextProxy`]'s [`get_attributes`] method instead.
 	///
-	/// [`TextProxy`]: https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/text/struct.TextProxy.html
-	/// [`get_attributes`]: https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/text/struct.TextProxy.html#method.get_attributes
+	/// [`TextProxy`]: crate::text::TextProxy
+	/// [`get_attributes`]: crate::text::TextProxy#method.get_attributes
 	fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
 	/// Retrieve child by index (starting from 0),
