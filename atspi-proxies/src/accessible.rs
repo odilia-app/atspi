@@ -66,10 +66,10 @@ trait Accessible {
 	///
 	/// ## Registry
 	///
-	/// On the `Accessible` interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
+	/// On the [`Accessible`] interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
 	/// of all accessible applications' root objects on the bus.
 	///
-	/// [`Accessible`]: ../crate::common::events::Accessible
+	/// [`Accessible`]: crate::accessible::AccessibleProxy
 	fn get_children(&self) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// This object resides in its parent's list of children.
