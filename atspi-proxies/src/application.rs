@@ -61,7 +61,21 @@ use crate::atspi_proxy;
 ///
 #[atspi_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
 trait Application {
-	/// GetLocale method
+	/// Method to retrieve the application's locale.
+	///
+	/// ## Deprecation
+	///  
+	/// This method is likely to be removed in the future.
+	///
+	/// There is no need to call this method because there is also
+	/// [`locale`] which offers the same functionality
+	/// at the accessible object level.
+	///
+	/// See also: [Orca issues: "Plans for per-object locale?"](<https://gitlab.gnome.org/GNOME/orca/-/issues/260>)
+	///
+	/// member: "GetLocale", type: method
+	///
+	/// [`locale`]: crate::accessible::AccessibleProxy#method.locale
 	fn get_locale(&self, lctype: u32) -> zbus::Result<String>;
 
 	/// retrieves AT-SPI2 version.
