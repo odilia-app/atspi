@@ -131,7 +131,10 @@ trait Application {
 	#[dbus_proxy(property)]
 	fn toolkit_name(&self) -> zbus::Result<String>;
 
-	/// Version property
+	/// Returns the version of the toolkit used to implement the
+	/// application's user interface.
+	///
+	/// member: "Version", type: property
 	#[dbus_proxy(property)]
 	fn version(&self) -> zbus::Result<String>;
 }
