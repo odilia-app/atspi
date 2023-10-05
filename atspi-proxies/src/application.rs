@@ -77,7 +77,34 @@ trait Application {
 	#[dbus_proxy(property)]
 	fn atspi_version(&self) -> zbus::Result<String>;
 
-	/// Id property
+	/// Retrieve numerical id of the application.
+	///
+	/// The 'id' is set an arbitrary numerical id when
+	/// an application registers with the registry.
+	///
+	/// When a freshly-started application uses the
+	/// [`org.a11y.atspi.Socket`]'s [`embed`] method to
+	/// register with the accessibility registry, the
+	/// registry will set a numerical id on the application.
+	///
+	/// ## status
+	///
+	/// The property has fallen in disuse.
+	///
+	/// As per [AT-SPI2-CORE issue #82](<https://gitlab.gnome.org/GNOME/at-spi2-core/-/issues/82>)
+	/// it may turn out that this id is not actually used subsequently.
+	/// This is a remnant of the time when registryd actually had to
+	/// make up identifiers for each application.
+	/// With DBus, however,	it is the bus that assigns unique names to applications that
+	/// connect to it.
+	///
+	/// Applications or toolkits can remember the `Id` passed when the accessibility
+	/// registry sets this property, and return it back when the property is read.
+	///
+	/// member: "Id", type: property
+	///
+	/// [`embed`]: crate::socket::SocketProxy#method.embed
+	/// [`org.a11y.atspi.Socket`]: crate::socket::SocketProxy
 	#[dbus_proxy(property)]
 	fn id(&self) -> zbus::Result<i32>;
 
