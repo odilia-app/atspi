@@ -124,7 +124,10 @@ trait Application {
 	#[dbus_proxy(property)]
 	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
-	/// ToolkitName property
+	/// Retrieves the name of the toolkit used to implement the application's
+	/// user interface.
+	///
+	/// member: "ToolkitName", type: property
 	#[dbus_proxy(property)]
 	fn toolkit_name(&self) -> zbus::Result<String>;
 
