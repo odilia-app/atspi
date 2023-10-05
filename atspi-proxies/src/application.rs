@@ -108,7 +108,19 @@ trait Application {
 	#[dbus_proxy(property)]
 	fn id(&self) -> zbus::Result<i32>;
 
-	/// Set ID property
+	/// Set ID of the application.
+	///
+	/// This method is used by the accessibility registry to set the
+	/// application's id.
+	///
+	/// ## status
+	///
+	/// The property has fallen in disuse.
+	///
+	/// See [`id`] for details.
+	///
+	/// member: "Id", type: property
+	/// [`id`]: #method.id
 	#[dbus_proxy(property)]
 	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
