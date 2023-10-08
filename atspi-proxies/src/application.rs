@@ -80,7 +80,7 @@ trait Application {
 
 	/// retrieves AT-SPI2 version.
 	///
-	/// Applications are advised to return "2.1" here, thus that is what is what
+	/// Applications are advised to return "2.1" here, thus that is what
 	/// users should expect.
 	///
 	/// This was intended to be the version of the atspi interfaces
