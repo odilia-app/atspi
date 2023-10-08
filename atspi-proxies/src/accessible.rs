@@ -10,9 +10,16 @@ use crate::atspi_proxy;
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
 
+/// # `AccessibleProxy`
+///
+/// A handle for a remote object implementing the `org.a11y.atspi.Accessible`
+/// interface.
+///
+/// Accessible is the interface which is implemented by all accessible objects.
+///
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
-	/// Returns an [`Accessible`] which refers to the `Application` object of the application.
+	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.
 	///
 	/// The application object is the root of the accessibility hierarchy for the application.
@@ -23,8 +30,8 @@ trait Accessible {
 	/// guaranteed to be persistent for the lifetime of the application.
 	/// All other objects in the accessibility hierarchy may be created and destroyed dynamically.
 	///
-	/// [`Accessible`]: ../crate::common::events::Accessible
-	/// [`Application`]: <https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/application/struct.ApplicationProxy.html>
+	/// [`ObjectRef`]: ../crate::common::events::ObjectRef
+	/// [`Application`]: crate::application::ApplicationProxy
 	fn get_application(&self) -> zbus::Result<ObjectRef>;
 
 	/// Gets a list of name/value pairs of attributes or annotations for this object.
@@ -33,8 +40,8 @@ trait Accessible {
 	/// For	typographic, textual, or textually-semantic attributes,
 	/// see [`TextProxy`]'s [`get_attributes`] method instead.
 	///
-	/// [`TextProxy`]: https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/text/struct.TextProxy.html
-	/// [`get_attributes`]: https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/text/struct.TextProxy.html#method.get_attributes
+	/// [`TextProxy`]: crate::text::TextProxy
+	/// [`get_attributes`]: crate::text::TextProxy#method.get_attributes
 	fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
 	/// Retrieve child by index (starting from 0),
@@ -59,10 +66,10 @@ trait Accessible {
 	///
 	/// ## Registry
 	///
-	/// On the `Accessible` interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
+	/// On the [`Accessible`] interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
 	/// of all accessible applications' root objects on the bus.
 	///
-	/// [`Accessible`]: ../crate::common::events::Accessible
+	/// [`Accessible`]: crate::accessible::AccessibleProxy
 	fn get_children(&self) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// This object resides in its parent's list of children.
