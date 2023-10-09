@@ -114,7 +114,8 @@ trait Action {
 	/// For example, "Click" for a button.
 	fn get_localized_name(&self, index: i32) -> zbus::Result<String>;
 
-	/// GetName method
+	/// Returns a machine-readable name for the action at the specified,
+	/// zero-based index.
 	fn get_name(&self, index: i32) -> zbus::Result<String>;
 
 	/// NActions property
