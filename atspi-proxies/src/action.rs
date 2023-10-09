@@ -68,27 +68,27 @@ trait Action {
 	/// For example, "Clicks the button" for the "click" action of a button.
 	fn get_description(&self, index: i32) -> zbus::Result<String>;
 
-	/// Returns the keybinding for the action, specified by a 
+	/// Returns the keybinding for the action, specified by a
 	/// zero-based index.
-	/// 
+	///
 	/// Gets the keybinding which can be used to invoke this action,
 	/// if one exists.
-	/// 
+	///
 	/// The string returned should contain localized, human-readable,
 	/// key sequences as they would appear when displayed on screen.
 	/// It must be in the format "mnemonic;sequence;shortcut".
-	/// 
-	/// - The mnemonic key activates the object if it is presently 
+	///
+	/// - The mnemonic key activates the object if it is presently
 	/// enabled on screen.
-	/// This typically corresponds to the underlined letter within 
-	/// the widget. Example: "n" in a traditional "Ṉew..." menu 
+	/// This typically corresponds to the underlined letter within
+	/// the widget. Example: "n" in a traditional "Ṉew..." menu
 	/// item or the "a" in "Apply" for a button.
-	/// 
-	/// - The sequence is the full list of keys which invoke the action 
-	/// even if the relevant element is not currently shown on screen. 
-	/// For instance, for a menu item the sequence is the keybindings 
+	///
+	/// - The sequence is the full list of keys which invoke the action
+	/// even if the relevant element is not currently shown on screen.
+	/// For instance, for a menu item the sequence is the keybindings
 	/// used to open the parent menus before invoking.
-	/// 
+	///
 	/// The sequence string is colon-delimited. Example: "Alt+F:N" in a
 	/// traditional "Ṉew..." menu item.
 	///
@@ -97,13 +97,13 @@ trait Action {
 	/// Example: "Ctrl+N" in a traditional "Ṉew..." menu item.
 	/// The shortcut string is colon-delimited. Example: "Ctrl+N" in a
 	/// traditional "Ṉew..." menu item.
-	/// 
-	/// Example: For a traditional "Ṉew..." menu item, the expected return 
-	/// value would be: "N;Alt+F:N;Ctrl+N" for the English locale and 
-	/// "N;Alt+D:N;Strg+N" for the German locale. 
-	/// If, hypothetically, this menu item lacked a mnemonic, it would be 
+	///
+	/// Example: For a traditional "Ṉew..." menu item, the expected return
+	/// value would be: "N;Alt+F:N;Ctrl+N" for the English locale and
+	/// "N;Alt+D:N;Strg+N" for the German locale.
+	/// If, hypothetically, this menu item lacked a mnemonic, it would be
 	/// represented by ";;Ctrl+N" and ";;Strg+N" respectively.
-	/// 
+	///
 	/// If there is no key binding for this action, "" is returned.
 	fn get_key_binding(&self, index: i32) -> zbus::Result<String>;
 
