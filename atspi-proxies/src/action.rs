@@ -45,7 +45,19 @@ trait Action {
 	/// * `index` - The index of the action to perform.
 	fn do_action(&self, index: i32) -> zbus::Result<bool>;
 
-	/// GetActions method
+	/// Returns an array of (localized-) name, (localized-)
+	/// description, keybinding) for the actions that an object
+	/// supports.
+	///
+	/// See [`get_keybinding`] method for a description of that
+	/// field's syntax.
+	///
+	/// This is equivalent to using the methods [`get_localized_name`],
+	/// [`get_description`] and	[`get_keybinding`] for each action,
+	/// but with a single call and thus less DBus traffic.
+	///
+	///	By convention, if there is more than one action available,
+	/// the first one is considered the "default" action of the object.
 	fn get_actions(&self) -> zbus::Result<Vec<(String, String, String)>>;
 
 	/// GetDescription method
