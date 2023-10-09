@@ -19,6 +19,21 @@
 
 use crate::atspi_proxy;
 
+/// A handle for a remote object implementing the `org.a11y.atspi.Action`
+/// interface.
+///
+/// The `Action` interface allows exploring and invoking the actions of a
+/// user-actionable UI component.
+///
+/// For example, a button may expose a "click" action - a popup menu may
+/// expose an "open" action.
+///
+/// Components which are not "passive" providers of UI information should
+/// implement this interface, unless there is a more specialized interface for
+/// interaction like [`org.a11y.atspi.Text`][TextProxy] or [`org.a11y.atspi.Value`][ValueProxy].
+///  
+/// [TextProxy]: crate::text::TextProxy
+/// [ValueProxy]: crate::value::ValueProxy
 #[atspi_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
 trait Action {
 	/// DoAction method
