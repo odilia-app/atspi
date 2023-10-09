@@ -60,7 +60,12 @@ trait Action {
 	/// the first one is considered the "default" action of the object.
 	fn get_actions(&self) -> zbus::Result<Vec<(String, String, String)>>;
 
-	/// GetDescription method
+	/// Returns the localized description for the action at the specified
+	/// index, starting at zero.
+	///   
+	/// For	example, a screen reader will read out this description when
+	/// the user asks for extra detail on an action.
+	/// For example, "Clicks the button" for the "click" action of a button.
 	fn get_description(&self, index: i32) -> zbus::Result<String>;
 
 	/// GetKeyBinding method
