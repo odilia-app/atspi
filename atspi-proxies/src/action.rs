@@ -107,7 +107,11 @@ trait Action {
 	/// If there is no key binding for this action, "" is returned.
 	fn get_key_binding(&self, index: i32) -> zbus::Result<String>;
 
-	/// GetLocalizedName method
+	/// Returns a short, localized name for the action at the specified by a
+	/// zero-based index.
+	///
+	/// This is	what screen readers will read out during normal navigation.
+	/// For example, "Click" for a button.
 	fn get_localized_name(&self, index: i32) -> zbus::Result<String>;
 
 	/// GetName method
