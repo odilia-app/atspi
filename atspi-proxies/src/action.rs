@@ -36,7 +36,13 @@ use crate::atspi_proxy;
 /// [ValueProxy]: crate::value::ValueProxy
 #[atspi_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
 trait Action {
-	/// DoAction method
+	/// Performs the specified action on the object.
+	///
+	/// Returns: Ok(true) on success, Ok(false) otherwise.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index of the action to perform.
 	fn do_action(&self, index: i32) -> zbus::Result<bool>;
 
 	/// GetActions method
