@@ -8,7 +8,7 @@ use tokio_stream::StreamExt;
 #[cfg(feature = "connection")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-	let atspi = atspi::AccessibilityConnection::open().await?;
+	let atspi = atspi::AccessibilityConnection::new().await?;
 	atspi.register_event::<ObjectEvents>().await?;
 
 	let events = atspi.event_stream();

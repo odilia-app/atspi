@@ -24,26 +24,30 @@ pub struct AccessibilityConnection {
 impl AccessibilityConnection {
 	/// Open a new connection to the bus
 	#[cfg_attr(feature = "tracing", tracing::instrument)]
-	pub async fn open() -> zbus::Result<Self> {
+	pub async fn new() -> zbus::Result<Self> {
 		// Grab the a11y bus address from the session bus
 		let a11y_bus_addr = {
 			#[cfg(feature = "tracing")]
 			tracing::debug!("Connecting to session bus");
 			let session_bus = Box::pin(zbus::Connection::session()).await?;
+
 			#[cfg(feature = "tracing")]
 			tracing::debug!(
 				name = session_bus.unique_name().map(|n| n.as_str()),
 				"Connected to session bus"
 			);
+
 			let proxy = BusProxy::new(&session_bus).await?;
 			#[cfg(feature = "tracing")]
 			tracing::debug!("Getting a11y bus address from session bus");
 			proxy.get_address().await?
 		};
+
 		#[cfg(feature = "tracing")]
 		tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
 		let addr: Address = a11y_bus_addr.parse()?;
-		Self::connect(addr).await
+
+		Self::from_address(addr).await
 	}
 
 	/// Returns an [`AccessibilityConnection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
@@ -58,10 +62,11 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// `RegistryProxy` is configured with invalid path, interface or destination
-	pub async fn connect(bus_addr: Address) -> zbus::Result<Self> {
+	pub async fn from_address(bus_addr: Address) -> zbus::Result<Self> {
 		#[cfg(feature = "tracing")]
 		tracing::debug!("Connecting to a11y bus");
 		let bus = Box::pin(zbus::ConnectionBuilder::address(bus_addr)?.build()).await?;
+
 		#[cfg(feature = "tracing")]
 		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
 
@@ -93,7 +98,7 @@ impl AccessibilityConnection {
 	/// # }
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
-	///     let atspi = AccessibilityConnection::open().await?;
+	///     let atspi = AccessibilityConnection::new().await?;
 	///     atspi.register_event::<ObjectEvents>().await?;
 	///
 	///     let mut events = atspi.event_stream();
@@ -159,7 +164,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	/// connection.register_event::<StateChangedEvent>().await.unwrap();
 	/// # })
 	/// ```
@@ -177,7 +182,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	/// connection.add_match_rule::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_match_rule::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -199,7 +204,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })
@@ -223,7 +228,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
-	/// let connection = atspi_connection::AccessibilityConnection::open().await.unwrap();
+	/// let connection = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	/// connection.add_registry_event::<StateChangedEvent>().await.unwrap();
 	/// connection.remove_registry_event::<StateChangedEvent>().await.unwrap();
 	/// # })

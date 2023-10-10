@@ -11,7 +11,7 @@ use zvariant::OwnedObjectPath;
 
 #[tokio::test]
 async fn test_recv_remove_accessible() {
-	let atspi = atspi_connection::AccessibilityConnection::open().await.unwrap();
+	let atspi = atspi_connection::AccessibilityConnection::new().await.unwrap();
 
 	atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 
@@ -71,7 +71,7 @@ async fn test_recv_remove_accessible() {
 
 #[tokio::test]
 async fn test_recv_add_accessible() {
-	let atspi = AccessibilityConnection::open().await.unwrap();
+	let atspi = AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 
 	let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
@@ -148,7 +148,7 @@ async fn test_recv_add_accessible() {
 // that we can handle that case.
 #[tokio::test]
 async fn test_recv_add_accessible_unmarshalled_body() {
-	let atspi = AccessibilityConnection::open().await.unwrap();
+	let atspi = AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 
 	let events = tokio_stream::StreamExt::timeout(atspi.event_stream(), Duration::from_secs(1));
