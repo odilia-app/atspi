@@ -613,7 +613,9 @@ impl TryFrom<&zbus::Message> for Event {
 		let body_signature = body_signature.as_str();
 		let signal_member = msg.member().ok_or(AtspiError::MissingMember)?;
 		let member_str = signal_member.as_str();
-		let Some(interface) = msg.interface() else {  return Err(AtspiError::MissingInterface);  };
+		let Some(interface) = msg.interface() else {
+			return Err(AtspiError::MissingInterface);
+		};
 
 		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures.
 		// Therefore no outer parentheses.
