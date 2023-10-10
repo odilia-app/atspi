@@ -32,3 +32,10 @@ tracing = ["atspi-connection/tracing"]
 atspi-common = { path = "../atspi-common", version = "0.3.0", default-features = false }
 atspi-proxies = { path = "../atspi-proxies", version = "0.3.0", default-features = false, optional = true }
 atspi-connection = { path = "../atspi-connection", version = "0.3.0", default-features = false, optional = true }
+
+[dev-dependencies]
+atspi = { path = "." }
+tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
+async-std = { version = "1", features = ["attributes"] }
+futures-lite = { version = "1.12", default-features = false }
+tokio-stream = "0.1"
