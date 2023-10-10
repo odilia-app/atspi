@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -10,7 +10,10 @@ pub enum FocusEvents {
 	/// See: [`FocusEvent`].
 	Focus(FocusEvent),
 }
-impl_event_conversions!(FocusEvents, Event::Focus);
+
+impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
+impl_try_from_event_for_user_facing_event_type!(FocusEvents, Event::Focus);
+
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
 
 impl HasMatchRule for FocusEvents {
@@ -19,8 +22,8 @@ impl HasMatchRule for FocusEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct FocusEvent {
-	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 }
 
 impl GenericEvent<'_> for FocusEvent {
@@ -32,7 +35,7 @@ impl GenericEvent<'_> for FocusEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn sender(&self) -> String {
@@ -61,7 +64,10 @@ impl TryFrom<&zbus::Message> for FocusEvents {
 	}
 }
 
-impl_event_conversions!(FocusEvent, FocusEvents, FocusEvents::Focus, Event::Focus);
+impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
+impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
+impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
+
 event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);

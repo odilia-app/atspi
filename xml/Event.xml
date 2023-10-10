@@ -82,7 +82,9 @@
     </signal>
     <signal name="Announcement">
       <arg name="text" type="s"/>
-      <arg type="i"/>
+      <!-- politeness should be 1 (ATSPI_LIVE_POLITE) or 2
+           (ATSPI_LIVE_ASSERTIVE) -->
+      <arg type="i" name="politeness"/>
       <arg type="i"/>
       <arg type="v"/>
       <arg name="properties" type="a{sv}"/>

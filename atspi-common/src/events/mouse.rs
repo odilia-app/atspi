@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -14,7 +14,10 @@ pub enum MouseEvents {
 	/// See: [`ButtonEvent`].
 	Button(ButtonEvent),
 }
-impl_event_conversions!(MouseEvents, Event::Mouse);
+
+impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
+impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
+
 event_wrapper_test_cases!(MouseEvents, AbsEvent);
 
 impl HasMatchRule for MouseEvents {
@@ -23,24 +26,24 @@ impl HasMatchRule for MouseEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
-	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 	pub x: i32,
 	pub y: i32,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RelEvent {
-	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 	pub x: i32,
 	pub y: i32,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ButtonEvent {
-	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 	pub detail: String,
 	pub mouse_x: i32,
 	pub mouse_y: i32,
@@ -55,7 +58,7 @@ impl GenericEvent<'_> for AbsEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn sender(&self) -> String {
@@ -79,7 +82,7 @@ impl GenericEvent<'_> for RelEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn sender(&self) -> String {
@@ -103,7 +106,7 @@ impl GenericEvent<'_> for ButtonEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
 	fn sender(&self) -> String {
@@ -134,7 +137,10 @@ impl TryFrom<&zbus::Message> for MouseEvents {
 	}
 }
 
-impl_event_conversions!(AbsEvent, MouseEvents, MouseEvents::Abs, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
+impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
+impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
+
 event_test_cases!(AbsEvent);
 impl_to_dbus_message!(AbsEvent);
 impl_from_dbus_message!(AbsEvent);
@@ -150,7 +156,9 @@ impl From<AbsEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(RelEvent, MouseEvents, MouseEvents::Rel, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(RelEvent, MouseEvents, MouseEvents::Rel);
+impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
+impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mouse);
 event_test_cases!(RelEvent);
 impl_to_dbus_message!(RelEvent);
 impl_from_dbus_message!(RelEvent);
@@ -166,7 +174,13 @@ impl From<RelEvent> for EventBodyOwned {
 	}
 }
 
-impl_event_conversions!(ButtonEvent, MouseEvents, MouseEvents::Button, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ButtonEvent,
+	MouseEvents,
+	MouseEvents::Button
+);
+impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
+impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Event::Mouse);
 event_test_cases!(ButtonEvent);
 impl_to_dbus_message!(ButtonEvent);
 impl_from_dbus_message!(ButtonEvent);

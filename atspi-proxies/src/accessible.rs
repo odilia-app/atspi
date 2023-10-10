@@ -7,12 +7,19 @@
 //!
 
 use crate::atspi_proxy;
-use crate::common::{Accessible, InterfaceSet, RelationType, Role, StateSet};
+use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
 
+/// # `AccessibleProxy`
+///
+/// A handle for a remote object implementing the `org.a11y.atspi.Accessible`
+/// interface.
+///
+/// Accessible is the interface which is implemented by all accessible objects.
+///
 #[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
-	/// Returns an [`Accessible`] which refers to the `Application` object of the application.
+	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.
 	///
 	/// The application object is the root of the accessibility hierarchy for the application.
@@ -23,9 +30,9 @@ trait Accessible {
 	/// guaranteed to be persistent for the lifetime of the application.
 	/// All other objects in the accessibility hierarchy may be created and destroyed dynamically.
 	///
-	/// [`Accessible`]: ../crate::common::events::Accessible
-	/// [`Application`]: <https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/application/struct.ApplicationProxy.html>
-	fn get_application(&self) -> zbus::Result<Accessible>;
+	/// [`ObjectRef`]: ../crate::common::events::ObjectRef
+	/// [`Application`]: crate::application::ApplicationProxy
+	fn get_application(&self) -> zbus::Result<ObjectRef>;
 
 	/// Gets a list of name/value pairs of attributes or annotations for this object.
 	///
@@ -33,8 +40,8 @@ trait Accessible {
 	/// For	typographic, textual, or textually-semantic attributes,
 	/// see [`TextProxy`]'s [`get_attributes`] method instead.
 	///
-	/// [`TextProxy`]: https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/text/struct.TextProxy.html
-	/// [`get_attributes`]: https://docs.rs/atspi-proxies/0.1.0/atspi_proxies/text/struct.TextProxy.html#method.get_attributes
+	/// [`TextProxy`]: crate::text::TextProxy
+	/// [`get_attributes`]: crate::text::TextProxy#method.get_attributes
 	fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
 	/// Retrieve child by index (starting from 0),
@@ -51,7 +58,7 @@ trait Accessible {
 	/// out of range, to "keep the type system gods happy".
 	///
 	/// [`get_children`]: #method.get_children
-	fn get_child_at_index(&self, index: i32) -> zbus::Result<Accessible>;
+	fn get_child_at_index(&self, index: i32) -> zbus::Result<ObjectRef>;
 
 	/// Retrieves a list of the object's accessible children.
 	///
@@ -59,11 +66,11 @@ trait Accessible {
 	///
 	/// ## Registry
 	///
-	/// On the `Accessible` interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
+	/// On the [`Accessible`] interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
 	/// of all accessible applications' root objects on the bus.
 	///
-	/// [`Accessible`]: ../crate::common::events::Accessible
-	fn get_children(&self) -> zbus::Result<Vec<Accessible>>;
+	/// [`Accessible`]: crate::accessible::AccessibleProxy
+	fn get_children(&self) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// This object resides in its parent's list of children.
 	/// This returns its position in this list of children, starting from 0.
@@ -112,7 +119,7 @@ trait Accessible {
 	/// [`RelationType::ControllerFor`]: crate::common::RelationType::ControllerFor
 	/// [`name`]: #method.name
 	/// [`Accessible`]: ../crate::common::events::Accessible
-	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<Accessible>)>>;
+	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<ObjectRef>)>>;
 
 	/// Gets the [`Role`] that the current accessible object represents.
 	///
@@ -149,7 +156,7 @@ trait Accessible {
 	/// Application-specific identifier for the current object.
 	///
 	/// A special id given to an object.
-	/// Accessible application developers can use this to give a special id to an object
+	/// ObjectRef application developers can use this to give a special id to an object
 	/// to use in tests, for example, "my_widget".
 	///
 	/// Note that there is no way to directly find an object by its id;
@@ -209,7 +216,7 @@ trait Accessible {
 	#[dbus_proxy(property)]
 	fn name(&self) -> zbus::Result<String>;
 
-	/// Accessible parent object of the current object.
+	/// ObjectRef parent object of the current object.
 	///
 	/// Null parent:
 	/// If the object has no parent (e.g. the application's root object is being queried),
@@ -220,22 +227,22 @@ trait Accessible {
 	/// An application must have a single root object, called "/org/a11y/atspi/accessible/root".
 	/// All other objects should have that one as their highest-level ancestor.
 	#[dbus_proxy(property)]
-	fn parent(&self) -> zbus::Result<Accessible>;
+	fn parent(&self) -> zbus::Result<ObjectRef>;
 }
 
-impl TryFrom<AccessibleProxy<'_>> for Accessible {
+impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
-	fn try_from(proxy: AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
-		Ok(Accessible {
+	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
+		Ok(ObjectRef {
 			name: proxy.destination().to_string(),
 			path: proxy.path().to_string().try_into()?,
 		})
 	}
 }
-impl TryFrom<&AccessibleProxy<'_>> for Accessible {
+impl TryFrom<&AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
-	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<Accessible, Self::Error> {
-		Ok(Accessible {
+	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
+		Ok(ObjectRef {
 			name: proxy.destination().to_string(),
 			path: proxy.path().to_string().try_into()?,
 		})

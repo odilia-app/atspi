@@ -13,8 +13,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
-pub mod accessible;
-pub use accessible::Accessible;
+pub mod object_ref;
+pub use object_ref::ObjectRef;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;
@@ -47,7 +47,7 @@ pub type MatchArgs<'a> = (
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::accessible::Accessible`] objects should be sorted.
+/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::object_reference::ObjectRef`] objects should be sorted.
 pub enum SortOrder {
 	/// Invalid sort order
 	Invalid,
@@ -69,7 +69,7 @@ pub enum SortOrder {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 pub enum TreeTraversalType {
-	/// Restrict children tree traveral
+	/// Restrict children tree traversal
 	RestrictChildren,
 	/// Restrict sibling tree traversal
 	RestrictSibling,
@@ -79,7 +79,7 @@ pub enum TreeTraversalType {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::accessible::Accessible`] objects.
+/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::object_reference::ObjectRef`] objects.
 pub enum MatchType {
 	/// Invalid match type
 	Invalid,
@@ -124,11 +124,11 @@ pub enum ClipType {
 #[repr(u32)]
 /// Level of granularity to get text of, in relation to a cursor position.
 pub enum Granularity {
-	/// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the chracter that appears after the cursor.
+	/// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the character that appears after the cursor.
 	Char,
-	/// Gives the entire word in front of or which contains the cursor. TODO: confirm that it always chooses the word in front of the cursor.
+	/// Gives the entire word in front of, or which contains, the cursor. TODO: confirm that it always chooses the word in front of the cursor.
 	Word,
-	/// Gives to entire sentence in fron of the or which contains the cursor. TODO: confirm that it always chooses the sentence after the cursor.
+	/// Gives entire sentence in front of, or which contains, the cursor. TODO: confirm that it always chooses the sentence after the cursor.
 	Sentence,
 	/// Gives the line, as seen visually of which the cursor is situated within.
 	Line,
@@ -192,4 +192,52 @@ pub enum ScrollType {
 	RightEdge,
 	/// Scroll the object to application-dependent position on the window.
 	Anywhere,
+}
+
+/// Enumeration used to indicate a type of live region and how assertive it
+/// should be in terms of speaking notifications. Currently, this is only used
+/// for "announcement" events, but it may be used for additional purposes
+/// in the future.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[repr(u32)]
+pub enum Live {
+	/// No live region.
+	None,
+	/// This live region should be considered polite.
+	Polite,
+	/// This live region should be considered assertive.
+	Assertive,
+}
+
+impl Default for Live {
+	fn default() -> Self {
+		Self::None
+	}
+}
+
+impl TryFrom<i32> for Live {
+	type Error = AtspiError;
+
+	fn try_from(value: i32) -> Result<Self, Self::Error> {
+		match value {
+			0 => Ok(Live::None),
+			1 => Ok(Live::Polite),
+			2 => Ok(Live::Assertive),
+			_ => Err(AtspiError::Conversion("Unknown Live variant")),
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn convert_i32_to_live() {
+		assert_eq!(Live::None, Live::try_from(0).unwrap());
+		assert_eq!(Live::Polite, Live::try_from(1).unwrap());
+		assert_eq!(Live::Assertive, Live::try_from(2).unwrap());
+		assert!(Live::try_from(3).is_err());
+		assert!(Live::try_from(-1).is_err());
+	}
 }

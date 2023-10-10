@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{Accessible, EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString},
+	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zvariant::ObjectPath;
@@ -10,7 +10,10 @@ pub enum KeyboardEvents {
 	/// See: [`ModifiersEvent`].
 	Modifiers(ModifiersEvent),
 }
-impl_event_conversions!(KeyboardEvents, Event::Keyboard);
+
+impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
+impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard);
+
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
 impl HasMatchRule for KeyboardEvents {
@@ -20,8 +23,8 @@ impl HasMatchRule for KeyboardEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
-	/// The [`Accessible`] which the event applies to.
-	pub item: crate::events::Accessible,
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,
 }
@@ -35,7 +38,7 @@ impl GenericEvent<'_> for ModifiersEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: Accessible, body: Self::Body) -> Result<Self, AtspiError> {
+	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
 	fn sender(&self) -> String {
@@ -64,7 +67,18 @@ impl TryFrom<&zbus::Message> for KeyboardEvents {
 	}
 }
 
-impl_event_conversions!(ModifiersEvent, KeyboardEvents, KeyboardEvents::Modifiers, Event::Keyboard);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ModifiersEvent,
+	KeyboardEvents,
+	KeyboardEvents::Modifiers
+);
+impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
+impl_try_from_event_for_user_facing_type!(
+	ModifiersEvent,
+	KeyboardEvents::Modifiers,
+	Event::Keyboard
+);
+
 event_test_cases!(ModifiersEvent);
 impl_to_dbus_message!(ModifiersEvent);
 impl_from_dbus_message!(ModifiersEvent);

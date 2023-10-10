@@ -1,7 +1,7 @@
 //! Conversion functions and types representing a set of [`Interface`]s.
 //!
 //! Each `AccessibleProxy` will implement some set of these interfaces,
-//! represened by a [`InterfaceSet`].
+//! represented by a [`InterfaceSet`].
 
 use enumflags2::{bitflags, BitFlag, BitFlags};
 use serde::{
@@ -375,7 +375,7 @@ impl TryFrom<&str> for Interface {
 }
 impl std::fmt::Display for Interface {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-		let interface_string = match self {
+		let interface_str = match self {
 			Interface::Accessible => ACCESSIBLE_INTERFACE_NAME,
 			Interface::Action => ACTION_INTERFACE_NAME,
 			Interface::Application => APPLICATION_INTERFACE_NAME,
@@ -396,8 +396,7 @@ impl std::fmt::Display for Interface {
 			Interface::TableCell => TABLE_CELL_INTERFACE_NAME,
 			Interface::Text => TEXT_INTERFACE_NAME,
 			Interface::Value => VALUE_INTERFACE_NAME,
-		}
-		.to_string();
-		write!(f, "{interface_string}")
+		};
+    f.write_str(interface_str)
 	}
 }
