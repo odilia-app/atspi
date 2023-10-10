@@ -469,33 +469,6 @@ impl TryFrom<u32> for Role {
 	}
 }
 
-#[cfg(test)]
-pub mod tests {
-	use super::Role;
-	use zvariant::{from_slice, to_bytes, EncodingContext};
-
-	const HIGHEST_ROLE_VALUE: u32 = 129;
-
-	#[test]
-	fn test_serialization_matches_from_impl() {
-		let ctxt = EncodingContext::<byteorder::LE>::new_dbus(0);
-		for role_num in 1..=HIGHEST_ROLE_VALUE {
-			let from_role = Role::try_from(role_num)
-				.unwrap_or_else(|_| panic!("Unable to convert {role_num} into Role"));
-			let encoded = to_bytes(ctxt, &from_role).expect("Unable to encode {from_role}");
-			println!("ENCODED: {encoded:?}");
-			let zbus_role: Role =
-				from_slice(&encoded, ctxt).expect("Unable to convert {encoded} into Role");
-			assert_eq!(from_role, zbus_role, "The serde zvariant::from_slice(...) and From<u32> implementations have produced different results. The number used was {role_num}, it produced a Role of {from_role}, but the from_slice(...) implementation produced {zbus_role}");
-			assert_eq!(
-				from_role as u32, role_num,
-				"The role number {role_num} does not match the representation of the role {}",
-				from_role as u32
-			);
-		}
-	}
-}
-
 const ROLE_NAMES: &[&str] = &[
 	"invalid",
 	"accelerator label",
@@ -640,5 +613,32 @@ impl Role {
 impl std::fmt::Display for Role {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "{}", self.name())
+	}
+}
+
+#[cfg(test)]
+pub mod tests {
+	use super::Role;
+	use zvariant::{from_slice, to_bytes, EncodingContext};
+
+	const HIGHEST_ROLE_VALUE: u32 = 129;
+
+	#[test]
+	fn test_serialization_matches_from_impl() {
+		let ctxt = EncodingContext::<byteorder::LE>::new_dbus(0);
+		for role_num in 1..=HIGHEST_ROLE_VALUE {
+			let from_role = Role::try_from(role_num)
+				.unwrap_or_else(|_| panic!("Unable to convert {role_num} into Role"));
+			let encoded = to_bytes(ctxt, &from_role).expect("Unable to encode {from_role}");
+			println!("ENCODED: {encoded:?}");
+			let zbus_role: Role =
+				from_slice(&encoded, ctxt).expect("Unable to convert {encoded} into Role");
+			assert_eq!(from_role, zbus_role, "The serde zvariant::from_slice(...) and From<u32> implementations have produced different results. The number used was {role_num}, it produced a Role of {from_role}, but the from_slice(...) implementation produced {zbus_role}");
+			assert_eq!(
+				from_role as u32, role_num,
+				"The role number {role_num} does not match the representation of the role {}",
+				from_role as u32
+			);
+		}
 	}
 }
