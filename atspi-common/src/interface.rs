@@ -403,3 +403,59 @@ mod tests {
 		}
 	}
 }
+impl TryFrom<&str> for Interface {
+	type Error = &'static str;
+
+	fn try_from(s: &str) -> Result<Self, Self::Error> {
+		match s {
+			ACCESSIBLE_INTERFACE_NAME => Ok(Interface::Accessible),
+			ACTION_INTERFACE_NAME => Ok(Interface::Action),
+			APPLICATION_INTERFACE_NAME => Ok(Interface::Application),
+			COLLECTION_INTERFACE_NAME => Ok(Interface::Collection),
+			COMPONENT_INTERFACE_NAME => Ok(Interface::Component),
+			DOCUMENT_INTERFACE_NAME => Ok(Interface::Document),
+			HYPERTEXT_INTERFACE_NAME => Ok(Interface::Hypertext),
+			HYPERLINK_INTERFACE_NAME => Ok(Interface::Hyperlink),
+			IMAGE_INTERFACE_NAME => Ok(Interface::Image),
+			SELECTION_INTERFACE_NAME => Ok(Interface::Selection),
+			SOCKET_INTERFACE_NAME => Ok(Interface::Socket),
+			TABLE_INTERFACE_NAME => Ok(Interface::Table),
+			TABLE_CELL_INTERFACE_NAME => Ok(Interface::TableCell),
+			TEXT_INTERFACE_NAME => Ok(Interface::Text),
+			EDITABLE_TEXT_INTERFACE_NAME => Ok(Interface::EditableText),
+			CACHE_INTERFACE_NAME => Ok(Interface::Cache),
+			VALUE_INTERFACE_NAME => Ok(Interface::Value),
+			REGISTRY_INTERFACE_NAME => Ok(Interface::Registry),
+			DEVICE_EVENT_CONTROLLER_INTERFACE_NAME => Ok(Interface::DeviceEventController),
+			DEVICE_EVENT_LISTENER_INTERFACE_NAME => Ok(Interface::DeviceEventListener),
+			_ => Err("No interface found for conversion."),
+		}
+	}
+}
+impl std::fmt::Display for Interface {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		let interface_str = match self {
+			Interface::Accessible => ACCESSIBLE_INTERFACE_NAME,
+			Interface::Action => ACTION_INTERFACE_NAME,
+			Interface::Application => APPLICATION_INTERFACE_NAME,
+			Interface::Cache => CACHE_INTERFACE_NAME,
+			Interface::Collection => COLLECTION_INTERFACE_NAME,
+			Interface::Component => COMPONENT_INTERFACE_NAME,
+			Interface::DeviceEventController => DEVICE_EVENT_CONTROLLER_INTERFACE_NAME,
+			Interface::DeviceEventListener => DEVICE_EVENT_LISTENER_INTERFACE_NAME,
+			Interface::Document => DOCUMENT_INTERFACE_NAME,
+			Interface::EditableText => EDITABLE_TEXT_INTERFACE_NAME,
+			Interface::Hypertext => HYPERTEXT_INTERFACE_NAME,
+			Interface::Hyperlink => HYPERLINK_INTERFACE_NAME,
+			Interface::Image => IMAGE_INTERFACE_NAME,
+			Interface::Registry => REGISTRY_INTERFACE_NAME,
+			Interface::Socket => SOCKET_INTERFACE_NAME,
+			Interface::Selection => SELECTION_INTERFACE_NAME,
+			Interface::Table => TABLE_INTERFACE_NAME,
+			Interface::TableCell => TABLE_CELL_INTERFACE_NAME,
+			Interface::Text => TEXT_INTERFACE_NAME,
+			Interface::Value => VALUE_INTERFACE_NAME,
+		};
+		f.write_str(interface_str)
+	}
+}
