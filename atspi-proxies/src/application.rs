@@ -135,7 +135,7 @@ trait Application {
 	///
 	/// member: "Id", type: property
 	///
-	/// * [`id`]: #method.id
+	/// [`id`]: crate::application::ApplicationProxy#method.id
 	#[dbus_proxy(property)]
 	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
