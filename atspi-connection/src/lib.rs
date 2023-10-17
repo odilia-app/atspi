@@ -1,3 +1,8 @@
+//! A connection to AT-SPI.
+//!  connection may receive any [`atspi_common::events::Event`] structures.
+
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
+
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
 compile_error!("You must specify at least one of the `async-std` or `tokio` features.");
 
@@ -23,6 +28,9 @@ pub struct AccessibilityConnection {
 
 impl AccessibilityConnection {
 	/// Open a new connection to the bus
+	/// # Errors
+	/// May error when a bus is not available,
+	/// or when the accessibility bus (AT-SPI) can not be found.
 	#[cfg_attr(feature = "tracing", tracing::instrument)]
 	pub async fn open() -> zbus::Result<Self> {
 		// Grab the a11y bus address from the session bus
