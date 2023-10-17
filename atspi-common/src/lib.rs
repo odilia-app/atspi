@@ -1,4 +1,4 @@
-#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code)]
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
 #![allow(clippy::module_name_repetitions)]
 
 //! # atspi-common
@@ -47,7 +47,7 @@ pub type MatchArgs<'a> = (
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::object_reference::ObjectRef`] objects should be sorted.
+/// Enumeration used by interface `CollectionProxy` to specify the way [`crate::object_ref::ObjectRef`] objects should be sorted.
 pub enum SortOrder {
 	/// Invalid sort order
 	Invalid,
@@ -79,7 +79,7 @@ pub enum TreeTraversalType {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(i32)]
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::object_reference::ObjectRef`] objects.
+/// Enumeration used by [`MatchArgs`] to specify how to interpret [`crate::object_ref::ObjectRef`] objects.
 pub enum MatchType {
 	/// Invalid match type
 	Invalid,
