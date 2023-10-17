@@ -397,6 +397,6 @@ impl std::fmt::Display for Interface {
 			Interface::Text => TEXT_INTERFACE_NAME,
 			Interface::Value => VALUE_INTERFACE_NAME,
 		};
-    f.write_str(interface_str)
+		f.write_str(interface_str)
 	}
 }
