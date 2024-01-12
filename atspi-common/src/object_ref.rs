@@ -83,9 +83,9 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 				}
 				let fields = s.fields();
 				let name: String =
-					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
+					fields.first().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				let path_value: ObjectPath<'_> =
-					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
+					fields.last().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				Ok(ObjectRef { name, path: path_value.into() })
 			}
 			_ => Err(zvariant::Error::IncorrectType),
