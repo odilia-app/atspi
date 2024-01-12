@@ -42,7 +42,7 @@ fn test_accessible_from_dbus_ctxt_to_accessible() {
 
 	let acc = ObjectRef::default();
 	let ctxt = Context::<byteorder::LE>::new_dbus(0);
-	let acc_value: Value<'_> = acc.try_into().unwrap();
+	let acc_value: Value<'_> = acc.into();
 	let encoded = to_bytes(ctxt, &acc_value).unwrap();
 	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
 	let accessible: ObjectRef = decoded.try_into().unwrap();
