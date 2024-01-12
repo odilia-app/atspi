@@ -95,6 +95,6 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 
 impl From<ObjectRef> for zvariant::Structure<'_> {
 	fn from(accessible: ObjectRef) -> Self {
-		(accessible.name.as_str().to_string(), accessible.path).into()
+		(accessible.name, accessible.path).into()
 	}
 }
