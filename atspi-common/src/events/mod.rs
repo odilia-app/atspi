@@ -393,11 +393,11 @@ pub mod accessible_deserialization_tests {
 		};
 		let vals = structure.into_fields();
 		assert_eq!(vals.len(), 2);
-		let Value::Str(bus_name) = vals.get(0).unwrap() else {
-			panic!("Unable to destructure field value: {:?}", vals.get(0).unwrap());
+		let Value::Str(bus_name) = vals.first().unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.first().unwrap());
 		};
 		assert_eq!(bus_name, ":0.0");
-		let Value::ObjectPath(path) = vals.get(1).unwrap() else {
+		let Value::ObjectPath(path) = vals.last().unwrap() else {
 			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
 		};
 		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
