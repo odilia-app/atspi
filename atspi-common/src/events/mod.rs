@@ -387,7 +387,7 @@ pub mod accessible_deserialization_tests {
 	#[test]
 	fn try_into_value() {
 		let acc = ObjectRef::default();
-		let value_struct = Value::try_from(acc).expect("Unable to convert into a zvariant::Value");
+		let value_struct = Value::from(acc);
 		let Value::Structure(structure) = value_struct else {
 			panic!("Unable to destructure a structure out of the Value.");
 		};
