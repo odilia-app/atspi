@@ -422,7 +422,7 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		let path = message.path().expect("returned path is either Some or panics");
-		let owned_path = OwnedObjectPath::try_from(path)?;
+		let owned_path: OwnedObjectPath = path.into();
 		let fields = message.fields()?;
 		let sender = fields.get_field(MessageFieldCode::Sender);
 		let sender = sender
