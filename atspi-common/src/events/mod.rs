@@ -784,7 +784,7 @@ mod tests {
 		let accessible = crate::ObjectRef::default();
 		let name = accessible.name;
 		let path = accessible.path;
-		let props = HashMap::from([(name, ObjectPath::try_from(path).unwrap().into())]);
+		let props = HashMap::from([(name, ObjectPath::from(path).into())]);
 		assert_eq!(event_body.properties, props);
 	}
 
