@@ -11,7 +11,7 @@ on:
 jobs:
   clippy:
     runs-on: ubuntu-latest
-    needs: [rustfmt]
+    needs: [rustfmt,no-unused-dependencies]
     name: ${{ matrix.toolchain }} / clippy
     strategy:
         fail-fast: false
@@ -109,7 +109,7 @@ jobs:
         run: cargo doc --workspace --no-deps --document-private-items
   no-unused-dependencies:
     runs-on: ubuntu-latest
-    needs: [clippy]
+    needs: [rustfmt]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
