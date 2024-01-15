@@ -387,17 +387,17 @@ pub mod accessible_deserialization_tests {
 	#[test]
 	fn try_into_value() {
 		let acc = ObjectRef::default();
-		let value_struct = Value::try_from(acc).expect("Unable to convert into a zvariant::Value");
+		let value_struct = Value::from(acc);
 		let Value::Structure(structure) = value_struct else {
 			panic!("Unable to destructure a structure out of the Value.");
 		};
 		let vals = structure.into_fields();
 		assert_eq!(vals.len(), 2);
-		let Value::Str(bus_name) = vals.get(0).unwrap() else {
-			panic!("Unable to destructure field value: {:?}", vals.get(0).unwrap());
+		let Value::Str(bus_name) = vals.first().unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.first().unwrap());
 		};
 		assert_eq!(bus_name, ":0.0");
-		let Value::ObjectPath(path) = vals.get(1).unwrap() else {
+		let Value::ObjectPath(path) = vals.last().unwrap() else {
 			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
 		};
 		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
@@ -422,7 +422,7 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		let path = message.path().expect("returned path is either Some or panics");
-		let owned_path = OwnedObjectPath::try_from(path)?;
+		let owned_path: OwnedObjectPath = path.into();
 		let fields = message.fields()?;
 		let sender = fields.get_field(MessageFieldCode::Sender);
 		let sender = sender
@@ -784,7 +784,7 @@ mod tests {
 		let accessible = crate::ObjectRef::default();
 		let name = accessible.name;
 		let path = accessible.path;
-		let props = HashMap::from([(name, ObjectPath::try_from(path).unwrap().into())]);
+		let props = HashMap::from([(name, ObjectPath::from(path).into())]);
 		assert_eq!(event_body.properties, props);
 	}
 

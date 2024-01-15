@@ -42,7 +42,7 @@ fn test_accessible_from_dbus_ctxt_to_accessible() {
 
 	let acc = ObjectRef::default();
 	let ctxt = Context::<byteorder::LE>::new_dbus(0);
-	let acc_value: Value<'_> = acc.try_into().unwrap();
+	let acc_value: Value<'_> = acc.into();
 	let encoded = to_bytes(ctxt, &acc_value).unwrap();
 	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
 	let accessible: ObjectRef = decoded.try_into().unwrap();
@@ -83,9 +83,9 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 				}
 				let fields = s.fields();
 				let name: String =
-					fields.get(0).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
+					fields.first().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				let path_value: ObjectPath<'_> =
-					fields.get(1).ok_or(zvariant::Error::IncorrectType)?.try_into()?;
+					fields.last().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				Ok(ObjectRef { name, path: path_value.into() })
 			}
 			_ => Err(zvariant::Error::IncorrectType),
@@ -95,6 +95,6 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 
 impl From<ObjectRef> for zvariant::Structure<'_> {
 	fn from(accessible: ObjectRef) -> Self {
-		(accessible.name.as_str().to_string(), accessible.path).into()
+		(accessible.name, accessible.path).into()
 	}
 }
