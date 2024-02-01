@@ -35,7 +35,7 @@ atspi-connection = { path = "../atspi-connection", version = "0.3.0", default-fe
 
 [dev-dependencies]
 atspi = { path = "." }
-tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 async-std = { version = "1", features = ["attributes"] }
 futures-lite = { version = "1.12", default-features = false }
 tokio-stream = "0.1"

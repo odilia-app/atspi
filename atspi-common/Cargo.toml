@@ -31,7 +31,7 @@ zbus = { workspace = true }
 atspi-connection = { path = "../atspi-connection" }
 atspi-proxies = { path = "../atspi-proxies"  }
 tokio-stream = { version = "0.1", default-features = false, features = ["time"] }
-tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 byteorder = "1.4.3"
 rename-item = "0.1.0"
 tokio-test = "0.4.2"
