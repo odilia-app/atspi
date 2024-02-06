@@ -2,10 +2,9 @@
 resolver = "2"
 members = [
   "atspi",
-	"atspi-proxies",
 	"atspi-common",
   "atspi-connection",
-]
+	"atspi-proxies"]
 
 [workspace.package]
 description = "AT-SPI2 protocol implementation in Rust"
