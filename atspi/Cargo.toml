@@ -35,6 +35,6 @@ atspi-proxies = { path = "../atspi-proxies", version = "0.3.0", default-features
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes"] }
 atspi = { path = "." }
-futures-lite = { version = "1.12", default-features = false }
+futures-lite = { version = "2", default-features = false }
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"

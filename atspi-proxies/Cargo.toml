@@ -33,7 +33,7 @@ zbus = { workspace = true, default-features = false }
 async-std = { version = "1", features = ["attributes"] }
 atspi-common = { path = "../atspi-common", version = "0.3.0", features = ["async-std"] }
 byteorder = "1.4"
-futures-lite = { version = "1.12", default-features = false }
+futures-lite = { version = "2", default-features = false }
 lazy_static = "1.0"
 rename-item = "0.1.0"
 serde_json = "1.0.96"
