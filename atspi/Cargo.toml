@@ -32,9 +32,15 @@ atspi-common = { path = "../atspi-common", version = "0.3.0", default-features =
 atspi-connection = { path = "../atspi-connection", version = "0.3.0", default-features = false, optional = true }
 atspi-proxies = { path = "../atspi-proxies", version = "0.3.0", default-features = false, optional = true }
 
+[[bench]]
+name = "atspi_benches"
+harness = false
+
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes"] }
 atspi = { path = "." }
+criterion = "0.5"
 futures-lite = { version = "2", default-features = false }
+fastrand = "2.0"
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
