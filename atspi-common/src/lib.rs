@@ -1,5 +1,6 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
 #![allow(clippy::module_name_repetitions)]
+#![allow(clippy::multiple_crate_versions)]
 
 //! # atspi-common
 //!

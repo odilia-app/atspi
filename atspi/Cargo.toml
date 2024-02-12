@@ -19,7 +19,6 @@ include = ["src/**/*", "LICENSE-*", "README.md"]
 default = ["async-std"]
 async-std = ["proxies-async-std", "connection-async-std"]
 tokio = ["proxies-tokio", "connection-tokio"]
-
 proxies = []
 proxies-async-std = ["atspi-proxies/async-std", "proxies"]
 proxies-tokio = ["atspi-proxies/tokio", "proxies"]
@@ -30,12 +29,12 @@ tracing = ["atspi-connection/tracing"]
 
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.3.0", default-features = false }
-atspi-proxies = { path = "../atspi-proxies", version = "0.3.0", default-features = false, optional = true }
 atspi-connection = { path = "../atspi-connection", version = "0.3.0", default-features = false, optional = true }
+atspi-proxies = { path = "../atspi-proxies", version = "0.3.0", default-features = false, optional = true }
 
 [dev-dependencies]
-atspi = { path = "." }
-tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
 async-std = { version = "1", features = ["attributes"] }
-futures-lite = { version = "1.12", default-features = false }
+atspi = { path = "." }
+futures-lite = { version = "2", default-features = false }
+tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"

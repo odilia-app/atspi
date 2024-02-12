@@ -20,12 +20,12 @@ async-std = ["zbus/async-io", "atspi-proxies/async-std", "atspi-common/async-std
 tokio = ["zbus/tokio", "atspi-proxies/tokio", "atspi-common/tokio"]
 
 [dependencies]
-atspi-proxies = { path = "../atspi-proxies/", version = "0.3.0", default-features = false }
 atspi-common = { path = "../atspi-common/", version = "0.3.0", default-features = false }
-futures-lite = "1.13.0"
-zbus.workspace = true
+atspi-proxies = { path = "../atspi-proxies/", version = "0.3.0", default-features = false }
+futures-lite = { version = "2", default-features = false }
 tracing = { optional = true, workspace = true }
+zbus.workspace = true
 
 [dev-dependencies]
-tokio-test = "0.4.2"
 enumflags2.workspace = true
+tokio-test = "0.4.2"
