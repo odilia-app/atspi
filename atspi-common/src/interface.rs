@@ -364,7 +364,7 @@ mod tests {
 	#[test]
 	fn deserialize_interface_set_accessible() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(
+		let data = Data::new::<&[u8]>(
 			&[
 				30, 0, 0, 0, 25, 0, 0, 0, 111, 114, 103, 46, 97, 49, 49, 121, 46, 97, 116, 115,
 				112, 105, 46, 65, 99, 99, 101, 115, 115, 105, 98, 108, 101, 0,

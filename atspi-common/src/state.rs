@@ -524,7 +524,7 @@ mod tests {
 	#[test]
 	fn deserialize_empty_state_set() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ctxt);
+		let data = Data::new::<&[u8]>(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ctxt);
 		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::empty());
 	}
@@ -539,7 +539,7 @@ mod tests {
 	#[test]
 	fn deserialize_state_set_invalid() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(&[8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], ctxt);
+		let data = Data::new::<&[u8]>(&[8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], ctxt);
 		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::Invalid));
 	}
@@ -554,7 +554,7 @@ mod tests {
 	#[test]
 	fn deserialize_state_set_manages_descendants() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0], ctxt);
+		let data = Data::new::<&[u8]>(&[8, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0], ctxt);
 		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::ManagesDescendants));
 	}
@@ -569,7 +569,7 @@ mod tests {
 	#[test]
 	fn deserialize_state_set_indeterminate() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], ctxt);
+		let data = Data::new::<&[u8]>(&[8, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], ctxt);
 		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::Indeterminate));
 	}
@@ -584,7 +584,7 @@ mod tests {
 	#[test]
 	fn deserialize_state_set_focusable_focused() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(&[8, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0], ctxt);
+		let data = Data::new::<&[u8]>(&[8, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0], ctxt);
 		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::Focusable | State::Focused));
 	}
@@ -592,7 +592,7 @@ mod tests {
 	#[test]
 	fn cannot_deserialize_state_set_invalid_length() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(&[4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ctxt);
+		let data = Data::new::<&[u8]>(&[4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ctxt);
 		let decode_result = data.deserialize::<StateSet>();
 		assert!(decode_result.is_err());
 	}
@@ -600,7 +600,7 @@ mod tests {
 	#[test]
 	fn cannot_deserialize_state_set_invalid_flag() {
 		let ctxt = Context::new_dbus(LE, 0);
-		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32], ctxt);
+		let data = Data::new::<&[u8]>(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32], ctxt);
 		let decode_result = data.deserialize::<StateSet>();
 		assert!(decode_result.is_err());
 	}
