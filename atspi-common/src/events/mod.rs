@@ -27,9 +27,10 @@ pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "zbus")]
 use zbus_names::{OwnedUniqueName, UniqueName};
-use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
+#[cfg(feature = "zbus")]
+use zvariant::OwnedObjectPath;
+use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
