@@ -163,14 +163,14 @@ impl Default for EventBodyOwned {
 impl Clone for EventBodyOwned {
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
-			panic!("Failure cloning 'any_data' field: {:?}", err);
+			panic!("Failure cloning 'any_data' field: {err:?}");
 		});
 
 		let cloned_properties = {
 			let mut map = HashMap::new();
 			for (key, value) in &self.properties {
 				let cloned_value = value.try_clone().unwrap_or_else(|err| {
-					panic!("Failure cloning 'props' field: {:?}", err);
+					panic!("Failure cloning 'props' field: {err:?}");
 				});
 				map.insert(key.clone(), cloned_value);
 			}
