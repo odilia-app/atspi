@@ -33,7 +33,11 @@ atspi-connection = { path = "../atspi-connection", version = "0.3.0", default-fe
 atspi-proxies = { path = "../atspi-proxies", version = "0.3.0", default-features = false, optional = true }
 
 [[bench]]
-name = "atspi_benches"
+name = "event_parsing"
+harness = false
+
+[[bench]]
+name = "event_parsing_100k"
 harness = false
 
 [dev-dependencies]

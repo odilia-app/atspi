@@ -102,9 +102,9 @@ fn generate_atspi_messages_random(n: usize) -> Vec<Message> {
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-	let random_messages = generate_atspi_messages_random(1000);
+	let random_messages = generate_atspi_messages_random(100_000);
 
-	c.bench_function("atspi_message_to_event", |b| {
+	c.bench_function("Parse 100_000 Messages into Events", |b| {
 		b.iter(|| {
 			for msg in &random_messages {
 				Event::try_from(black_box(msg)).unwrap();
