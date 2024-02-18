@@ -29,3 +29,7 @@ zbus.workspace = true
 [dev-dependencies]
 enumflags2.workspace = true
 tokio-test = "0.4.2"
+
+[profile.bench]
+lto = true
+codegen-units = 1
