@@ -20,3 +20,7 @@ authors = [
 zbus = { version = "3.12.0", default-features = false }
 tracing = "0.1.37"
 enumflags2 = "0.7.7"
+
+[profile.bench]
+lto = true
+codegen-units = 1
