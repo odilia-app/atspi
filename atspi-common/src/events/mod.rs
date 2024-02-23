@@ -488,7 +488,7 @@ fn test_event_listener_default_no_panic() {
 
 #[test]
 fn test_event_listener_signature() {
-	assert_eq_signatures!(&EventListeners::signature(), &EVENT_LISTENER_SIGNATURE);
+	assert_eq!(&EventListeners::signature(), &EVENT_LISTENER_SIGNATURE);
 }
 
 /// Covers both `EventListener` events.
@@ -780,12 +780,12 @@ mod tests {
 
 	#[test]
 	fn check_event_body_qt_signature() {
-		assert_eq_signatures!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
+		assert_eq!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]
 	fn check_event_body_signature() {
-		assert_eq_signatures!(&<EventBodyOwned as Type>::signature(), &ATSPI_EVENT_SIGNATURE);
+		assert_eq!(&<EventBodyOwned as Type>::signature(), &ATSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]

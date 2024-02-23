@@ -530,17 +530,3 @@ macro_rules! event_test_cases {
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
 	};
 }
-
-/// Asserts that the signatures are equal, but ignores the outer parentheses as
-/// the difference between marshalled and unmarshalled signatures is often just one set of outer parentheses.
-#[macro_export]
-macro_rules! assert_eq_signatures {
-	($lhs_sig:expr, $rhs_sig:expr) => {
-		assert!(
-			$lhs_sig == $rhs_sig,
-			"Signatures are not equal (Lhs: {}, Rhs: {})",
-			$lhs_sig,
-			$rhs_sig
-		);
-	};
-}
