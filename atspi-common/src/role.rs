@@ -631,7 +631,8 @@ pub mod tests {
 		for role_num in 1..=HIGHEST_ROLE_VALUE {
 			let from_role = Role::try_from(role_num)
 				.unwrap_or_else(|_| panic!("Unable to convert {role_num} into Role"));
-			let encoded = to_bytes(ctxt, &from_role).expect("Unable to encode {from_role}");
+			let encoded = to_bytes(ctxt, &from_role)
+				.unwrap_or_else(|_| panic!("Unable to encode {from_role}"));
 			println!("ENCODED: {encoded:?}");
 
 			let (zbus_role, _) = encoded.deserialize().expect("Unable to decode {encoded:?}");
