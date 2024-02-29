@@ -48,5 +48,6 @@ atspi = { path = "." }
 criterion = "0.5"
 futures-lite = { version = "2", default-features = false }
 fastrand = "2.0"
+async-std = { version = "1.12", default-features = false }
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
