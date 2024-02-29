@@ -163,7 +163,7 @@ impl Default for EventBodyOwned {
 /// If:
 /// 1. the `any_data` or `properties` field contain an [`std::os::fd::OwnedFd`] type, and
 /// 2. the maximum number of open files for the process is exceeded.
-/// 
+///
 /// Then, and only then, will this function panic.
 /// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 /// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the
