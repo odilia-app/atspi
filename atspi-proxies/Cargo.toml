@@ -1,6 +1,6 @@
 [package]
 name = "atspi-proxies"
-version = "0.3.0"
+version = "0.5.0"
 description = "AT-SPI2 proxies to query or manipulate UI objects"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
