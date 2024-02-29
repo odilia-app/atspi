@@ -639,7 +639,8 @@ impl GenericEvent<'_> for RestyleEvent {
 impl TryFrom<&zbus::Message> for WindowEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let member = ev
+		let header = ev.header();
+		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
@@ -688,7 +689,7 @@ impl From<PropertyChangeEvent> for EventBodyOwned {
 			kind: event.property,
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -710,7 +711,7 @@ impl From<MinimizeEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -732,7 +733,7 @@ impl From<MaximizeEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -754,7 +755,7 @@ impl From<RestoreEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -776,7 +777,7 @@ impl From<CloseEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -798,7 +799,7 @@ impl From<CreateEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -820,7 +821,7 @@ impl From<ReparentEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -846,7 +847,7 @@ impl From<DesktopCreateEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -872,7 +873,7 @@ impl From<DesktopDestroyEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -894,7 +895,7 @@ impl From<DestroyEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -916,7 +917,7 @@ impl From<ActivateEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -938,7 +939,7 @@ impl From<DeactivateEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -960,7 +961,7 @@ impl From<RaiseEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -982,7 +983,7 @@ impl From<LowerEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1000,7 +1001,7 @@ impl From<MoveEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1022,7 +1023,7 @@ impl From<ResizeEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1044,7 +1045,7 @@ impl From<ShadeEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: zvariant::Value::U8(0).try_into().unwrap(),
 		}
 	}
 }
@@ -1066,7 +1067,7 @@ impl From<UUshadeEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: zvariant::Value::U8(0).try_into().unwrap(),
 		}
 	}
 }
@@ -1088,7 +1089,7 @@ impl From<RestyleEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }

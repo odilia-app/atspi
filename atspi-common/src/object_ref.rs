@@ -1,4 +1,3 @@
-use crate::events::signatures_are_eq;
 use serde::{Deserialize, Serialize};
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
@@ -38,14 +37,15 @@ fn test_accessible_signature() {
 
 #[test]
 fn test_accessible_from_dbus_ctxt_to_accessible() {
-	use zvariant::{from_slice, to_bytes, EncodingContext as Context, Value};
+	use zvariant::serialized::Context;
+	use zvariant::{to_bytes, Value, LE};
 
 	let acc = ObjectRef::default();
-	let ctxt = Context::<byteorder::LE>::new_dbus(0);
+	let ctxt = Context::new_dbus(LE, 0);
 	let acc_value: Value<'_> = acc.into();
-	let encoded = to_bytes(ctxt, &acc_value).unwrap();
-	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
-	let accessible: ObjectRef = decoded.try_into().unwrap();
+	let data = to_bytes(ctxt, &acc_value).unwrap();
+	let (value, _) = data.deserialize::<Value>().unwrap();
+	let accessible: ObjectRef = value.try_into().unwrap();
 
 	assert_eq!(accessible.name.as_str(), ":0.0");
 	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
@@ -53,14 +53,15 @@ fn test_accessible_from_dbus_ctxt_to_accessible() {
 
 #[test]
 fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
-	use zvariant::{from_slice, to_bytes, EncodingContext as Context, Value};
+	use zvariant::serialized::Context;
+	use zvariant::{to_bytes, Value, LE};
 
 	let acc = ObjectRef::default();
 	let value: zvariant::Value = acc.into();
-	let ctxt = Context::<byteorder::LE>::new_dbus(0);
+	let ctxt = Context::new_dbus(LE, 0);
 	let encoded = to_bytes(ctxt, &value).unwrap();
-	let decoded: Value = from_slice(&encoded, ctxt).unwrap();
-	let accessible: ObjectRef = decoded.try_into().unwrap();
+	let (value, _) = encoded.deserialize::<Value>().unwrap();
+	let accessible: ObjectRef = value.try_into().unwrap();
 
 	assert_eq!(accessible.name.as_str(), ":0.0");
 	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
@@ -69,7 +70,7 @@ fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
 impl<'a> TryFrom<zvariant::Value<'a>> for ObjectRef {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
-		value.to_owned().try_into()
+		value.try_to_owned()?.try_into()
 	}
 }
 
@@ -78,7 +79,7 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
 			zvariant::Value::Structure(s) => {
-				if !signatures_are_eq(&s.signature(), &ACCESSIBLE_PAIR_SIGNATURE) {
+				if s.signature() != ACCESSIBLE_PAIR_SIGNATURE {
 					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())));
 				}
 				let fields = s.fields();

@@ -10,7 +10,7 @@ repository = "https://github.com/odilia-app/atspi"
 homepage = "https://github.com/odilia-app/atspi"
 keywords = ["screen-reader", "accessibility", "a11y", "tts", "linux"]
 categories = ["accessibility", "api-bindings"]
-rust-version = "1.68.2"
+rust-version.workspace = true
 include = ["src/**/*", "LICENSE-*", "README.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -19,6 +19,7 @@ include = ["src/**/*", "LICENSE-*", "README.md"]
 default = ["async-std"]
 async-std = ["proxies-async-std", "connection-async-std"]
 tokio = ["proxies-tokio", "connection-tokio"]
+
 proxies = []
 proxies-async-std = ["atspi-proxies/async-std", "proxies"]
 proxies-tokio = ["atspi-proxies/tokio", "proxies"]
@@ -43,7 +44,6 @@ path = "atspi/benches/event_parsing_100k.rs"
 harness = false
 
 [dev-dependencies]
-async-std = { version = "1", features = ["attributes"] }
 atspi = { path = "." }
 criterion = "0.5"
 futures-lite = { version = "2", default-features = false }

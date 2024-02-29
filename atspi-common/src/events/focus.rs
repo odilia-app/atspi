@@ -3,7 +3,7 @@ use crate::{
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
-use zvariant::ObjectPath;
+use zvariant::{ObjectPath, OwnedValue};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum FocusEvents {
@@ -54,7 +54,8 @@ impl GenericEvent<'_> for FocusEvent {
 impl TryFrom<&zbus::Message> for FocusEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let member = ev
+		let header = ev.header();
+		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
@@ -78,7 +79,7 @@ impl From<FocusEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: OwnedValue::from(0u8),
 		}
 	}
 }

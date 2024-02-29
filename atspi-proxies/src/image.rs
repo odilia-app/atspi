@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::CoordType;
 
-#[atspi_proxy(interface = "org.a11y.atspi.Image", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Image", assume_defaults = true)]
 trait Image {
 	/// GetImageExtents method
 	fn get_image_extents(&self, coord_type: CoordType) -> zbus::Result<(i32, i32, i32, i32)>;
@@ -25,10 +24,10 @@ trait Image {
 	fn get_image_size(&self) -> zbus::Result<(i32, i32)>;
 
 	/// ImageDescription property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn image_description(&self) -> zbus::Result<String>;
 
 	/// ImageLocale property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn image_locale(&self) -> zbus::Result<String>;
 }

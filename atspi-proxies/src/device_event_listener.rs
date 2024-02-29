@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::device_event_controller::DeviceEvent;
 
-#[atspi_proxy(interface = "org.a11y.atspi.DeviceEventListener", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.DeviceEventListener", assume_defaults = true)]
 trait DeviceEventListener {
 	/// NotifyEvent method
 	fn notify_event(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;

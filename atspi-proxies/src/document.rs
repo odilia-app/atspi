@@ -10,9 +10,7 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
-
-#[atspi_proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
 trait Document {
 	/// GetAttributeValue method
 	fn get_attribute_value(&self, attributename: &str) -> zbus::Result<String>;
@@ -24,10 +22,10 @@ trait Document {
 	fn get_locale(&self) -> zbus::Result<String>;
 
 	/// CurrentPageNumber property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn current_page_number(&self) -> zbus::Result<i32>;
 
 	/// PageCount property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn page_count(&self) -> zbus::Result<i32>;
 }

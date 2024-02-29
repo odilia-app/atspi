@@ -81,7 +81,7 @@ impl AccessibilityConnection {
 
 		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
 		let registry = RegistryProxy::new(&bus).await?;
-		let dbus_proxy = DBusProxy::new(registry.connection()).await?;
+		let dbus_proxy = DBusProxy::new(registry.inner().connection()).await?;
 
 		Ok(Self { registry, dbus_proxy })
 	}
@@ -157,13 +157,13 @@ impl AccessibilityConnection {
 	/// # }
 	/// ```
 	pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
-		MessageStream::from(self.registry.connection()).filter_map(|res| {
+		MessageStream::from(self.registry.inner().connection()).filter_map(|res| {
 			let msg = match res {
 				Ok(m) => m,
 				Err(e) => return Some(Err(e.into())),
 			};
 			match msg.message_type() {
-				MessageType::Signal => Some(Event::try_from(&*msg)),
+				MessageType::Signal => Some(Event::try_from(&msg)),
 				_ => None,
 			}
 		})
@@ -278,7 +278,7 @@ impl AccessibilityConnection {
 	/// Shorthand for a reference to the underlying [`zbus::Connection`]
 	#[must_use = "The reference to the underlying zbus::Connection must be used"]
 	pub fn connection(&self) -> &zbus::Connection {
-		self.registry.connection()
+		self.registry.inner().connection()
 	}
 
 	/// Send an event over the accessibility bus.
@@ -287,16 +287,16 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// This will only fail if:
-	/// 1. [`zbus::MessageBuilder`] fails at any point, or
+	/// 1. [`zbus::Message`] fails at any point, or
 	/// 2. sending the event fails for some reason.
 	///
 	/// Both of these conditions should never happen as long as you have a valid event.
-	pub async fn send_event<T>(&self, event: T) -> Result<u32, AtspiError>
+	pub async fn send_event<T>(&self, event: T) -> Result<(), AtspiError>
 	where
 		T: for<'a> GenericEvent<'a>,
 	{
 		let conn = self.connection();
-		let new_message = zbus::MessageBuilder::signal(
+		let new_message = zbus::Message::signal(
 			event.path(),
 			<T as GenericEvent>::DBUS_INTERFACE,
 			<T as GenericEvent>::DBUS_MEMBER,
@@ -304,7 +304,7 @@ impl AccessibilityConnection {
 		.sender(conn.unique_name().ok_or(AtspiError::MissingName)?)?
 		// this re-encodes the entire body; it's not great..., but you can't replace a sender once a message a created.
 		.build(&event.body())?;
-		Ok(conn.send_message(new_message).await?)
+		Ok(conn.send(&new_message).await?)
 	}
 }
 

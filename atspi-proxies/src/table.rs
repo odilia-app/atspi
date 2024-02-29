@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::common::ObjectRef;
 
-#[atspi_proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
 trait Table {
 	/// AddColumnSelection method
 	fn add_column_selection(&self, column: i32) -> zbus::Result<bool>;
@@ -79,26 +78,26 @@ trait Table {
 	fn remove_row_selection(&self, row: i32) -> zbus::Result<bool>;
 
 	/// Caption property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn caption(&self) -> zbus::Result<ObjectRef>;
 
 	/// NColumns property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn ncolumns(&self) -> zbus::Result<i32>;
 
 	/// NRows property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn nrows(&self) -> zbus::Result<i32>;
 
 	/// NSelectedColumns property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn nselected_columns(&self) -> zbus::Result<i32>;
 
 	/// NSelectedRows property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn nselected_rows(&self) -> zbus::Result<i32>;
 
 	/// Summary property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn summary(&self) -> zbus::Result<ObjectRef>;
 }

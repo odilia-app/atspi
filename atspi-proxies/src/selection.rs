@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::common::ObjectRef;
 
-#[atspi_proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
 trait Selection {
 	/// ClearSelection method
 	fn clear_selection(&self) -> zbus::Result<bool>;
@@ -37,6 +36,6 @@ trait Selection {
 	fn select_child(&self, child_index: i32) -> zbus::Result<bool>;
 
 	/// NSelectedChildren property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn nselected_children(&self) -> zbus::Result<i32>;
 }

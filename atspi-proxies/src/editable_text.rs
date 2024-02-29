@@ -10,9 +10,7 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
-
-#[atspi_proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = true)]
 trait EditableText {
 	/// CopyText method
 	fn copy_text(&self, start_pos: i32, end_pos: i32) -> zbus::Result<()>;

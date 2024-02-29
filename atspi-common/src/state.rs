@@ -509,93 +509,100 @@ impl std::ops::BitAndAssign for StateSet {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-	use byteorder::LE;
+	use super::{State, StateSet};
 	use serde_plain;
-	use zbus::zvariant::{from_slice, to_bytes, EncodingContext as Context};
+	use zvariant::serialized::{Context, Data};
+	use zvariant::{to_bytes, LE};
 
 	#[test]
 	fn serialize_empty_state_set() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &StateSet::empty()).unwrap();
-		assert_eq!(encoded, &[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+		assert_eq!(encoded.bytes(), &[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 	}
 
 	#[test]
 	fn deserialize_empty_state_set() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded: StateSet = from_slice(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ctxt).unwrap();
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ctxt);
+		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::empty());
 	}
 
 	#[test]
 	fn serialize_state_set_invalid() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &StateSet::new(State::Invalid)).unwrap();
-		assert_eq!(encoded, &[8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
+		assert_eq!(encoded.bytes(), &[8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
 	}
 
 	#[test]
 	fn deserialize_state_set_invalid() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded: StateSet = from_slice(&[8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], ctxt).unwrap();
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new(&[8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], ctxt);
+		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::Invalid));
 	}
 
 	#[test]
 	fn serialize_state_set_manages_descendants() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &StateSet::new(State::ManagesDescendants)).unwrap();
-		assert_eq!(encoded, &[8, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0]);
+		assert_eq!(encoded.bytes(), &[8, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0]);
 	}
 
 	#[test]
 	fn deserialize_state_set_manages_descendants() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded: StateSet = from_slice(&[8, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0], ctxt).unwrap();
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0], ctxt);
+		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::ManagesDescendants));
 	}
 
 	#[test]
 	fn serialize_state_set_indeterminate() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &StateSet::new(State::Indeterminate)).unwrap();
-		assert_eq!(encoded, &[8, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]);
+		assert_eq!(encoded.bytes(), &[8, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]);
 	}
 
 	#[test]
 	fn deserialize_state_set_indeterminate() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded: StateSet = from_slice(&[8, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], ctxt).unwrap();
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], ctxt);
+		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::Indeterminate));
 	}
 
 	#[test]
 	fn serialize_state_set_focusable_focused() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &StateSet::new(State::Focusable | State::Focused)).unwrap();
-		assert_eq!(encoded, &[8, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0]);
+		assert_eq!(encoded.bytes(), &[8, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0]);
 	}
 
 	#[test]
 	fn deserialize_state_set_focusable_focused() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded: StateSet = from_slice(&[8, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0], ctxt).unwrap();
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new(&[8, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0], ctxt);
+		let (decoded, _) = data.deserialize::<StateSet>().unwrap();
 		assert_eq!(decoded, StateSet::new(State::Focusable | State::Focused));
 	}
 
 	#[test]
 	fn cannot_deserialize_state_set_invalid_length() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded = from_slice::<_, StateSet>(&[4, 0, 0, 0, 0, 0, 0, 0], ctxt);
-		assert!(decoded.is_err());
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new(&[4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ctxt);
+		let decode_result = data.deserialize::<StateSet>();
+		assert!(decode_result.is_err());
 	}
 
 	#[test]
 	fn cannot_deserialize_state_set_invalid_flag() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded = from_slice::<_, StateSet>(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32], ctxt);
-		assert!(decoded.is_err());
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new(&[8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32], ctxt);
+		let decode_result = data.deserialize::<StateSet>();
+		assert!(decode_result.is_err());
 	}
 
 	#[test]

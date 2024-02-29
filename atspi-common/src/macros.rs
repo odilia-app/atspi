@@ -165,7 +165,7 @@ macro_rules! impl_try_from_event_for_user_facing_type {
 /// impl TryFrom<StateChangedEvent> for zbus::Message {
 ///   type Error = AtspiError;
 ///   fn try_from(event: StateChangedEvent) -> Result<Self, Self::Error> {
-///     Ok(zbus::MessageBuilder::signal(
+///     Ok(zbus::Message::signal(
 ///         event.path(),
 ///         StateChangedEvent::DBUS_INTERFACE,
 ///         StateChangedEvent::DBUS_MEMBER,
@@ -181,7 +181,7 @@ macro_rules! impl_to_dbus_message {
 		impl TryFrom<$type> for zbus::Message {
 			type Error = AtspiError;
 			fn try_from(event: $type) -> Result<Self, Self::Error> {
-				Ok(zbus::MessageBuilder::signal(
+				Ok(zbus::Message::signal(
 					event.path(),
 					<$type as GenericEvent>::DBUS_INTERFACE,
 					<$type as GenericEvent>::DBUS_MEMBER,
@@ -206,17 +206,17 @@ macro_rules! impl_to_dbus_message {
 /// impl TryFrom<&zbus::Message> for StateChangedEvent {
 ///   type Error = AtspiError;
 ///   fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-///    if msg.interface().ok_or(AtspiError::MissingInterface)? != StateChangedEvent::DBUS_INTERFACE {
+///    if msg.header().interface().ok_or(AtspiError::MissingInterface)? != StateChangedEvent::DBUS_INTERFACE {
 ///       return Err(AtspiError::InterfaceMatch(format!("The interface {} does not match the signal's interface: {}",
-///         msg.interface().unwrap(),
+///         msg.header().interface().unwrap(),
 ///         StateChangedEvent::DBUS_INTERFACE)));
 ///     }
-///     if msg.member().ok_or(AtspiError::MissingMember)? != StateChangedEvent::DBUS_MEMBER {
+///     if msg.header().member().ok_or(AtspiError::MissingMember)? != StateChangedEvent::DBUS_MEMBER {
 ///       return Err(AtspiError::MemberMatch(format!("The member {} does not match the signal's member: {}",
-///         msg.member().unwrap(),
+///         msg.header().member().unwrap(),
 ///         StateChangedEvent::DBUS_MEMBER)));
 ///     }
-///     StateChangedEvent::build(msg.try_into()?, msg.body::<StateChangedEvent::Body>()?)
+///     StateChangedEvent::build(msg.try_into()?, msg.body().deserialize::<StateChangedEvent::Body>()?)
 ///  }
 /// }
 /// ```
@@ -226,24 +226,28 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-				if msg.interface().ok_or(AtspiError::MissingInterface)?
+				let header = msg.header();
+				if header.interface().ok_or(AtspiError::MissingInterface)?
 					!= <$type as GenericEvent>::DBUS_INTERFACE
 				{
 					return Err(AtspiError::InterfaceMatch(format!(
 						"The interface {} does not match the signal's interface: {}",
-						msg.interface().unwrap(),
+						header.interface().unwrap(),
 						<$type as GenericEvent>::DBUS_INTERFACE
 					)));
 				}
-				if msg.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
+				if header.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
 					return Err(AtspiError::MemberMatch(format!(
 						"The member {} does not match the signal's member: {}",
 						// unwrap is safe here because of guard above
-						msg.member().unwrap(),
+						header.member().unwrap(),
 						<$type as GenericEvent>::DBUS_MEMBER
 					)));
 				}
-				<$type>::build(msg.try_into()?, msg.body::<<$type as GenericEvent>::Body>()?)
+				<$type>::build(
+					msg.try_into()?,
+					msg.body().deserialize::<<$type as GenericEvent>::Body>()?,
+				)
 			}
 		}
 	};
@@ -322,7 +326,7 @@ macro_rules! zbus_message_test_case {
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_fake_msg() -> () {
-			let fake_msg = zbus::MessageBuilder::signal(
+			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.technically.valid",
 				"MadeUpMember",
@@ -339,7 +343,7 @@ macro_rules! zbus_message_test_case {
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
-			let fake_msg = zbus::MessageBuilder::signal(
+			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				<$type as GenericEvent>::DBUS_INTERFACE,
 				"MadeUpMember",
@@ -356,7 +360,7 @@ macro_rules! zbus_message_test_case {
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
-			let fake_msg = zbus::MessageBuilder::signal(
+			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				<$type as GenericEvent>::DBUS_INTERFACE,
 				<$type as GenericEvent>::DBUS_MEMBER,
@@ -373,7 +377,7 @@ macro_rules! zbus_message_test_case {
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
-			let fake_msg = zbus::MessageBuilder::signal(
+			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.accessible.technically.valid",
 				"FakeMember",
@@ -390,7 +394,7 @@ macro_rules! zbus_message_test_case {
 		#[test]
 		#[should_panic(expected = "should panic")]
 		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
-			let fake_msg = zbus::MessageBuilder::signal(
+			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.accessible.technically.valid",
 				<$type as GenericEvent>::DBUS_MEMBER,
@@ -428,7 +432,7 @@ macro_rules! event_wrapper_test_cases {
 			#[test]
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_interface() {
-				let fake_msg = zbus::MessageBuilder::signal(
+				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
 					"org.a11y.atspi.technically.valid.lol",
 					<$any_subtype as GenericEvent>::DBUS_MEMBER,
@@ -447,7 +451,7 @@ macro_rules! event_wrapper_test_cases {
 			#[test]
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member() {
-				let fake_msg = zbus::MessageBuilder::signal(
+				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
 					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
 					"FakeFunctionLol",
@@ -466,7 +470,7 @@ macro_rules! event_wrapper_test_cases {
 			#[test]
 			#[should_panic(expected = "should panic")]
 			fn zbus_msg_invalid_member_and_interface() {
-				let fake_msg = zbus::MessageBuilder::signal(
+				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
 					"org.a11y.atspi.technically.allowed",
 					"FakeFunctionLol",
@@ -484,7 +488,7 @@ macro_rules! event_wrapper_test_cases {
 			#[cfg(feature = "zbus")]
 			#[test]
 			fn zbus_msg_conversion() {
-				let valid_msg = zbus::MessageBuilder::signal(
+				let valid_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
 					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
 					<$any_subtype as GenericEvent>::DBUS_MEMBER,
@@ -533,7 +537,7 @@ macro_rules! event_test_cases {
 macro_rules! assert_eq_signatures {
 	($lhs_sig:expr, $rhs_sig:expr) => {
 		assert!(
-			signatures_are_eq($lhs_sig, $rhs_sig),
+			$lhs_sig == $rhs_sig,
 			"Signatures are not equal (Lhs: {}, Rhs: {})",
 			$lhs_sig,
 			$rhs_sig

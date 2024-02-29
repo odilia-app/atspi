@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::common::ObjectRef;
 
-#[atspi_proxy(interface = "org.a11y.atspi.Hypertext", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Hypertext", assume_defaults = true)]
 trait Hypertext {
 	/// GetLink method
 	fn get_link(&self, link_index: i32) -> zbus::Result<ObjectRef>;
