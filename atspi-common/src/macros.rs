@@ -270,7 +270,8 @@ macro_rules! generic_event_test_case {
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let item = struct_event.item.clone();
 			let body = struct_event.body();
-			let build_struct = <$type>::build(item, body).expect("Could not build type from parts");
+			let build_struct = <$type>::build(item, body)
+				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}
 	};
