@@ -25,7 +25,6 @@ atspi-proxies = { path = "../atspi-proxies/", version = "0.5.0", default-feature
 futures-lite = { version = "2", default-features = false }
 tracing = { optional = true, workspace = true }
 zbus.workspace = true
-tracing = { optional = true, workspace = true }
 
 [dev-dependencies]
 tokio-test = "0.4.2"
