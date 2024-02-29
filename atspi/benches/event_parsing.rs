@@ -22,7 +22,7 @@ use atspi::events::window::{
 	RestoreEvent, RestyleEvent, ShadeEvent, UUshadeEvent,
 };
 use atspi::Event;
-use atspi_proxies::zbus::Message;
+use zbus::Message;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 fn vec_of_all_atspi_messages() -> Vec<Message> {

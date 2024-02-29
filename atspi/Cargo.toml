@@ -45,6 +45,7 @@ harness = false
 
 [dev-dependencies]
 atspi = { path = "." }
+zbus.workspace = true
 criterion = "0.5"
 futures-lite = { version = "2", default-features = false }
 fastrand = "2.0"
