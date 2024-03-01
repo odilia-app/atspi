@@ -6,7 +6,6 @@
 //! Accessible is the interface which is implemented by all accessible objects.
 //!
 
-use crate::atspi_proxy;
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
 
@@ -17,7 +16,7 @@ use crate::AtspiError;
 ///
 /// Accessible is the interface which is implemented by all accessible objects.
 ///
-#[atspi_proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
 trait Accessible {
 	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.
@@ -163,11 +162,11 @@ trait Accessible {
 	/// a test program may have to recursively get the children to find a specific id.
 	/// This is because accessible objects can be created dynamically, and they do not always
 	/// correspond to a static view of an application's data.
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn accessible_id(&self) -> zbus::Result<String>;
 
 	/// Number of accessible children for the current object.
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn child_count(&self) -> zbus::Result<i32>;
 
 	/// Human-readable, localized description of `self` in more detail.
@@ -181,7 +180,7 @@ trait Accessible {
 	/// more detail.
 	///
 	/// [name]: #method.name
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn description(&self) -> zbus::Result<String>;
 
 	/// Unix locale for the current object.
@@ -198,7 +197,7 @@ trait Accessible {
 	/// display a document in Spanish ("es").
 	/// In the latter case, a screen reader will want to know that it should switch to
 	/// Spanish while reading the document.
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn locale(&self) -> zbus::Result<String>;
 
 	/// Human-readable, localized, short name for the object.
@@ -213,7 +212,7 @@ trait Accessible {
 	/// interface.
 	///
 	/// [`RelationType::LabelledBy`]: crate::common::RelationType::LabelledBy
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn name(&self) -> zbus::Result<String>;
 
 	/// ObjectRef parent object of the current object.
@@ -226,7 +225,7 @@ trait Accessible {
 	/// Root object:
 	/// An application must have a single root object, called "/org/a11y/atspi/accessible/root".
 	/// All other objects should have that one as their highest-level ancestor.
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn parent(&self) -> zbus::Result<ObjectRef>;
 }
 
@@ -234,8 +233,8 @@ impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
 		Ok(ObjectRef {
-			name: proxy.destination().to_string(),
-			path: proxy.path().to_string().try_into()?,
+			name: proxy.inner().destination().to_string(),
+			path: proxy.inner().path().to_string().try_into()?,
 		})
 	}
 }
@@ -243,15 +242,15 @@ impl TryFrom<&AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
 		Ok(ObjectRef {
-			name: proxy.destination().to_string(),
-			path: proxy.path().to_string().try_into()?,
+			name: proxy.inner().destination().to_string(),
+			path: proxy.inner().path().to_string().try_into()?,
 		})
 	}
 }
 
 impl PartialEq for AccessibleProxy<'_> {
 	fn eq<'a>(&self, other: &Self) -> bool {
-		self.path() == other.path() //&& self.destination() == other.destination()
+		self.inner().path() == other.inner().path()
 	}
 }
 impl Eq for AccessibleProxy<'_> {}

@@ -9,7 +9,7 @@ homepage = "https://github.com/odilia-app/atspi"
 keywords = ["screen-reader", "accessibility", "a11y", "tts", "linux"]
 categories = ["accessibility", "api-bindings"]
 edition = "2021"
-rust-version = "1.68.2"
+rust-version.workspace = true
 include = ["src/**/*", "README.md"]
 
 [package.metadata.release]
@@ -19,15 +19,16 @@ publish = true
 [features]
 default = ["async-std"]
 async-std = ["zbus/async-io", "atspi-common/async-std"]
-gvariant = ["zbus/gvariant"]
+gvariant = ["zvariant/gvariant"]
 tokio = ["zbus/tokio", "atspi-common/tokio"]
 
 [dependencies]
+serde = { version = "^1.0", default-features = false, features = ["derive"] }
+zbus = { workspace = true } 
+zvariant = { version = "4.0", default-features = false }
 # optional dependencies
 async-trait = { version = "^0.1.59", optional = true }
 atspi-common = { path = "../atspi-common", version = "0.5.0", default-features = false }
-serde = { version = "^1.0", default-features = false, features = ["derive"] }
-zbus = { workspace = true, default-features = false } 
 
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes"] }
@@ -38,8 +39,7 @@ lazy_static = "1.0"
 rename-item = "0.1.0"
 serde_json = "1.0.96"
 serde_plain = "1.0.1"
-serial_test = "2.0.0"
-tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
 tokio-test = "0.4.2"
 tracing = "0.1.37"

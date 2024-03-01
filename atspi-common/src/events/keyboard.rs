@@ -3,7 +3,7 @@ use crate::{
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
-use zvariant::ObjectPath;
+use zvariant::{ObjectPath, OwnedValue};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
@@ -57,7 +57,8 @@ impl GenericEvent<'_> for ModifiersEvent {
 impl TryFrom<&zbus::Message> for KeyboardEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let member = ev
+		let header = ev.header();
+		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
@@ -89,7 +90,7 @@ impl From<ModifiersEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: event.previous_modifiers,
 			detail2: event.current_modifiers,
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: OwnedValue::from(0u8),
 		}
 	}
 }

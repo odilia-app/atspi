@@ -27,10 +27,10 @@ pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "zbus")]
-use zbus::{MessageField, MessageFieldCode};
 use zbus_names::{OwnedUniqueName, UniqueName};
-use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Signature, Type, Value};
+#[cfg(feature = "zbus")]
+use zvariant::OwnedObjectPath;
+use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
 
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
@@ -40,34 +40,6 @@ use crate::{
 	},
 	AtspiError, ObjectRef,
 };
-//use atspi_macros::try_from_zbus_message;
-
-#[must_use]
-pub fn signatures_are_eq(lhs: &Signature, rhs: &Signature) -> bool {
-	fn has_outer_parentheses(bytes: &[u8]) -> bool {
-		if let [b'(', inner @ .., b')'] = bytes {
-			inner.iter().fold(0, |count, byte| match byte {
-				b'(' => count + 1,
-				b')' if count != 0 => count - 1,
-				_ => count,
-			}) == 0
-		} else {
-			false
-		}
-	}
-
-	let bytes = lhs.as_bytes();
-	let lhs_sig_has_outer_parens = has_outer_parentheses(bytes);
-
-	let bytes = rhs.as_bytes();
-	let rhs_sig_has_outer_parens = has_outer_parentheses(bytes);
-
-	match (lhs_sig_has_outer_parens, rhs_sig_has_outer_parens) {
-		(true, false) => lhs.slice(1..lhs.len() - 1).as_bytes() == rhs.as_bytes(),
-		(false, true) => lhs.as_bytes() == rhs.slice(1..rhs.len() - 1).as_bytes(),
-		_ => lhs.as_bytes() == rhs.as_bytes(),
-	}
-}
 
 /// A borrowed body for events.
 #[derive(Debug, Serialize, Deserialize)]
@@ -80,7 +52,7 @@ pub struct EventBody<'a, T> {
 	pub detail1: i32,
 	/// Generic second detail defined by AT-SPI.
 	pub detail2: i32,
-	/// Generic "any_data" field defined in AT-SPI.
+	/// Generic `any_data` field defined in AT-SPI.
 	/// Can contain any type.
 	#[serde(borrow)]
 	pub any_data: Value<'a>,
@@ -108,7 +80,7 @@ pub struct EventBodyQT {
 	pub detail1: i32,
 	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value described by AT-SPI.
+	/// Generic `any_data` value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A tuple of properties.
@@ -122,7 +94,7 @@ impl Default for EventBodyQT {
 			kind: String::new(),
 			detail1: 0,
 			detail2: 0,
-			any_data: Value::U8(0u8).into(),
+			any_data: 0u8.into(),
 			properties: ObjectRef::default(),
 		}
 	}
@@ -131,7 +103,7 @@ impl Default for EventBodyQT {
 /// Standard event body (GTK, `egui`, etc.)
 /// NOTE: Qt has its own signature: [`EventBodyQT`].
 /// Signature `(siiva{sv})`,
-#[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
@@ -141,7 +113,7 @@ pub struct EventBodyOwned {
 	pub detail1: i32,
 	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value described by AT-SPI.
+	/// Generic `any_data` value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A map of properties.
@@ -151,9 +123,19 @@ pub struct EventBodyOwned {
 
 impl From<EventBodyQT> for EventBodyOwned {
 	fn from(body: EventBodyQT) -> Self {
-		let object = ObjectRef { name: body.properties.name, path: body.properties.path };
 		let mut props = HashMap::new();
-		props.insert(object.name, Value::ObjectPath(object.path.into()).to_owned());
+
+		let name = body.properties.name;
+		let path = body.properties.path;
+
+		// We know `path` is a `OwnedObjectPath`, so the conversion to
+		// `OwnedValue` is infallible at present.
+		// Should this ever change, we need to know.
+		let value = Value::ObjectPath(path.into()).try_to_owned().unwrap_or_else(|err| {
+			panic!("Error occurred: {err:?}");
+		});
+
+		props.insert(name, value);
 		Self {
 			kind: body.kind,
 			detail1: body.detail1,
@@ -170,8 +152,47 @@ impl Default for EventBodyOwned {
 			kind: String::new(),
 			detail1: 0,
 			detail2: 0,
-			any_data: Value::U8(0u8).into(),
+			any_data: 0u8.into(),
 			properties: HashMap::new(),
+		}
+	}
+}
+
+/// Safety: This implementation of [`Clone`] *can panic!* Although the chance is extremely remote.
+///
+/// If:
+/// 1. the `any_data` or `properties` field contain an [`std::os::fd::OwnedFd`] type, and
+/// 2. the maximum number of open files for the process is exceeded.
+///
+/// Then, and only then, will this function panic.
+/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
+/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the
+/// specification allows that.
+///
+/// See [`zvariant::Value::try_clone`] for more information.
+impl Clone for EventBodyOwned {
+	fn clone(&self) -> Self {
+		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
+			panic!("Failure cloning 'any_data' field: {err:?}");
+		});
+
+		let cloned_properties = {
+			let mut map = HashMap::new();
+			for (key, value) in &self.properties {
+				let cloned_value = value.try_clone().unwrap_or_else(|err| {
+					panic!("Failure cloning 'props' field: {err:?}");
+				});
+				map.insert(key.clone(), cloned_value);
+			}
+			map
+		};
+
+		Self {
+			kind: self.kind.clone(),
+			detail1: self.detail1,
+			detail2: self.detail2,
+			any_data: cloned_any_data,
+			properties: cloned_properties,
 		}
 	}
 }
@@ -421,17 +442,12 @@ pub mod accessible_tests {
 impl TryFrom<&zbus::Message> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		let path = message.path().expect("returned path is either Some or panics");
-		let owned_path: OwnedObjectPath = path.into();
-		let fields = message.fields()?;
-		let sender = fields.get_field(MessageFieldCode::Sender);
-		let sender = sender
-			.expect("We get the sender field from a valid MessageFieldCode, so it should be there");
+		let header = message.header();
+		let path = header.path().expect("returned path is either `Some` or panics");
+		let owned_path: OwnedObjectPath = path.clone().into();
 
-		let MessageField::Sender(unique_name) = sender else {
-			return Err(AtspiError::Conversion("Unable to convert zbus::Message to Accessible"));
-		};
-		let name_string = unique_name.as_str().to_owned();
+		let sender = header.sender().expect("No sender in header");
+		let name_string = sender.as_str().to_owned();
 
 		Ok(ObjectRef { name: name_string, path: owned_path })
 	}
@@ -442,11 +458,14 @@ impl TryFrom<&zbus::Message> for EventBodyOwned {
 	type Error = AtspiError;
 
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		let signature = message.body_signature()?;
-		if signatures_are_eq(&signature, &QSPI_EVENT_SIGNATURE) {
-			Ok(EventBodyOwned::from(message.body::<EventBodyQT>()?))
-		} else if signatures_are_eq(&signature, &ATSPI_EVENT_SIGNATURE) {
-			Ok(message.body::<EventBodyOwned>()?)
+		let body = message.body();
+		let signature = body.signature().ok_or_else(|| AtspiError::MissingSignature)?;
+
+		if signature == QSPI_EVENT_SIGNATURE {
+			let qt_body = body.deserialize::<EventBodyQT>()?;
+			Ok(EventBodyOwned::from(qt_body))
+		} else if signature == ATSPI_EVENT_SIGNATURE {
+			Ok(body.deserialize::<EventBodyOwned>()?)
 		} else {
 			Err(AtspiError::Conversion(
 				"Unable to convert from zbus::Message to EventBodyQT or EventBodyOwned",
@@ -479,7 +498,7 @@ fn test_event_listener_default_no_panic() {
 
 #[test]
 fn test_event_listener_signature() {
-	assert_eq_signatures!(&EventListeners::signature(), &EVENT_LISTENER_SIGNATURE);
+	assert_eq!(&EventListeners::signature(), &EVENT_LISTENER_SIGNATURE);
 }
 
 /// Covers both `EventListener` events.
@@ -640,19 +659,23 @@ impl TryFrom<&zbus::Message> for Event {
 	type Error = AtspiError;
 
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
-		let body_signature = msg.body_signature()?;
-		let body_signature = body_signature.as_str();
-		let signal_member = msg.member().ok_or(AtspiError::MissingMember)?;
-		let member_str = signal_member.as_str();
-		let Some(interface) = msg.interface() else {
-			return Err(AtspiError::MissingInterface);
-		};
+		let body = msg.body();
+		let header = msg.header();
 
-		// As we are matching against `body_signature()`, which yields the marshalled D-Bus signatures,
-		// we do not expect outer parentheses.
-		// However, `Cache` signals are often emitted with an outer parentheses, so we also try to
+		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+		let body_signature_str = body_signature.as_str();
+
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		let member_str = member.as_str();
+
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		let interface_str = interface.as_str();
+
+		// The `body_signature` is a marshalled D-Bus signatures, this means that outer STRUCT
+		// parentheses are not included in the signature.
+		// However, `Cache` signals are often emitted with outer parentheses, so we also need to
 		// match against the same signature, but with outer parentheses.
-		match (interface.as_str(), member_str, body_signature) {
+		match (interface_str, member_str, body_signature_str) {
 			("org.a11y.atspi.Socket", "Available", "so") => {
 				Ok(AvailableEvent::try_from(msg)?.into())
 			}
@@ -761,20 +784,18 @@ pub trait HasRegistryEventString {
 
 #[cfg(test)]
 mod tests {
-	use super::{
-		signatures_are_eq, EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE,
-	};
+	use super::{EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE};
 	use std::collections::HashMap;
-	use zvariant::{ObjectPath, Signature, Type};
+	use zvariant::{ObjectPath, Type};
 
 	#[test]
 	fn check_event_body_qt_signature() {
-		assert_eq_signatures!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
+		assert_eq!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]
 	fn check_event_body_signature() {
-		assert_eq_signatures!(&<EventBodyOwned as Type>::signature(), &ATSPI_EVENT_SIGNATURE);
+		assert_eq!(&<EventBodyOwned as Type>::signature(), &ATSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]
@@ -786,38 +807,5 @@ mod tests {
 		let path = accessible.path;
 		let props = HashMap::from([(name, ObjectPath::from(path).into())]);
 		assert_eq!(event_body.properties, props);
-	}
-
-	// `assert_eq_signatures!` and `signatures_are_eq` are helpers to deal with the difference
-	// in `Signatures` as consequence of marshalling. While `zvariant` is very lenient with respect
-	// to outer parentheses, these helpers only take one marshalling step into account.
-	#[test]
-	fn test_signatures_are_equal_macro_and_fn() {
-		let with_parentheses = &Signature::from_static_str_unchecked("(ii)");
-		let without_parentheses = &Signature::from_static_str_unchecked("ii");
-		assert_eq_signatures!(with_parentheses, without_parentheses);
-		assert!(signatures_are_eq(with_parentheses, without_parentheses));
-		// test against themselves
-		assert!(signatures_are_eq(with_parentheses, with_parentheses));
-		assert!(signatures_are_eq(without_parentheses, without_parentheses));
-		assert!(signatures_are_eq(with_parentheses, with_parentheses));
-		assert!(signatures_are_eq(without_parentheses, without_parentheses));
-		let with_parentheses = &Signature::from_static_str_unchecked("(ii)(ii)");
-		let without_parentheses = &Signature::from_static_str_unchecked("((ii)(ii))");
-		assert_eq_signatures!(with_parentheses, without_parentheses);
-		assert!(signatures_are_eq(with_parentheses, without_parentheses));
-		// test against themselves
-		assert!(signatures_are_eq(with_parentheses, with_parentheses));
-		assert!(signatures_are_eq(without_parentheses, without_parentheses));
-		assert_eq_signatures!(with_parentheses, with_parentheses);
-		assert_eq_signatures!(without_parentheses, without_parentheses);
-		// test false cases with unbalanced parentheses
-		let with_parentheses = &Signature::from_static_str_unchecked("(ii)(ii)");
-		let without_parentheses = &Signature::from_static_str_unchecked("((ii)(ii)");
-		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
-		// test case with more than one extra outer parentheses
-		let with_parentheses = &Signature::from_static_str_unchecked("((ii)(ii))");
-		let without_parentheses = &Signature::from_static_str_unchecked("((((ii)(ii))))");
-		assert!(!signatures_are_eq(with_parentheses, without_parentheses));
 	}
 }

@@ -619,21 +619,24 @@ impl std::fmt::Display for Role {
 #[cfg(test)]
 pub mod tests {
 	use super::Role;
-	use zvariant::{from_slice, to_bytes, EncodingContext};
+	use zvariant::serialized::Context;
+	use zvariant::{to_bytes, LE};
 
 	const HIGHEST_ROLE_VALUE: u32 = 129;
 
 	#[test]
 	fn test_serialization_matches_from_impl() {
-		let ctxt = EncodingContext::<byteorder::LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
+
 		for role_num in 1..=HIGHEST_ROLE_VALUE {
 			let from_role = Role::try_from(role_num)
 				.unwrap_or_else(|_| panic!("Unable to convert {role_num} into Role"));
 			let encoded = to_bytes(ctxt, &from_role).expect("Unable to encode {from_role}");
 			println!("ENCODED: {encoded:?}");
-			let zbus_role: Role =
-				from_slice(&encoded, ctxt).expect("Unable to convert {encoded} into Role");
-			assert_eq!(from_role, zbus_role, "The serde zvariant::from_slice(...) and From<u32> implementations have produced different results. The number used was {role_num}, it produced a Role of {from_role}, but the from_slice(...) implementation produced {zbus_role}");
+
+			let (zbus_role, _) = encoded.deserialize().expect("Unable to decode {encoded:?}");
+
+			assert_eq!(from_role, zbus_role, "The serde `Data::deserialize` and `From<u32>` impls produced different results. The number used was {role_num}, it produced a Role of {from_role}, but the from_slice(...) implementation produced {zbus_role}");
 			assert_eq!(
 				from_role as u32, role_num,
 				"The role number {role_num} does not match the representation of the role {}",

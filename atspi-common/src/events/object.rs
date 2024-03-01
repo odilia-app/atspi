@@ -65,7 +65,7 @@ impl HasMatchRule for ObjectEvents {
 }
 
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
@@ -91,7 +91,7 @@ impl Default for PropertyChangeEvent {
 	}
 }
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[non_exhaustive]
 pub enum Property {
 	Name(String),
@@ -107,9 +107,40 @@ pub enum Property {
 	Other((String, OwnedValue)),
 }
 
+impl Clone for Property {
+	fn clone(&self) -> Self {
+		match self {
+			Property::Name(name) => Self::Name(name.clone()),
+			Property::Description(description) => Self::Description(description.clone()),
+			Property::Role(role) => Self::Role(*role),
+			Property::Parent(parent) => Self::Parent(parent.clone()),
+			Property::TableCaption(table_caption) => Self::TableCaption(table_caption.clone()),
+			Property::TableColumnDescription(table_column_description) => {
+				Self::TableColumnDescription(table_column_description.clone())
+			}
+			Property::TableColumnHeader(table_column_header) => {
+				Self::TableColumnHeader(table_column_header.clone())
+			}
+			Property::TableRowDescription(table_row_description) => {
+				Self::TableRowDescription(table_row_description.clone())
+			}
+			Property::TableRowHeader(table_row_header) => {
+				Self::TableRowHeader(table_row_header.clone())
+			}
+			Property::TableSummary(table_summary) => Self::TableSummary(table_summary.clone()),
+			Property::Other((property, value)) => Self::Other((
+				property.clone(),
+				value
+					.try_clone()
+					.expect("Could not clone 'value'.  Since properties are not known to carry files, we do not expect to exceed open file limit."),
+			)),
+		}
+	}
+}
+
 impl Default for Property {
 	fn default() -> Self {
-		Self::Other((String::default(), zvariant::Value::U64(0).into()))
+		Self::Other((String::default(), u64::default().into()))
 	}
 }
 
@@ -181,25 +212,24 @@ impl TryFrom<EventBodyOwned> for Property {
 
 impl From<Property> for OwnedValue {
 	fn from(property: Property) -> Self {
-		match property {
-			Property::Name(name) => Value::from(name).into(),
-			Property::Description(description) => Value::from(description).into(),
-			Property::Role(role) => Value::from(role as u32).into(),
-			Property::Parent(parent) => Value::from(parent).into(),
-			Property::TableCaption(table_caption) => Value::from(table_caption).into(),
+		let value = match property {
+			Property::Name(name) => Value::from(name),
+			Property::Description(description) => Value::from(description),
+			Property::Role(role) => Value::from(role as u32),
+			Property::Parent(parent) => Value::from(parent),
+			Property::TableCaption(table_caption) => Value::from(table_caption),
 			Property::TableColumnDescription(table_column_description) => {
-				Value::from(table_column_description).into()
+				Value::from(table_column_description)
 			}
-			Property::TableColumnHeader(table_column_header) => {
-				Value::from(table_column_header).into()
-			}
+			Property::TableColumnHeader(table_column_header) => Value::from(table_column_header),
 			Property::TableRowDescription(table_row_description) => {
-				Value::from(table_row_description).into()
+				Value::from(table_row_description)
 			}
-			Property::TableRowHeader(table_row_header) => Value::from(table_row_header).into(),
-			Property::TableSummary(table_summary) => Value::from(table_summary).into(),
-			Property::Other((_, value)) => value,
-		}
+			Property::TableRowHeader(table_row_header) => Value::from(table_row_header),
+			Property::TableSummary(table_summary) => Value::from(table_summary),
+			Property::Other((_, value)) => value.into(),
+		};
+		value.try_into().expect("Should succeed as there are no borrowed file descriptors involved that could, potentially, exceed the open file limit when converted to OwnedValue")
 	}
 }
 
@@ -934,7 +964,8 @@ impl GenericEvent<'_> for TextCaretMovedEvent {
 impl TryFrom<&zbus::Message> for ObjectEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let member = ev
+		let header = ev.header();
+		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
@@ -1014,7 +1045,7 @@ impl From<BoundsChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1040,7 +1071,7 @@ impl From<LinkSelectedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1066,7 +1097,7 @@ impl From<StateChangedEvent> for EventBodyOwned {
 			kind: event.state.into(),
 			detail1: event.enabled,
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1092,7 +1123,12 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 			kind: event.operation,
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
-			any_data: zvariant::Value::from(event.child).into(),
+			// `OwnedValue` is constructed from the `ObjectRef`
+			// Only path to fail is to convert a Fd into an `OwnedValue`.
+			// Therefore, this is safe.
+			any_data: Value::from(event.child)
+				.try_into()
+				.expect("Failed to convert child to OwnedValue"),
 		}
 	}
 }
@@ -1118,7 +1154,7 @@ impl From<VisibleDataChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1144,7 +1180,7 @@ impl From<SelectionChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1170,7 +1206,7 @@ impl From<ModelChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1196,7 +1232,12 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::from(event.child).into(),
+			// `OwnedValue` is constructed from the `ObjectRef`
+			// Only path to fail is to convert a Fd into an `OwnedValue`.
+			// Therefore, this is safe.
+			any_data: Value::from(event.child)
+				.try_to_owned()
+				.expect("Failed to convert child to OwnedValue"),
 		}
 	}
 }
@@ -1219,7 +1260,11 @@ impl From<AnnouncementEvent> for EventBodyOwned {
 	fn from(event: AnnouncementEvent) -> Self {
 		EventBodyOwned {
 			detail1: event.live as i32,
-			any_data: zvariant::Value::from(event.text).into(),
+			// `OwnedValue` is constructed from `String`
+			// Therefore, this is safe.
+			any_data: Value::from(event.text)
+				.try_to_owned()
+				.expect("Failed to convert text to OwnedValue"),
 			..Default::default()
 		}
 	}
@@ -1246,7 +1291,7 @@ impl From<AttributesChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1272,7 +1317,7 @@ impl From<RowInsertedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1298,7 +1343,7 @@ impl From<RowReorderedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1320,7 +1365,7 @@ impl From<RowDeletedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1346,7 +1391,7 @@ impl From<ColumnInsertedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1372,7 +1417,7 @@ impl From<ColumnReorderedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1398,7 +1443,7 @@ impl From<ColumnDeletedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1424,7 +1469,7 @@ impl From<TextBoundsChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1450,7 +1495,7 @@ impl From<TextSelectionChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1476,7 +1521,12 @@ impl From<TextChangedEvent> for EventBodyOwned {
 			kind: event.operation,
 			detail1: event.start_pos,
 			detail2: event.length,
-			any_data: zvariant::Value::from(event.text).into(),
+
+			// `OwnedValue` is constructed from a `String`
+			// Therefore, this is safe.
+			any_data: Value::from(event.text)
+				.try_to_owned()
+				.expect("Failed to convert child to OwnedValue"),
 		}
 	}
 }
@@ -1502,7 +1552,7 @@ impl From<TextAttributesChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -1528,7 +1578,7 @@ impl From<TextCaretMovedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: event.position,
 			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }

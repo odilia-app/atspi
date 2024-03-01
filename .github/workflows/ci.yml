@@ -9,6 +9,14 @@ on:
     branches:
       - main
 jobs:
+  find-msrv:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.step2.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: step2
+        run: echo "version=`cat Cargo.toml | sed -n 's/rust-version = "\(.*\)"/\1/p'`" >> "$GITHUB_OUTPUT"
   benchmarks:
     runs-on: ubuntu-latest
     needs: [clippy,no-unused-dependencies]
@@ -28,8 +36,10 @@ jobs:
           key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
-      - name: Run benchmarks
+      - name: Compile benchmarks (1k)
         run: cargo bench --no-run --bench event_parsing
+      - name: Compile benchmarks (100k)
+        run: cargo bench --no-run --bench event_parsing_100k
   clippy:
     runs-on: ubuntu-latest
     needs: [rustfmt,no-unused-dependencies,wasm-compatible-common-crate]
@@ -187,33 +197,16 @@ jobs:
         run: cargo semver-checks check-release -p atspi --default-features
   msrv-compliance:
     runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies]
+    needs: [clippy,no-unused-dependencies,find-msrv]
     steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
-      - name: Install Rust
+      - name: install stable toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-      - name: Install Cargo MSRV Verifier
-        uses: taiki-e/install-action@main
-        with:
-          tool: cargo-msrv
+          toolchain: ${{ needs.find-msrv.outputs.version }}
+      - name: Git checkout
+        uses: actions/checkout@v3
       - name: Check MSRV Compliance
-        run: cargo msrv --path atspi verify
+        run: cargo test --workspace --no-run --all-features
   wasm-compatible-common-crate:
     runs-on: ubuntu-latest
     needs: [rustfmt]

@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::common::ObjectRef;
 
-#[atspi_proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
 trait Hyperlink {
 	/// GetObject method
 	fn get_object(&self, i: i32) -> zbus::Result<ObjectRef>;
@@ -25,14 +24,14 @@ trait Hyperlink {
 	fn is_valid(&self) -> zbus::Result<bool>;
 
 	/// EndIndex property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn end_index(&self) -> zbus::Result<i32>;
 
 	/// NAnchors property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn nanchors(&self) -> zbus::Result<i16>;
 
 	/// StartIndex property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn start_index(&self) -> zbus::Result<i32>;
 }

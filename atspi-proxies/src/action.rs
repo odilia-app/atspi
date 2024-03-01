@@ -17,8 +17,6 @@
 //! [TextProxy]: crate::text::TextProxy
 //! [ValueProxy]: crate::value::ValueProxy
 
-use crate::atspi_proxy;
-
 /// A handle for a remote object implementing the `org.a11y.atspi.Action`
 /// interface.
 ///
@@ -34,7 +32,7 @@ use crate::atspi_proxy;
 ///  
 /// [TextProxy]: crate::text::TextProxy
 /// [ValueProxy]: crate::value::ValueProxy
-#[atspi_proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
 trait Action {
 	/// Performs the specified action on the object.
 	///
@@ -126,6 +124,6 @@ trait Action {
 	///
 	///	By convention, if there is more than one action available,
 	/// the first one is considered the "default" action of the object.
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn nactions(&self) -> zbus::Result<i32>;
 }

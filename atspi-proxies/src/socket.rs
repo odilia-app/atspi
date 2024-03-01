@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::common::ObjectRef;
 
-#[atspi_proxy(
+#[zbus::proxy(
 	interface = "org.a11y.atspi.Socket",
 	default_path = "/org/a11y/atspi/accessible/root",
 	default_service = "org.a11y.atspi.Registry"

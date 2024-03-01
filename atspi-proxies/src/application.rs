@@ -31,8 +31,6 @@
 //! [`version`]: ApplicationProxy#method.version
 //!
 
-use crate::atspi_proxy;
-
 /// `Application` is the interface which is implemented by each accessible application.
 /// It is implemented for the root object of an application.
 ///
@@ -59,7 +57,7 @@ use crate::atspi_proxy;
 /// [`toolkit_name`]: ApplicationProxy#method.toolkit_name
 /// [`version`]: ApplicationProxy#method.version
 ///
-#[atspi_proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
 trait Application {
 	/// Method to retrieve the application's locale.
 	///
@@ -88,7 +86,7 @@ trait Application {
 	/// using versioned interface names instead.
 	///
 	/// member: "AtspiVersion", type: property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn atspi_version(&self) -> zbus::Result<String>;
 
 	/// Retrieve numerical id of the application.
@@ -119,7 +117,7 @@ trait Application {
 	///
 	/// [`embed`]: crate::socket::SocketProxy#method.embed
 	/// [`org.a11y.atspi.Socket`]: crate::socket::SocketProxy
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn id(&self) -> zbus::Result<i32>;
 
 	/// Set ID of the application.
@@ -136,20 +134,20 @@ trait Application {
 	/// member: "Id", type: property
 	///
 	/// [`id`]: crate::application::ApplicationProxy#method.id
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
 	/// Retrieves the name of the toolkit used to implement the application's
 	/// user interface.
 	///
 	/// member: "ToolkitName", type: property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn toolkit_name(&self) -> zbus::Result<String>;
 
 	/// Returns the version of the toolkit used to implement the
 	/// application's user interface.
 	///
 	/// member: "Version", type: property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn version(&self) -> zbus::Result<String>;
 }

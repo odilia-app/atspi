@@ -10,7 +10,6 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 
@@ -69,7 +68,7 @@ pub struct KeyDefinition<'a> {
 	pub unused: i32,
 }
 
-#[atspi_proxy(
+#[zbus::proxy(
 	interface = "org.a11y.atspi.DeviceEventController",
 	default_path = "/org/a11y/atspi/registry/deviceeventcontroller",
 	default_service = "org.a11y.atspi.Registry"

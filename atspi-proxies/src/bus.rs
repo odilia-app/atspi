@@ -19,28 +19,26 @@
 //!
 //! …consequently `zbus-xmlgen` did not generate code for the above interfaces.
 
-use zbus::dbus_proxy;
-
-#[dbus_proxy(
+#[zbus::proxy(
 	interface = "org.a11y.Status",
 	default_service = "org.a11y.Bus",
 	default_path = "/org/a11y/bus"
 )]
 trait Status {
 	/// IsEnabled property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn is_enabled(&self) -> zbus::Result<bool>;
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn set_is_enabled(&self, value: bool) -> zbus::Result<()>;
 
 	/// ScreenReaderEnabled property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn screen_reader_enabled(&self) -> zbus::Result<bool>;
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn set_screen_reader_enabled(&self, value: bool) -> zbus::Result<()>;
 }
 
-#[dbus_proxy(
+#[zbus::proxy(
 	interface = "org.a11y.Bus",
 	default_service = "org.a11y.Bus",
 	default_path = "/org/a11y/bus"

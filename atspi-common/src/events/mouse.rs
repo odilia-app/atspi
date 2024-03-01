@@ -125,7 +125,8 @@ impl GenericEvent<'_> for ButtonEvent {
 impl TryFrom<&zbus::Message> for MouseEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let member = ev
+		let header = ev.header();
+		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
@@ -151,7 +152,7 @@ impl From<AbsEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: event.x,
 			detail2: event.y,
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -169,7 +170,7 @@ impl From<RelEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: event.x,
 			detail2: event.y,
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }
@@ -191,7 +192,7 @@ impl From<ButtonEvent> for EventBodyOwned {
 			kind: event.detail,
 			detail1: event.mouse_x,
 			detail2: event.mouse_y,
-			any_data: zvariant::Value::U8(0).into(),
+			any_data: u8::default().into(),
 		}
 	}
 }

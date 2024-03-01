@@ -8,7 +8,6 @@
 compile_error!("You must specify at least one of the `async-std` or `tokio` features.");
 
 pub use atspi_common as common;
-use zbus::dbus_proxy as atspi_proxy;
 
 pub mod accessible;
 pub mod action;
@@ -33,9 +32,3 @@ pub mod table;
 pub mod table_cell;
 pub mod text;
 pub mod value;
-
-pub use zbus;
-
-pub trait AtspiProxy {
-	const INTERFACE: Interface;
-}

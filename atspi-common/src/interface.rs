@@ -329,30 +329,31 @@ impl std::fmt::Display for Interface {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-	use byteorder::LE;
-	use zbus::zvariant::{from_slice, to_bytes, EncodingContext as Context};
+	use super::{Interface, InterfaceSet};
+	use zvariant::serialized::Data;
+	use zvariant::{serialized::Context, to_bytes, LE};
 
 	#[test]
 	fn serialize_empty_interface_set() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &InterfaceSet::empty()).unwrap();
-		assert_eq!(encoded, &[0, 0, 0, 0]);
+		assert_eq!(encoded.bytes(), &[0, 0, 0, 0]);
 	}
 
 	#[test]
 	fn deserialize_empty_interface_set() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded: InterfaceSet = from_slice(&[0, 0, 0, 0], ctxt).unwrap();
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &InterfaceSet::empty()).unwrap();
+		let (decoded, _) = encoded.deserialize::<InterfaceSet>().unwrap();
 		assert_eq!(decoded, InterfaceSet::empty());
 	}
 
 	#[test]
 	fn serialize_interface_set_accessible() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &InterfaceSet::new(Interface::Accessible)).unwrap();
 		assert_eq!(
-			encoded,
+			encoded.bytes(),
 			&[
 				30, 0, 0, 0, 25, 0, 0, 0, 111, 114, 103, 46, 97, 49, 49, 121, 46, 97, 116, 115,
 				112, 105, 46, 65, 99, 99, 101, 115, 115, 105, 98, 108, 101, 0
@@ -362,25 +363,26 @@ mod tests {
 
 	#[test]
 	fn deserialize_interface_set_accessible() {
-		let ctxt = Context::<LE>::new_dbus(0);
-		let decoded: InterfaceSet = from_slice(
+		let ctxt = Context::new_dbus(LE, 0);
+		let data = Data::new::<&[u8]>(
 			&[
 				30, 0, 0, 0, 25, 0, 0, 0, 111, 114, 103, 46, 97, 49, 49, 121, 46, 97, 116, 115,
 				112, 105, 46, 65, 99, 99, 101, 115, 115, 105, 98, 108, 101, 0,
 			],
 			ctxt,
-		)
-		.unwrap();
-		assert_eq!(decoded, InterfaceSet::new(Interface::Accessible));
+		);
+
+		let (ifaceset, _) = data.deserialize::<InterfaceSet>().unwrap();
+		assert_eq!(ifaceset, InterfaceSet::new(Interface::Accessible));
 	}
 
 	#[test]
 	fn can_handle_multiple_interfaces() {
-		let ctxt = Context::<LE>::new_dbus(0);
+		let ctxt = Context::new_dbus(LE, 0);
 		let object =
 			InterfaceSet::new(Interface::Accessible | Interface::Action | Interface::Component);
 		let encoded = to_bytes(ctxt, &object).unwrap();
-		let decoded: InterfaceSet = from_slice(&encoded, ctxt).unwrap();
+		let (decoded, _) = encoded.deserialize::<InterfaceSet>().unwrap();
 		assert!(object == decoded);
 	}
 	#[test]

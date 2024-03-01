@@ -10,10 +10,9 @@
 //! section of the zbus documentation.
 //!
 
-use crate::atspi_proxy;
 use crate::common::{CoordType, Layer, ObjectRef, ScrollType};
 
-#[atspi_proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
 trait Component {
 	/// Contains method
 	fn contains(&self, x: i32, y: i32, coord_type: CoordType) -> zbus::Result<bool>;

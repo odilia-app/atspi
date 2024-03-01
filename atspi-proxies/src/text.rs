@@ -12,10 +12,9 @@
 #![allow(clippy::too_many_arguments)]
 // this is to silence clippy due to zbus expanding parameter expressions
 
-use crate::atspi_proxy;
 use crate::common::{ClipType, CoordType, Granularity};
 
-#[atspi_proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
+#[zbus::proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
 trait Text {
 	/// AddSelection method
 	fn add_selection(&self, start_offset: i32, end_offset: i32) -> zbus::Result<bool>;
@@ -133,10 +132,10 @@ trait Text {
 	) -> zbus::Result<bool>;
 
 	/// CaretOffset property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn caret_offset(&self) -> zbus::Result<i32>;
 
 	/// CharacterCount property
-	#[dbus_proxy(property)]
+	#[zbus(property)]
 	fn character_count(&self) -> zbus::Result<i32>;
 }
