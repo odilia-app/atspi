@@ -52,7 +52,7 @@ pub struct EventBody<'a, T> {
 	pub detail1: i32,
 	/// Generic second detail defined by AT-SPI.
 	pub detail2: i32,
-	/// Generic "any_data" field defined in AT-SPI.
+	/// Generic `any_data` field defined in AT-SPI.
 	/// Can contain any type.
 	#[serde(borrow)]
 	pub any_data: Value<'a>,
@@ -80,7 +80,7 @@ pub struct EventBodyQT {
 	pub detail1: i32,
 	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value described by AT-SPI.
+	/// Generic `any_data` value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A tuple of properties.
@@ -113,7 +113,7 @@ pub struct EventBodyOwned {
 	pub detail1: i32,
 	/// Generic detail2 value described by AT-SPI.
 	pub detail2: i32,
-	/// Generic any_data value described by AT-SPI.
+	/// Generic `any_data` value described by AT-SPI.
 	/// This can be any type.
 	pub any_data: OwnedValue,
 	/// A map of properties.

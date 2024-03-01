@@ -510,7 +510,6 @@ impl std::ops::BitAndAssign for StateSet {
 #[cfg(test)]
 mod tests {
 	use super::{State, StateSet};
-	use serde_plain;
 	use zvariant::serialized::{Context, Data};
 	use zvariant::{to_bytes, LE};
 
