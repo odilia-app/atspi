@@ -130,10 +130,9 @@ impl Clone for Property {
 			Property::TableSummary(table_summary) => Self::TableSummary(table_summary.clone()),
 			Property::Other((property, value)) => Self::Other((
 				property.clone(),
-				value.try_clone().unwrap_or_else(|err| {
-					eprintln!("Failed to clone value: {err:?}");
-					u8::default().into()
-				}),
+				value
+					.try_clone()
+					.expect("Could not clone 'value'.  Since properties are not known to carry files, we do not expect to exceed open file limit."),
 			)),
 		}
 	}
@@ -230,10 +229,7 @@ impl From<Property> for OwnedValue {
 			Property::TableSummary(table_summary) => Value::from(table_summary),
 			Property::Other((_, value)) => value.into(),
 		};
-		value.try_into().unwrap_or_else(|err| {
-			eprintln!("Failed to convert value: {err:?}");
-			u8::default().into()
-		})
+		value.try_into().expect("Should succeed as there are no borrowed file descriptors involved that could, potentially, exceed the open file limit when converted to OwnedValue")
 	}
 }
 
