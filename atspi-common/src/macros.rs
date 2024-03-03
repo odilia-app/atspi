@@ -291,7 +291,7 @@ macro_rules! event_enum_test_case {
 			let struct_event = <$type>::default();
 			let event = Event::from(struct_event.clone());
 			let struct_event_back = <$type>::try_from(event)
-				.expect("Could not convert from `Event` back to specific event type");
+				.expect("Should convert event enum into specific event type because it was created from it. Check the `impl_from_interface_event_enum_for_event` macro");
 			assert_eq!(struct_event, struct_event_back);
 		}
 	};
@@ -305,19 +305,18 @@ macro_rules! zbus_message_test_case {
 		fn zbus_msg_conversion_to_specific_event_type() {
 			let struct_event = <$type>::default();
 			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone())
-				.expect("Could not convert event into a message");
+				.expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
 			let struct_event_back =
-				<$type>::try_from(&msg).expect("Could not convert message into an event");
+				<$type>::try_from(&msg).expect("Should convert from `$type::default()` originated `Message` back into a specific event type. Check the `impl_from_dbus_message` macro.");
 			assert_eq!(struct_event, struct_event_back);
 		}
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_to_event_enum_type() {
 			let struct_event = <$type>::default();
-			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone())
-				.expect("Could not convert event into a message");
+			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone()).expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
 			let event_enum_back =
-				Event::try_from(&msg).expect("Could not convert message into an event");
+				Event::try_from(&msg).expect("Should convert a from `$type::default()` built `Message` into an event enum. Check the `impl_from_dbus_message` macro .");
 			let event_enum: Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
@@ -325,7 +324,7 @@ macro_rules! zbus_message_test_case {
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "should panic")]
+		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_fake_msg() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -338,11 +337,11 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panic! Invalid event.");
+			event.expect("Should panic");
 		}
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "should panic")]
+		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -355,11 +354,11 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panic! Invalid event.");
+			event.expect("Should panic");
 		}
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "should panic")]
+		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -372,11 +371,11 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panic! Invalid event.");
+			event.expect("Should panic");
 		}
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "should panic")]
+		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -389,11 +388,11 @@ macro_rules! zbus_message_test_case {
 			.build(&<$type>::default().body())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panic! Invalid event.");
+			event.expect("Should panic");
 		}
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "should panic")]
+		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -406,11 +405,29 @@ macro_rules! zbus_message_test_case {
 			.build(&<$type>::default().body())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("This should panic! Invalid event.");
+			event.expect("Should panic");
 		}
 	};
 }
 
+/// Expands to five tests:
+///
+/// 1. `into_and_try_from_event`
+/// 2. `zbus_msg_invalid_interface`
+/// 3. `zbus_msg_invalid_member`
+/// 4. `zbus_msg_invalid_member_and_interface`
+/// 5. `zbus_msg_conversion`
+///
+/// # Examples
+///
+/// ```ignore
+/// event_wrapper_test_cases!(MouseEvents, AbsEvent);
+/// ```
+/// In the macro, its first argument `$type` is the event enum type.  
+/// The second argument `$any_subtype` is the event struct type.
+///
+/// For each of the types, the macro will create a module with the name `events_tests_{foo}`
+/// where `{foo}` is the snake case of the 'interface enum' name.
 macro_rules! event_wrapper_test_cases {
 	($type:ty, $any_subtype:ty) => {
 		#[cfg(test)]
@@ -419,11 +436,15 @@ macro_rules! event_wrapper_test_cases {
 			use super::{$any_subtype, $type, Event, GenericEvent};
 			#[test]
 			fn into_and_try_from_event() {
+				// Create a default event struct from its type's `Default::default()` impl.
 				let sub_type = <$any_subtype>::default();
+				// Wrap the event struct in the event enum
 				let mod_type = <$type>::from(sub_type);
+				// Wrap the inner event enum into the `Event` enum.
 				let event = Event::from(mod_type.clone());
+				// Unwrap the `Event` enum into the inner event enum.
 				let mod_type2 = <$type>::try_from(event.clone())
-					.expect("Could not create event type from event");
+					.expect("Should convert outer `Event` enum into interface enum because it was created from it. Check the `impl_try_from_event_for_user_facing_event_type` macro");
 				assert_eq!(
 					mod_type, mod_type2,
 					"Events were able to be parsed and encapsulated, but they have changed value"
@@ -431,7 +452,7 @@ macro_rules! event_wrapper_test_cases {
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
-			#[should_panic(expected = "should panic")]
+			#[should_panic(expected = "Should panic")]
 			fn zbus_msg_invalid_interface() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
@@ -443,14 +464,21 @@ macro_rules! event_wrapper_test_cases {
 				.unwrap()
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
+
+				// It is hard to see what eventually is tested here. Let's unravels it:
+				//
+				// Below we call `TryFrom<&zbus::Message> for $type` where `$type` the interface enum name. (eg. `MouseEvents`, `ObjectEvents`, etc.) and
+				// `mod_type` is an 'interface enum' variant (eg. `MouseEvents::Abs(AbsEvent)`).
+				// This conversion is found in the `/src/events/{iface_name}.rs`` file.
+				// This conversion in turn leans on the `impl_from_dbus_message` macro.
+				// In `MouseEvents::Abs(msg.try_into()?)`, it is the `msg.try_into()?` that should fail.
+				// The `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect(
-					"This should panic! Could not convert message into a event wrapper type",
-				);
+				mod_type.expect("Should panic");
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
-			#[should_panic(expected = "should panic")]
+			#[should_panic(expected = "Should panic")]
 			fn zbus_msg_invalid_member() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
@@ -462,14 +490,13 @@ macro_rules! event_wrapper_test_cases {
 				.unwrap()
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
+				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect(
-					"This should panic! Could not convert message into a event wrapper type",
-				);
+				mod_type.expect("Should panic");
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
-			#[should_panic(expected = "should panic")]
+			#[should_panic(expected = "Should panic")]
 			fn zbus_msg_invalid_member_and_interface() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
@@ -481,10 +508,11 @@ macro_rules! event_wrapper_test_cases {
 				.unwrap()
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
+				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect(
-					"This should panic! Could not convert message into a event wrapper type",
-				);
+
+				// Note that the non-matching interface is the first error, so the member match error is not reached.
+				mod_type.expect("Should panic");
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
@@ -499,8 +527,9 @@ macro_rules! event_wrapper_test_cases {
 				.unwrap()
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
+				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
 				let mod_type = <$type>::try_from(&valid_msg);
-				mod_type.expect("Could not convert message into a event wrapper type");
+				mod_type.expect("Should convert from `$any_subtype::default()` built `Message` back into a interface event enum variant wrapping an inner type. Check the `impl_from_dbus_message` macro.");
 			}
 		}
 	};
