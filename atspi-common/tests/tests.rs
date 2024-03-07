@@ -1,6 +1,7 @@
 use atspi_common::events::{AddAccessibleEvent, Event, RemoveAccessibleEvent};
 use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
-use atspi_common::{object_ref::ACCESSIBLE_PAIR_SIGNATURE, CacheItem, ObjectRef};
+use atspi_common::object_ref::OBJECT_REF_SIGNATURE;
+use atspi_common::{CacheItem, ObjectRef};
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;
 use tokio_stream::StreamExt;
@@ -34,7 +35,7 @@ async fn test_recv_remove_accessible() {
 			.unwrap()
 	};
 
-	assert_eq!(&msg.body().signature().unwrap(), &ACCESSIBLE_PAIR_SIGNATURE);
+	assert_eq!(&msg.body().signature().unwrap(), &OBJECT_REF_SIGNATURE);
 	atspi.connection().send(&msg).await.unwrap();
 
 	loop {
