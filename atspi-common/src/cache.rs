@@ -3,11 +3,13 @@
 
 use crate::{InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
+use zbus_lockstep_macros::validate;
 use zvariant::Type;
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+#[validate(signal: "AddAccessible")]
 pub struct CacheItem {
 	/// The accessible object (within the application)   (so)
 	pub object: ObjectRef,
@@ -30,6 +32,7 @@ pub struct CacheItem {
 	/// The states applicable to the accessible.  au
 	pub states: StateSet,
 }
+
 impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
@@ -54,14 +57,6 @@ impl Default for CacheItem {
 			states: StateSet::empty(),
 		}
 	}
-}
-
-#[test]
-fn zvariant_type_signature_of_cache_item() {
-	assert_eq!(
-		CacheItem::signature(),
-		zbus::zvariant::Signature::from_static_str("((so)(so)(so)iiassusau)").unwrap()
-	);
 }
 
 /// The item type provided by `Cache:Add` signals
@@ -112,6 +107,7 @@ impl Default for LegacyCacheItem {
 	}
 }
 
+#[cfg(test)]
 #[test]
 fn zvariant_type_signature_of_legacy_cache_item() {
 	assert_eq!(
