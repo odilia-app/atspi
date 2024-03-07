@@ -204,23 +204,19 @@ pub enum ScrollType {
 
 /// Enumeration used to indicate a type of live region and how assertive it
 /// should be in terms of speaking notifications. Currently, this is only used
-/// for "announcement" events, but it may be used for additional purposes
+/// for `Announcement` events, but it may be used for additional purposes
 /// in the future.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
-#[repr(u32)]
+/// The argument in the `Announcement` event is named `politeness`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[repr(i32)]
 pub enum Live {
 	/// No live region.
+	#[default]
 	None,
 	/// This live region should be considered polite.
 	Polite,
 	/// This live region should be considered assertive.
 	Assertive,
-}
-
-impl Default for Live {
-	fn default() -> Self {
-		Self::None
-	}
 }
 
 impl TryFrom<i32> for Live {
