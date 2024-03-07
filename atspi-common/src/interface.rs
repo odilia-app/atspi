@@ -389,7 +389,8 @@ mod tests {
 	fn match_various_de_serialization_methods() {
 		for iface in InterfaceSet::all().iter() {
 			let displayed = format!("{iface}");
-			let serde_val = serde_plain::to_string(&iface).expect("Unable to serialize {iface}");
+			let serde_val = serde_plain::to_string(&iface)
+				.unwrap_or_else(|_| panic!("Unable to serialize {iface}"));
 			// this is not *necessary* if Display wants to be implemented for some other reason.
 			// as of when this test is written, it should be the same.
 			// but if you've made a concious decision as a developer that there is a better use for Display, go ahead and remove this
