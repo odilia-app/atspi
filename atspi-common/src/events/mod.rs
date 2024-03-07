@@ -23,10 +23,12 @@ pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unche
 pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
 use zvariant::OwnedObjectPath;
@@ -103,6 +105,7 @@ impl Default for EventBodyQT {
 /// Standard event body (GTK, `egui`, etc.)
 /// NOTE: Qt has its own signature: [`EventBodyQT`].
 /// Signature `(siiva{sv})`,
+#[validate(signal: "PropertyChange")]
 #[derive(Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
@@ -476,11 +479,13 @@ impl TryFrom<&zbus::Message> for EventBodyOwned {
 
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
+#[validate(signal: "EventListenerRegistered")]
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct EventListeners {
 	pub bus_name: OwnedUniqueName,
 	pub path: String,
 }
+
 impl Default for EventListeners {
 	fn default() -> Self {
 		Self {
@@ -489,16 +494,13 @@ impl Default for EventListeners {
 		}
 	}
 }
+
+#[cfg(test)]
 #[test]
 fn test_event_listener_default_no_panic() {
 	let el = EventListeners::default();
 	assert_eq!(el.bus_name.as_str(), ":0.0");
 	assert_eq!(el.path.as_str(), "/org/a11y/atspi/accessible/null");
-}
-
-#[test]
-fn test_event_listener_signature() {
-	assert_eq!(&EventListeners::signature(), &EVENT_LISTENER_SIGNATURE);
 }
 
 /// Covers both `EventListener` events.
@@ -784,18 +786,13 @@ pub trait HasRegistryEventString {
 
 #[cfg(test)]
 mod tests {
-	use super::{EventBodyOwned, EventBodyQT, ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE};
+	use super::{EventBodyOwned, EventBodyQT, QSPI_EVENT_SIGNATURE};
 	use std::collections::HashMap;
 	use zvariant::{ObjectPath, Type};
 
 	#[test]
 	fn check_event_body_qt_signature() {
 		assert_eq!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
-	}
-
-	#[test]
-	fn check_event_body_signature() {
-		assert_eq!(&<EventBodyOwned as Type>::signature(), &ATSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]
