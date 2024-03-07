@@ -34,6 +34,8 @@ pub use relation_type::RelationType;
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
+pub type Result<T> = std::result::Result<T, AtspiError>;
+
 pub type MatchArgs<'a> = (
 	&'a [i32],
 	MatchType,
