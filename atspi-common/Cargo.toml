@@ -27,6 +27,7 @@ zvariant = { version = "4.0", default-features = false }
 zbus = { workspace = true, optional = true, default-features = false }
 zbus-lockstep = "0.4.1"
 zbus-lockstep-macros = "0.4.1"
+zbus_xml = "4.0.0"
 
 [dev-dependencies]
 zbus = { workspace = true }
