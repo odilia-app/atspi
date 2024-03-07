@@ -222,7 +222,7 @@ pub enum Live {
 impl TryFrom<i32> for Live {
 	type Error = AtspiError;
 
-	fn try_from(value: i32) -> Result<Self, Self::Error> {
+	fn try_from(value: i32) -> std::result::Result<Self, Self::Error> {
 		match value {
 			0 => Ok(Live::None),
 			1 => Ok(Live::Polite),
@@ -235,6 +235,9 @@ impl TryFrom<i32> for Live {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use zbus_lockstep::{
+		method_args_signature, method_return_signature, signal_body_type_signature,
+	};
 
 	#[test]
 	fn convert_i32_to_live() {
@@ -243,5 +246,67 @@ mod tests {
 		assert_eq!(Live::Assertive, Live::try_from(2).unwrap());
 		assert!(Live::try_from(3).is_err());
 		assert!(Live::try_from(-1).is_err());
+	}
+
+	#[test]
+	fn set_env_for_signature_validations() {
+		std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
+		assert_eq!(std::env::var("LOCKSTEP_XML_PATH").unwrap(), "../xml");
+	}
+
+	#[test]
+	fn validate_live_signature() {
+		let signature = signal_body_type_signature!("Announcement");
+		let politeness_signature = signature.slice(1..2);
+		assert_eq!(Live::signature(), politeness_signature);
+	}
+
+	#[test]
+	fn validate_scroll_type_signature() {
+		let signature = method_args_signature!(member: "ScrollTo", interface: "org.a11y.atspi.Component", argument: "type");
+		assert_eq!(ScrollType::signature(), signature);
+	}
+
+	#[test]
+	fn validate_layer_signature() {
+		let signature = method_return_signature!("GetLayer");
+		assert_eq!(Layer::signature(), signature);
+	}
+
+	#[test]
+	fn validate_granularity_signature() {
+		let signature = method_args_signature!(member: "GetStringAtOffset", interface: "org.a11y.atspi.Text", argument: "granularity");
+		assert_eq!(Granularity::signature(), signature);
+	}
+
+	#[test]
+	fn validate_clip_type_signature() {
+		let signature = method_args_signature!(member: "GetTextAtOffset", interface: "org.a11y.atspi.Text", argument: "type");
+		assert_eq!(ClipType::signature(), signature);
+	}
+
+	#[test]
+	fn validate_coord_type_signature() {
+		let signature = method_args_signature!(member: "GetImagePosition", interface: "org.a11y.atspi.Image", argument: "coordType");
+		assert_eq!(CoordType::signature(), signature);
+	}
+
+	#[test]
+	fn validate_match_type_signature() {
+		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
+		let match_type_signature = rule_signature.slice(3..4);
+		assert_eq!(MatchType::signature(), match_type_signature);
+	}
+
+	#[test]
+	fn validate_tree_traversal_type_signature() {
+		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "tree");
+		assert_eq!(TreeTraversalType::signature(), signature);
+	}
+
+	#[test]
+	fn validate_sort_order_signature() {
+		let signature = method_args_signature!(member: "GetMatches", interface: "org.a11y.atspi.Collection", argument: "sortby");
+		assert_eq!(SortOrder::signature(), signature);
 	}
 }
