@@ -163,7 +163,7 @@ jobs:
           toolchain: stable
       - name: Install Cargo Machete
         uses: taiki-e/install-action@cargo-machete
-      - name: Check For Unused Depdencies
+      - name: Check For Unused Dependencies
         run: cargo machete
   semver-compliance:
     runs-on: ubuntu-latest
