@@ -23,7 +23,6 @@ pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unche
 pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
 pub const CACHE_ADD_SIGNATURE: Signature<'_> =
 	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
-pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 
 use std::collections::HashMap;
 
