@@ -8,7 +8,7 @@ use tokio_stream::StreamExt;
 use zbus::Message;
 use zvariant::OwnedObjectPath;
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+#[tokio::test]
 async fn test_recv_remove_accessible() {
 	let atspi = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
@@ -61,7 +61,7 @@ async fn test_recv_remove_accessible() {
 	}
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+#[tokio::test]
 async fn test_recv_add_accessible() {
 	let atspi = AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
