@@ -465,7 +465,7 @@ macro_rules! event_wrapper_test_cases {
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
 
-				// It is hard to see what eventually is tested here. Let's unravels it:
+				// It is hard to see what eventually is tested here. Let's unravel it:
 				//
 				// Below we call `TryFrom<&zbus::Message> for $type` where `$type` the interface enum name. (eg. `MouseEvents`, `ObjectEvents`, etc.) and
 				// `mod_type` is an 'interface enum' variant (eg. `MouseEvents::Abs(AbsEvent)`).
