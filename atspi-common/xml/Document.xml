@@ -20,5 +20,14 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QSpiAttributeSet"/>
     </method>
 
+    <method name="GetTextSelections">
+      <arg direction="out" name="selections" type="a((so)i(so)ib)"/>
+    </method>
+
+    <method name="SetTextSelections">
+      <arg direction="in" name="selections" type="a((so)i(so)ib)"/>
+      <arg direction="out" type="b"/>
+    </method>
+
   </interface>
 </node>

@@ -33,6 +33,12 @@
       <arg direction="out" name="endOffset" type="i"/>
     </method>
 
+    <!--
+        GetTextAtOffset:
+
+        Returns the text at the given offset.
+        Deprecated: Use GetStringAtOffset.
+    -->
     <method name="GetTextAtOffset">
       <arg direction="in" name="offset" type="i"/>
       <arg direction="in" name="type" type="u"/>
