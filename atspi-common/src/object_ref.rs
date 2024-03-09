@@ -1,14 +1,18 @@
 use serde::{Deserialize, Serialize};
+use zbus_lockstep_macros::validate;
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
-pub const ACCESSIBLE_PAIR_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
 
-// TODO: Try to make borrowed versions work,
-// check where the lifetimes of the borrow are tied to, see also: comment on `interface()` method
-// in `DefaultEvent` impl
-// then rename into Owned for this one.
-/// Owned `ObjectRef` type
-/// Emitted by `CacheRemove` and `Available`
+/// `ObjectRef` type
+///
+/// A ubiquitous type used to refer to an object in the accessibility tree.
+///
+/// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
+/// using a server name and object path. "(so)"
+///
+/// Emitted by `RemoveAccessible` and `Available`
+#[validate(signal: "Available")]
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRef {
 	pub name: String,
@@ -26,15 +30,7 @@ impl Default for ObjectRef {
 	}
 }
 
-#[test]
-fn test_accessible_signature() {
-	assert_eq!(
-		ObjectRef::signature(),
-		ACCESSIBLE_PAIR_SIGNATURE,
-		"ObjectRef does not have the correct type."
-	);
-}
-
+#[cfg(test)]
 #[test]
 fn test_accessible_from_dbus_ctxt_to_accessible() {
 	use zvariant::serialized::Context;
@@ -51,6 +47,7 @@ fn test_accessible_from_dbus_ctxt_to_accessible() {
 	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
 }
 
+#[cfg(test)]
 #[test]
 fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
 	use zvariant::serialized::Context;
@@ -79,8 +76,8 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
 			zvariant::Value::Structure(s) => {
-				if s.signature() != ACCESSIBLE_PAIR_SIGNATURE {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {}", ACCESSIBLE_PAIR_SIGNATURE.as_str())));
+				if s.signature() != OBJECT_REF_SIGNATURE {
+					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {}", OBJECT_REF_SIGNATURE.as_str())));
 				}
 				let fields = s.fields();
 				let name: String =

@@ -1,14 +1,16 @@
+use atspi_common::events::CacheEvents;
 use atspi_common::events::{AddAccessibleEvent, Event, RemoveAccessibleEvent};
-use atspi_common::events::{CacheEvents, CACHE_ADD_SIGNATURE};
-use atspi_common::{object_ref::ACCESSIBLE_PAIR_SIGNATURE, CacheItem, ObjectRef};
+use atspi_common::{CacheItem, ObjectRef};
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;
 use tokio_stream::StreamExt;
 use zbus::Message;
 use zvariant::OwnedObjectPath;
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+#[tokio::test]
 async fn test_recv_remove_accessible() {
+	std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
+
 	let atspi = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 	let unique_bus_name = atspi.connection().unique_name().unwrap();
@@ -34,7 +36,13 @@ async fn test_recv_remove_accessible() {
 			.unwrap()
 	};
 
-	assert_eq!(&msg.body().signature().unwrap(), &ACCESSIBLE_PAIR_SIGNATURE);
+	// Retrieve the signature of the body of 'RemoveAccessible' signal from XML
+	// and compare it to the signature of the body of the message
+	assert_eq!(
+		msg.body().signature().unwrap(),
+		zbus_lockstep::signal_body_type_signature!("RemoveAccessible")
+	);
+
 	atspi.connection().send(&msg).await.unwrap();
 
 	loop {
@@ -45,7 +53,7 @@ async fn test_recv_remove_accessible() {
 			.expect("conversion to `Event` failed");
 
 		if let Event::Cache(CacheEvents::Remove(event)) = event {
-			// If we did not send the signal, continue listening.
+			// If we were not sender of the signal, continue listening.
 			if event.item.name.as_str() != unique_bus_name.as_str() {
 				continue;
 			}
@@ -54,14 +62,17 @@ async fn test_recv_remove_accessible() {
 			assert_eq!(name.as_str(), ":69.420");
 			assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/remove");
 
-			// If we did, break the loop.
+			// If we were sender, break the loop.
 			break;
 		}
 	}
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+#[tokio::test]
 async fn test_recv_add_accessible() {
+	// Set env variable `LOCKSTEP_XML_PATH` to the path of the XML files. See above.
+	std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
+
 	let atspi = AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 	let unique_bus_name = atspi.connection().unique_name().unwrap();
@@ -84,7 +95,11 @@ async fn test_recv_add_accessible() {
 			.unwrap()
 	};
 
-	assert_eq!(msg.body().signature().unwrap(), CACHE_ADD_SIGNATURE);
+	assert_eq!(
+		msg.body().signature().unwrap(),
+		zbus_lockstep::signal_body_type_signature!("AddAccessible")
+	);
+
 	atspi
 		.connection()
 		.send(&msg)
@@ -118,6 +133,8 @@ async fn test_recv_add_accessible() {
 // that we can handle that case.
 #[tokio::test]
 async fn test_recv_add_accessible_unmarshalled_body() {
+	std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
+
 	let atspi = AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 	let unique_bus_name = atspi.connection().unique_name().unwrap();
@@ -140,7 +157,10 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 			.unwrap()
 	};
 
-	assert_eq!(&msg.body().signature().unwrap(), &CACHE_ADD_SIGNATURE);
+	assert_eq!(
+		msg.body().signature().unwrap(),
+		zbus_lockstep::signal_body_type_signature!("AddAccessible")
+	);
 
 	atspi
 		.connection()

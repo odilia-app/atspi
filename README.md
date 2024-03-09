@@ -13,7 +13,7 @@ Part of the [Odilia screen reader project](https://odilia.app).
 ## Design
 
 * Fully documented, with `#[deny(missing_docs)]`
-	* Or at least, it will be by 1.0
+* Or at least, it will be by 1.0
 * Fully safe, with `#[deny(unsafe_code)]`
 * Fantastic code style with `#[deny(clippy:all, clippy::pedantic, clippy::cargo)]`
 
@@ -24,6 +24,17 @@ We use the asynchronous zbus API, so to use atspi, you will need to run an async
 [tokio](https://crates.io/crates/tokio) or
 [async-std](https://crates.io/crates/async-std).
 The `async-io` and `tokio` features are exposed and will be passed through to zbus.
+
+## D-Bus type validation
+
+Atspi is used to send and receive data to and from applications. Sender and recipient need to agree on the shape of the data type for fruitful communication. Our best bet is to keep our types in sync with the protocol descriptions.
+
+We employ [zbus-lockstep](https://github.com/luukvanderduim/zbus-lockstep/) to match types against those defined in the AT-SPI2 protocol descriptions.
+
+Not all types can be validated (easily) with zbus_lockstep because types may not exist
+in the protocol descriptions, for example because they are deprecated (but still in use) or we have chosen a different representation.
+
+[A (partial) review of type validation may be found here](type_validation.md)
 
 ## License
 
