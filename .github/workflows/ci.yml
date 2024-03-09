@@ -241,7 +241,7 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: cargo llvm-cov
-        run: cargo llvm-cov --workspace --locked --lcov --output-path lcov.info
+        run:  LOCKSTEP_XML_PATH="../xml" cargo llvm-cov --workspace --locked --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v4
         with:
