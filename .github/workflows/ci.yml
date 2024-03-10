@@ -94,7 +94,7 @@ jobs:
         run: |
           sudo apt -y install at-spi2-core systemd
       - name: Run Tests (tokio)
-        run: LOCKSTEP_XML_PATH="../xml" cargo test --workspace --no-default-features --features=tokio -- --nocapture
+        run: cargo test --workspace --no-default-features --features=tokio -- --nocapture
       - name: Run Tests (async-std)
         run: LOCKSTEP_XML_PATH="../xml" cargo test --workspace --no-default-features --features=async-std -- --nocapture
   rustfmt:
