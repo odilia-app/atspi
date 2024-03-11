@@ -477,7 +477,7 @@ pub struct AnnouncementEvent {
 	/// Text of the announcement.
 	pub text: String,
 	/// Politeness level.
-	pub live: crate::Live,
+	pub live: crate::Politeness,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
