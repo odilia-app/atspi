@@ -228,9 +228,9 @@ trait Accessible {
 	#[zbus(property)]
 	fn parent(&self) -> zbus::Result<ObjectRef>;
 
-  /// Help text for the current object.
-  #[zbus(property)]
-  fn help_text(&self) -> zbus::Result<String>;
+	/// Help text for the current object.
+	#[zbus(property)]
+	fn help_text(&self) -> zbus::Result<String>;
 }
 
 impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
