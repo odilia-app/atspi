@@ -18,9 +18,31 @@ use crate::common::ObjectRef;
 	default_service = "org.a11y.atspi.Registry"
 )]
 trait Socket {
-	/// Embed method
+  /// @plug: a string for the unique bus name of the application, and an object path
+  /// for the application's' root object.
+  /// 
+  /// This is the entry point for an application that wants to register itself against
+  /// the accessibility registry.  The application's root object, which it passes in
+  /// @plug, must support the org.a11y.atspi.Application interface.
+  /// 
+  /// When an application calls this method on the registry, the following handshake happens:
+  /// 
+  /// * Application calls this method on the registry to identify itself.
+  /// * The registry sets the "Id" property on the org.a11y.atspi.Application interface on the @plug object.
+  /// * The Embed method returns with the bus name and object path for the registry's root object.
+  /// Returns: the bus name and object path of the registry's root object.
 	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<ObjectRef>;
 
+  /// This method is called by a socket to inform the plug that it is being
+  /// embedded. The plug should register the embedding socket as its parent.
+  fn embedded(&self, path: zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
+
 	/// Unembed method
+  /// [`plug`]: a string for the unique bus name of the application, and an object path
+  /// for the application's' root object.
+  /// 
+  /// Unregisters an application from the accesibility registry.  It is not necessary to
+  /// call this method; the accessibility registry detects when an application
+  /// disconnects from the bus.
 	fn unembed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
 }
