@@ -212,11 +212,11 @@ pub enum ScrollType {
 pub enum Live {
 	/// No live region.
 	#[default]
-	None,
+	None = 0,
 	/// This live region should be considered polite.
-	Polite,
+	Polite = 1,
 	/// This live region should be considered assertive.
-	Assertive,
+	Assertive = 2,
 }
 
 impl TryFrom<i32> for Live {
