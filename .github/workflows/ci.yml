@@ -96,7 +96,7 @@ jobs:
       - name: Run Tests (tokio)
         run: cargo test --workspace --no-default-features --features=tokio -- --nocapture
       - name: Run Tests (async-std)
-        run: LOCKSTEP_XML_PATH="../xml" cargo test --workspace --no-default-features --features=async-std -- --nocapture
+        run: cargo test --workspace --no-default-features --features=async-std -- --nocapture
   rustfmt:
     runs-on: ubuntu-latest
     steps:
