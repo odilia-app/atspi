@@ -43,11 +43,7 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     needs: [rustfmt,no-unused-dependencies,wasm-compatible-common-crate]
-    name: ${{ matrix.toolchain }} / clippy
-    strategy:
-        fail-fast: false
-        matrix:
-            toolchain: [stable, beta]
+    name: nightly Clippy
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -63,12 +59,12 @@ jobs:
             ~/.cargo/git/db
           key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
-      - name: Install ${{ matrix.toolchain }}
+               ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+      - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
           components: clippy
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: nightly
       - name: Clippy
         run: cargo clippy --tests --workspace --no-deps -- -D warnings 
   tests:
