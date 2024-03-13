@@ -78,6 +78,11 @@
     <property name="AccessibleId" type="s" access="read"/>
 
     <!--
+        HelpText: help text for the current object.
+    -->
+    <property name="HelpText" type="s" access="read"/>
+
+    <!--
         GetChildAtIndex:
         @index: 0-based index of the child to query.
 
