@@ -251,6 +251,10 @@ macro_rules! impl_from_dbus_message {
 	};
 }
 
+// We decorate the macro with a `#[cfg(test)]` attribute.
+// This prevents Clippy from complaining about the macro not being used.
+// It is being used, but only in test mode.
+//
 /// Tests `Default` and `GenericEvent::build` for a given event struct.
 ///
 /// Obtains a default for the given event struct.
@@ -275,6 +279,10 @@ macro_rules! generic_event_test_case {
 	};
 }
 
+// We decorate the macro with a `#[cfg(test)]` attribute.
+// This prevents Clippy from complaining about the macro not being used.
+// It is being used, but only in test mode.
+//
 /// Tests conversion to and from the `Event` enum.
 ///
 /// Obtains a default for the given event struct.
@@ -295,6 +303,11 @@ macro_rules! event_enum_test_case {
 	};
 }
 
+// We decorate the macro with a `#[cfg(test)]` attribute.
+// This prevents Clippy from complaining about the macro not being used.
+// It is being used, but only in test mode.
+//
+/// As of writing, this macro is expanded only once: in the `event_test_cases!` macro.
 #[cfg(test)]
 macro_rules! zbus_message_test_case {
 	($type:ty) => {
@@ -308,6 +321,7 @@ macro_rules! zbus_message_test_case {
 				<$type>::try_from(&msg).expect("Should convert from `$type::default()` originated `Message` back into a specific event type. Check the `impl_from_dbus_message` macro.");
 			assert_eq!(struct_event, struct_event_back);
 		}
+
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_to_event_enum_type() {
@@ -337,6 +351,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("Should panic");
 		}
+
 		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "Should panic")]
@@ -354,6 +369,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("Should panic");
 		}
+
 		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "Should panic")]
@@ -371,6 +387,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("Should panic");
 		}
+
 		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "Should panic")]
@@ -388,6 +405,7 @@ macro_rules! zbus_message_test_case {
 			let event = <$type>::try_from(&fake_msg);
 			event.expect("Should panic");
 		}
+
 		#[cfg(feature = "zbus")]
 		#[test]
 		#[should_panic(expected = "Should panic")]
