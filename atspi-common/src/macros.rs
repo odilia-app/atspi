@@ -1,5 +1,3 @@
-#[macro_export]
-
 /// Expands to a conversion given the enclosed event type and outer `Event` variant.
 ///
 /// eg
