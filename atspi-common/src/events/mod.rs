@@ -403,7 +403,7 @@ impl_from_dbus_message!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);
 
 #[cfg(test)]
-pub mod accessible_deserialization_tests {
+mod accessible_deserialization_tests {
 	use crate::events::ObjectRef;
 	use zvariant::Value;
 
@@ -430,7 +430,7 @@ pub mod accessible_deserialization_tests {
 }
 
 #[cfg(test)]
-pub mod accessible_tests {
+mod accessible_tests {
 	use super::ObjectRef;
 
 	#[test]
