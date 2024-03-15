@@ -33,7 +33,6 @@ atspi-connection = { path = "../atspi-connection" }
 atspi-proxies = { path = "../atspi-proxies"  }
 rename-item = "0.1.0"
 serde_plain = "1.0.1"
-static_assertions = "1.1.0"
 tokio-stream = { version = "0.1", default-features = false, features = ["time"] }
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-test = "0.4.2"
