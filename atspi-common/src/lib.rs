@@ -250,7 +250,6 @@ mod tests {
 
 	#[test]
 	fn set_env_for_signature_validations() {
-		std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
 		assert_eq!(std::env::var("LOCKSTEP_XML_PATH").unwrap(), "../xml");
 	}
 
