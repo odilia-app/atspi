@@ -190,7 +190,7 @@ jobs:
         with:
           tool: cargo-semver-checks
       - name: Check Semver Compliance
-        run: LOCKSTEP_XML_PATH="../xml" cargo semver-checks check-release -p atspi --default-features
+        run: cargo semver-checks check-release -p atspi --default-features
   msrv-compliance:
     runs-on: ubuntu-latest
     needs: [clippy,no-unused-dependencies,find-msrv]
