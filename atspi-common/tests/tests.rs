@@ -9,8 +9,6 @@ use zvariant::OwnedObjectPath;
 
 #[tokio::test]
 async fn test_recv_remove_accessible() {
-	std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
-
 	let atspi = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<RemoveAccessibleEvent>().await.unwrap();
 	let unique_bus_name = atspi.connection().unique_name().unwrap();
@@ -70,9 +68,6 @@ async fn test_recv_remove_accessible() {
 
 #[tokio::test]
 async fn test_recv_add_accessible() {
-	// Set env variable `LOCKSTEP_XML_PATH` to the path of the XML files. See above.
-	std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
-
 	let atspi = AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 	let unique_bus_name = atspi.connection().unique_name().unwrap();
@@ -133,8 +128,6 @@ async fn test_recv_add_accessible() {
 // that we can handle that case.
 #[tokio::test]
 async fn test_recv_add_accessible_unmarshalled_body() {
-	std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
-
 	let atspi = AccessibilityConnection::new().await.unwrap();
 	atspi.register_event::<AddAccessibleEvent>().await.unwrap();
 	let unique_bus_name = atspi.connection().unique_name().unwrap();

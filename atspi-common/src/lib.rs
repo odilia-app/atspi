@@ -249,12 +249,6 @@ mod tests {
 	}
 
 	#[test]
-	fn set_env_for_signature_validations() {
-		std::env::set_var("LOCKSTEP_XML_PATH", "../xml");
-		assert_eq!(std::env::var("LOCKSTEP_XML_PATH").unwrap(), "../xml");
-	}
-
-	#[test]
 	fn validate_live_signature() {
 		let signature = signal_body_type_signature!("Announcement");
 		let politeness_signature = signature.slice(1..2);
