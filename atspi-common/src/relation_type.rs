@@ -1,8 +1,24 @@
 use serde::{Deserialize, Serialize};
+use strum::{Display, FromRepr, IntoStaticStr};
 use zvariant::Type;
 
 /// Describes a relationship between one object and another.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	PartialEq,
+	Eq,
+	FromRepr,
+	IntoStaticStr,
+	Serialize,
+	Deserialize,
+	Type,
+	Hash,
+)]
+#[strum(serialize_all = "snake_case")]
+#[repr(u32)]
 pub enum RelationType {
 	/// Not a meaningful relationship; clients should not normally encounter this value.
 	Null = 0,
@@ -59,7 +75,7 @@ pub enum RelationType {
 	/// that live in a separate process space from the embedding context.
 	EmbeddedBy,
 
-	///Denotes that the object is a transient window or frame associated with another
+	/// Denotes that the object is a transient window or frame associated with another
 	/// onscreen object. Similar to `TooltipFor`, but more general.
 	/// Useful for windows which are technically toplevels but which, for one or more reasons,
 	/// do not explicitly cause their associated window to lose 'window focus'.
@@ -117,4 +133,16 @@ pub enum RelationType {
 	/// in the target object(s).
 	/// Included in upstream [AT-SPI2-CORE](https://gitlab.gnome.org/GNOME/at-spi2-core) since 2.26.
 	ErrorFor,
+}
+
+#[cfg(test)]
+mod tests {
+	use super::RelationType;
+	use zvariant::Type;
+
+	#[test]
+	fn validate_relation_type_signature() {
+		let signature = zbus_lockstep::method_return_signature!("GetRelationSet");
+		assert_eq!(RelationType::signature(), signature.slice(2..3));
+	}
 }
