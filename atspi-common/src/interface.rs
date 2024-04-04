@@ -130,10 +130,9 @@ impl Type for Interface {
 impl FromStr for Interface {
 	type Err = AtspiError;
 
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let prefix = "org.a11y.atspi.";
-		if s.starts_with(prefix) {
-			match &s[prefix.len()..] {
+	fn from_str(iface_str: &str) -> Result<Self, Self::Err> {
+		if let Some(iface_id) = iface_str.strip_prefix("org.a11y.atspi.") {
+			match iface_id {
 				"Accessible" => Ok(Interface::Accessible),
 				"Action" => Ok(Interface::Action),
 				"Application" => Ok(Interface::Application),
@@ -155,11 +154,11 @@ impl FromStr for Interface {
 				"Text" => Ok(Interface::Text),
 				"Value" => Ok(Interface::Value),
 				_ => Err(AtspiError::InterfaceMatch(format!(
-					"No interface found for conversion: {s}"
+					"No interface which matches id: \"{iface_id}\""
 				))),
 			}
 		} else {
-			Err(AtspiError::InterfaceMatch(format!("No interface found for conversion: {s}")))
+			Err(AtspiError::InterfaceMatch(format!("No interface matches: \"{iface_str}\"")))
 		}
 	}
 }
