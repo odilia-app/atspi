@@ -1,9 +1,7 @@
-use std::hash::Hash;
-
 use crate::{
 	error::AtspiError,
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, State,
+	Event, Live, State,
 };
 use zvariant::{ObjectPath, OwnedValue, Value};
 
@@ -73,7 +71,7 @@ pub struct PropertyChangeEvent {
 	pub value: Property,
 }
 
-impl Hash for PropertyChangeEvent {
+impl core::hash::Hash for PropertyChangeEvent {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.item.hash(state);
 		self.property.hash(state);
@@ -166,9 +164,7 @@ impl TryFrom<EventBodyOwned> for Property {
 					.any_data
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				let role: crate::Role = crate::Role::try_from(role_int)
-					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				role
+				crate::Role::from_repr(role_int).ok_or(AtspiError::ParseError("accessible-role"))?
 			})),
 			"accessible-parent" => Ok(Self::Parent(
 				body.any_data
@@ -651,7 +647,8 @@ impl GenericEvent<'_> for AnnouncementEvent {
 		Ok(Self {
 			item,
 			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
-			live: body.detail1.try_into()?,
+			live: Live::from_repr(body.detail1)
+				.ok_or(AtspiError::Conversion("\"detail1\" not convertable to \"Live\""))?,
 		})
 	}
 	fn sender(&self) -> String {
