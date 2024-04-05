@@ -32,6 +32,7 @@ mod relation_type;
 pub use relation_type::RelationType;
 
 use serde::{Deserialize, Serialize};
+use strum::{Display, FromRepr, IntoStaticStr};
 use zvariant::Type;
 
 pub type Result<T> = std::result::Result<T, AtspiError>;
@@ -48,12 +49,26 @@ pub type MatchArgs<'a> = (
 	bool,
 );
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
 /// Enumeration used by interface `CollectionProxy` to specify the way [`ObjectRef`]
 /// objects should be sorted.
 ///
 /// [`ObjectRef`]: crate::object_ref::ObjectRef
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
+#[repr(u32)]
+#[strum(serialize_all = "snake_case")]
 pub enum SortOrder {
 	/// Invalid sort order
 	Invalid,
@@ -72,8 +87,22 @@ pub enum SortOrder {
 }
 
 /// Method of traversing a tree in the `CollectionProxy`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
 #[repr(u32)]
+#[strum(serialize_all = "snake_case")]
 pub enum TreeTraversalType {
 	/// Restrict children tree traversal
 	RestrictChildren,
@@ -83,11 +112,25 @@ pub enum TreeTraversalType {
 	Inorder,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(i32)]
 /// Enumeration used by [`MatchArgs`] to specify how to interpret [`ObjectRef`] objects.
 ///
 /// [`ObjectRef`]: crate::object_ref::ObjectRef
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	IntoStaticStr,
+	Hash,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
+#[repr(i32)]
+#[strum(serialize_all = "snake_case")]
 pub enum MatchType {
 	/// Invalid match type
 	Invalid,
@@ -102,9 +145,23 @@ pub enum MatchType {
 	Empty,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
 /// The coordinate type encodes the frame of reference.
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
+#[repr(u32)]
+#[strum(serialize_all = "snake_case")]
 pub enum CoordType {
 	/// In relation to the entire screen.
 	Screen,
@@ -114,9 +171,23 @@ pub enum CoordType {
 	Parent,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
 /// Enumeration used by `TextProxy` to indicate how to treat characters intersecting bounding boxes.
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
+#[repr(u32)]
+#[strum(serialize_all = "snake_case")]
 pub enum ClipType {
 	/// No characters/glyphs are omitted.
 	Neither,
@@ -128,9 +199,23 @@ pub enum ClipType {
 	Both,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
 /// Level of granularity to get text of, in relation to a cursor position.
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
+#[repr(u32)]
+#[strum(serialize_all = "snake_case")]
 pub enum Granularity {
 	/// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the character that appears after the cursor.
 	Char,
@@ -158,7 +243,22 @@ pub enum Granularity {
 /// the recommended heuristic is first child paints first. In other words,
 /// assume that the first siblings in the child list are subject to being
 /// overpainted by later siblings if their bounds intersect.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
+#[repr(u32)]
+#[strum(serialize_all = "snake_case")]
 pub enum Layer {
 	/// Indicates an error condition or uninitialized value.
 	Invalid,
@@ -184,7 +284,22 @@ pub enum Layer {
 }
 
 /// Enumeration used by interface the [`crate::interface::Interface::Accessible`] to specify where an object should be placed on the screen when using `scroll_to`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
+#[repr(u32)]
+#[strum(serialize_all = "snake_case")]
 pub enum ScrollType {
 	/// Scroll the object to the top left corner of the window.
 	TopLeft,
@@ -207,8 +322,23 @@ pub enum ScrollType {
 /// for `Announcement` events, but it may be used for additional purposes
 /// in the future.
 /// The argument in the `Announcement` event is named `politeness`.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Default,
+	Display,
+	Eq,
+	FromRepr,
+	Hash,
+	IntoStaticStr,
+	PartialEq,
+	Serialize,
+	Deserialize,
+	Type,
+)]
 #[repr(i32)]
+#[strum(serialize_all = "snake_case")]
 pub enum Live {
 	/// No live region.
 	#[default]
@@ -217,19 +347,6 @@ pub enum Live {
 	Polite,
 	/// This live region should be considered assertive.
 	Assertive,
-}
-
-impl TryFrom<i32> for Live {
-	type Error = AtspiError;
-
-	fn try_from(value: i32) -> std::result::Result<Self, Self::Error> {
-		match value {
-			0 => Ok(Live::None),
-			1 => Ok(Live::Polite),
-			2 => Ok(Live::Assertive),
-			_ => Err(AtspiError::Conversion("Unknown Live variant")),
-		}
-	}
 }
 
 #[cfg(test)]
@@ -241,11 +358,11 @@ mod tests {
 
 	#[test]
 	fn convert_i32_to_live() {
-		assert_eq!(Live::None, Live::try_from(0).unwrap());
-		assert_eq!(Live::Polite, Live::try_from(1).unwrap());
-		assert_eq!(Live::Assertive, Live::try_from(2).unwrap());
-		assert!(Live::try_from(3).is_err());
-		assert!(Live::try_from(-1).is_err());
+		assert_eq!(Live::None, Live::from_repr(0).unwrap());
+		assert_eq!(Live::Polite, Live::from_repr(1).unwrap());
+		assert_eq!(Live::Assertive, Live::from_repr(2).unwrap());
+		assert!(Live::from_repr(3).is_none());
+		assert!(Live::from_repr(-1).is_none());
 	}
 
 	#[test]
