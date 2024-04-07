@@ -4,16 +4,48 @@ use serde::{
 	ser::{SerializeSeq, Serializer},
 	Deserialize, Serialize,
 };
-use std::fmt;
+use std::{fmt, str::FromStr};
+use strum::{Display, FromRepr, IntoStaticStr};
 use zvariant::{Signature, Type};
+
+use crate::AtspiError;
+
+// Notes on peculiarities of the AT-SPI2 API and how they are handled in this module:
+//
+// `State` is counterpart to the `AtspiStateType` enum in the C AT-SPI2 library.
+// The `StateChanged` signal (see: `Event.xml`) uses 'string' to encode the state,
+// (NOT by a `u32` representing the enum variant!)
+// `State`'s Rust representation is a `u64` bitfield, which is then serialized /
+// deserialized to / from a string.
+// The bitfield representation comes in handy when in use with the `StateSet` struct.
+//
+// The `GetState` method (see: `Accessible.xml`) encodes any combination of states using a bitfield.
+// This is currently achieved by sending an array of two `u32`s, which is then interpreted as a `u64`.
+// (NOT by sending a `u64` directly! )
+// so we need to serialize / deserialize `StateSet` to and from a bitfield.
+// `StateSet` is counterpart to the `AtspiStateSet` struct in the C AT-SPI2 library.
 
 /// Used by various interfaces indicating every possible state
 /// of an accessibility object.
 #[bitflags]
 #[non_exhaustive]
 #[repr(u64)]
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
+#[derive(
+	Clone,
+	Copy,
+	Debug,
+	Display,
+	FromRepr,
+	IntoStaticStr,
+	Serialize,
+	Deserialize,
+	PartialEq,
+	Eq,
+	Hash,
+	Default,
+)]
 #[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum State {
 	/// Indicates an invalid state - probably an error condition.
 	#[default]
@@ -221,112 +253,79 @@ pub enum State {
 	ReadOnly,
 }
 
-impl From<State> for String {
-	fn from(state: State) -> String {
-		match state {
-			State::Invalid => "invalid",
-			State::Active => "active",
-			State::Armed => "armed",
-			State::Busy => "busy",
-			State::Checked => "checked",
-			State::Collapsed => "collapsed",
-			State::Defunct => "defunct",
-			State::Editable => "editable",
-			State::Enabled => "enabled",
-			State::Expandable => "expandable",
-			State::Expanded => "expanded",
-			State::Focusable => "focusable",
-			State::Focused => "focused",
-			State::HasTooltip => "has-tooltip",
-			State::Horizontal => "horizontal",
-			State::Iconified => "iconified",
-			State::Modal => "modal",
-			State::MultiLine => "multi-line",
-			State::Multiselectable => "multiselectable",
-			State::Opaque => "opaque",
-			State::Pressed => "pressed",
-			State::Resizable => "resizable",
-			State::Selectable => "selectable",
-			State::Selected => "selected",
-			State::Sensitive => "sensitive",
-			State::Showing => "showing",
-			State::SingleLine => "single-line",
-			State::Stale => "stale",
-			State::Transient => "transient",
-			State::Vertical => "vertical",
-			State::Visible => "visible",
-			State::ManagesDescendants => "manages-descendants",
-			State::Indeterminate => "indeterminate",
-			State::Required => "required",
-			State::Truncated => "truncated",
-			State::Animated => "animated",
-			State::InvalidEntry => "invalid-entry",
-			State::SupportsAutocompletion => "supports-autocompletion",
-			State::SelectableText => "selectable-text",
-			State::IsDefault => "is-default",
-			State::Visited => "visited",
-			State::Checkable => "checkable",
-			State::HasPopup => "has-popup",
-			State::ReadOnly => "read-only",
+// Fallible conversion from &str to State
+impl FromStr for State {
+	type Err = AtspiError;
+
+	fn from_str(s: &str) -> Result<State, Self::Err> {
+		match s {
+			"invalid" => Ok(State::Invalid),
+			"active" => Ok(State::Active),
+			"armed" => Ok(State::Armed),
+			"busy" => Ok(State::Busy),
+			"checked" => Ok(State::Checked),
+			"collapsed" => Ok(State::Collapsed),
+			"defunct" => Ok(State::Defunct),
+			"editable" => Ok(State::Editable),
+			"enabled" => Ok(State::Enabled),
+			"expandable" => Ok(State::Expandable),
+			"expanded" => Ok(State::Expanded),
+			"focusable" => Ok(State::Focusable),
+			"focused" => Ok(State::Focused),
+			"has-tooltip" => Ok(State::HasTooltip),
+			"horizontal" => Ok(State::Horizontal),
+			"iconified" => Ok(State::Iconified),
+			"modal" => Ok(State::Modal),
+			"multi-line" => Ok(State::MultiLine),
+			"multiselectable" => Ok(State::Multiselectable),
+			"opaque" => Ok(State::Opaque),
+			"pressed" => Ok(State::Pressed),
+			"resizable" => Ok(State::Resizable),
+			"selectable" => Ok(State::Selectable),
+			"selected" => Ok(State::Selected),
+			"sensitive" => Ok(State::Sensitive),
+			"showing" => Ok(State::Showing),
+			"single-line" => Ok(State::SingleLine),
+			"stale" => Ok(State::Stale),
+			"transient" => Ok(State::Transient),
+			"vertical" => Ok(State::Vertical),
+			"visible" => Ok(State::Visible),
+			"manages-descendants" => Ok(State::ManagesDescendants),
+			"indeterminate" => Ok(State::Indeterminate),
+			"required" => Ok(State::Required),
+			"truncated" => Ok(State::Truncated),
+			"animated" => Ok(State::Animated),
+			"invalid-entry" => Ok(State::InvalidEntry),
+			"supports-autocompletion" => Ok(State::SupportsAutocompletion),
+			"selectable-text" => Ok(State::SelectableText),
+			"is-default" => Ok(State::IsDefault),
+			"visited" => Ok(State::Visited),
+			"checkable" => Ok(State::Checkable),
+			"has-popup" => Ok(State::HasPopup),
+			"read-only" => Ok(State::ReadOnly),
+			_ => Err(AtspiError::Conversion("Unknown state")),
 		}
-		.to_string()
 	}
 }
 
-impl From<String> for State {
-	fn from(string: String) -> State {
-		(&*string).into()
-	}
-}
-
+// Infalible conversion from &str to State
 impl From<&str> for State {
 	fn from(string: &str) -> State {
-		match string {
-			"active" => State::Active,
-			"armed" => State::Armed,
-			"busy" => State::Busy,
-			"checked" => State::Checked,
-			"collapsed" => State::Collapsed,
-			"defunct" => State::Defunct,
-			"editable" => State::Editable,
-			"enabled" => State::Enabled,
-			"expandable" => State::Expandable,
-			"expanded" => State::Expanded,
-			"focusable" => State::Focusable,
-			"focused" => State::Focused,
-			"has-tooltip" => State::HasTooltip,
-			"horizontal" => State::Horizontal,
-			"iconified" => State::Iconified,
-			"modal" => State::Modal,
-			"multi-line" => State::MultiLine,
-			"multiselectable" => State::Multiselectable,
-			"opaque" => State::Opaque,
-			"pressed" => State::Pressed,
-			"resizable" => State::Resizable,
-			"selectable" => State::Selectable,
-			"selected" => State::Selected,
-			"sensitive" => State::Sensitive,
-			"showing" => State::Showing,
-			"single-line" => State::SingleLine,
-			"stale" => State::Stale,
-			"transient" => State::Transient,
-			"vertical" => State::Vertical,
-			"visible" => State::Visible,
-			"manages-descendants" => State::ManagesDescendants,
-			"indeterminate" => State::Indeterminate,
-			"required" => State::Required,
-			"truncated" => State::Truncated,
-			"animated" => State::Animated,
-			"invalid-entry" => State::InvalidEntry,
-			"supports-autocompletion" => State::SupportsAutocompletion,
-			"selectable-text" => State::SelectableText,
-			"is-default" => State::IsDefault,
-			"visited" => State::Visited,
-			"checkable" => State::Checkable,
-			"has-popup" => State::HasPopup,
-			"read-only" => State::ReadOnly,
-			_ => State::Invalid,
-		}
+		string.parse().unwrap_or(State::Invalid)
+	}
+}
+
+// `EventBodyOwned` has owned data that we can convert to `State` in object.rs
+impl From<String> for State {
+	fn from(string: String) -> State {
+		string.as_str().into()
+	}
+}
+
+impl From<State> for String {
+	fn from(state: State) -> String {
+		// Using the derived `Display`
+		state.to_string()
 	}
 }
 
@@ -351,7 +350,7 @@ impl StateSet {
 	}
 
 	/// Returns the `StateSet` that corresponds to the provided `u64`s bit pattern.
-	///# Errors
+	/// # Errors
 	/// When the argument encodes an undefined [`State`].
 	pub fn from_bits(bits: u64) -> Result<StateSet, FromBitsError<State>> {
 		Ok(StateSet(BitFlags::from_bits(bits)?))
