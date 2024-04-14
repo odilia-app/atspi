@@ -1,7 +1,7 @@
 //! A connection to AT-SPI.
 //!  connection may receive any [`atspi_common::events::Event`] structures.
 
-#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all, missing_docs)]
 #![allow(clippy::multiple_crate_versions)]
 
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
@@ -19,6 +19,7 @@ use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
 
+/// A wrapper for results whose error type is [`AtspiError`].
 pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
 
 /// A connection to the at-spi bus
