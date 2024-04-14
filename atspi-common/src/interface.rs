@@ -454,49 +454,42 @@ mod tests {
 
 	#[test]
 	fn interface_display_impl() {
-		assert_eq!(format!("{}", Interface::Accessible), "org.a11y.atspi.Accessible".to_owned());
-		assert_eq!(format!("{}", Interface::Action), "org.a11y.atspi.Action".to_owned());
-		assert_eq!(format!("{}", Interface::Application), "org.a11y.atspi.Application".to_owned());
-		assert_eq!(format!("{}", Interface::Cache), "org.a11y.atspi.Cache".to_owned());
-		assert_eq!(format!("{}", Interface::Collection), "org.a11y.atspi.Collection".to_owned());
-		assert_eq!(format!("{}", Interface::Component), "org.a11y.atspi.Component".to_owned());
-		assert_eq!(format!("{}", Interface::Document), "org.a11y.atspi.Document".to_owned());
-		assert_eq!(
-			format!("{}", Interface::DeviceEventController),
-			"org.a11y.atspi.DeviceEventController".to_owned()
-		);
-		assert_eq!(
-			format!("{}", Interface::DeviceEventListener),
-			"org.a11y.atspi.DeviceEventListener".to_owned()
-		);
-		assert_eq!(
-			format!("{}", Interface::EditableText),
-			"org.a11y.atspi.EditableText".to_owned()
-		);
-		assert_eq!(format!("{}", Interface::Hyperlink), "org.a11y.atspi.Hyperlink".to_owned());
-		assert_eq!(format!("{}", Interface::Hypertext), "org.a11y.atspi.Hypertext".to_owned());
-		assert_eq!(format!("{}", Interface::Image), "org.a11y.atspi.Image".to_owned());
-		assert_eq!(format!("{}", Interface::Registry), "org.a11y.atspi.Registry".to_owned());
-		assert_eq!(format!("{}", Interface::Selection), "org.a11y.atspi.Selection".to_owned());
-		assert_eq!(format!("{}", Interface::Socket), "org.a11y.atspi.Socket".to_owned());
-		assert_eq!(format!("{}", Interface::Table), "org.a11y.atspi.Table".to_owned());
-		assert_eq!(format!("{}", Interface::TableCell), "org.a11y.atspi.TableCell".to_owned());
-		assert_eq!(format!("{}", Interface::Text), "org.a11y.atspi.Text".to_owned());
-		assert_eq!(format!("{}", Interface::Value), "org.a11y.atspi.Value".to_owned());
+		use Interface::*;
+		// `ToSting` impl is derived from Display trait.
+		assert_eq!(Accessible.to_string(), "org.a11y.atspi.Accessible");
+		assert_eq!(Action.to_string(), "org.a11y.atspi.Action");
+		assert_eq!(Application.to_string(), "org.a11y.atspi.Application");
+		assert_eq!(Cache.to_string(), "org.a11y.atspi.Cache");
+		assert_eq!(Collection.to_string(), "org.a11y.atspi.Collection");
+		assert_eq!(Component.to_string(), "org.a11y.atspi.Component");
+		assert_eq!(Document.to_string(), "org.a11y.atspi.Document");
+		assert_eq!(DeviceEventController.to_string(), "org.a11y.atspi.DeviceEventController");
+		assert_eq!(DeviceEventListener.to_string(), "org.a11y.atspi.DeviceEventListener");
+		assert_eq!(EditableText.to_string(), "org.a11y.atspi.EditableText");
+		assert_eq!(Hyperlink.to_string(), "org.a11y.atspi.Hyperlink");
+		assert_eq!(Hypertext.to_string(), "org.a11y.atspi.Hypertext");
+		assert_eq!(Image.to_string(), "org.a11y.atspi.Image");
+		assert_eq!(Registry.to_string(), "org.a11y.atspi.Registry");
+		assert_eq!(Selection.to_string(), "org.a11y.atspi.Selection");
+		assert_eq!(Socket.to_string(), "org.a11y.atspi.Socket");
+		assert_eq!(Table.to_string(), "org.a11y.atspi.Table");
+		assert_eq!(TableCell.to_string(), "org.a11y.atspi.TableCell");
+		assert_eq!(Text.to_string(), "org.a11y.atspi.Text");
+		assert_eq!(Value.to_string(), "org.a11y.atspi.Value");
 	}
 
 	#[test]
 	fn interface_set_display_impl() {
 		let ifaceset = InterfaceSet::new(Interface::Accessible);
-		assert_eq!(format!("{}", ifaceset), "org.a11y.atspi.Accessible");
+		assert_eq!(ifaceset.to_string(), "org.a11y.atspi.Accessible");
 
 		let ifaceset = InterfaceSet::new(Interface::Accessible | Interface::Action);
-		assert_eq!(format!("{}", ifaceset), "org.a11y.atspi.Accessible, org.a11y.atspi.Action");
+		assert_eq!(ifaceset.to_string(), "org.a11y.atspi.Accessible, org.a11y.atspi.Action");
 
 		let ifaceset =
 			InterfaceSet::new(Interface::Accessible | Interface::Action | Interface::Component);
 		assert_eq!(
-			format!("{}", ifaceset),
+			ifaceset.to_string(),
 			"org.a11y.atspi.Accessible, org.a11y.atspi.Action, org.a11y.atspi.Component"
 		);
 	}
