@@ -5,156 +5,78 @@
 
 use enumflags2::{bitflags, BitFlag, BitFlags};
 use serde::{
-	de::{self, Deserialize, Deserializer, Visitor},
-	ser::{Serialize, Serializer},
+	de::{self, Deserializer, Visitor},
+	ser::{self, Serializer},
+	Deserialize, Serialize,
 };
 use std::fmt;
 use zvariant::{Signature, Type};
 
-const ACCESSIBLE_INTERFACE_NAME: &str = "org.a11y.atspi.Accessible";
-const ACTION_INTERFACE_NAME: &str = "org.a11y.atspi.Action";
-const APPLICATION_INTERFACE_NAME: &str = "org.a11y.atspi.Application";
-const CACHE_INTERFACE_NAME: &str = "org.a11y.atspi.Cache";
-const COLLECTION_INTERFACE_NAME: &str = "org.a11y.atspi.Collection";
-const COMPONENT_INTERFACE_NAME: &str = "org.a11y.atspi.Component";
-const DOCUMENT_INTERFACE_NAME: &str = "org.a11y.atspi.Document";
-const DEVICE_EVENT_CONTROLLER_INTERFACE_NAME: &str = "org.a11y.atspi.DeviceEventController";
-const DEVICE_EVENT_LISTENER_INTERFACE_NAME: &str = "org.a11y.atspi.DeviceEventListener";
-const EDITABLE_TEXT_INTERFACE_NAME: &str = "org.a11y.atspi.EditableText";
-const HYPERLINK_INTERFACE_NAME: &str = "org.a11y.atspi.Hyperlink";
-const HYPERTEXT_INTERFACE_NAME: &str = "org.a11y.atspi.Hypertext";
-const IMAGE_INTERFACE_NAME: &str = "org.a11y.atspi.Image";
-const REGISTRY_INTERFACE_NAME: &str = "org.a11y.atspi.Registry";
-const SELECTION_INTERFACE_NAME: &str = "org.a11y.atspi.Selection";
-const SOCKET_INTERFACE_NAME: &str = "org.a11y.atspi.Socket";
-const TABLE_INTERFACE_NAME: &str = "org.a11y.atspi.Table";
-const TABLE_CELL_INTERFACE_NAME: &str = "org.a11y.atspi.TableCell";
-const TEXT_INTERFACE_NAME: &str = "org.a11y.atspi.Text";
-const VALUE_INTERFACE_NAME: &str = "org.a11y.atspi.Value";
-
 /// AT-SPI interfaces an accessible object can implement.
 #[bitflags]
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Interface {
 	/// Interface to indicate implementation of `AccessibleProxy`.
+	#[serde(rename = "org.a11y.atspi.Accessible")]
 	Accessible,
 	/// Interface to indicate implementation of `ActionProxy`.
+	#[serde(rename = "org.a11y.atspi.Action")]
 	Action,
 	/// Interface to indicate implementation of `ApplicationProxy`.
+	#[serde(rename = "org.a11y.atspi.Application")]
 	Application,
 	/// Interface to indicate implementation of `CacheProxy`.
+	#[serde(rename = "org.a11y.atspi.Cache")]
 	Cache,
 	/// Interface to indicate implementation of `CollectionProxy`.
+	#[serde(rename = "org.a11y.atspi.Collection")]
 	Collection,
 	/// Interface to indicate implementation of `ComponentProxy`.
+	#[serde(rename = "org.a11y.atspi.Component")]
 	Component,
 	/// Interface to indicate implementation of `DocumentProxy`.
+	#[serde(rename = "org.a11y.atspi.Document")]
 	Document,
 	/// Interface to indicate implementation of `DeviceEventControllerProxy`.
+	#[serde(rename = "org.a11y.atspi.DeviceEventController")]
 	DeviceEventController,
 	/// Interface to indicate implementation of `DeviceEventListenerProxy`.
+	#[serde(rename = "org.a11y.atspi.DeviceEventListener")]
 	DeviceEventListener,
 	/// Interface to indicate implementation of `EditableTextProxy`.
+	#[serde(rename = "org.a11y.atspi.EditableText")]
 	EditableText,
 	/// Interface to indicate implementation of `HyperlinkProxy`.
+	#[serde(rename = "org.a11y.atspi.Hyperlink")]
 	Hyperlink,
 	/// Interface to indicate implementation of `HypertextProxy`.
+	#[serde(rename = "org.a11y.atspi.Hypertext")]
 	Hypertext,
 	/// Interface to indicate implementation of `ImageProxy`.
+	#[serde(rename = "org.a11y.atspi.Image")]
 	Image,
 	/// Interface to indicate implementation of `RegistryProxy`.
+	#[serde(rename = "org.a11y.atspi.Registry")]
 	Registry,
 	/// Interface to indicate implementation of `SelectionProxy`.
+	#[serde(rename = "org.a11y.atspi.Selection")]
 	Selection,
 	/// Interface to indicate implementation of `SocketProxy`.
+	#[serde(rename = "org.a11y.atspi.Socket")]
 	Socket,
 	/// Interface to indicate implementation of `TableProxy`.
+	#[serde(rename = "org.a11y.atspi.Table")]
 	Table,
 	/// Interface to indicate implementation of `TableCellProxy`.
+	#[serde(rename = "org.a11y.atspi.TableCell")]
 	TableCell,
 	/// Interface to indicate implementation of `TextProxy`.
+	#[serde(rename = "org.a11y.atspi.Text")]
 	Text,
 	/// Interface to indicate implementation of `ValueProxy`.
+	#[serde(rename = "org.a11y.atspi.Value")]
 	Value,
-}
-
-impl<'de> Deserialize<'de> for Interface {
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where
-		D: Deserializer<'de>,
-	{
-		struct InterfaceVisitor;
-
-		impl<'de> Visitor<'de> for InterfaceVisitor {
-			type Value = Interface;
-
-			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-				formatter.write_str("an AT-SPI interface name")
-			}
-
-			fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-			where
-				E: de::Error,
-			{
-				match value {
-					ACCESSIBLE_INTERFACE_NAME => Ok(Interface::Accessible),
-					ACTION_INTERFACE_NAME => Ok(Interface::Action),
-					APPLICATION_INTERFACE_NAME => Ok(Interface::Application),
-					CACHE_INTERFACE_NAME => Ok(Interface::Cache),
-					COLLECTION_INTERFACE_NAME => Ok(Interface::Collection),
-					COMPONENT_INTERFACE_NAME => Ok(Interface::Component),
-					DEVICE_EVENT_CONTROLLER_INTERFACE_NAME => Ok(Interface::DeviceEventController),
-					DEVICE_EVENT_LISTENER_INTERFACE_NAME => Ok(Interface::DeviceEventListener),
-					DOCUMENT_INTERFACE_NAME => Ok(Interface::Document),
-					EDITABLE_TEXT_INTERFACE_NAME => Ok(Interface::EditableText),
-					HYPERLINK_INTERFACE_NAME => Ok(Interface::Hyperlink),
-					HYPERTEXT_INTERFACE_NAME => Ok(Interface::Hypertext),
-					IMAGE_INTERFACE_NAME => Ok(Interface::Image),
-					REGISTRY_INTERFACE_NAME => Ok(Interface::Registry),
-					SELECTION_INTERFACE_NAME => Ok(Interface::Selection),
-					SOCKET_INTERFACE_NAME => Ok(Interface::Socket),
-					TABLE_INTERFACE_NAME => Ok(Interface::Table),
-					TABLE_CELL_INTERFACE_NAME => Ok(Interface::TableCell),
-					TEXT_INTERFACE_NAME => Ok(Interface::Text),
-					VALUE_INTERFACE_NAME => Ok(Interface::Value),
-					_ => Err(de::Error::custom("unknown interface")),
-				}
-			}
-		}
-
-		deserializer.deserialize_identifier(InterfaceVisitor)
-	}
-}
-
-impl Serialize for Interface {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: Serializer,
-	{
-		serializer.serialize_str(match self {
-			Interface::Accessible => ACCESSIBLE_INTERFACE_NAME,
-			Interface::Action => ACTION_INTERFACE_NAME,
-			Interface::Application => APPLICATION_INTERFACE_NAME,
-			Interface::Cache => CACHE_INTERFACE_NAME,
-			Interface::Collection => COLLECTION_INTERFACE_NAME,
-			Interface::Component => COMPONENT_INTERFACE_NAME,
-			Interface::DeviceEventController => DEVICE_EVENT_CONTROLLER_INTERFACE_NAME,
-			Interface::DeviceEventListener => DEVICE_EVENT_LISTENER_INTERFACE_NAME,
-			Interface::Document => DOCUMENT_INTERFACE_NAME,
-			Interface::EditableText => EDITABLE_TEXT_INTERFACE_NAME,
-			Interface::Hyperlink => HYPERLINK_INTERFACE_NAME,
-			Interface::Hypertext => HYPERTEXT_INTERFACE_NAME,
-			Interface::Image => IMAGE_INTERFACE_NAME,
-			Interface::Registry => REGISTRY_INTERFACE_NAME,
-			Interface::Selection => SELECTION_INTERFACE_NAME,
-			Interface::Socket => SOCKET_INTERFACE_NAME,
-			Interface::Table => TABLE_INTERFACE_NAME,
-			Interface::TableCell => TABLE_CELL_INTERFACE_NAME,
-			Interface::Text => TEXT_INTERFACE_NAME,
-			Interface::Value => VALUE_INTERFACE_NAME,
-		})
-	}
 }
 
 /// A collection type which encodes the AT-SPI interfaces an accessible object has implemented.
@@ -194,7 +116,7 @@ impl InterfaceSet {
 	}
 }
 
-impl<'de> Deserialize<'de> for InterfaceSet {
+impl<'de> de::Deserialize<'de> for InterfaceSet {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: Deserializer<'de>,
@@ -223,7 +145,7 @@ impl<'de> Deserialize<'de> for InterfaceSet {
 	}
 }
 
-impl Serialize for InterfaceSet {
+impl ser::Serialize for InterfaceSet {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
@@ -266,64 +188,6 @@ impl std::ops::BitOr for InterfaceSet {
 
 	fn bitor(self, other: Self) -> Self::Output {
 		InterfaceSet(self.0 | other.0)
-	}
-}
-
-impl TryFrom<&str> for Interface {
-	type Error = &'static str;
-
-	fn try_from(s: &str) -> Result<Self, Self::Error> {
-		match s {
-			ACCESSIBLE_INTERFACE_NAME => Ok(Interface::Accessible),
-			ACTION_INTERFACE_NAME => Ok(Interface::Action),
-			APPLICATION_INTERFACE_NAME => Ok(Interface::Application),
-			COLLECTION_INTERFACE_NAME => Ok(Interface::Collection),
-			COMPONENT_INTERFACE_NAME => Ok(Interface::Component),
-			DOCUMENT_INTERFACE_NAME => Ok(Interface::Document),
-			HYPERTEXT_INTERFACE_NAME => Ok(Interface::Hypertext),
-			HYPERLINK_INTERFACE_NAME => Ok(Interface::Hyperlink),
-			IMAGE_INTERFACE_NAME => Ok(Interface::Image),
-			SELECTION_INTERFACE_NAME => Ok(Interface::Selection),
-			SOCKET_INTERFACE_NAME => Ok(Interface::Socket),
-			TABLE_INTERFACE_NAME => Ok(Interface::Table),
-			TABLE_CELL_INTERFACE_NAME => Ok(Interface::TableCell),
-			TEXT_INTERFACE_NAME => Ok(Interface::Text),
-			EDITABLE_TEXT_INTERFACE_NAME => Ok(Interface::EditableText),
-			CACHE_INTERFACE_NAME => Ok(Interface::Cache),
-			VALUE_INTERFACE_NAME => Ok(Interface::Value),
-			REGISTRY_INTERFACE_NAME => Ok(Interface::Registry),
-			DEVICE_EVENT_CONTROLLER_INTERFACE_NAME => Ok(Interface::DeviceEventController),
-			DEVICE_EVENT_LISTENER_INTERFACE_NAME => Ok(Interface::DeviceEventListener),
-			_ => Err("No interface found for conversion."),
-		}
-	}
-}
-
-impl std::fmt::Display for Interface {
-	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-		let interface_str = match self {
-			Interface::Accessible => ACCESSIBLE_INTERFACE_NAME,
-			Interface::Action => ACTION_INTERFACE_NAME,
-			Interface::Application => APPLICATION_INTERFACE_NAME,
-			Interface::Cache => CACHE_INTERFACE_NAME,
-			Interface::Collection => COLLECTION_INTERFACE_NAME,
-			Interface::Component => COMPONENT_INTERFACE_NAME,
-			Interface::DeviceEventController => DEVICE_EVENT_CONTROLLER_INTERFACE_NAME,
-			Interface::DeviceEventListener => DEVICE_EVENT_LISTENER_INTERFACE_NAME,
-			Interface::Document => DOCUMENT_INTERFACE_NAME,
-			Interface::EditableText => EDITABLE_TEXT_INTERFACE_NAME,
-			Interface::Hypertext => HYPERTEXT_INTERFACE_NAME,
-			Interface::Hyperlink => HYPERLINK_INTERFACE_NAME,
-			Interface::Image => IMAGE_INTERFACE_NAME,
-			Interface::Registry => REGISTRY_INTERFACE_NAME,
-			Interface::Socket => SOCKET_INTERFACE_NAME,
-			Interface::Selection => SELECTION_INTERFACE_NAME,
-			Interface::Table => TABLE_INTERFACE_NAME,
-			Interface::TableCell => TABLE_CELL_INTERFACE_NAME,
-			Interface::Text => TEXT_INTERFACE_NAME,
-			Interface::Value => VALUE_INTERFACE_NAME,
-		};
-		f.write_str(interface_str)
 	}
 }
 
@@ -384,24 +248,5 @@ mod tests {
 		let encoded = to_bytes(ctxt, &object).unwrap();
 		let (decoded, _) = encoded.deserialize::<InterfaceSet>().unwrap();
 		assert!(object == decoded);
-	}
-	#[test]
-	fn match_various_de_serialization_methods() {
-		for iface in InterfaceSet::all().iter() {
-			let displayed = format!("{iface}");
-			let serde_val = serde_plain::to_string(&iface)
-				.unwrap_or_else(|_| panic!("Unable to serialize {iface}"));
-			// this is not *necessary* if Display wants to be implemented for some other reason.
-			// as of when this test is written, it should be the same.
-			// but if you've made a concious decision as a developer that there is a better use for Display, go ahead and remove this
-			assert_eq!(
-				displayed, serde_val,
-				"Serde's serialization does not match the Display trait implementation."
-			);
-			let from_str = Interface::try_from(&*displayed).unwrap();
-			assert_eq!(iface, from_str, "The display trait for {iface} became \"{displayed}\", but was re-serialized as {from_str} via TryFrom<&str>");
-			let serde_from_str: Interface = serde_plain::from_str(&serde_val).unwrap();
-			assert_eq!(serde_from_str, iface, "Serde's deserialization does not match its serialization. {iface} was serialized to \"{serde_val}\", but deserialized into {serde_from_str}");
-		}
 	}
 }
