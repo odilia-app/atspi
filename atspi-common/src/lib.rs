@@ -32,6 +32,7 @@ mod relation_type;
 pub use relation_type::RelationType;
 
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "strum")]
 use strum::{Display, FromRepr, IntoStaticStr};
 use zvariant::Type;
 
@@ -57,18 +58,16 @@ pub type MatchArgs<'a> = (
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(u32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum SortOrder {
 	/// Invalid sort order
 	Invalid,
@@ -91,18 +90,16 @@ pub enum SortOrder {
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(u32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum TreeTraversalType {
 	/// Restrict children tree traversal
 	RestrictChildren,
@@ -119,10 +116,7 @@ pub enum TreeTraversalType {
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
-	IntoStaticStr,
 	Hash,
 	PartialEq,
 	Serialize,
@@ -130,7 +124,8 @@ pub enum TreeTraversalType {
 	Type,
 )]
 #[repr(i32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum MatchType {
 	/// Invalid match type
 	Invalid,
@@ -150,18 +145,16 @@ pub enum MatchType {
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(u32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum CoordType {
 	/// In relation to the entire screen.
 	Screen,
@@ -176,18 +169,16 @@ pub enum CoordType {
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(u32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum ClipType {
 	/// No characters/glyphs are omitted.
 	Neither,
@@ -204,18 +195,16 @@ pub enum ClipType {
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(u32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum Granularity {
 	/// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the character that appears after the cursor.
 	Char,
@@ -247,18 +236,16 @@ pub enum Granularity {
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(u32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum Layer {
 	/// Indicates an error condition or uninitialized value.
 	Invalid,
@@ -288,18 +275,16 @@ pub enum Layer {
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(u32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum ScrollType {
 	/// Scroll the object to the top left corner of the window.
 	TopLeft,
@@ -327,18 +312,16 @@ pub enum ScrollType {
 	Copy,
 	Debug,
 	Default,
-	Display,
 	Eq,
-	FromRepr,
 	Hash,
-	IntoStaticStr,
 	PartialEq,
 	Serialize,
 	Deserialize,
 	Type,
 )]
 #[repr(i32)]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum Live {
 	/// No live region.
 	#[default]

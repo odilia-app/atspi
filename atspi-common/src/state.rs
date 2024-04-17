@@ -5,6 +5,7 @@ use serde::{
 	Deserialize, Serialize,
 };
 use std::{fmt, str::FromStr};
+#[cfg(feature = "strum")]
 use strum::{Display, FromRepr, IntoStaticStr};
 use zvariant::{Signature, Type};
 
@@ -34,9 +35,6 @@ use crate::AtspiError;
 	Clone,
 	Copy,
 	Debug,
-	Display,
-	FromRepr,
-	IntoStaticStr,
 	Serialize,
 	Deserialize,
 	PartialEq,
@@ -45,7 +43,8 @@ use crate::AtspiError;
 	Default,
 )]
 #[serde(rename_all = "kebab-case")]
-#[strum(serialize_all = "kebab-case")]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "kebab-case"))]
 pub enum State {
 	/// Indicates an invalid state - probably an error condition.
 	#[default]
@@ -322,6 +321,7 @@ impl From<String> for State {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl From<State> for String {
 	fn from(state: State) -> String {
 		// Using the derived `Display`

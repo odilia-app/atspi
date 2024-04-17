@@ -14,6 +14,7 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
+strum = ["dep:strum"]
 default = ["async-std"]
 async-std = ["zbus/async-io"]
 tokio = ["zbus/tokio"]
@@ -22,7 +23,7 @@ tokio = ["zbus/tokio"]
 enumflags2 = "0.7.7"
 serde = "1.0"
 static_assertions = "1.1.0"
-strum = { version = "0.26", features = ["derive"] }
+strum = { version = "0.26", features = ["derive"], optional = true }
 zbus-lockstep = "0.4.4"
 zbus-lockstep-macros = "0.4.4"
 zbus_names = "3.0"

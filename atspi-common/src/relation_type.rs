@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "strum")]
 use strum::{Display, FromRepr, IntoStaticStr};
 use zvariant::Type;
 
@@ -7,17 +8,15 @@ use zvariant::Type;
 	Clone,
 	Copy,
 	Debug,
-	Display,
 	PartialEq,
 	Eq,
-	FromRepr,
-	IntoStaticStr,
 	Serialize,
 	Deserialize,
 	Type,
 	Hash,
 )]
-#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 #[repr(u32)]
 pub enum RelationType {
 	/// Not a meaningful relationship; clients should not normally encounter this value.

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "strum")]
 use strum::{Display, EnumIter, FromRepr, IntoStaticStr};
 use zvariant::Type;
 
@@ -19,10 +20,6 @@ use zvariant::Type;
 	Clone,
 	Copy,
 	Debug,
-	Display,
-	EnumIter,
-	FromRepr,
-	IntoStaticStr,
 	PartialEq,
 	Eq,
 	Serialize,
@@ -30,14 +27,15 @@ use zvariant::Type;
 	Type,
 	Hash,
 )]
+#[cfg_attr(feature = "strum", derive(Display, EnumIter, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", strum(serialize_all = "lowercase"))]
 #[repr(u32)]
-#[strum(serialize_all = "lowercase")]
 pub enum Role {
 	/// A role indicating an error condition, such as uninitialized Role data, or an error deserializing.
 	Invalid,
 
 	/// Object is a label indicating the keyboard accelerators for the parent.
-	#[strum(serialize = "accelerator label")]
+	#[cfg_attr(feature = "strum", strum(serialize = "accelerator label"))]
 	AcceleratorLabel,
 
 	/// Object is used to alert the user about something.
@@ -56,35 +54,35 @@ pub enum Role {
 	Canvas,
 
 	/// A choice that can be checked or unchecked and provides a separate indicator for the current state.
-	#[strum(serialize = "check box")]
+	#[cfg_attr(feature = "strum", strum(serialize = "check box"))]
 	CheckBox,
 
 	/// A menu item that behaves like a check box. See [`Self::CheckBox`].
-	#[strum(serialize = "check menu item")]
+	#[cfg_attr(feature = "strum", strum(serialize = "check menu item"))]
 	CheckMenuItem,
 
 	/// A specialized dialog that lets the user choose a color.
-	#[strum(serialize = "color chooser")]
+	#[cfg_attr(feature = "strum", strum(serialize = "color chooser"))]
 	ColorChooser,
 
 	/// The header for a column of data.
-	#[strum(serialize = "column header")]
+	#[cfg_attr(feature = "strum", strum(serialize = "column header"))]
 	ColumnHeader,
 
 	/// A list of choices the user can select from.
-	#[strum(serialize = "combo box")]
+	#[cfg_attr(feature = "strum", strum(serialize = "combo box"))]
 	ComboBox,
 
 	/// An object which allows entry of a date.
-	#[strum(serialize = "date editor")]
+	#[cfg_attr(feature = "strum", strum(serialize = "date editor"))]
 	DateEditor,
 
 	/// An inconifed internal frame within a [`Role::DesktopFrame`].
-	#[strum(serialize = "desktop icon")]
+	#[cfg_attr(feature = "strum", strum(serialize = "desktop icon"))]
 	DesktopIcon,
 
 	/// A pane that supports internal frames and iconified versions of those internal frames.
-	#[strum(serialize = "desktop frame")]
+	#[cfg_attr(feature = "strum", strum(serialize = "desktop frame"))]
 	DesktopFrame,
 
 	/// An object that allows a value to be changed via rotating a visual element, or which displays a value via such a rotating element.
@@ -94,37 +92,37 @@ pub enum Role {
 	Dialog,
 
 	/// A pane that allows the user to navigate through and select the contents of a directory.
-	#[strum(serialize = "directory pane")]
+	#[cfg_attr(feature = "strum", strum(serialize = "directory pane"))]
 	DirectoryPane,
 
 	/// An object used for drawing custom user interface elements.
-	#[strum(serialize = "drawing area")]
+	#[cfg_attr(feature = "strum", strum(serialize = "drawing area"))]
 	DrawingArea,
 
 	/// A specialized dialog that displays the files in the directory and lets the user select a file, browse a different directory, or specify a filename.
-	#[strum(serialize = "file chooser")]
+	#[cfg_attr(feature = "strum", strum(serialize = "file chooser"))]
 	FileChooser,
 
 	/// A object that fills up space in a user interface.
 	Filler,
 
 	/// Don't use, reserved for future use.
-	#[strum(serialize = "focus traversable")]
+	#[cfg_attr(feature = "strum", strum(serialize = "focus traversable"))]
 	FocusTraversable,
 
 	/// Allows selection of a display font.
-	#[strum(serialize = "font chooser")]
+	#[cfg_attr(feature = "strum", strum(serialize = "font chooser"))]
 	FontChooser,
 
 	/// A top level window with a title bar, border, menubar, etc.
 	Frame,
 
 	/// A pane that is guaranteed to be painted on top of all panes beneath it.
-	#[strum(serialize = "glass pane")]
+	#[cfg_attr(feature = "strum", strum(serialize = "glass pane"))]
 	GlassPane,
 
 	/// A document container for HTML, whose children represent the document content.
-	#[strum(serialize = "html container")]
+	#[cfg_attr(feature = "strum", strum(serialize = "html container"))]
 	HTMLContainer,
 
 	/// A small fixed size picture, typically used to decorate components.
@@ -134,90 +132,90 @@ pub enum Role {
 	Image,
 
 	/// A frame-like object that is clipped by a desktop pane.
-	#[strum(serialize = "internal frame")]
+	#[cfg_attr(feature = "strum", strum(serialize = "internal frame"))]
 	InternalFrame,
 
 	/// An object used to present an icon or short string in an interface.
 	Label,
 
 	/// A specialized pane that allows its children to be drawn in layers, providing a form of stacking order.
-	#[strum(serialize = "layered pane")]
+	#[cfg_attr(feature = "strum", strum(serialize = "layered pane"))]
 	LayeredPane,
 
 	/// An object that presents a list of objects to the user and * allows the user to select one or more of them.
 	List,
 
 	/// An object that represents an element of a list.
-	#[strum(serialize = "list item")]
+	#[cfg_attr(feature = "strum", strum(serialize = "list item"))]
 	ListItem,
 
 	/// An object usually found inside a menu bar that contains a list of actions the user can choose from.
 	Menu,
 
 	/// An object usually drawn at the top of the primary dialog box of an application that contains a list of menus the user can choose from.
-	#[strum(serialize = "menu bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "menu bar"))]
 	MenuBar,
 
 	/// An object usually contained in a menu that presents an action the user can choose.
-	#[strum(serialize = "menu item")]
+	#[cfg_attr(feature = "strum", strum(serialize = "menu item"))]
 	MenuItem,
 
 	/// A specialized pane whose primary use is inside a dialog.
-	#[strum(serialize = "option pane")]
+	#[cfg_attr(feature = "strum", strum(serialize = "option pane"))]
 	OptionPane,
 
 	/// An object that is a child of a page tab list.
-	#[strum(serialize = "page tab")]
+	#[cfg_attr(feature = "strum", strum(serialize = "page tab"))]
 	PageTab,
 
 	/// An object that presents a series of panels (or page tabs), one at a time,through some mechanism provided by the object.
-	#[strum(serialize = "page tab list")]
+	#[cfg_attr(feature = "strum", strum(serialize = "page tab list"))]
 	PageTabList,
 
 	/// A generic container that is often used to group objects.
 	Panel,
 
 	/// A text object uses for passwords, or other places where the text content is not shown visibly to the user.
-	#[strum(serialize = "password text")]
+	#[cfg_attr(feature = "strum", strum(serialize = "password text"))]
 	PasswordText,
 
 	/// A temporary window that is usually used to offer the user a list of choices, and then hides when the user selects one of those choices.
-	#[strum(serialize = "popup menu")]
+	#[cfg_attr(feature = "strum", strum(serialize = "popup menu"))]
 	PopupMenu,
 
 	/// An object used to indicate how much of a task has been completed.
-	#[strum(serialize = "progress bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "progress bar"))]
 	ProgressBar,
 
 	/// An object the user can manipulate to tell the application to do something.
-	#[strum(serialize = "push button")]
+	#[cfg_attr(feature = "strum", strum(serialize = "push button"))]
 	PushButton,
 
 	/// A specialized check box that will cause other radio buttons in the same group to become unchecked when this one is checked.
-	#[strum(serialize = "radio button")]
+	#[cfg_attr(feature = "strum", strum(serialize = "radio button"))]
 	RadioButton,
 
 	/// Object is both a menu item and a "radio button". See [`Self::RadioButton`].
-	#[strum(serialize = "radio menu item")]
+	#[cfg_attr(feature = "strum", strum(serialize = "radio menu item"))]
 	RadioMenuItem,
 
 	/// A specialized pane that has a glass pane and a layered pane as its children.
-	#[strum(serialize = "root pane")]
+	#[cfg_attr(feature = "strum", strum(serialize = "root pane"))]
 	RootPane,
 
 	/// The header for a row of data.
-	#[strum(serialize = "row header")]
+	#[cfg_attr(feature = "strum", strum(serialize = "row header"))]
 	RowHeader,
 
 	/// An object usually used to allow a user to incrementally view a large amount of data by moving the bounds of a viewport along a one-dimensional axis.
-	#[strum(serialize = "scroll bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "scroll bar"))]
 	ScrollBar,
 
 	/// A scroll pane: the pane in which the scrollable content is contained within.
 	/// An object that allows a user to incrementally view a large amount of information.
 	/// [`Self::ScrollPane`] objects are usually accompanied by [`Self::ScrollBar`] controllers,
 	/// on which the [`crate::RelationType::ControllerFor`] and [`crate::RelationType::ControlledBy`] reciprocal relations are set.
-	#[strum(serialize = "scroll pane")]
+	#[cfg_attr(feature = "strum", strum(serialize = "scroll pane"))]
 	ScrollPane,
 
 	/// An object usually contained in a menu to provide a visible and logical separation of the contents in a menu.
@@ -227,15 +225,15 @@ pub enum Role {
 	/// Unlike [`Self::ScrollBar`], [`Self::Slider`] objects need not control 'viewport'-like objects.
 	Slider,
 	/// An object which allows one of a set of choices to be selected, and which displays the current choice.
-	#[strum(serialize = "spin button")]
+	#[cfg_attr(feature = "strum", strum(serialize = "spin button"))]
 	SpinButton,
 
 	/// A specialized panel that presents two other panels at the same time.
-	#[strum(serialize = "split pane")]
+	#[cfg_attr(feature = "strum", strum(serialize = "split pane"))]
 	SplitPane,
 
 	/// Object displays non-quantitative status information (c.f. [`Self::ProgressBar`])
-	#[strum(serialize = "status bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "status bar"))]
 	StatusBar,
 
 	/// An object used to represent information in terms of rows and columns.
@@ -243,22 +241,22 @@ pub enum Role {
 
 	/// A 'cell' or discrete child within a Table.
 	/// Note: Table cells need not have [`Self::TableCell`], other [`crate::Role`] values are valid as well.
-	#[strum(serialize = "table cell")]
+	#[cfg_attr(feature = "strum", strum(serialize = "table cell"))]
 	TableCell,
 
 	/// An object which labels a particular column in an [`Self::Table`].
-	#[strum(serialize = "table column header")]
+	#[cfg_attr(feature = "strum", strum(serialize = "table column header"))]
 	TableColumnHeader,
 
 	/// An object which labels a particular row in a [`Self::Table`].
 	/// `TableProxy` rows and columns may also be labelled via the
 	/// [`crate::RelationType::LabelFor`]/[`crate::RelationType::LabelledBy`] relationships.
 	/// See: `AccessibleProxy::get_relation_type`.
-	#[strum(serialize = "table row header")]
+	#[cfg_attr(feature = "strum", strum(serialize = "table row header"))]
 	TableRowHeader,
 
 	/// Object allows menu to be removed from menubar and shown in its own window.
-	#[strum(serialize = "tearoff menu item")]
+	#[cfg_attr(feature = "strum", strum(serialize = "tearoff menu item"))]
 	TearoffMenuItem,
 
 	/// An object that emulates a terminal.
@@ -272,22 +270,22 @@ pub enum Role {
 	Text,
 
 	/// A specialized push button that can be checked or unchecked, but does not provide a separate indicator for the current state.
-	#[strum(serialize = "toggle button")]
+	#[cfg_attr(feature = "strum", strum(serialize = "toggle button"))]
 	ToggleButton,
 
 	/// A bar or palette usually composed of push buttons or toggle buttons.
-	#[strum(serialize = "tool bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "tool bar"))]
 	ToolBar,
 
 	/// An object that provides information about another object.
-	#[strum(serialize = "tool tip")]
+	#[cfg_attr(feature = "strum", strum(serialize = "tool tip"))]
 	ToolTip,
 
 	/// An object used to repsent hierarchical information to the user.
 	Tree,
 
 	/// An object that presents both tabular and hierarchical info to the user.
-	#[strum(serialize = "tree table")]
+	#[cfg_attr(feature = "strum", strum(serialize = "tree table"))]
 	TreeTable,
 
 	/// When the role cannot be accurately reported, this role will be set.
@@ -322,7 +320,7 @@ pub enum Role {
 	Autocomplete,
 
 	/// The object is an editable text object in a toolbar.
-	#[strum(serialize = "edit bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "edit bar"))]
 	EditBar,
 
 	/// The object is an embedded component container.
@@ -349,7 +347,7 @@ pub enum Role {
 	/// said to be embedded in the containing instance.
 	/// HTML frames are often [`Self::DocumentFrame`]:  Either this object, or a singleton descendant,
 	/// should implement the [`crate::Interface::Document`] interface.
-	#[strum(serialize = "document frame")]
+	#[cfg_attr(feature = "strum", strum(serialize = "document frame"))]
 	DocumentFrame,
 
 	/// Heading: this is a heading with a level (usually 1-6). This is represented by `<h1>` through `<h6>` in HTML.
@@ -368,7 +366,7 @@ pub enum Role {
 
 	/// The object is redundant with another object in the hierarchy, and is exposed for purely technical reasons.
 	/// Objects of this role should be ignored by clients, if they are encountered at all.
-	#[strum(serialize = "redundant object")]
+	#[cfg_attr(feature = "strum", strum(serialize = "redundant object"))]
 	RedundantObject,
 
 	/// The object is a containing instance of document content which has within it components with which the user can interact in order to input information;
@@ -382,35 +380,35 @@ pub enum Role {
 	Link,
 
 	/// The object is a window or similar viewport which is used to allow composition or input of a 'complex character', in other words it is an "input method window".
-	#[strum(serialize = "input method window")]
+	#[cfg_attr(feature = "strum", strum(serialize = "input method window"))]
 	InputMethodWindow,
 
 	/// A row in a table.
-	#[strum(serialize = "table row")]
+	#[cfg_attr(feature = "strum", strum(serialize = "table row"))]
 	TableRow,
 
 	/// An object that represents an element of a tree.
-	#[strum(serialize = "tree item")]
+	#[cfg_attr(feature = "strum", strum(serialize = "tree item"))]
 	TreeItem,
 
 	/// A document frame which contains a spreadsheet.
-	#[strum(serialize = "document spreadsheet")]
+	#[cfg_attr(feature = "strum", strum(serialize = "document spreadsheet"))]
 	DocumentSpreadsheet,
 
 	/// A document frame which contains a presentation or slide content.
-	#[strum(serialize = "document presentation")]
+	#[cfg_attr(feature = "strum", strum(serialize = "document presentation"))]
 	DocumentPresentation,
 
 	/// A document frame which contains textual content, such as found in a word processing application.
-	#[strum(serialize = "document text")]
+	#[cfg_attr(feature = "strum", strum(serialize = "document text"))]
 	DocumentText,
 
 	/// A document frame which contains HTML or other markup suitable for display in a web browser.
-	#[strum(serialize = "document web")]
+	#[cfg_attr(feature = "strum", strum(serialize = "document web"))]
 	DocumentWeb,
 
 	/// A document frame which contains email content to be displayed or composed either in plain text or HTML.
-	#[strum(serialize = "document email")]
+	#[cfg_attr(feature = "strum", strum(serialize = "document email"))]
 	DocumentEmail,
 
 	/// An object found within a document and designed to present a comment, note, or other annotation.
@@ -418,33 +416,33 @@ pub enum Role {
 	Comment,
 
 	/// A non-collapsible list of choices the user can select from.
-	#[strum(serialize = "list box")]
+	#[cfg_attr(feature = "strum", strum(serialize = "list box"))]
 	ListBox,
 
 	/// A group of related widgets. This group typically has a label.
 	Grouping,
 
 	/// An image map object. Usually a graphic with multiple hotspots, where each hotspot can be activated resulting in the loading of another document or section of a document.
-	#[strum(serialize = "image map")]
+	#[cfg_attr(feature = "strum", strum(serialize = "image map"))]
 	ImageMap,
 
 	/// A transitory object designed to present a message to the user, typically at the desktop level rather than inside a particular application.
 	Notification,
 
 	/// An object designed to present a message to the user within an existing window.
-	#[strum(serialize = "info bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "info bar"))]
 	InfoBar,
 
 	/// A bar that serves as a level indicator to, for instance, show the strength of a password or the state of a battery.
-	#[strum(serialize = "level bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "level bar"))]
 	LevelBar,
 
 	/// A bar that serves as the title of a window or a dialog.
-	#[strum(serialize = "title bar")]
+	#[cfg_attr(feature = "strum", strum(serialize = "title bar"))]
 	TitleBar,
 
 	/// An object which contains a text section that is quoted from another source.
-	#[strum(serialize = "block quote")]
+	#[cfg_attr(feature = "strum", strum(serialize = "block quote"))]
 	BlockQuote,
 
 	/// An object which represents an audio element.
@@ -493,11 +491,11 @@ pub enum Role {
 	Static,
 
 	/// An object that represents a mathematical fraction.
-	#[strum(serialize = "math fraction")]
+	#[cfg_attr(feature = "strum", strum(serialize = "math fraction"))]
 	MathFraction,
 
 	/// An object that represents a mathematical expression displayed with a radical.
-	#[strum(serialize = "math root")]
+	#[cfg_attr(feature = "strum", strum(serialize = "math root"))]
 	MathRoot,
 
 	/// An object that contains text that is displayed as a subscript.
@@ -509,26 +507,26 @@ pub enum Role {
 	/// An object that represents a list of term-value groups.
 	/// A term-value group represents an individual description and consist of one or more names ([`Self::DescriptionTerm`]) followed by one or more values ([`Self::DescriptionValue`]).
 	/// For each list, there should not be more than one group with the same term name.
-	#[strum(serialize = "description list")]
+	#[cfg_attr(feature = "strum", strum(serialize = "description list"))]
 	DescriptionList,
 
 	/// An object that represents a term or phrase with a corresponding definition.
-	#[strum(serialize = "description term")]
+	#[cfg_attr(feature = "strum", strum(serialize = "description term"))]
 	DescriptionTerm,
 
 	/// An object that represents the description, definition, or value of a term.
-	#[strum(serialize = "description value")]
+	#[cfg_attr(feature = "strum", strum(serialize = "description value"))]
 	DescriptionValue,
 
 	/// An object that contains the text of a footnote.
 	Footnote,
 
 	/// Content previously deleted or proposed to be deleted, e.g. in revision history or a content view providing suggestions from reviewers.
-	#[strum(serialize = "content deletion")]
+	#[cfg_attr(feature = "strum", strum(serialize = "content deletion"))]
 	ContentDeletion,
 
 	/// Content previously inserted or proposed to be inserted, e.g. in revision history or a content view providing suggestions from reviewers.
-	#[strum(serialize = "content insertion")]
+	#[cfg_attr(feature = "strum", strum(serialize = "content insertion"))]
 	ContentInsertion,
 
 	/// A run of content that is marked or highlighted, such as for reference purposes, or to call it out as having a special purpose.
@@ -541,7 +539,7 @@ pub enum Role {
 	Suggestion,
 
 	/// A specialized push button to open a menu.
-	#[strum(serialize = "push button menu")]
+	#[cfg_attr(feature = "strum", strum(serialize = "push button menu"))]
 	PushButtonMenu,
 }
 

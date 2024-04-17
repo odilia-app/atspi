@@ -10,6 +10,7 @@ use serde::{
 	Deserialize, Serialize,
 };
 use std::{fmt, str::FromStr};
+#[cfg(feature = "strum")]
 use strum::{Display, IntoStaticStr};
 use zvariant::{Signature, Type};
 
@@ -18,106 +19,107 @@ use crate::AtspiError;
 /// AT-SPI interfaces an accessible object can implement.
 #[bitflags]
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, Display, IntoStaticStr, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, IntoStaticStr))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Interface {
 	/// Interface to indicate implementation of `AccessibleProxy`.  
 	#[serde(rename = "org.a11y.atspi.Accessible")]
-	#[strum(serialize = "org.a11y.atspi.Accessible")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Accessible"))]
 	Accessible,
 
 	/// Interface to indicate implementation of `ActionProxy`.
 	#[serde(rename = "org.a11y.atspi.Action")]
-	#[strum(serialize = "org.a11y.atspi.Action")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Action"))]
 	Action,
 
 	/// Interface to indicate implementation of `ApplicationProxy`.
 	#[serde(rename = "org.a11y.atspi.Application")]
-	#[strum(serialize = "org.a11y.atspi.Application")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Application"))]
 	Application,
 
 	/// Interface to indicate implementation of `CacheProxy`.
 	#[serde(rename = "org.a11y.atspi.Cache")]
-	#[strum(serialize = "org.a11y.atspi.Cache")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Cache"))]
 	Cache,
 
 	/// Interface to indicate implementation of `CollectionProxy`.
 	#[serde(rename = "org.a11y.atspi.Collection")]
-	#[strum(serialize = "org.a11y.atspi.Collection")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Collection"))]
 	Collection,
 
 	/// Interface to indicate implementation of `ComponentProxy`.
 	#[serde(rename = "org.a11y.atspi.Component")]
-	#[strum(serialize = "org.a11y.atspi.Component")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Component"))]
 	Component,
 
 	/// Interface to indicate implementation of `DocumentProxy`.
 	#[serde(rename = "org.a11y.atspi.Document")]
-	#[strum(serialize = "org.a11y.atspi.Document")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Document"))]
 	Document,
 
 	/// Interface to indicate implementation of `DeviceEventControllerProxy`.
 	#[serde(rename = "org.a11y.atspi.DeviceEventController")]
-	#[strum(serialize = "org.a11y.atspi.DeviceEventController")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.DeviceEventController"))]
 	DeviceEventController,
 
 	/// Interface to indicate implementation of `DeviceEventListenerProxy`.
 	#[serde(rename = "org.a11y.atspi.DeviceEventListener")]
-	#[strum(serialize = "org.a11y.atspi.DeviceEventListener")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.DeviceEventListener"))]
 	DeviceEventListener,
 
 	/// Interface to indicate implementation of `EditableTextProxy`.
 	#[serde(rename = "org.a11y.atspi.EditableText")]
-	#[strum(serialize = "org.a11y.atspi.EditableText")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.EditableText"))]
 	EditableText,
 
 	/// Interface to indicate implementation of `HyperlinkProxy`.
 	#[serde(rename = "org.a11y.atspi.Hyperlink")]
-	#[strum(serialize = "org.a11y.atspi.Hyperlink")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Hyperlink"))]
 	Hyperlink,
 
 	/// Interface to indicate implementation of `HypertextProxy`.
 	#[serde(rename = "org.a11y.atspi.Hypertext")]
-	#[strum(serialize = "org.a11y.atspi.Hypertext")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Hypertext"))]
 	Hypertext,
 
 	/// Interface to indicate implementation of `ImageProxy`.
 	#[serde(rename = "org.a11y.atspi.Image")]
-	#[strum(serialize = "org.a11y.atspi.Image")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Image"))]
 	Image,
 
 	/// Interface to indicate implementation of `RegistryProxy`.
 	#[serde(rename = "org.a11y.atspi.Registry")]
-	#[strum(serialize = "org.a11y.atspi.Registry")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Registry"))]
 	Registry,
 
 	/// Interface to indicate implementation of `SelectionProxy`.
 	#[serde(rename = "org.a11y.atspi.Selection")]
-	#[strum(serialize = "org.a11y.atspi.Selection")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Selection"))]
 	Selection,
 
 	/// Interface to indicate implementation of `SocketProxy`.
 	#[serde(rename = "org.a11y.atspi.Socket")]
-	#[strum(serialize = "org.a11y.atspi.Socket")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Socket"))]
 	Socket,
 
 	/// Interface to indicate implementation of `TableProxy`.
 	#[serde(rename = "org.a11y.atspi.Table")]
-	#[strum(serialize = "org.a11y.atspi.Table")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Table"))]
 	Table,
 
 	/// Interface to indicate implementation of `TableCellProxy`.
 	#[serde(rename = "org.a11y.atspi.TableCell")]
-	#[strum(serialize = "org.a11y.atspi.TableCell")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.TableCell"))]
 	TableCell,
 
 	/// Interface to indicate implementation of `TextProxy`.
 	#[serde(rename = "org.a11y.atspi.Text")]
-	#[strum(serialize = "org.a11y.atspi.Text")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Text"))]
 	Text,
 
 	/// Interface to indicate implementation of `ValueProxy`.
 	#[serde(rename = "org.a11y.atspi.Value")]
-	#[strum(serialize = "org.a11y.atspi.Value")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Value"))]
 	Value,
 }
 
@@ -275,6 +277,7 @@ impl std::ops::BitOr for InterfaceSet {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl std::fmt::Display for InterfaceSet {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let mut iter = self.0.iter();
@@ -452,6 +455,7 @@ mod tests {
 		assert!(res.is_err());
 	}
 
+	#[cfg(feature = "strum")]
 	#[test]
 	fn interface_display_impl() {
 		use Interface::*;
@@ -478,6 +482,7 @@ mod tests {
 		assert_eq!(Value.to_string(), "org.a11y.atspi.Value");
 	}
 
+	#[cfg(feature = "strum")]
 	#[test]
 	fn interface_set_display_impl() {
 		let ifaceset = InterfaceSet::new(Interface::Accessible);
