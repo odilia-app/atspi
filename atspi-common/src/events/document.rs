@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties,
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -21,6 +21,73 @@ pub enum DocumentEvents {
 	/// See: [`PageChangedEvent`].
 	PageChanged(PageChangedEvent),
 }
+
+impl EventTypeProperties for DocumentEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::LoadComplete(inner) => inner.member(),
+			Self::Reload(inner) => inner.member(),
+			Self::LoadStopped(inner) => inner.member(),
+			Self::ContentChanged(inner) => inner.member(),
+			Self::AttributesChanged(inner) => inner.member(),
+			Self::PageChanged(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::LoadComplete(inner) => inner.interface(),
+			Self::Reload(inner) => inner.interface(),
+			Self::LoadStopped(inner) => inner.interface(),
+			Self::ContentChanged(inner) => inner.interface(),
+			Self::AttributesChanged(inner) => inner.interface(),
+			Self::PageChanged(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::LoadComplete(inner) => inner.match_rule(),
+			Self::Reload(inner) => inner.match_rule(),
+			Self::LoadStopped(inner) => inner.match_rule(),
+			Self::ContentChanged(inner) => inner.match_rule(),
+			Self::AttributesChanged(inner) => inner.match_rule(),
+			Self::PageChanged(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::LoadComplete(inner) => inner.registry_string(),
+			Self::Reload(inner) => inner.registry_string(),
+			Self::LoadStopped(inner) => inner.registry_string(),
+			Self::ContentChanged(inner) => inner.registry_string(),
+			Self::AttributesChanged(inner) => inner.registry_string(),
+			Self::PageChanged(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for DocumentEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::LoadComplete(inner) => inner.path(),
+			Self::Reload(inner) => inner.path(),
+			Self::LoadStopped(inner) => inner.path(),
+			Self::ContentChanged(inner) => inner.path(),
+			Self::AttributesChanged(inner) => inner.path(),
+			Self::PageChanged(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::LoadComplete(inner) => inner.sender(),
+			Self::Reload(inner) => inner.sender(),
+			Self::LoadStopped(inner) => inner.sender(),
+			Self::ContentChanged(inner) => inner.sender(),
+			Self::AttributesChanged(inner) => inner.sender(),
+			Self::PageChanged(inner) => inner.sender(),
+		}
+	}
+}
+
 impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
 impl_try_from_event_for_user_facing_event_type!(DocumentEvents, Event::Document);
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
