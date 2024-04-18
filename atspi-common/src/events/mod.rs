@@ -349,10 +349,10 @@ impl BusProperties for AddAccessibleEvent {
 		self.node_added.clone()
 	}
 }
-impl<'a, T: BusProperties> HasMatchRule for T {
+impl<T: BusProperties> HasMatchRule for T {
 	const MATCH_RULE_STRING: &'static str = <T as BusProperties>::MATCH_RULE_STRING;
 }
-impl<'a, T: BusProperties> HasRegistryEventString for T {
+impl<T: BusProperties> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as BusProperties>::REGISTRY_EVENT_STRING;
 }
 impl_from_dbus_message!(AddAccessibleEvent);
@@ -728,10 +728,10 @@ impl TryFrom<&zbus::Message> for Event {
 
 /// Describes the DBus-related information about a given struct.
 ///
-/// - DBus member name
-/// - DBus interface name
-/// - DBus path
-/// - DBus bus name
+/// - `DBus` member name
+/// - `DBus` interface name
+/// - `DBus` path
+/// - `DBus` bus name
 ///
 /// Together, the member and interface name can describe a specific event _type_.
 /// Likewise, the path and bus collectively create a unique ID for an _object on the accessibility bus_, this can also be referred to as an [`ObjectRef`].
@@ -746,7 +746,7 @@ pub trait GenericEvent {
 	fn name2<'a>(&self) -> BusName<'a>;
 }
 
-impl<'a, T: BusProperties> GenericEvent for T {
+impl<T: BusProperties> GenericEvent for T {
 	fn member(&self) -> &'static str {
 		<T as BusProperties>::DBUS_MEMBER
 	}
@@ -763,16 +763,21 @@ impl<'a, T: BusProperties> GenericEvent for T {
 
 impl<T: GenericEvent> From<&T> for ObjectRef {
 	fn from(ev: &T) -> ObjectRef {
-		ObjectRef {
-			path: ev.path2().to_owned().into(),
-			name: ev.name2().to_owned().into(),
-		}
+		ObjectRef { path: ev.path2().to_owned().into(), name: ev.name2().to_owned().into() }
 	}
 }
 
 assert_obj_safe!(GenericEvent);
 
-/// Shared behavior of bus `Signal` events.
+/// Describes the `DBus`-related information about a given struct.
+///
+/// - `DBus` member name
+/// - `DBus` interface name
+/// - `DBus` match string: used to tell `DBus` you are interested in a particular signal
+/// - accessibility registry event string: used to tell the accessibility registry that you are interested in a particular event
+///
+/// This trait *is not* object-safe.
+/// For a similar, but object-safe trait, see [`GenericEvent`].
 pub trait BusProperties {
 	/// The `DBus` member for the event.
 	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`

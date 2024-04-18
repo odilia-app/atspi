@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, State,
 };
 use zbus_names::BusName;
