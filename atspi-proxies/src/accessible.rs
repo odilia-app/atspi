@@ -233,7 +233,7 @@ impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
 		Ok(ObjectRef {
-			name: proxy.inner().destination().to_string(),
+			name: proxy.inner().destination().to_owned().into(),
 			path: proxy.inner().path().to_string().try_into()?,
 		})
 	}
@@ -242,7 +242,7 @@ impl TryFrom<&AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
 		Ok(ObjectRef {
-			name: proxy.inner().destination().to_string(),
+			name: proxy.inner().destination().to_owned().into(),
 			path: proxy.inner().path().to_string().try_into()?,
 		})
 	}

@@ -28,7 +28,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zbus_names::{OwnedUniqueName, UniqueName};
+use zbus_names::{BusName, OwnedBusName, OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
 use zvariant::OwnedObjectPath;
 use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
@@ -60,7 +60,7 @@ pub struct EventBody<'a, T> {
 	/// Map of string to an any type.
 	/// This is not used for anything, but it is defined by AT-SPI.
 	#[serde(borrow)]
-	pub properties: HashMap<&'a str, Value<'a>>,
+	pub properties: HashMap<BusName<'a>, Value<'a>>,
 }
 
 impl<T> Type for EventBody<'_, T> {
@@ -120,7 +120,7 @@ pub struct EventBodyOwned {
 	pub any_data: OwnedValue,
 	/// A map of properties.
 	/// Not in use.
-	pub properties: HashMap<String, OwnedValue>,
+	pub properties: HashMap<OwnedBusName, OwnedValue>,
 }
 
 impl From<EventBodyQT> for EventBodyOwned {
@@ -296,8 +296,8 @@ impl GenericEvent<'_> for LegacyAddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -339,8 +339,8 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -388,8 +388,8 @@ impl GenericEvent<'_> for RemoveAccessibleEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -448,10 +448,11 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 		let path = header.path().expect("returned path is either `Some` or panics");
 		let owned_path: OwnedObjectPath = path.clone().into();
 
-		let sender = header.sender().expect("No sender in header");
-		let name_string = sender.as_str().to_owned();
+		let sender: UniqueName<'_> = header.sender().expect("No sender in header").into();
+		let bus_name: BusName<'_> = sender.into();
+		let name: OwnedBusName = bus_name.to_owned().into();
 
-		Ok(ObjectRef { name: name_string, path: owned_path })
+		Ok(ObjectRef { name, path: owned_path })
 	}
 }
 
@@ -547,8 +548,8 @@ impl GenericEvent<'_> for EventListenerDeregisteredEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -594,8 +595,8 @@ impl GenericEvent<'_> for EventListenerRegisteredEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -642,8 +643,8 @@ impl GenericEvent<'_> for AvailableEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -762,7 +763,7 @@ pub trait GenericEvent<'a> {
 	/// ### Errors
 	/// - when deserializing the header failed, or
 	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-	fn sender(&self) -> String;
+	fn sender(&self) -> BusName<'_>;
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body;

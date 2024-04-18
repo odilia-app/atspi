@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
+use zbus_names::OwnedBusName;
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
 pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
@@ -15,14 +16,14 @@ pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unche
 #[validate(signal: "Available")]
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRef {
-	pub name: String,
+	pub name: OwnedBusName,
 	pub path: OwnedObjectPath,
 }
 
 impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {
-			name: ":0.0".into(),
+			name: ":0.0".try_into().unwrap(),
 			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
 				.unwrap()
 				.into(),
@@ -84,7 +85,10 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 					fields.first().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
 				let path_value: ObjectPath<'_> =
 					fields.last().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				Ok(ObjectRef { name, path: path_value.into() })
+				Ok(ObjectRef {
+					name: name.try_into().map_err(|_| zvariant::Error::IncorrectType)?,
+					path: path_value.into(),
+				})
 			}
 			_ => Err(zvariant::Error::IncorrectType),
 		}

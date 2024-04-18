@@ -37,15 +37,15 @@ impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
 			object: ObjectRef {
-				name: ":0.0".into(),
+				name: ":0.0".try_into().unwrap(),
 				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
 			},
 			app: ObjectRef {
-				name: ":0.0".into(),
+				name: ":0.0".try_into().unwrap(),
 				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
 			},
 			parent: ObjectRef {
-				name: ":0.0".into(),
+				name: ":0.0".try_into().unwrap(),
 				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
 			},
 			index: 0,
@@ -86,15 +86,15 @@ impl Default for LegacyCacheItem {
 	fn default() -> Self {
 		Self {
 			object: ObjectRef {
-				name: ":0.0".into(),
+				name: ":0.0".try_into().unwrap(),
 				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
 			},
 			app: ObjectRef {
-				name: ":0.0".into(),
+				name: ":0.0".try_into().unwrap(),
 				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
 			},
 			parent: ObjectRef {
-				name: ":0.0".into(),
+				name: ":0.0".try_into().unwrap(),
 				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
 			},
 			children: Vec::new(),
