@@ -637,15 +637,45 @@ pub enum EventListenerEvents {
 }
 
 impl EventTypeProperties for EventListenerEvents {
-	fn member(&self) -> &'static str { match self { Self::Registered(inner) => inner.member(), Self::Deregistered(inner) => inner.member() } }
-	fn match_rule(&self) -> &'static str { match self { Self::Registered(inner) => inner.match_rule(), Self::Deregistered(inner) => inner.match_rule() } }
-	fn interface(&self) -> &'static str { match self { Self::Registered(inner) => inner.interface(), Self::Deregistered(inner) => inner.interface() } }
-	fn registry_string(&self) -> &'static str { match self { Self::Registered(inner) => inner.registry_string(), Self::Deregistered(inner) => inner.registry_string() } }
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.member(),
+			Self::Deregistered(inner) => inner.member(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.match_rule(),
+			Self::Deregistered(inner) => inner.match_rule(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.interface(),
+			Self::Deregistered(inner) => inner.interface(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.registry_string(),
+			Self::Deregistered(inner) => inner.registry_string(),
+		}
+	}
 }
 
 impl EventProperties for EventListenerEvents {
-	fn path(&self) -> ObjectPath<'_> { match self { Self::Registered(inner) => inner.path(), Self::Deregistered(inner) => inner.path() } }
-	fn sender(&self) -> BusName<'_> { match self { Self::Registered(inner) => inner.sender(), Self::Deregistered(inner) => inner.sender() } }
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Registered(inner) => inner.path(),
+			Self::Deregistered(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Registered(inner) => inner.sender(),
+			Self::Deregistered(inner) => inner.sender(),
+		}
+	}
 }
 
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered

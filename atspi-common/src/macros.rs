@@ -316,6 +316,54 @@ macro_rules! event_enum_test_case {
 	};
 }
 
+/// Tests transparency of the `EventTypeProperties` and `EventProperties` trait on the `Event` wrapper type.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Checks the equality of all four functions defined in the `EventTypeProiperties` and `EventProperties` traits:
+///
+/// - member
+/// - interface
+/// - registry_string
+/// - match_rule
+/// - path
+/// - sender
+///
+/// It is imperitive that these items come through with no modifications from the wrappers.
+///
+#[cfg(test)]
+macro_rules! event_enum_transparency_test_case {
+	($type:ty) => {
+		#[test]
+		fn event_enum_transparency_test_case() {
+			let specific_event = <$type>::default();
+			let generic_event = Event::from(specific_event.clone());
+			assert_eq!(
+				specific_event.member(),
+				generic_event.member(),
+				"DBus member strings do not match."
+			);
+			assert_eq!(
+				specific_event.interface(),
+				generic_event.interface(),
+				"Registry interfaces do not match."
+			);
+			assert_eq!(
+				specific_event.registry_string(),
+				generic_event.registry_string(),
+				"Registry strings do not match."
+			);
+			assert_eq!(
+				specific_event.match_rule(),
+				generic_event.match_rule(),
+				"Match rule strings do not match."
+			);
+			assert_eq!(specific_event.path(), generic_event.path(), "Pathsdo not match.");
+			assert_eq!(specific_event.sender(), generic_event.sender(), "Senders do not match.");
+		}
+	};
+}
+
 // We decorate the macro with a `#[cfg(test)]` attribute.
 // This prevents Clippy from complaining about the macro not being used.
 // It is being used, but only in test mode.
@@ -569,11 +617,12 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$type, Event, BusProperties, EventProperties};
+			use super::{$type, Event, BusProperties, EventProperties, EventTypeProperties};
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);
 			zbus_message_test_case!($type);
+			event_enum_transparency_test_case!($type);
 		}
 		assert_impl_all!(
 			$type: Clone,

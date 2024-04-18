@@ -3,7 +3,7 @@ use std::hash::Hash;
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties, State, EventTypeProperties,
+	Event, EventProperties, EventTypeProperties, State,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue, Value};
