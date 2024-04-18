@@ -3,6 +3,7 @@ use crate::{
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
+use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -84,8 +85,8 @@ impl GenericEvent<'_> for LoadCompleteEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -108,8 +109,8 @@ impl GenericEvent<'_> for ReloadEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -132,8 +133,8 @@ impl GenericEvent<'_> for LoadStoppedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -156,8 +157,8 @@ impl GenericEvent<'_> for ContentChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -180,8 +181,8 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -204,8 +205,8 @@ impl GenericEvent<'_> for PageChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()

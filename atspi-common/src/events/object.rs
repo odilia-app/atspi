@@ -5,6 +5,7 @@ use crate::{
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, State,
 };
+use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -429,8 +430,8 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -453,8 +454,8 @@ impl GenericEvent<'_> for BoundsChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -477,8 +478,8 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -502,8 +503,8 @@ impl GenericEvent<'_> for StateChangedEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -531,8 +532,8 @@ impl GenericEvent<'_> for ChildrenChangedEvent {
 			child: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -555,8 +556,8 @@ impl GenericEvent<'_> for VisibleDataChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -579,8 +580,8 @@ impl GenericEvent<'_> for SelectionChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -603,8 +604,8 @@ impl GenericEvent<'_> for ModelChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -627,8 +628,8 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -657,8 +658,8 @@ impl GenericEvent<'_> for AnnouncementEvent {
 				.ok_or(AtspiError::Conversion("\"detail1\" not convertable to \"Live\""))?,
 		})
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -681,8 +682,8 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -705,8 +706,8 @@ impl GenericEvent<'_> for RowInsertedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -729,8 +730,8 @@ impl GenericEvent<'_> for RowReorderedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -753,8 +754,8 @@ impl GenericEvent<'_> for RowDeletedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -777,8 +778,8 @@ impl GenericEvent<'_> for ColumnInsertedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -801,8 +802,8 @@ impl GenericEvent<'_> for ColumnReorderedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -825,8 +826,8 @@ impl GenericEvent<'_> for ColumnDeletedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -849,8 +850,8 @@ impl GenericEvent<'_> for TextBoundsChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -873,8 +874,8 @@ impl GenericEvent<'_> for TextSelectionChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -903,8 +904,8 @@ impl GenericEvent<'_> for TextChangedEvent {
 			text: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -927,8 +928,8 @@ impl GenericEvent<'_> for TextAttributesChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
@@ -951,8 +952,8 @@ impl GenericEvent<'_> for TextCaretMovedEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()

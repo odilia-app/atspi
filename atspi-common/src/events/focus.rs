@@ -3,6 +3,7 @@ use crate::{
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
+use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -38,8 +39,8 @@ impl GenericEvent<'_> for FocusEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> String {
-		self.item.name.clone()
+	fn sender(&self) -> BusName<'_> {
+		self.item.name.clone().into()
 	}
 	fn path<'a>(&self) -> ObjectPath<'_> {
 		self.item.path.clone().into()
