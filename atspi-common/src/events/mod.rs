@@ -227,6 +227,96 @@ pub enum Event {
 	Listener(EventListenerEvents),
 }
 
+impl EventTypeProperties for Event {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Document(inner) => inner.member(),
+			Self::Focus(inner) => inner.member(),
+			Self::Keyboard(inner) => inner.member(),
+			Self::Mouse(inner) => inner.member(),
+			Self::Object(inner) => inner.member(),
+			Self::Terminal(inner) => inner.member(),
+			Self::Window(inner) => inner.member(),
+			Self::Available(inner) => inner.member(),
+			Self::Cache(inner) => inner.member(),
+			Self::Listener(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Document(inner) => inner.interface(),
+			Self::Focus(inner) => inner.interface(),
+			Self::Keyboard(inner) => inner.interface(),
+			Self::Mouse(inner) => inner.interface(),
+			Self::Object(inner) => inner.interface(),
+			Self::Terminal(inner) => inner.interface(),
+			Self::Window(inner) => inner.interface(),
+			Self::Available(inner) => inner.interface(),
+			Self::Cache(inner) => inner.interface(),
+			Self::Listener(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Document(inner) => inner.match_rule(),
+			Self::Focus(inner) => inner.match_rule(),
+			Self::Keyboard(inner) => inner.match_rule(),
+			Self::Mouse(inner) => inner.match_rule(),
+			Self::Object(inner) => inner.match_rule(),
+			Self::Terminal(inner) => inner.match_rule(),
+			Self::Window(inner) => inner.match_rule(),
+			Self::Available(inner) => inner.match_rule(),
+			Self::Cache(inner) => inner.match_rule(),
+			Self::Listener(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Document(inner) => inner.registry_string(),
+			Self::Focus(inner) => inner.registry_string(),
+			Self::Keyboard(inner) => inner.registry_string(),
+			Self::Mouse(inner) => inner.registry_string(),
+			Self::Object(inner) => inner.registry_string(),
+			Self::Terminal(inner) => inner.registry_string(),
+			Self::Window(inner) => inner.registry_string(),
+			Self::Available(inner) => inner.registry_string(),
+			Self::Cache(inner) => inner.registry_string(),
+			Self::Listener(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for Event {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Document(inner) => inner.path(),
+			Self::Focus(inner) => inner.path(),
+			Self::Keyboard(inner) => inner.path(),
+			Self::Mouse(inner) => inner.path(),
+			Self::Object(inner) => inner.path(),
+			Self::Terminal(inner) => inner.path(),
+			Self::Window(inner) => inner.path(),
+			Self::Available(inner) => inner.path(),
+			Self::Cache(inner) => inner.path(),
+			Self::Listener(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Document(inner) => inner.sender(),
+			Self::Focus(inner) => inner.sender(),
+			Self::Keyboard(inner) => inner.sender(),
+			Self::Mouse(inner) => inner.sender(),
+			Self::Object(inner) => inner.sender(),
+			Self::Terminal(inner) => inner.sender(),
+			Self::Window(inner) => inner.sender(),
+			Self::Available(inner) => inner.sender(),
+			Self::Cache(inner) => inner.sender(),
+			Self::Listener(inner) => inner.sender(),
+		}
+	}
+}
+
 impl HasMatchRule for CacheEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Cache'";
 }
@@ -256,6 +346,54 @@ pub enum CacheEvents {
 	LegacyAdd(LegacyAddAccessibleEvent),
 	/// See: [`RemoveAccessibleEvent`].
 	Remove(RemoveAccessibleEvent),
+}
+
+impl EventTypeProperties for CacheEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Add(inner) => inner.member(),
+			Self::LegacyAdd(inner) => inner.member(),
+			Self::Remove(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Add(inner) => inner.interface(),
+			Self::LegacyAdd(inner) => inner.interface(),
+			Self::Remove(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Add(inner) => inner.match_rule(),
+			Self::LegacyAdd(inner) => inner.match_rule(),
+			Self::Remove(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Add(inner) => inner.registry_string(),
+			Self::LegacyAdd(inner) => inner.registry_string(),
+			Self::Remove(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for CacheEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Add(inner) => inner.path(),
+			Self::LegacyAdd(inner) => inner.path(),
+			Self::Remove(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Add(inner) => inner.sender(),
+			Self::LegacyAdd(inner) => inner.sender(),
+			Self::Remove(inner) => inner.sender(),
+		}
+	}
 }
 
 /// Type that contains the `zbus::Message` for meta information and
@@ -496,6 +634,18 @@ pub enum EventListenerEvents {
 	Registered(EventListenerRegisteredEvent),
 	/// See: [`EventListenerDeregisteredEvent`].
 	Deregistered(EventListenerDeregisteredEvent),
+}
+
+impl EventTypeProperties for EventListenerEvents {
+	fn member(&self) -> &'static str { match self { Self::Registered(inner) => inner.member(), Self::Deregistered(inner) => inner.member() } }
+	fn match_rule(&self) -> &'static str { match self { Self::Registered(inner) => inner.match_rule(), Self::Deregistered(inner) => inner.match_rule() } }
+	fn interface(&self) -> &'static str { match self { Self::Registered(inner) => inner.interface(), Self::Deregistered(inner) => inner.interface() } }
+	fn registry_string(&self) -> &'static str { match self { Self::Registered(inner) => inner.registry_string(), Self::Deregistered(inner) => inner.registry_string() } }
+}
+
+impl EventProperties for EventListenerEvents {
+	fn path(&self) -> ObjectPath<'_> { match self { Self::Registered(inner) => inner.path(), Self::Deregistered(inner) => inner.path() } }
+	fn sender(&self) -> BusName<'_> { match self { Self::Registered(inner) => inner.sender(), Self::Deregistered(inner) => inner.sender() } }
 }
 
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered

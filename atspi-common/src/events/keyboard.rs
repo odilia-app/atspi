@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties,
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -10,6 +10,18 @@ use zvariant::{ObjectPath, OwnedValue};
 pub enum KeyboardEvents {
 	/// See: [`ModifiersEvent`].
 	Modifiers(ModifiersEvent),
+}
+
+impl EventTypeProperties for KeyboardEvents {
+	fn member(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.member() } }
+	fn match_rule(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.match_rule() } }
+	fn interface(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.interface() } }
+	fn registry_string(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.registry_string() } }
+}
+
+impl EventProperties for KeyboardEvents {
+	fn path(&self) -> ObjectPath<'_> { match self { Self::Modifiers(inner) => inner.path() } }
+	fn sender(&self) -> BusName<'_> { match self { Self::Modifiers(inner) => inner.sender() } }
 }
 
 impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);

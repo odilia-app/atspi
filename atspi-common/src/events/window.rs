@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties,
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -47,6 +47,150 @@ pub enum WindowEvents {
 	UUshade(UUshadeEvent),
 	/// See: [`RestyleEvent`].
 	Restyle(RestyleEvent),
+}
+
+impl EventTypeProperties for WindowEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.member(),
+			Self::Minimize(inner) => inner.member(),
+			Self::Maximize(inner) => inner.member(),
+			Self::Restore(inner) => inner.member(),
+			Self::Close(inner) => inner.member(),
+			Self::Create(inner) => inner.member(),
+			Self::Reparent(inner) => inner.member(),
+			Self::DesktopCreate(inner) => inner.member(),
+			Self::DesktopDestroy(inner) => inner.member(),
+			Self::Destroy(inner) => inner.member(),
+			Self::Activate(inner) => inner.member(),
+			Self::Deactivate(inner) => inner.member(),
+			Self::Raise(inner) => inner.member(),
+			Self::Lower(inner) => inner.member(),
+			Self::Move(inner) => inner.member(),
+			Self::Resize(inner) => inner.member(),
+			Self::Shade(inner) => inner.member(),
+			Self::UUshade(inner) => inner.member(),
+			Self::Restyle(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.interface(),
+			Self::Minimize(inner) => inner.interface(),
+			Self::Maximize(inner) => inner.interface(),
+			Self::Restore(inner) => inner.interface(),
+			Self::Close(inner) => inner.interface(),
+			Self::Create(inner) => inner.interface(),
+			Self::Reparent(inner) => inner.interface(),
+			Self::DesktopCreate(inner) => inner.interface(),
+			Self::DesktopDestroy(inner) => inner.interface(),
+			Self::Destroy(inner) => inner.interface(),
+			Self::Activate(inner) => inner.interface(),
+			Self::Deactivate(inner) => inner.interface(),
+			Self::Raise(inner) => inner.interface(),
+			Self::Lower(inner) => inner.interface(),
+			Self::Move(inner) => inner.interface(),
+			Self::Resize(inner) => inner.interface(),
+			Self::Shade(inner) => inner.interface(),
+			Self::UUshade(inner) => inner.interface(),
+			Self::Restyle(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.match_rule(),
+			Self::Minimize(inner) => inner.match_rule(),
+			Self::Maximize(inner) => inner.match_rule(),
+			Self::Restore(inner) => inner.match_rule(),
+			Self::Close(inner) => inner.match_rule(),
+			Self::Create(inner) => inner.match_rule(),
+			Self::Reparent(inner) => inner.match_rule(),
+			Self::DesktopCreate(inner) => inner.match_rule(),
+			Self::DesktopDestroy(inner) => inner.match_rule(),
+			Self::Destroy(inner) => inner.match_rule(),
+			Self::Activate(inner) => inner.match_rule(),
+			Self::Deactivate(inner) => inner.match_rule(),
+			Self::Raise(inner) => inner.match_rule(),
+			Self::Lower(inner) => inner.match_rule(),
+			Self::Move(inner) => inner.match_rule(),
+			Self::Resize(inner) => inner.match_rule(),
+			Self::Shade(inner) => inner.match_rule(),
+			Self::UUshade(inner) => inner.match_rule(),
+			Self::Restyle(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.registry_string(),
+			Self::Minimize(inner) => inner.registry_string(),
+			Self::Maximize(inner) => inner.registry_string(),
+			Self::Restore(inner) => inner.registry_string(),
+			Self::Close(inner) => inner.registry_string(),
+			Self::Create(inner) => inner.registry_string(),
+			Self::Reparent(inner) => inner.registry_string(),
+			Self::DesktopCreate(inner) => inner.registry_string(),
+			Self::DesktopDestroy(inner) => inner.registry_string(),
+			Self::Destroy(inner) => inner.registry_string(),
+			Self::Activate(inner) => inner.registry_string(),
+			Self::Deactivate(inner) => inner.registry_string(),
+			Self::Raise(inner) => inner.registry_string(),
+			Self::Lower(inner) => inner.registry_string(),
+			Self::Move(inner) => inner.registry_string(),
+			Self::Resize(inner) => inner.registry_string(),
+			Self::Shade(inner) => inner.registry_string(),
+			Self::UUshade(inner) => inner.registry_string(),
+			Self::Restyle(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for WindowEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::PropertyChange(inner) => inner.path(),
+			Self::Minimize(inner) => inner.path(),
+			Self::Maximize(inner) => inner.path(),
+			Self::Restore(inner) => inner.path(),
+			Self::Close(inner) => inner.path(),
+			Self::Create(inner) => inner.path(),
+			Self::Reparent(inner) => inner.path(),
+			Self::DesktopCreate(inner) => inner.path(),
+			Self::DesktopDestroy(inner) => inner.path(),
+			Self::Destroy(inner) => inner.path(),
+			Self::Activate(inner) => inner.path(),
+			Self::Deactivate(inner) => inner.path(),
+			Self::Raise(inner) => inner.path(),
+			Self::Lower(inner) => inner.path(),
+			Self::Move(inner) => inner.path(),
+			Self::Resize(inner) => inner.path(),
+			Self::Shade(inner) => inner.path(),
+			Self::UUshade(inner) => inner.path(),
+			Self::Restyle(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::PropertyChange(inner) => inner.sender(),
+			Self::Minimize(inner) => inner.sender(),
+			Self::Maximize(inner) => inner.sender(),
+			Self::Restore(inner) => inner.sender(),
+			Self::Close(inner) => inner.sender(),
+			Self::Create(inner) => inner.sender(),
+			Self::Reparent(inner) => inner.sender(),
+			Self::DesktopCreate(inner) => inner.sender(),
+			Self::DesktopDestroy(inner) => inner.sender(),
+			Self::Destroy(inner) => inner.sender(),
+			Self::Activate(inner) => inner.sender(),
+			Self::Deactivate(inner) => inner.sender(),
+			Self::Raise(inner) => inner.sender(),
+			Self::Lower(inner) => inner.sender(),
+			Self::Move(inner) => inner.sender(),
+			Self::Resize(inner) => inner.sender(),
+			Self::Shade(inner) => inner.sender(),
+			Self::UUshade(inner) => inner.sender(),
+			Self::Restyle(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);

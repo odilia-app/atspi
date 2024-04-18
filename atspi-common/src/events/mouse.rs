@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties,
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -14,6 +14,54 @@ pub enum MouseEvents {
 	Rel(RelEvent),
 	/// See: [`ButtonEvent`].
 	Button(ButtonEvent),
+}
+
+impl EventTypeProperties for MouseEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.member(),
+			Self::Rel(inner) => inner.member(),
+			Self::Button(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.interface(),
+			Self::Rel(inner) => inner.interface(),
+			Self::Button(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.match_rule(),
+			Self::Rel(inner) => inner.match_rule(),
+			Self::Button(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.registry_string(),
+			Self::Rel(inner) => inner.registry_string(),
+			Self::Button(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for MouseEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Abs(inner) => inner.path(),
+			Self::Rel(inner) => inner.path(),
+			Self::Button(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Abs(inner) => inner.sender(),
+			Self::Rel(inner) => inner.sender(),
+			Self::Button(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);

@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties,
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -19,6 +19,66 @@ pub enum TerminalEvents {
 	ApplicationChanged(ApplicationChangedEvent),
 	/// See: [`CharWidthChangedEvent`].
 	CharWidthChanged(CharWidthChangedEvent),
+}
+
+impl EventTypeProperties for TerminalEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.member(),
+			Self::ColumnCountChanged(inner) => inner.member(),
+			Self::LineCountChanged(inner) => inner.member(),
+			Self::ApplicationChanged(inner) => inner.member(),
+			Self::CharWidthChanged(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.interface(),
+			Self::ColumnCountChanged(inner) => inner.interface(),
+			Self::LineCountChanged(inner) => inner.interface(),
+			Self::ApplicationChanged(inner) => inner.interface(),
+			Self::CharWidthChanged(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.match_rule(),
+			Self::ColumnCountChanged(inner) => inner.match_rule(),
+			Self::LineCountChanged(inner) => inner.match_rule(),
+			Self::ApplicationChanged(inner) => inner.match_rule(),
+			Self::CharWidthChanged(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.registry_string(),
+			Self::ColumnCountChanged(inner) => inner.registry_string(),
+			Self::LineCountChanged(inner) => inner.registry_string(),
+			Self::ApplicationChanged(inner) => inner.registry_string(),
+			Self::CharWidthChanged(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for TerminalEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::LineChanged(inner) => inner.path(),
+			Self::ColumnCountChanged(inner) => inner.path(),
+			Self::LineCountChanged(inner) => inner.path(),
+			Self::ApplicationChanged(inner) => inner.path(),
+			Self::CharWidthChanged(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::LineChanged(inner) => inner.sender(),
+			Self::ColumnCountChanged(inner) => inner.sender(),
+			Self::LineCountChanged(inner) => inner.sender(),
+			Self::ApplicationChanged(inner) => inner.sender(),
+			Self::CharWidthChanged(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
