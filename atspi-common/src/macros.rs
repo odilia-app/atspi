@@ -1,3 +1,22 @@
+/// Expands to implement the required methods for the [`crate::EventProperties`] trait.
+/// This depends on the struct to have an `item` field of type `ObjectRef`.
+///
+/// ```ignore
+/// impl_from_interface_event_enum_for_event!(TextCaretMovedEvent);
+/// ```
+///
+/// Expands to:
+///
+/// ```ignore
+/// impl EventProperties for TextCaretMovedEvent {
+///   fn sender(&self) -> BusName<'_> {
+///     self.item.name.as_ref()
+///   }
+///   fn path(&self) -> ObjectPath<'_> {
+///     self.item.path.as_ref()
+///   }
+/// }
+/// ```
 macro_rules! impl_event_properties {
 	($type:ty) => {
 		impl EventProperties for $type {
@@ -322,12 +341,12 @@ macro_rules! event_enum_test_case {
 /// Converts the struct into the `Event` enum, wrapping the struct.
 /// Checks the equality of all four functions defined in the `EventTypeProiperties` and `EventProperties` traits:
 ///
-/// - member
-/// - interface
-/// - registry_string
-/// - match_rule
-/// - path
-/// - sender
+/// - `member`
+/// - `interface`
+/// - `registry_string`
+/// - `match_rule`
+/// - `path`
+/// - `sender`
 ///
 /// It is imperitive that these items come through with no modifications from the wrappers.
 ///
