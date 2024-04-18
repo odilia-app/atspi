@@ -652,6 +652,9 @@ macro_rules! event_test_cases {
 			PartialEq,
 			Eq,
 			std::hash::Hash,
+			crate::EventProperties,
+			crate::EventTypeProperties,
+			crate::BusProperties,
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
