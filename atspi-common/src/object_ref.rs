@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zbus_names::OwnedBusName;
+use zbus_names::{BusName, OwnedBusName};
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
 pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
@@ -23,7 +23,7 @@ pub struct ObjectRef {
 impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {
-			name: ":0.0".try_into().unwrap(),
+			name: BusName::from_static_str(":0.0").unwrap().into(),
 			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
 				.unwrap()
 				.into(),
