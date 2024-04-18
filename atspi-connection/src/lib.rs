@@ -14,7 +14,7 @@ use atspi_proxies::{
 	registry::RegistryProxy,
 };
 use common::error::AtspiError;
-use common::events::{Event, BusProperties, HasMatchRule, HasRegistryEventString};
+use common::events::{BusProperties, Event, HasMatchRule, HasRegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};

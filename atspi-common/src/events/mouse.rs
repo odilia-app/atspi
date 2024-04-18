@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zbus_names::BusName;
