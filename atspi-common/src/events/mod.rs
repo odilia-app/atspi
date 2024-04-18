@@ -281,6 +281,7 @@ impl_try_from_event_for_user_facing_type!(
 );
 event_test_cases!(LegacyAddAccessibleEvent);
 impl_from_dbus_message!(LegacyAddAccessibleEvent);
+impl_event_properties!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
 
 impl BusProperties for LegacyAddAccessibleEvent {
@@ -296,12 +297,6 @@ impl BusProperties for LegacyAddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		self.node_added.clone()
 	}
@@ -339,12 +334,6 @@ impl BusProperties for AddAccessibleEvent {
 		Ok(Self { item, node_added: body })
 	}
 
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		self.node_added.clone()
 	}
@@ -356,6 +345,7 @@ impl<T: BusProperties> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as BusProperties>::REGISTRY_EVENT_STRING;
 }
 impl_from_dbus_message!(AddAccessibleEvent);
+impl_event_properties!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
 /// `Cache::RemoveAccessible` signal event type.
@@ -388,18 +378,13 @@ impl BusProperties for RemoveAccessibleEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		self.node_removed.clone()
 	}
 }
 
 impl_from_dbus_message!(RemoveAccessibleEvent);
+impl_event_properties!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);
 
 #[cfg(test)]
@@ -548,17 +533,12 @@ impl BusProperties for EventListenerDeregisteredEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		self.deregistered_event.clone()
 	}
 }
 impl_from_dbus_message!(EventListenerDeregisteredEvent);
+impl_event_properties!(EventListenerDeregisteredEvent);
 impl_to_dbus_message!(EventListenerDeregisteredEvent);
 
 /// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
@@ -595,17 +575,12 @@ impl BusProperties for EventListenerRegisteredEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		self.registered_event.clone()
 	}
 }
 impl_from_dbus_message!(EventListenerRegisteredEvent);
+impl_event_properties!(EventListenerRegisteredEvent);
 impl_to_dbus_message!(EventListenerRegisteredEvent);
 
 /// An event that is emitted when the registry daemon has started.
@@ -643,17 +618,12 @@ impl BusProperties for AvailableEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		self.socket.clone()
 	}
 }
 impl_from_dbus_message!(AvailableEvent);
+impl_event_properties!(AvailableEvent);
 impl_to_dbus_message!(AvailableEvent);
 
 #[cfg(feature = "zbus")]
@@ -726,48 +696,59 @@ impl TryFrom<&zbus::Message> for Event {
 	}
 }
 
-/// Describes the DBus-related information about a given struct.
+/// Describes properties of a specific event _type_.
 ///
 /// - `DBus` member name
 /// - `DBus` interface name
-/// - `DBus` path
-/// - `DBus` bus name
 ///
 /// Together, the member and interface name can describe a specific event _type_.
-/// Likewise, the path and bus collectively create a unique ID for an _object on the accessibility bus_, this can also be referred to as an [`ObjectRef`].
+/// Likewise, the path and sender bus name collectively make up an [`ObjectRef`], which is a way to uniquely identify an individual accessible item available to `atspi`.
+/// The latter is available via the [`EventProperties`] trait.
 ///
 /// This can also be generalized, for example this is implemented for [`Event`] by dispatching to the matching variants.
+/// NOTE: to use `EventProperties` on wrapper types, like `Event`, you must enable the "enum-dispatch" feature.
 ///
 /// This trait *is* object-safe.
-pub trait GenericEvent {
+pub trait EventTypeProperties {
 	fn member(&self) -> &'static str;
 	fn interface(&self) -> &'static str;
-	fn path2<'a>(&self) -> ObjectPath<'a>;
-	fn name2<'a>(&self) -> BusName<'a>;
+	fn match_rule(&self) -> &'static str;
+	fn registry_string(&self) -> &'static str;
 }
 
-impl<T: BusProperties> GenericEvent for T {
+impl<T: BusProperties> EventTypeProperties for T {
 	fn member(&self) -> &'static str {
-		<T as BusProperties>::DBUS_MEMBER
+		<T>::DBUS_MEMBER
 	}
 	fn interface(&self) -> &'static str {
-		<T as BusProperties>::DBUS_INTERFACE
+		<T>::DBUS_INTERFACE
 	}
-	fn path2<'b>(&self) -> ObjectPath<'b> {
-		todo!()
+	fn match_rule(&self) -> &'static str {
+		<T>::MATCH_RULE_STRING
 	}
-	fn name2<'b>(&self) -> BusName<'b> {
-		todo!()
-	}
-}
-
-impl<T: GenericEvent> From<&T> for ObjectRef {
-	fn from(ev: &T) -> ObjectRef {
-		ObjectRef { path: ev.path2().to_owned().into(), name: ev.name2().to_owned().into() }
+	fn registry_string(&self) -> &'static str {
+		<T>::REGISTRY_EVENT_STRING
 	}
 }
 
-assert_obj_safe!(GenericEvent);
+assert_obj_safe!(EventTypeProperties);
+
+/// `EventProperties` allows access to the internals of an event, specifically:
+///
+/// - The `DBUs` name which sent the event.
+/// - The `ObjectPath`, a unique id for a given application.
+/// - Collectively, this is called an [`ObjectRef`].
+///
+/// This trait *is* object-safe.
+pub trait EventProperties {
+	fn sender(&self) -> BusName<'_>;
+	fn path(&self) -> ObjectPath<'_>;
+	fn object_ref(&self) -> ObjectRef {
+		ObjectRef { name: self.sender().into(), path: self.path().into() }
+	}
+}
+
+assert_obj_safe!(EventProperties);
 
 /// Describes the `DBus`-related information about a given struct.
 ///
@@ -777,7 +758,7 @@ assert_obj_safe!(GenericEvent);
 /// - accessibility registry event string: used to tell the accessibility registry that you are interested in a particular event
 ///
 /// This trait *is not* object-safe.
-/// For a similar, but object-safe trait, see [`GenericEvent`].
+/// For a similar, but object-safe trait, see [`EventProperties`].
 pub trait BusProperties {
 	/// The `DBus` member for the event.
 	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
@@ -805,16 +786,6 @@ pub trait BusProperties {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
-
-	/// Path of the signalling object.
-	fn path(&self) -> ObjectPath<'_>;
-
-	/// Sender of the signal.
-	///
-	/// ### Errors
-	/// - when deserializing the header failed, or
-	/// - When `zbus::get_field!` finds that 'sender' is an invalid field.
-	fn sender(&self) -> BusName<'_>;
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body;

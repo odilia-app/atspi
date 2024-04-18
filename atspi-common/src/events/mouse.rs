@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	Event, EventProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -62,12 +62,6 @@ impl BusProperties for AbsEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -86,12 +80,6 @@ impl BusProperties for RelEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -109,12 +97,6 @@ impl BusProperties for ButtonEvent {
 
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -146,6 +128,7 @@ impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mou
 event_test_cases!(AbsEvent);
 impl_to_dbus_message!(AbsEvent);
 impl_from_dbus_message!(AbsEvent);
+impl_event_properties!(AbsEvent);
 impl From<AbsEvent> for EventBodyOwned {
 	fn from(event: AbsEvent) -> Self {
 		EventBodyOwned {
@@ -164,6 +147,7 @@ impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mou
 event_test_cases!(RelEvent);
 impl_to_dbus_message!(RelEvent);
 impl_from_dbus_message!(RelEvent);
+impl_event_properties!(RelEvent);
 impl From<RelEvent> for EventBodyOwned {
 	fn from(event: RelEvent) -> Self {
 		EventBodyOwned {
@@ -186,6 +170,7 @@ impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Even
 event_test_cases!(ButtonEvent);
 impl_to_dbus_message!(ButtonEvent);
 impl_from_dbus_message!(ButtonEvent);
+impl_event_properties!(ButtonEvent);
 impl From<ButtonEvent> for EventBodyOwned {
 	fn from(event: ButtonEvent) -> Self {
 		EventBodyOwned {

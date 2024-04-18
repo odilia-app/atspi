@@ -1,3 +1,16 @@
+macro_rules! impl_event_properties {
+	($type:ty) => {
+		impl EventProperties for $type {
+			fn sender(&self) -> BusName<'_> {
+				self.item.name.as_ref()
+			}
+			fn path(&self) -> ObjectPath<'_> {
+				self.item.path.as_ref()
+			}
+		}
+	};
+}
+
 /// Expands to a conversion given the enclosed event type and outer `Event` variant.
 ///
 /// eg
@@ -556,7 +569,7 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$type, Event, BusProperties};
+			use super::{$type, Event, BusProperties, EventProperties};
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);

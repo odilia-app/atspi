@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	Event, EventProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -192,12 +192,6 @@ impl BusProperties for PropertyChangeEvent {
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, property: body.kind })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -215,12 +209,6 @@ impl BusProperties for MinimizeEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -240,12 +228,6 @@ impl BusProperties for MaximizeEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -263,12 +245,6 @@ impl BusProperties for RestoreEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -288,12 +264,6 @@ impl BusProperties for CloseEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -311,12 +281,6 @@ impl BusProperties for CreateEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -336,12 +300,6 @@ impl BusProperties for ReparentEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -359,12 +317,6 @@ impl BusProperties for DesktopCreateEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -384,12 +336,6 @@ impl BusProperties for DesktopDestroyEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -407,12 +353,6 @@ impl BusProperties for DestroyEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -432,12 +372,6 @@ impl BusProperties for ActivateEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -455,12 +389,6 @@ impl BusProperties for DeactivateEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -480,12 +408,6 @@ impl BusProperties for RaiseEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -503,12 +425,6 @@ impl BusProperties for LowerEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -528,12 +444,6 @@ impl BusProperties for MoveEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -551,12 +461,6 @@ impl BusProperties for ResizeEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -576,12 +480,6 @@ impl BusProperties for ShadeEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -600,12 +498,6 @@ impl BusProperties for UUshadeEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -623,12 +515,6 @@ impl BusProperties for RestyleEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -683,6 +569,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(PropertyChangeEvent);
 impl_to_dbus_message!(PropertyChangeEvent);
 impl_from_dbus_message!(PropertyChangeEvent);
+impl_event_properties!(PropertyChangeEvent);
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned {
@@ -705,6 +592,7 @@ impl_try_from_event_for_user_facing_type!(MinimizeEvent, WindowEvents::Minimize,
 event_test_cases!(MinimizeEvent);
 impl_to_dbus_message!(MinimizeEvent);
 impl_from_dbus_message!(MinimizeEvent);
+impl_event_properties!(MinimizeEvent);
 impl From<MinimizeEvent> for EventBodyOwned {
 	fn from(_event: MinimizeEvent) -> Self {
 		EventBodyOwned {
@@ -727,6 +615,7 @@ impl_try_from_event_for_user_facing_type!(MaximizeEvent, WindowEvents::Maximize,
 event_test_cases!(MaximizeEvent);
 impl_to_dbus_message!(MaximizeEvent);
 impl_from_dbus_message!(MaximizeEvent);
+impl_event_properties!(MaximizeEvent);
 impl From<MaximizeEvent> for EventBodyOwned {
 	fn from(_event: MaximizeEvent) -> Self {
 		EventBodyOwned {
@@ -749,6 +638,7 @@ impl_try_from_event_for_user_facing_type!(RestoreEvent, WindowEvents::Restore, E
 event_test_cases!(RestoreEvent);
 impl_to_dbus_message!(RestoreEvent);
 impl_from_dbus_message!(RestoreEvent);
+impl_event_properties!(RestoreEvent);
 impl From<RestoreEvent> for EventBodyOwned {
 	fn from(_event: RestoreEvent) -> Self {
 		EventBodyOwned {
@@ -771,6 +661,7 @@ impl_try_from_event_for_user_facing_type!(CloseEvent, WindowEvents::Close, Event
 event_test_cases!(CloseEvent);
 impl_to_dbus_message!(CloseEvent);
 impl_from_dbus_message!(CloseEvent);
+impl_event_properties!(CloseEvent);
 impl From<CloseEvent> for EventBodyOwned {
 	fn from(_event: CloseEvent) -> Self {
 		EventBodyOwned {
@@ -793,6 +684,7 @@ impl_try_from_event_for_user_facing_type!(CreateEvent, WindowEvents::Create, Eve
 event_test_cases!(CreateEvent);
 impl_to_dbus_message!(CreateEvent);
 impl_from_dbus_message!(CreateEvent);
+impl_event_properties!(CreateEvent);
 impl From<CreateEvent> for EventBodyOwned {
 	fn from(_event: CreateEvent) -> Self {
 		EventBodyOwned {
@@ -815,6 +707,7 @@ impl_try_from_event_for_user_facing_type!(ReparentEvent, WindowEvents::Reparent,
 event_test_cases!(ReparentEvent);
 impl_to_dbus_message!(ReparentEvent);
 impl_from_dbus_message!(ReparentEvent);
+impl_event_properties!(ReparentEvent);
 impl From<ReparentEvent> for EventBodyOwned {
 	fn from(_event: ReparentEvent) -> Self {
 		EventBodyOwned {
@@ -841,6 +734,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(DesktopCreateEvent);
 impl_to_dbus_message!(DesktopCreateEvent);
 impl_from_dbus_message!(DesktopCreateEvent);
+impl_event_properties!(DesktopCreateEvent);
 impl From<DesktopCreateEvent> for EventBodyOwned {
 	fn from(_event: DesktopCreateEvent) -> Self {
 		EventBodyOwned {
@@ -867,6 +761,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(DesktopDestroyEvent);
 impl_to_dbus_message!(DesktopDestroyEvent);
 impl_from_dbus_message!(DesktopDestroyEvent);
+impl_event_properties!(DesktopDestroyEvent);
 impl From<DesktopDestroyEvent> for EventBodyOwned {
 	fn from(_event: DesktopDestroyEvent) -> Self {
 		EventBodyOwned {
@@ -889,6 +784,7 @@ impl_try_from_event_for_user_facing_type!(DestroyEvent, WindowEvents::Destroy, E
 event_test_cases!(DestroyEvent);
 impl_to_dbus_message!(DestroyEvent);
 impl_from_dbus_message!(DestroyEvent);
+impl_event_properties!(DestroyEvent);
 impl From<DestroyEvent> for EventBodyOwned {
 	fn from(_event: DestroyEvent) -> Self {
 		EventBodyOwned {
@@ -911,6 +807,7 @@ impl_try_from_event_for_user_facing_type!(ActivateEvent, WindowEvents::Activate,
 event_test_cases!(ActivateEvent);
 impl_to_dbus_message!(ActivateEvent);
 impl_from_dbus_message!(ActivateEvent);
+impl_event_properties!(ActivateEvent);
 impl From<ActivateEvent> for EventBodyOwned {
 	fn from(_event: ActivateEvent) -> Self {
 		EventBodyOwned {
@@ -933,6 +830,7 @@ impl_try_from_event_for_user_facing_type!(DeactivateEvent, WindowEvents::Deactiv
 event_test_cases!(DeactivateEvent);
 impl_to_dbus_message!(DeactivateEvent);
 impl_from_dbus_message!(DeactivateEvent);
+impl_event_properties!(DeactivateEvent);
 impl From<DeactivateEvent> for EventBodyOwned {
 	fn from(_event: DeactivateEvent) -> Self {
 		EventBodyOwned {
@@ -955,6 +853,7 @@ impl_try_from_event_for_user_facing_type!(RaiseEvent, WindowEvents::Raise, Event
 event_test_cases!(RaiseEvent);
 impl_to_dbus_message!(RaiseEvent);
 impl_from_dbus_message!(RaiseEvent);
+impl_event_properties!(RaiseEvent);
 impl From<RaiseEvent> for EventBodyOwned {
 	fn from(_event: RaiseEvent) -> Self {
 		EventBodyOwned {
@@ -977,6 +876,7 @@ impl_try_from_event_for_user_facing_type!(LowerEvent, WindowEvents::Lower, Event
 event_test_cases!(LowerEvent);
 impl_to_dbus_message!(LowerEvent);
 impl_from_dbus_message!(LowerEvent);
+impl_event_properties!(LowerEvent);
 impl From<LowerEvent> for EventBodyOwned {
 	fn from(_event: LowerEvent) -> Self {
 		EventBodyOwned {
@@ -995,6 +895,7 @@ impl_try_from_event_for_user_facing_type!(MoveEvent, WindowEvents::Move, Event::
 event_test_cases!(MoveEvent);
 impl_to_dbus_message!(MoveEvent);
 impl_from_dbus_message!(MoveEvent);
+impl_event_properties!(MoveEvent);
 impl From<MoveEvent> for EventBodyOwned {
 	fn from(_event: MoveEvent) -> Self {
 		EventBodyOwned {
@@ -1017,6 +918,7 @@ impl_try_from_event_for_user_facing_type!(ResizeEvent, WindowEvents::Resize, Eve
 event_test_cases!(ResizeEvent);
 impl_to_dbus_message!(ResizeEvent);
 impl_from_dbus_message!(ResizeEvent);
+impl_event_properties!(ResizeEvent);
 impl From<ResizeEvent> for EventBodyOwned {
 	fn from(_event: ResizeEvent) -> Self {
 		EventBodyOwned {
@@ -1039,6 +941,7 @@ impl_try_from_event_for_user_facing_type!(ShadeEvent, WindowEvents::Shade, Event
 event_test_cases!(ShadeEvent);
 impl_to_dbus_message!(ShadeEvent);
 impl_from_dbus_message!(ShadeEvent);
+impl_event_properties!(ShadeEvent);
 impl From<ShadeEvent> for EventBodyOwned {
 	fn from(_event: ShadeEvent) -> Self {
 		EventBodyOwned {
@@ -1061,6 +964,7 @@ impl_try_from_event_for_user_facing_type!(UUshadeEvent, WindowEvents::UUshade, E
 event_test_cases!(UUshadeEvent);
 impl_to_dbus_message!(UUshadeEvent);
 impl_from_dbus_message!(UUshadeEvent);
+impl_event_properties!(UUshadeEvent);
 impl From<UUshadeEvent> for EventBodyOwned {
 	fn from(_event: UUshadeEvent) -> Self {
 		EventBodyOwned {
@@ -1083,6 +987,7 @@ impl_try_from_event_for_user_facing_type!(RestyleEvent, WindowEvents::Restyle, E
 event_test_cases!(RestyleEvent);
 impl_to_dbus_message!(RestyleEvent);
 impl_from_dbus_message!(RestyleEvent);
+impl_event_properties!(RestyleEvent);
 impl From<RestyleEvent> for EventBodyOwned {
 	fn from(_event: RestyleEvent) -> Self {
 		EventBodyOwned {
