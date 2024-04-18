@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zbus_names::BusName;
@@ -27,7 +27,7 @@ pub struct FocusEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl GenericEvent<'_> for FocusEvent {
+impl BusProperties for FocusEvent {
 	const DBUS_MEMBER: &'static str = "Focus";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
 	const MATCH_RULE_STRING: &'static str =

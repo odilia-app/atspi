@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zbus_names::BusName;
@@ -180,7 +180,7 @@ pub struct RestyleEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl GenericEvent<'_> for PropertyChangeEvent {
+impl BusProperties for PropertyChangeEvent {
 	const DBUS_MEMBER: &'static str = "PropertyChange";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -204,7 +204,7 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 	}
 }
 
-impl GenericEvent<'_> for MinimizeEvent {
+impl BusProperties for MinimizeEvent {
 	const DBUS_MEMBER: &'static str = "Minimize";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -228,7 +228,7 @@ impl GenericEvent<'_> for MinimizeEvent {
 	}
 }
 
-impl GenericEvent<'_> for MaximizeEvent {
+impl BusProperties for MaximizeEvent {
 	const DBUS_MEMBER: &'static str = "Maximize";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -252,7 +252,7 @@ impl GenericEvent<'_> for MaximizeEvent {
 	}
 }
 
-impl GenericEvent<'_> for RestoreEvent {
+impl BusProperties for RestoreEvent {
 	const DBUS_MEMBER: &'static str = "Restore";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -276,7 +276,7 @@ impl GenericEvent<'_> for RestoreEvent {
 	}
 }
 
-impl GenericEvent<'_> for CloseEvent {
+impl BusProperties for CloseEvent {
 	const DBUS_MEMBER: &'static str = "Close";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -300,7 +300,7 @@ impl GenericEvent<'_> for CloseEvent {
 	}
 }
 
-impl GenericEvent<'_> for CreateEvent {
+impl BusProperties for CreateEvent {
 	const DBUS_MEMBER: &'static str = "Create";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -324,7 +324,7 @@ impl GenericEvent<'_> for CreateEvent {
 	}
 }
 
-impl GenericEvent<'_> for ReparentEvent {
+impl BusProperties for ReparentEvent {
 	const DBUS_MEMBER: &'static str = "Reparent";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -348,7 +348,7 @@ impl GenericEvent<'_> for ReparentEvent {
 	}
 }
 
-impl GenericEvent<'_> for DesktopCreateEvent {
+impl BusProperties for DesktopCreateEvent {
 	const DBUS_MEMBER: &'static str = "DesktopCreate";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -372,7 +372,7 @@ impl GenericEvent<'_> for DesktopCreateEvent {
 	}
 }
 
-impl GenericEvent<'_> for DesktopDestroyEvent {
+impl BusProperties for DesktopDestroyEvent {
 	const DBUS_MEMBER: &'static str = "DesktopDestroy";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -396,7 +396,7 @@ impl GenericEvent<'_> for DesktopDestroyEvent {
 	}
 }
 
-impl GenericEvent<'_> for DestroyEvent {
+impl BusProperties for DestroyEvent {
 	const DBUS_MEMBER: &'static str = "Destroy";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -420,7 +420,7 @@ impl GenericEvent<'_> for DestroyEvent {
 	}
 }
 
-impl GenericEvent<'_> for ActivateEvent {
+impl BusProperties for ActivateEvent {
 	const DBUS_MEMBER: &'static str = "Activate";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -444,7 +444,7 @@ impl GenericEvent<'_> for ActivateEvent {
 	}
 }
 
-impl GenericEvent<'_> for DeactivateEvent {
+impl BusProperties for DeactivateEvent {
 	const DBUS_MEMBER: &'static str = "Deactivate";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -468,7 +468,7 @@ impl GenericEvent<'_> for DeactivateEvent {
 	}
 }
 
-impl GenericEvent<'_> for RaiseEvent {
+impl BusProperties for RaiseEvent {
 	const DBUS_MEMBER: &'static str = "Raise";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -492,7 +492,7 @@ impl GenericEvent<'_> for RaiseEvent {
 	}
 }
 
-impl GenericEvent<'_> for LowerEvent {
+impl BusProperties for LowerEvent {
 	const DBUS_MEMBER: &'static str = "Lower";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -516,7 +516,7 @@ impl GenericEvent<'_> for LowerEvent {
 	}
 }
 
-impl GenericEvent<'_> for MoveEvent {
+impl BusProperties for MoveEvent {
 	const DBUS_MEMBER: &'static str = "Move";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -540,7 +540,7 @@ impl GenericEvent<'_> for MoveEvent {
 	}
 }
 
-impl GenericEvent<'_> for ResizeEvent {
+impl BusProperties for ResizeEvent {
 	const DBUS_MEMBER: &'static str = "Resize";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -564,7 +564,7 @@ impl GenericEvent<'_> for ResizeEvent {
 	}
 }
 
-impl GenericEvent<'_> for ShadeEvent {
+impl BusProperties for ShadeEvent {
 	const DBUS_MEMBER: &'static str = "Shade";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -588,7 +588,7 @@ impl GenericEvent<'_> for ShadeEvent {
 	}
 }
 
-impl GenericEvent<'_> for UUshadeEvent {
+impl BusProperties for UUshadeEvent {
 	const DBUS_MEMBER: &'static str = "uUshade";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
@@ -612,7 +612,7 @@ impl GenericEvent<'_> for UUshadeEvent {
 	}
 }
 
-impl GenericEvent<'_> for RestyleEvent {
+impl BusProperties for RestyleEvent {
 	const DBUS_MEMBER: &'static str = "Restyle";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =

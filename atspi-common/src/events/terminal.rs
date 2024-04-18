@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zbus_names::BusName;
@@ -68,7 +68,7 @@ pub struct CharWidthChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl GenericEvent<'_> for LineChangedEvent {
+impl BusProperties for LineChangedEvent {
 	const DBUS_MEMBER: &'static str = "LineChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -92,7 +92,7 @@ impl GenericEvent<'_> for LineChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ColumnCountChangedEvent {
+impl BusProperties for ColumnCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "ColumncountChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -116,7 +116,7 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for LineCountChangedEvent {
+impl BusProperties for LineCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "LinecountChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -140,7 +140,7 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ApplicationChangedEvent {
+impl BusProperties for ApplicationChangedEvent {
 	const DBUS_MEMBER: &'static str = "ApplicationChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -164,7 +164,7 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for CharWidthChangedEvent {
+impl BusProperties for CharWidthChangedEvent {
 	const DBUS_MEMBER: &'static str = "CharwidthChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =

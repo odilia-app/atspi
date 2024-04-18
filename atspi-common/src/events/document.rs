@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zbus_names::BusName;
@@ -73,7 +73,7 @@ pub struct PageChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl GenericEvent<'_> for LoadCompleteEvent {
+impl BusProperties for LoadCompleteEvent {
 	const DBUS_MEMBER: &'static str = "LoadComplete";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
@@ -97,7 +97,7 @@ impl GenericEvent<'_> for LoadCompleteEvent {
 	}
 }
 
-impl GenericEvent<'_> for ReloadEvent {
+impl BusProperties for ReloadEvent {
 	const DBUS_MEMBER: &'static str = "Reload";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
@@ -121,7 +121,7 @@ impl GenericEvent<'_> for ReloadEvent {
 	}
 }
 
-impl GenericEvent<'_> for LoadStoppedEvent {
+impl BusProperties for LoadStoppedEvent {
 	const DBUS_MEMBER: &'static str = "LoadStopped";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
@@ -145,7 +145,7 @@ impl GenericEvent<'_> for LoadStoppedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ContentChangedEvent {
+impl BusProperties for ContentChangedEvent {
 	const DBUS_MEMBER: &'static str = "ContentChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
@@ -169,7 +169,7 @@ impl GenericEvent<'_> for ContentChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for AttributesChangedEvent {
+impl BusProperties for AttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "AttributesChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
@@ -193,7 +193,7 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for PageChangedEvent {
+impl BusProperties for PageChangedEvent {
 	const DBUS_MEMBER: &'static str = "PageChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =

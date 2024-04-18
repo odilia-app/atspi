@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zbus_names::BusName;
@@ -50,7 +50,7 @@ pub struct ButtonEvent {
 	pub mouse_y: i32,
 }
 
-impl GenericEvent<'_> for AbsEvent {
+impl BusProperties for AbsEvent {
 	const DBUS_MEMBER: &'static str = "Abs";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 	const MATCH_RULE_STRING: &'static str =
@@ -74,7 +74,7 @@ impl GenericEvent<'_> for AbsEvent {
 	}
 }
 
-impl GenericEvent<'_> for RelEvent {
+impl BusProperties for RelEvent {
 	const DBUS_MEMBER: &'static str = "Rel";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 	const MATCH_RULE_STRING: &'static str =
@@ -98,7 +98,7 @@ impl GenericEvent<'_> for RelEvent {
 	}
 }
 
-impl GenericEvent<'_> for ButtonEvent {
+impl BusProperties for ButtonEvent {
 	const DBUS_MEMBER: &'static str = "Button";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 	const MATCH_RULE_STRING: &'static str =

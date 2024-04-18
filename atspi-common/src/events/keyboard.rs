@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event,
 };
 use zbus_names::BusName;
@@ -30,7 +30,7 @@ pub struct ModifiersEvent {
 	pub current_modifiers: i32,
 }
 
-impl GenericEvent<'_> for ModifiersEvent {
+impl BusProperties for ModifiersEvent {
 	const DBUS_MEMBER: &'static str = "Modifiers";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 	const MATCH_RULE_STRING: &'static str =

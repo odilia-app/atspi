@@ -283,7 +283,7 @@ event_test_cases!(LegacyAddAccessibleEvent);
 impl_from_dbus_message!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
 
-impl GenericEvent<'_> for LegacyAddAccessibleEvent {
+impl BusProperties for LegacyAddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
@@ -326,7 +326,7 @@ impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
 event_test_cases!(AddAccessibleEvent);
 
-impl GenericEvent<'_> for AddAccessibleEvent {
+impl BusProperties for AddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
@@ -349,11 +349,11 @@ impl GenericEvent<'_> for AddAccessibleEvent {
 		self.node_added.clone()
 	}
 }
-impl<'a, T: GenericEvent<'a>> HasMatchRule for T {
-	const MATCH_RULE_STRING: &'static str = <T as GenericEvent>::MATCH_RULE_STRING;
+impl<'a, T: BusProperties> HasMatchRule for T {
+	const MATCH_RULE_STRING: &'static str = <T as BusProperties>::MATCH_RULE_STRING;
 }
-impl<'a, T: GenericEvent<'a>> HasRegistryEventString for T {
-	const REGISTRY_EVENT_STRING: &'static str = <T as GenericEvent>::REGISTRY_EVENT_STRING;
+impl<'a, T: BusProperties> HasRegistryEventString for T {
+	const REGISTRY_EVENT_STRING: &'static str = <T as BusProperties>::REGISTRY_EVENT_STRING;
 }
 impl_from_dbus_message!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
@@ -376,7 +376,7 @@ impl_from_user_facing_event_for_interface_event_enum!(
 impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent);
-impl GenericEvent<'_> for RemoveAccessibleEvent {
+impl BusProperties for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
@@ -536,7 +536,7 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Listener
 );
 event_test_cases!(EventListenerDeregisteredEvent);
-impl GenericEvent<'_> for EventListenerDeregisteredEvent {
+impl BusProperties for EventListenerDeregisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
@@ -583,7 +583,7 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Listener
 );
 event_test_cases!(EventListenerRegisteredEvent);
-impl GenericEvent<'_> for EventListenerRegisteredEvent {
+impl BusProperties for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
@@ -631,7 +631,7 @@ impl TryFrom<Event> for AvailableEvent {
 	}
 }
 event_test_cases!(AvailableEvent);
-impl GenericEvent<'_> for AvailableEvent {
+impl BusProperties for AvailableEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
@@ -726,8 +726,54 @@ impl TryFrom<&zbus::Message> for Event {
 	}
 }
 
+/// Describes the DBus-related information about a given struct.
+///
+/// - DBus member name
+/// - DBus interface name
+/// - DBus path
+/// - DBus bus name
+///
+/// Together, the member and interface name can describe a specific event _type_.
+/// Likewise, the path and bus collectively create a unique ID for an _object on the accessibility bus_, this can also be referred to as an [`ObjectRef`].
+///
+/// This can also be generalized, for example this is implemented for [`Event`] by dispatching to the matching variants.
+///
+/// This trait *is* object-safe.
+pub trait GenericEvent {
+	fn member(&self) -> &'static str;
+	fn interface(&self) -> &'static str;
+	fn path2<'a>(&self) -> ObjectPath<'a>;
+	fn name2<'a>(&self) -> BusName<'a>;
+}
+
+impl<'a, T: BusProperties> GenericEvent for T {
+	fn member(&self) -> &'static str {
+		<T as BusProperties>::DBUS_MEMBER
+	}
+	fn interface(&self) -> &'static str {
+		<T as BusProperties>::DBUS_INTERFACE
+	}
+	fn path2<'b>(&self) -> ObjectPath<'b> {
+		todo!()
+	}
+	fn name2<'b>(&self) -> BusName<'b> {
+		todo!()
+	}
+}
+
+impl<T: GenericEvent> From<&T> for ObjectRef {
+	fn from(ev: &T) -> ObjectRef {
+		ObjectRef {
+			path: ev.path2().to_owned().into(),
+			name: ev.name2().to_owned().into(),
+		}
+	}
+}
+
+assert_obj_safe!(GenericEvent);
+
 /// Shared behavior of bus `Signal` events.
-pub trait GenericEvent<'a> {
+pub trait BusProperties {
 	/// The `DBus` member for the event.
 	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
 	const DBUS_MEMBER: &'static str;
@@ -743,7 +789,7 @@ pub trait GenericEvent<'a> {
 	const REGISTRY_EVENT_STRING: &'static str;
 
 	/// What is the body type of this event.
-	type Body: Type + Serialize + Deserialize<'a>;
+	type Body: Type + Serialize + for<'a> Deserialize<'a>;
 
 	/// Build the event from the object pair (`ObjectRef` and the Body).
 	///
@@ -773,14 +819,14 @@ pub trait GenericEvent<'a> {
 pub trait HasMatchRule {
 	/// A static match rule string for `DBus`.
 	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
-	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
+	/// This should be deprecated in favour of composing the string from [`BusProperties::DBUS_MEMBER`] and [`BusProperties::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
 }
 
 /// A specific trait *only* to define registry event matches.
 pub trait HasRegistryEventString {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
-	/// This should be deprecated in favour of composing the string from [`GenericEvent::DBUS_MEMBER`] and [`GenericEvent::DBUS_INTERFACE`].
+	/// This should be deprecated in favour of composing the string from [`BusProperties::DBUS_MEMBER`] and [`BusProperties::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
