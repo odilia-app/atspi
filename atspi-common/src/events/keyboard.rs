@@ -13,15 +13,39 @@ pub enum KeyboardEvents {
 }
 
 impl EventTypeProperties for KeyboardEvents {
-	fn member(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.member() } }
-	fn match_rule(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.match_rule() } }
-	fn interface(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.interface() } }
-	fn registry_string(&self) -> &'static str { match self { Self::Modifiers(inner) => inner.registry_string() } }
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.member(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.match_rule(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.interface(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.registry_string(),
+		}
+	}
 }
 
 impl EventProperties for KeyboardEvents {
-	fn path(&self) -> ObjectPath<'_> { match self { Self::Modifiers(inner) => inner.path() } }
-	fn sender(&self) -> BusName<'_> { match self { Self::Modifiers(inner) => inner.sender() } }
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Modifiers(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Modifiers(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
