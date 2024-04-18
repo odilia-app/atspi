@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	Event, EventProperties,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -39,12 +39,6 @@ impl BusProperties for FocusEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -73,6 +67,7 @@ impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event:
 event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);
+impl_event_properties!(FocusEvent);
 impl From<FocusEvent> for EventBodyOwned {
 	fn from(_event: FocusEvent) -> Self {
 		EventBodyOwned {

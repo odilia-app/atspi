@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	Event, EventProperties,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -85,12 +85,6 @@ impl BusProperties for LoadCompleteEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -108,12 +102,6 @@ impl BusProperties for ReloadEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -133,12 +121,6 @@ impl BusProperties for LoadStoppedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -156,12 +138,6 @@ impl BusProperties for ContentChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -181,12 +157,6 @@ impl BusProperties for AttributesChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -204,12 +174,6 @@ impl BusProperties for PageChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -252,6 +216,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(LoadCompleteEvent);
 impl_to_dbus_message!(LoadCompleteEvent);
 impl_from_dbus_message!(LoadCompleteEvent);
+impl_event_properties!(LoadCompleteEvent);
 impl From<LoadCompleteEvent> for EventBodyOwned {
 	fn from(_event: LoadCompleteEvent) -> Self {
 		EventBodyOwned {
@@ -275,6 +240,7 @@ impl_try_from_event_for_user_facing_type!(ReloadEvent, DocumentEvents::Reload, E
 event_test_cases!(ReloadEvent);
 impl_to_dbus_message!(ReloadEvent);
 impl_from_dbus_message!(ReloadEvent);
+impl_event_properties!(ReloadEvent);
 impl From<ReloadEvent> for EventBodyOwned {
 	fn from(_event: ReloadEvent) -> Self {
 		EventBodyOwned {
@@ -302,6 +268,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(LoadStoppedEvent);
 impl_to_dbus_message!(LoadStoppedEvent);
 impl_from_dbus_message!(LoadStoppedEvent);
+impl_event_properties!(LoadStoppedEvent);
 impl From<LoadStoppedEvent> for EventBodyOwned {
 	fn from(_event: LoadStoppedEvent) -> Self {
 		EventBodyOwned {
@@ -329,6 +296,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ContentChangedEvent);
 impl_to_dbus_message!(ContentChangedEvent);
 impl_from_dbus_message!(ContentChangedEvent);
+impl_event_properties!(ContentChangedEvent);
 impl From<ContentChangedEvent> for EventBodyOwned {
 	fn from(_event: ContentChangedEvent) -> Self {
 		EventBodyOwned {
@@ -356,6 +324,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
+impl_event_properties!(AttributesChangedEvent);
 impl From<AttributesChangedEvent> for EventBodyOwned {
 	fn from(_event: AttributesChangedEvent) -> Self {
 		EventBodyOwned {
@@ -383,6 +352,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(PageChangedEvent);
 impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);
+impl_event_properties!(PageChangedEvent);
 impl From<PageChangedEvent> for EventBodyOwned {
 	fn from(_event: PageChangedEvent) -> Self {
 		EventBodyOwned {

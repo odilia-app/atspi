@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	Event, EventProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -80,12 +80,6 @@ impl BusProperties for LineChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -103,12 +97,6 @@ impl BusProperties for ColumnCountChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -128,12 +116,6 @@ impl BusProperties for LineCountChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -152,12 +134,6 @@ impl BusProperties for ApplicationChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -175,12 +151,6 @@ impl BusProperties for CharWidthChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -221,6 +191,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(LineChangedEvent);
 impl_to_dbus_message!(LineChangedEvent);
 impl_from_dbus_message!(LineChangedEvent);
+impl_event_properties!(LineChangedEvent);
 impl From<LineChangedEvent> for EventBodyOwned {
 	fn from(_event: LineChangedEvent) -> Self {
 		EventBodyOwned {
@@ -247,6 +218,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ColumnCountChangedEvent);
 impl_to_dbus_message!(ColumnCountChangedEvent);
 impl_from_dbus_message!(ColumnCountChangedEvent);
+impl_event_properties!(ColumnCountChangedEvent);
 impl From<ColumnCountChangedEvent> for EventBodyOwned {
 	fn from(_event: ColumnCountChangedEvent) -> Self {
 		EventBodyOwned {
@@ -273,6 +245,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(LineCountChangedEvent);
 impl_to_dbus_message!(LineCountChangedEvent);
 impl_from_dbus_message!(LineCountChangedEvent);
+impl_event_properties!(LineCountChangedEvent);
 impl From<LineCountChangedEvent> for EventBodyOwned {
 	fn from(_event: LineCountChangedEvent) -> Self {
 		EventBodyOwned {
@@ -299,6 +272,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ApplicationChangedEvent);
 impl_to_dbus_message!(ApplicationChangedEvent);
 impl_from_dbus_message!(ApplicationChangedEvent);
+impl_event_properties!(ApplicationChangedEvent);
 impl From<ApplicationChangedEvent> for EventBodyOwned {
 	fn from(_event: ApplicationChangedEvent) -> Self {
 		EventBodyOwned {
@@ -325,6 +299,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(CharWidthChangedEvent);
 impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
+impl_event_properties!(CharWidthChangedEvent);
 impl From<CharWidthChangedEvent> for EventBodyOwned {
 	fn from(_event: CharWidthChangedEvent) -> Self {
 		EventBodyOwned {

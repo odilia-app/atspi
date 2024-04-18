@@ -3,7 +3,7 @@ use std::hash::Hash;
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, State,
+	Event, EventProperties, State,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue, Value};
@@ -430,12 +430,6 @@ impl BusProperties for PropertyChangeEvent {
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -453,12 +447,6 @@ impl BusProperties for BoundsChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -478,12 +466,6 @@ impl BusProperties for LinkSelectedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -501,12 +483,6 @@ impl BusProperties for StateChangedEvent {
 
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -531,12 +507,6 @@ impl BusProperties for ChildrenChangedEvent {
 			child: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -554,12 +524,6 @@ impl BusProperties for VisibleDataChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -579,12 +543,6 @@ impl BusProperties for SelectionChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -603,12 +561,6 @@ impl BusProperties for ModelChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -626,12 +578,6 @@ impl BusProperties for ActiveDescendantChangedEvent {
 
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -655,12 +601,6 @@ impl BusProperties for AnnouncementEvent {
 			live: body.detail1.try_into()?,
 		})
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -678,12 +618,6 @@ impl BusProperties for AttributesChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -703,12 +637,6 @@ impl BusProperties for RowInsertedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -726,12 +654,6 @@ impl BusProperties for RowReorderedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -751,12 +673,6 @@ impl BusProperties for RowDeletedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -774,12 +690,6 @@ impl BusProperties for ColumnInsertedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -799,12 +709,6 @@ impl BusProperties for ColumnReorderedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -822,12 +726,6 @@ impl BusProperties for ColumnDeletedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -847,12 +745,6 @@ impl BusProperties for TextBoundsChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -870,12 +762,6 @@ impl BusProperties for TextSelectionChangedEvent {
 
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -901,12 +787,6 @@ impl BusProperties for TextChangedEvent {
 			text: body.any_data.try_into()?,
 		})
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -925,12 +805,6 @@ impl BusProperties for TextAttributesChangedEvent {
 	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
-	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -948,12 +822,6 @@ impl BusProperties for TextCaretMovedEvent {
 
 	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -1012,6 +880,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(PropertyChangeEvent);
 impl_to_dbus_message!(PropertyChangeEvent);
 impl_from_dbus_message!(PropertyChangeEvent);
+impl_event_properties!(PropertyChangeEvent);
 
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
@@ -1039,6 +908,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(BoundsChangedEvent);
 impl_to_dbus_message!(BoundsChangedEvent);
 impl_from_dbus_message!(BoundsChangedEvent);
+impl_event_properties!(BoundsChangedEvent);
 impl From<BoundsChangedEvent> for EventBodyOwned {
 	fn from(_event: BoundsChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1065,6 +935,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(LinkSelectedEvent);
 impl_to_dbus_message!(LinkSelectedEvent);
 impl_from_dbus_message!(LinkSelectedEvent);
+impl_event_properties!(LinkSelectedEvent);
 impl From<LinkSelectedEvent> for EventBodyOwned {
 	fn from(_event: LinkSelectedEvent) -> Self {
 		EventBodyOwned {
@@ -1091,6 +962,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
+impl_event_properties!(StateChangedEvent);
 impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1117,6 +989,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ChildrenChangedEvent);
 impl_to_dbus_message!(ChildrenChangedEvent);
 impl_from_dbus_message!(ChildrenChangedEvent);
+impl_event_properties!(ChildrenChangedEvent);
 impl From<ChildrenChangedEvent> for EventBodyOwned {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1148,6 +1021,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(VisibleDataChangedEvent);
 impl_to_dbus_message!(VisibleDataChangedEvent);
 impl_from_dbus_message!(VisibleDataChangedEvent);
+impl_event_properties!(VisibleDataChangedEvent);
 impl From<VisibleDataChangedEvent> for EventBodyOwned {
 	fn from(_event: VisibleDataChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1174,6 +1048,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(SelectionChangedEvent);
 impl_to_dbus_message!(SelectionChangedEvent);
 impl_from_dbus_message!(SelectionChangedEvent);
+impl_event_properties!(SelectionChangedEvent);
 impl From<SelectionChangedEvent> for EventBodyOwned {
 	fn from(_event: SelectionChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1200,6 +1075,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ModelChangedEvent);
 impl_to_dbus_message!(ModelChangedEvent);
 impl_from_dbus_message!(ModelChangedEvent);
+impl_event_properties!(ModelChangedEvent);
 impl From<ModelChangedEvent> for EventBodyOwned {
 	fn from(_event: ModelChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1226,6 +1102,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ActiveDescendantChangedEvent);
 impl_to_dbus_message!(ActiveDescendantChangedEvent);
 impl_from_dbus_message!(ActiveDescendantChangedEvent);
+impl_event_properties!(ActiveDescendantChangedEvent);
 impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	fn from(event: ActiveDescendantChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1257,6 +1134,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(AnnouncementEvent);
 impl_to_dbus_message!(AnnouncementEvent);
 impl_from_dbus_message!(AnnouncementEvent);
+impl_event_properties!(AnnouncementEvent);
 impl From<AnnouncementEvent> for EventBodyOwned {
 	fn from(event: AnnouncementEvent) -> Self {
 		EventBodyOwned {
@@ -1285,6 +1163,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
+impl_event_properties!(AttributesChangedEvent);
 impl From<AttributesChangedEvent> for EventBodyOwned {
 	fn from(_event: AttributesChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1311,6 +1190,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(RowInsertedEvent);
 impl_to_dbus_message!(RowInsertedEvent);
 impl_from_dbus_message!(RowInsertedEvent);
+impl_event_properties!(RowInsertedEvent);
 impl From<RowInsertedEvent> for EventBodyOwned {
 	fn from(_event: RowInsertedEvent) -> Self {
 		EventBodyOwned {
@@ -1337,6 +1217,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(RowReorderedEvent);
 impl_to_dbus_message!(RowReorderedEvent);
 impl_from_dbus_message!(RowReorderedEvent);
+impl_event_properties!(RowReorderedEvent);
 impl From<RowReorderedEvent> for EventBodyOwned {
 	fn from(_event: RowReorderedEvent) -> Self {
 		EventBodyOwned {
@@ -1359,6 +1240,7 @@ impl_try_from_event_for_user_facing_type!(RowDeletedEvent, ObjectEvents::RowDele
 event_test_cases!(RowDeletedEvent);
 impl_to_dbus_message!(RowDeletedEvent);
 impl_from_dbus_message!(RowDeletedEvent);
+impl_event_properties!(RowDeletedEvent);
 impl From<RowDeletedEvent> for EventBodyOwned {
 	fn from(_event: RowDeletedEvent) -> Self {
 		EventBodyOwned {
@@ -1385,6 +1267,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ColumnInsertedEvent);
 impl_to_dbus_message!(ColumnInsertedEvent);
 impl_from_dbus_message!(ColumnInsertedEvent);
+impl_event_properties!(ColumnInsertedEvent);
 impl From<ColumnInsertedEvent> for EventBodyOwned {
 	fn from(_event: ColumnInsertedEvent) -> Self {
 		EventBodyOwned {
@@ -1411,6 +1294,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ColumnReorderedEvent);
 impl_to_dbus_message!(ColumnReorderedEvent);
 impl_from_dbus_message!(ColumnReorderedEvent);
+impl_event_properties!(ColumnReorderedEvent);
 impl From<ColumnReorderedEvent> for EventBodyOwned {
 	fn from(_event: ColumnReorderedEvent) -> Self {
 		EventBodyOwned {
@@ -1437,6 +1321,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ColumnDeletedEvent);
 impl_to_dbus_message!(ColumnDeletedEvent);
 impl_from_dbus_message!(ColumnDeletedEvent);
+impl_event_properties!(ColumnDeletedEvent);
 impl From<ColumnDeletedEvent> for EventBodyOwned {
 	fn from(_event: ColumnDeletedEvent) -> Self {
 		EventBodyOwned {
@@ -1463,6 +1348,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(TextBoundsChangedEvent);
 impl_to_dbus_message!(TextBoundsChangedEvent);
 impl_from_dbus_message!(TextBoundsChangedEvent);
+impl_event_properties!(TextBoundsChangedEvent);
 impl From<TextBoundsChangedEvent> for EventBodyOwned {
 	fn from(_event: TextBoundsChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1489,6 +1375,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(TextSelectionChangedEvent);
 impl_to_dbus_message!(TextSelectionChangedEvent);
 impl_from_dbus_message!(TextSelectionChangedEvent);
+impl_event_properties!(TextSelectionChangedEvent);
 impl From<TextSelectionChangedEvent> for EventBodyOwned {
 	fn from(_event: TextSelectionChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1515,6 +1402,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(TextChangedEvent);
 impl_to_dbus_message!(TextChangedEvent);
 impl_from_dbus_message!(TextChangedEvent);
+impl_event_properties!(TextChangedEvent);
 impl From<TextChangedEvent> for EventBodyOwned {
 	fn from(event: TextChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1546,6 +1434,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(TextAttributesChangedEvent);
 impl_to_dbus_message!(TextAttributesChangedEvent);
 impl_from_dbus_message!(TextAttributesChangedEvent);
+impl_event_properties!(TextAttributesChangedEvent);
 impl From<TextAttributesChangedEvent> for EventBodyOwned {
 	fn from(_event: TextAttributesChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1572,6 +1461,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(TextCaretMovedEvent);
 impl_to_dbus_message!(TextCaretMovedEvent);
 impl_from_dbus_message!(TextCaretMovedEvent);
+impl_event_properties!(TextCaretMovedEvent);
 impl From<TextCaretMovedEvent> for EventBodyOwned {
 	fn from(event: TextCaretMovedEvent) -> Self {
 		EventBodyOwned {
