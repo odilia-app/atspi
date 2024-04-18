@@ -181,8 +181,8 @@ macro_rules! impl_to_dbus_message {
 			fn try_from(event: $type) -> Result<Self, Self::Error> {
 				Ok(zbus::Message::signal(
 					event.path(),
-					<$type as GenericEvent>::DBUS_INTERFACE,
-					<$type as GenericEvent>::DBUS_MEMBER,
+					<$type as BusProperties>::DBUS_INTERFACE,
+					<$type as BusProperties>::DBUS_MEMBER,
 				)?
 				.sender(event.sender().to_string())?
 				.build(&event.body())?)
@@ -226,12 +226,12 @@ macro_rules! impl_from_dbus_message {
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
 				let header = msg.header();
 				if header.interface().ok_or(AtspiError::MissingInterface)?
-					!= <$type as GenericEvent>::DBUS_INTERFACE
+					!= <$type as BusProperties>::DBUS_INTERFACE
 				{
 					return Err(AtspiError::InterfaceMatch(format!(
 						"The interface {} does not match the signal's interface: {}",
 						header.interface().unwrap(),
-						<$type as GenericEvent>::DBUS_INTERFACE
+						<$type as BusProperties>::DBUS_INTERFACE
 					)));
 				}
 				if header.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
@@ -239,12 +239,12 @@ macro_rules! impl_from_dbus_message {
 						"The member {} does not match the signal's member: {}",
 						// unwrap is safe here because of guard above
 						header.member().unwrap(),
-						<$type as GenericEvent>::DBUS_MEMBER
+						<$type as BusProperties>::DBUS_MEMBER
 					)));
 				}
 				<$type>::build(
 					msg.try_into()?,
-					msg.body().deserialize::<<$type as GenericEvent>::Body>()?,
+					msg.body().deserialize::<<$type as BusProperties>::Body>()?,
 				)
 			}
 		}
@@ -255,13 +255,13 @@ macro_rules! impl_from_dbus_message {
 // This prevents Clippy from complaining about the macro not being used.
 // It is being used, but only in test mode.
 //
-/// Tests `Default` and `GenericEvent::build` for a given event struct.
+/// Tests `Default` and `BusProperties::build` for a given event struct.
 ///
 /// Obtains a default for the given event struct.
 /// Asserts that the path and sender are the default.
 ///
 /// Breaks the struct down into item (the associated object) and body.
-/// Then tests `GenericEvent::build` with the item and body.
+/// Then tests `BusProperties::build` with the item and body.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
@@ -358,7 +358,7 @@ macro_rules! zbus_message_test_case {
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
-				<$type as GenericEvent>::DBUS_INTERFACE,
+				<$type as BusProperties>::DBUS_INTERFACE,
 				"MadeUpMember",
 			)
 			.unwrap()
@@ -376,8 +376,8 @@ macro_rules! zbus_message_test_case {
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
-				<$type as GenericEvent>::DBUS_INTERFACE,
-				<$type as GenericEvent>::DBUS_MEMBER,
+				<$type as BusProperties>::DBUS_INTERFACE,
+				<$type as BusProperties>::DBUS_MEMBER,
 			)
 			.unwrap()
 			.sender(":0.0")
@@ -413,7 +413,7 @@ macro_rules! zbus_message_test_case {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.accessible.technically.valid",
-				<$type as GenericEvent>::DBUS_MEMBER,
+				<$type as BusProperties>::DBUS_MEMBER,
 			)
 			.unwrap()
 			.sender(":0.0")
@@ -449,7 +449,7 @@ macro_rules! event_wrapper_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "events_tests_", case = "snake")]
 		mod foo {
-			use super::{$any_subtype, $type, Event, GenericEvent};
+			use super::{$any_subtype, $type, Event, BusProperties};
 			#[test]
 			fn into_and_try_from_event() {
 				// Create a default event struct from its type's `Default::default()` impl.
@@ -473,7 +473,7 @@ macro_rules! event_wrapper_test_cases {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
 					"org.a11y.atspi.technically.valid.lol",
-					<$any_subtype as GenericEvent>::DBUS_MEMBER,
+					<$any_subtype as BusProperties>::DBUS_MEMBER,
 				)
 				.unwrap()
 				.sender(":0.0")
@@ -498,7 +498,7 @@ macro_rules! event_wrapper_test_cases {
 			fn zbus_msg_invalid_member() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
-					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
+					<$any_subtype as BusProperties>::DBUS_INTERFACE,
 					"FakeFunctionLol",
 				)
 				.unwrap()
@@ -535,8 +535,8 @@ macro_rules! event_wrapper_test_cases {
 			fn zbus_msg_conversion() {
 				let valid_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
-					<$any_subtype as GenericEvent>::DBUS_INTERFACE,
-					<$any_subtype as GenericEvent>::DBUS_MEMBER,
+					<$any_subtype as BusProperties>::DBUS_INTERFACE,
+					<$any_subtype as BusProperties>::DBUS_MEMBER,
 				)
 				.unwrap()
 				.sender(":0.0")
@@ -556,7 +556,7 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$type, Event, GenericEvent};
+			use super::{$type, Event, BusProperties};
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);

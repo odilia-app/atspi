@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{EventBodyOwned, BusProperties, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, State,
 };
 use zbus_names::BusName;
@@ -416,7 +416,7 @@ pub struct TextCaretMovedEvent {
 	pub position: i32,
 }
 
-impl GenericEvent<'_> for PropertyChangeEvent {
+impl BusProperties for PropertyChangeEvent {
 	const DBUS_MEMBER: &'static str = "PropertyChange";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -442,7 +442,7 @@ impl GenericEvent<'_> for PropertyChangeEvent {
 	}
 }
 
-impl GenericEvent<'_> for BoundsChangedEvent {
+impl BusProperties for BoundsChangedEvent {
 	const DBUS_MEMBER: &'static str = "BoundsChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -466,7 +466,7 @@ impl GenericEvent<'_> for BoundsChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for LinkSelectedEvent {
+impl BusProperties for LinkSelectedEvent {
 	const DBUS_MEMBER: &'static str = "LinkSelected";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -490,7 +490,7 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 	}
 }
 
-impl GenericEvent<'_> for StateChangedEvent {
+impl BusProperties for StateChangedEvent {
 	const DBUS_MEMBER: &'static str = "StateChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -514,7 +514,7 @@ impl GenericEvent<'_> for StateChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ChildrenChangedEvent {
+impl BusProperties for ChildrenChangedEvent {
 	const DBUS_MEMBER: &'static str = "ChildrenChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -543,7 +543,7 @@ impl GenericEvent<'_> for ChildrenChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for VisibleDataChangedEvent {
+impl BusProperties for VisibleDataChangedEvent {
 	const DBUS_MEMBER: &'static str = "VisibleDataChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -567,7 +567,7 @@ impl GenericEvent<'_> for VisibleDataChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for SelectionChangedEvent {
+impl BusProperties for SelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "SelectionChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -591,7 +591,7 @@ impl GenericEvent<'_> for SelectionChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ModelChangedEvent {
+impl BusProperties for ModelChangedEvent {
 	const DBUS_MEMBER: &'static str = "ModelChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -615,7 +615,7 @@ impl GenericEvent<'_> for ModelChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ActiveDescendantChangedEvent {
+impl BusProperties for ActiveDescendantChangedEvent {
 	const DBUS_MEMBER: &'static str = "ActiveDescendantChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -639,7 +639,7 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for AnnouncementEvent {
+impl BusProperties for AnnouncementEvent {
 	const DBUS_MEMBER: &'static str = "Announcement";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -667,7 +667,7 @@ impl GenericEvent<'_> for AnnouncementEvent {
 	}
 }
 
-impl GenericEvent<'_> for AttributesChangedEvent {
+impl BusProperties for AttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "AttributesChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -691,7 +691,7 @@ impl GenericEvent<'_> for AttributesChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for RowInsertedEvent {
+impl BusProperties for RowInsertedEvent {
 	const DBUS_MEMBER: &'static str = "RowInserted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -715,7 +715,7 @@ impl GenericEvent<'_> for RowInsertedEvent {
 	}
 }
 
-impl GenericEvent<'_> for RowReorderedEvent {
+impl BusProperties for RowReorderedEvent {
 	const DBUS_MEMBER: &'static str = "RowReordered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -739,7 +739,7 @@ impl GenericEvent<'_> for RowReorderedEvent {
 	}
 }
 
-impl GenericEvent<'_> for RowDeletedEvent {
+impl BusProperties for RowDeletedEvent {
 	const DBUS_MEMBER: &'static str = "RowDeleted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -763,7 +763,7 @@ impl GenericEvent<'_> for RowDeletedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ColumnInsertedEvent {
+impl BusProperties for ColumnInsertedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnInserted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -787,7 +787,7 @@ impl GenericEvent<'_> for ColumnInsertedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ColumnReorderedEvent {
+impl BusProperties for ColumnReorderedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnReordered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -811,7 +811,7 @@ impl GenericEvent<'_> for ColumnReorderedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ColumnDeletedEvent {
+impl BusProperties for ColumnDeletedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnDeleted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -835,7 +835,7 @@ impl GenericEvent<'_> for ColumnDeletedEvent {
 	}
 }
 
-impl GenericEvent<'_> for TextBoundsChangedEvent {
+impl BusProperties for TextBoundsChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextBoundsChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -859,7 +859,7 @@ impl GenericEvent<'_> for TextBoundsChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for TextSelectionChangedEvent {
+impl BusProperties for TextSelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextSelectionChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -883,7 +883,7 @@ impl GenericEvent<'_> for TextSelectionChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for TextChangedEvent {
+impl BusProperties for TextChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -913,7 +913,7 @@ impl GenericEvent<'_> for TextChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for TextAttributesChangedEvent {
+impl BusProperties for TextAttributesChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextAttributesChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -937,7 +937,7 @@ impl GenericEvent<'_> for TextAttributesChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for TextCaretMovedEvent {
+impl BusProperties for TextCaretMovedEvent {
 	const DBUS_MEMBER: &'static str = "TextCaretMoved";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
