@@ -972,6 +972,11 @@ pub trait BusProperties {
 }
 
 /// A specific trait *only* to define match rules.
+/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
+/// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
+/// to the `DBus` connection to capture all sub events of [`ObjectEvents`].
+/// 
+/// This trait *is not* object-safe.
 pub trait HasMatchRule {
 	/// A static match rule string for `DBus`.
 	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
@@ -980,6 +985,11 @@ pub trait HasMatchRule {
 }
 
 /// A specific trait *only* to define registry event matches.
+/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
+/// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
+/// to the AT-SPI connection to subscribe to all sub events of [`ObjectEvents`].
+///
+/// This trait *is not* object-safe.
 pub trait HasRegistryEventString {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
 	/// This should be deprecated in favour of composing the string from [`BusProperties::DBUS_MEMBER`] and [`BusProperties::DBUS_INTERFACE`].
