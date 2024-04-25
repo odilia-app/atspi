@@ -431,7 +431,7 @@ impl BusProperties for LegacyAddAccessibleEvent {
 
 	type Body = LegacyCacheItem;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -468,7 +468,7 @@ impl BusProperties for AddAccessibleEvent {
 
 	type Body = CacheItem;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -513,7 +513,7 @@ impl BusProperties for RemoveAccessibleEvent {
 
 	type Body = ObjectRef;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -710,7 +710,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -752,7 +752,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 
 	type Body = EventListeners;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -795,7 +795,7 @@ impl BusProperties for AvailableEvent {
 
 	type Body = ObjectRef;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -963,7 +963,7 @@ pub trait BusProperties {
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
 	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 
@@ -975,7 +975,7 @@ pub trait BusProperties {
 /// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
 /// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
 /// to the `DBus` connection to capture all sub events of [`ObjectEvents`].
-/// 
+///
 /// This trait *is not* object-safe.
 pub trait HasMatchRule {
 	/// A static match rule string for `DBus`.
