@@ -107,7 +107,7 @@ impl BusProperties for AbsEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
@@ -125,7 +125,7 @@ impl BusProperties for RelEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
@@ -143,7 +143,7 @@ impl BusProperties for ButtonEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {

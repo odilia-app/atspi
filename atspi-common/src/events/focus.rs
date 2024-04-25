@@ -72,7 +72,7 @@ impl BusProperties for FocusEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
