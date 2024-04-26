@@ -4,7 +4,8 @@
 use crate::{InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zvariant::Type;
+use zbus_names::BusName;
+use zvariant::{ObjectPath, Type};
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
@@ -37,16 +38,22 @@ impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
 			object: ObjectRef {
-				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
+				name: BusName::from_static_str(":0.0").unwrap().into(),
+				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/object")
+					.unwrap()
+					.into(),
 			},
 			app: ObjectRef {
-				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
+				name: BusName::from_static_str(":0.0").unwrap().into(),
+				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/application")
+					.unwrap()
+					.into(),
 			},
 			parent: ObjectRef {
-				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
+				name: BusName::from_static_str(":0.0").unwrap().into(),
+				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/parent")
+					.unwrap()
+					.into(),
 			},
 			index: 0,
 			children: 0,
@@ -86,16 +93,22 @@ impl Default for LegacyCacheItem {
 	fn default() -> Self {
 		Self {
 			object: ObjectRef {
-				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/object".try_into().unwrap(),
+				name: BusName::from_static_str(":0.0").unwrap().into(),
+				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/object")
+					.unwrap()
+					.into(),
 			},
 			app: ObjectRef {
-				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/application".try_into().unwrap(),
+				name: BusName::from_static_str(":0.0").unwrap().into(),
+				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/application")
+					.unwrap()
+					.into(),
 			},
 			parent: ObjectRef {
-				name: ":0.0".into(),
-				path: "/org/a11y/atspi/accessible/parent".try_into().unwrap(),
+				name: BusName::from_static_str(":0.0").unwrap().into(),
+				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/parent")
+					.unwrap()
+					.into(),
 			},
 			children: Vec::new(),
 			ifaces: InterfaceSet::empty(),

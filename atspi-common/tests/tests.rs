@@ -5,6 +5,7 @@ use atspi_connection::AccessibilityConnection;
 use std::time::Duration;
 use tokio_stream::StreamExt;
 use zbus::Message;
+use zbus_names::OwnedBusName;
 use zvariant::OwnedObjectPath;
 
 #[tokio::test]
@@ -18,7 +19,7 @@ async fn test_recv_remove_accessible() {
 
 	let msg = {
 		let remove_body = ObjectRef {
-			name: ":69.420".into(),
+			name: OwnedBusName::try_from(":69.420").unwrap(),
 			path: OwnedObjectPath::try_from("/org/a11y/atspi/accessible/remove").unwrap(),
 		};
 
