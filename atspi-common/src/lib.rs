@@ -232,6 +232,35 @@ impl TryFrom<i32> for Live {
 	}
 }
 
+pub trait MessageExt {
+	/// Check if the message matches the event.
+	///
+	/// # Errors
+	/// - If the message does not have a signature.
+	/// - If the message does not have a member.
+	/// - If the message does not have an interface.
+	fn matches_event<EV: BusProperties>(&self) -> crate::Result<bool>;
+}
+
+impl MessageExt for zbus::Message {
+	fn matches_event<EV: BusProperties>(&self) -> crate::Result<bool> {
+		let event_signature = <EV as BusProperties>::Body::signature();
+		let event_member = <EV as BusProperties>::DBUS_MEMBER;
+		let event_iface = <EV as BusProperties>::DBUS_INTERFACE;
+
+		let body = self.body();
+		let msg_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+
+		let header = self.header();
+		let msg_member = header.member().ok_or(AtspiError::MissingMember)?;
+		let msg_iface = header.interface().ok_or(AtspiError::MissingInterface)?;
+
+		Ok(event_signature == msg_signature
+			&& event_member == msg_member.as_str()
+			&& event_iface == msg_iface.as_str())
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -302,5 +331,23 @@ mod tests {
 	fn validate_sort_order_signature() {
 		let signature = method_args_signature!(member: "GetMatches", interface: "org.a11y.atspi.Collection", argument: "sortby");
 		assert_eq!(SortOrder::signature(), signature);
+	}
+
+	#[test]
+	fn message_ext_matches_event() {
+		use crate::events::mouse::AbsEvent;
+
+		let builder = zbus::Message::signal(
+			"/org/a11y/atspi/accessible/null",
+			"org.a11y.atspi.Event.Mouse",
+			"Abs",
+		)
+		.unwrap();
+
+		let event = AbsEvent::default();
+		let body = event.body();
+		let msg = builder.build(&body).unwrap();
+
+		assert!(msg.matches_event::<AbsEvent>().unwrap());
 	}
 }

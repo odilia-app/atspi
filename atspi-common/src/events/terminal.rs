@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
@@ -137,8 +137,8 @@ impl BusProperties for LineChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -155,8 +155,8 @@ impl BusProperties for ColumnCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -173,8 +173,8 @@ impl BusProperties for LineCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -191,8 +191,8 @@ impl BusProperties for ApplicationChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -209,8 +209,8 @@ impl BusProperties for CharWidthChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();

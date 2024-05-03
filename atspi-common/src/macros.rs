@@ -237,16 +237,7 @@ macro_rules! impl_to_dbus_message {
 ///   type Error = AtspiError;
 ///   fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
 ///    if msg.header().interface().ok_or(AtspiError::MissingInterface)? != StateChangedEvent::DBUS_INTERFACE {
-///       return Err(AtspiError::InterfaceMatch(format!("The interface {} does not match the signal's interface: {}",
-///         msg.header().interface().unwrap(),
-///         StateChangedEvent::DBUS_INTERFACE)));
-///     }
-///     if msg.header().member().ok_or(AtspiError::MissingMember)? != StateChangedEvent::DBUS_MEMBER {
-///       return Err(AtspiError::MemberMatch(format!("The member {} does not match the signal's member: {}",
-///         msg.header().member().unwrap(),
-///         StateChangedEvent::DBUS_MEMBER)));
-///     }
-///     StateChangedEvent::from_message_parts(msg.try_into()?, msg.body().deserialize::<StateChangedEvent::Body>()?)
+///     StateChangedEvent::from_message(msg)
 ///  }
 /// }
 /// ```
@@ -256,28 +247,13 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-				let header = msg.header();
-				if header.interface().ok_or(AtspiError::MissingInterface)?
-					!= <$type as BusProperties>::DBUS_INTERFACE
-				{
-					return Err(AtspiError::InterfaceMatch(format!(
-						"The interface {} does not match the signal's interface: {}",
-						header.interface().unwrap(),
-						<$type as BusProperties>::DBUS_INTERFACE
-					)));
+				use crate::MessageExt;
+
+				if msg.matches_event::<$type>()? {
+					<$type>::from_message(msg)
+				} else {
+					Err(AtspiError::EventMismatch)
 				}
-				if header.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
-					return Err(AtspiError::MemberMatch(format!(
-						"The member {} does not match the signal's member: {}",
-						// unwrap is safe here because of guard above
-						header.member().unwrap(),
-						<$type as BusProperties>::DBUS_MEMBER
-					)));
-				}
-				<$type>::from_message_parts(
-					msg.try_into()?,
-					msg.body().deserialize::<<$type as BusProperties>::Body>()?,
-				)
 			}
 		}
 	};
@@ -287,13 +263,13 @@ macro_rules! impl_from_dbus_message {
 // This prevents Clippy from complaining about the macro not being used.
 // It is being used, but only in test mode.
 //
-/// Tests `Default` and `BusProperties::from_message_parts` for a given event struct.
+/// Tests `Default` and `BusProperties::from_message` for a given event struct.
 ///
 /// Obtains a default for the given event struct.
 /// Asserts that the path and sender are the default.
 ///
-/// Breaks the struct down into item (the associated object) and body.
-/// Then tests `BusProperties::from_message_parts` with the item and body.
+/// Retreives a body from the event type, creates a message from the event type and body.
+/// Then tests `BusProperties::from_message` with the message.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
@@ -302,9 +278,22 @@ macro_rules! generic_event_test_case {
 			let struct_event = <$type>::default();
 			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
-			let item = struct_event.item.clone();
 			let body = struct_event.body();
-			let build_struct = <$type>::from_message_parts(item, body)
+
+			let builder = zbus::Message::signal(
+				struct_event.path(),
+				<$type as BusProperties>::DBUS_INTERFACE,
+				<$type as BusProperties>::DBUS_MEMBER,
+			)
+			.expect("Should build a message from the default event struct.");
+
+			let msg = builder
+				.sender(":0.0")
+				.unwrap()
+				.build(&body)
+				.expect("Should build a message from the default event struct.");
+
+			let build_struct = <$type>::from_message(&msg)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}
@@ -477,9 +466,9 @@ macro_rules! zbus_message_test_case {
 				"org.a11y.atspi.accessible.technically.valid",
 				"FakeMember",
 			)
-			.unwrap()
+			.expect("Should build a message from the valid args.")
 			.sender(":0.0")
-			.unwrap()
+			.expect("Valid sender \":0.0\" should be set.")
 			.build(&<$type>::default().body())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);

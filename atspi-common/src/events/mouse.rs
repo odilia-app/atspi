@@ -107,9 +107,12 @@ impl BusProperties for AbsEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -125,9 +128,12 @@ impl BusProperties for RelEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -143,7 +149,9 @@ impl BusProperties for ButtonEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {

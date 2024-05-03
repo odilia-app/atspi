@@ -75,9 +75,12 @@ impl BusProperties for ModifiersEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body: EventBodyOwned = msg.try_into()?;
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()

@@ -30,6 +30,9 @@ pub enum AtspiError {
 	/// No Signature.
 	MissingSignature,
 
+	/// When matching on a signal with an event, but the event does not match the signal.
+	EventMismatch,
+
 	/// When matching on an unknown role
 	UnknownRole(u32),
 
@@ -86,6 +89,7 @@ impl std::fmt::Display for AtspiError {
 			Self::MissingInterface => f.write_str("Missing interface."),
 			Self::MissingMember => f.write_str("Missing member."),
 			Self::MissingSignature => f.write_str("Missing signature."),
+			Self::EventMismatch => f.write_str("Event <--> Message mismatch"),
 			Self::UnknownRole(e) => f.write_str(&format!("atspi: Unknown role: {e}")),
 			Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
 			Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),

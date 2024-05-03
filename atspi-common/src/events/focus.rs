@@ -72,9 +72,10 @@ impl BusProperties for FocusEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: ObjectRef::try_from(msg)? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
