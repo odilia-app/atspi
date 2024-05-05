@@ -431,7 +431,7 @@ impl BusProperties for LegacyAddAccessibleEvent {
 
 	type Body = LegacyCacheItem;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body();
 		let node_added: Self::Body = body.deserialize::<Self::Body>()?;
 		let item = msg.try_into()?;
@@ -472,7 +472,7 @@ impl BusProperties for AddAccessibleEvent {
 
 	type Body = CacheItem;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body();
 		let node_added: Self::Body = body.deserialize::<Self::Body>()?;
 		let item = msg.try_into()?;
@@ -521,7 +521,7 @@ impl BusProperties for RemoveAccessibleEvent {
 
 	type Body = ObjectRef;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body();
 		let node_removed: Self::Body = body.deserialize::<Self::Body>()?;
 		let item = msg.try_into()?;
@@ -723,7 +723,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 
 	type Body = EventListeners;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body: Self::Body = msg.body().deserialize::<Self::Body>()?;
 		Ok(Self { item, deregistered_event: body })
@@ -768,7 +768,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 
 	type Body = EventListeners;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body: Self::Body = msg.body().deserialize::<Self::Body>()?;
 		Ok(Self { item, registered_event: body })
@@ -814,7 +814,7 @@ impl BusProperties for AvailableEvent {
 
 	type Body = ObjectRef;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let socket: Self::Body = body.deserialize::<Self::Body>()?;
@@ -988,7 +988,7 @@ pub trait BusProperties {
 	///    if !msg.matches_event::<EventType>()? {
 	///        return Err(AtspiError::EventMismatch);
 	///    }
-	///    let event = EventType::from_message(msg)?;
+	///    let event = EventType::try_from_message(msg)?;
 	/// ```
 	///
 	/// These checks are already performed in the `Event::try_from` implementation, therefore the check is omited in the implementations of `BusProperties`.
@@ -997,7 +997,7 @@ pub trait BusProperties {
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
 	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
-	fn from_message(msg: &zbus::Message) -> std::result::Result<Self, AtspiError>
+	fn try_from_message(msg: &zbus::Message) -> std::result::Result<Self, AtspiError>
 	where
 		Self: Sized;
 

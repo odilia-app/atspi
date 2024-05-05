@@ -237,7 +237,7 @@ macro_rules! impl_to_dbus_message {
 ///   type Error = AtspiError;
 ///   fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
 ///    if msg.header().interface().ok_or(AtspiError::MissingInterface)? != StateChangedEvent::DBUS_INTERFACE {
-///     StateChangedEvent::from_message(msg)
+///     StateChangedEvent::try_from_message(msg)
 ///  }
 /// }
 /// ```
@@ -250,7 +250,7 @@ macro_rules! impl_from_dbus_message {
 				use crate::MessageExt;
 
 				if msg.matches_event::<$type>()? {
-					<$type>::from_message(msg)
+					<$type>::try_from_message(msg)
 				} else {
 					Err(AtspiError::EventMismatch)
 				}
@@ -263,13 +263,13 @@ macro_rules! impl_from_dbus_message {
 // This prevents Clippy from complaining about the macro not being used.
 // It is being used, but only in test mode.
 //
-/// Tests `Default` and `BusProperties::from_message` for a given event struct.
+/// Tests `Default` and `BusProperties::try_from_message` for a given event struct.
 ///
 /// Obtains a default for the given event struct.
 /// Asserts that the path and sender are the default.
 ///
 /// Retreives a body from the event type, creates a message from the event type and body.
-/// Then tests `BusProperties::from_message` with the message.
+/// Then tests `BusProperties::try_from_message` with the message.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
@@ -293,7 +293,7 @@ macro_rules! generic_event_test_case {
 				.build(&body)
 				.expect("Should build a message from the default event struct.");
 
-			let build_struct = <$type>::from_message(&msg)
+			let build_struct = <$type>::try_from_message(&msg)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}

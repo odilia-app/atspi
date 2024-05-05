@@ -149,7 +149,7 @@ impl BusProperties for LoadCompleteEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
 
@@ -168,7 +168,7 @@ impl BusProperties for ReloadEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
 
@@ -187,7 +187,7 @@ impl BusProperties for LoadStoppedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
 
@@ -206,7 +206,7 @@ impl BusProperties for ContentChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
 
@@ -225,7 +225,7 @@ impl BusProperties for AttributesChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
 
@@ -244,7 +244,7 @@ impl BusProperties for PageChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
 
