@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -14,6 +14,54 @@ pub enum MouseEvents {
 	Rel(RelEvent),
 	/// See: [`ButtonEvent`].
 	Button(ButtonEvent),
+}
+
+impl EventTypeProperties for MouseEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.member(),
+			Self::Rel(inner) => inner.member(),
+			Self::Button(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.interface(),
+			Self::Rel(inner) => inner.interface(),
+			Self::Button(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.match_rule(),
+			Self::Rel(inner) => inner.match_rule(),
+			Self::Button(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.registry_string(),
+			Self::Rel(inner) => inner.registry_string(),
+			Self::Button(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for MouseEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Abs(inner) => inner.path(),
+			Self::Rel(inner) => inner.path(),
+			Self::Button(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Abs(inner) => inner.sender(),
+			Self::Rel(inner) => inner.sender(),
+			Self::Button(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
@@ -50,7 +98,7 @@ pub struct ButtonEvent {
 	pub mouse_y: i32,
 }
 
-impl GenericEvent<'_> for AbsEvent {
+impl BusProperties for AbsEvent {
 	const DBUS_MEMBER: &'static str = "Abs";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 	const MATCH_RULE_STRING: &'static str =
@@ -59,14 +107,8 @@ impl GenericEvent<'_> for AbsEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -74,7 +116,7 @@ impl GenericEvent<'_> for AbsEvent {
 	}
 }
 
-impl GenericEvent<'_> for RelEvent {
+impl BusProperties for RelEvent {
 	const DBUS_MEMBER: &'static str = "Rel";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 	const MATCH_RULE_STRING: &'static str =
@@ -83,14 +125,8 @@ impl GenericEvent<'_> for RelEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -98,7 +134,7 @@ impl GenericEvent<'_> for RelEvent {
 	}
 }
 
-impl GenericEvent<'_> for ButtonEvent {
+impl BusProperties for ButtonEvent {
 	const DBUS_MEMBER: &'static str = "Button";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 	const MATCH_RULE_STRING: &'static str =
@@ -107,14 +143,8 @@ impl GenericEvent<'_> for ButtonEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -146,6 +176,7 @@ impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mou
 event_test_cases!(AbsEvent);
 impl_to_dbus_message!(AbsEvent);
 impl_from_dbus_message!(AbsEvent);
+impl_event_properties!(AbsEvent);
 impl From<AbsEvent> for EventBodyOwned {
 	fn from(event: AbsEvent) -> Self {
 		EventBodyOwned {
@@ -164,6 +195,7 @@ impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mou
 event_test_cases!(RelEvent);
 impl_to_dbus_message!(RelEvent);
 impl_from_dbus_message!(RelEvent);
+impl_event_properties!(RelEvent);
 impl From<RelEvent> for EventBodyOwned {
 	fn from(event: RelEvent) -> Self {
 		EventBodyOwned {
@@ -186,6 +218,7 @@ impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Even
 event_test_cases!(ButtonEvent);
 impl_to_dbus_message!(ButtonEvent);
 impl_from_dbus_message!(ButtonEvent);
+impl_event_properties!(ButtonEvent);
 impl From<ButtonEvent> for EventBodyOwned {
 	fn from(event: ButtonEvent) -> Self {
 		EventBodyOwned {

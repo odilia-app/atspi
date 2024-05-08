@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::ObjectPath;
@@ -19,6 +19,66 @@ pub enum TerminalEvents {
 	ApplicationChanged(ApplicationChangedEvent),
 	/// See: [`CharWidthChangedEvent`].
 	CharWidthChanged(CharWidthChangedEvent),
+}
+
+impl EventTypeProperties for TerminalEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.member(),
+			Self::ColumnCountChanged(inner) => inner.member(),
+			Self::LineCountChanged(inner) => inner.member(),
+			Self::ApplicationChanged(inner) => inner.member(),
+			Self::CharWidthChanged(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.interface(),
+			Self::ColumnCountChanged(inner) => inner.interface(),
+			Self::LineCountChanged(inner) => inner.interface(),
+			Self::ApplicationChanged(inner) => inner.interface(),
+			Self::CharWidthChanged(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.match_rule(),
+			Self::ColumnCountChanged(inner) => inner.match_rule(),
+			Self::LineCountChanged(inner) => inner.match_rule(),
+			Self::ApplicationChanged(inner) => inner.match_rule(),
+			Self::CharWidthChanged(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.registry_string(),
+			Self::ColumnCountChanged(inner) => inner.registry_string(),
+			Self::LineCountChanged(inner) => inner.registry_string(),
+			Self::ApplicationChanged(inner) => inner.registry_string(),
+			Self::CharWidthChanged(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for TerminalEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::LineChanged(inner) => inner.path(),
+			Self::ColumnCountChanged(inner) => inner.path(),
+			Self::LineCountChanged(inner) => inner.path(),
+			Self::ApplicationChanged(inner) => inner.path(),
+			Self::CharWidthChanged(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::LineChanged(inner) => inner.sender(),
+			Self::ColumnCountChanged(inner) => inner.sender(),
+			Self::LineCountChanged(inner) => inner.sender(),
+			Self::ApplicationChanged(inner) => inner.sender(),
+			Self::CharWidthChanged(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
@@ -68,7 +128,7 @@ pub struct CharWidthChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl GenericEvent<'_> for LineChangedEvent {
+impl BusProperties for LineChangedEvent {
 	const DBUS_MEMBER: &'static str = "LineChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -77,14 +137,8 @@ impl GenericEvent<'_> for LineChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -92,7 +146,7 @@ impl GenericEvent<'_> for LineChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ColumnCountChangedEvent {
+impl BusProperties for ColumnCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "ColumncountChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -101,14 +155,8 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -116,7 +164,7 @@ impl GenericEvent<'_> for ColumnCountChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for LineCountChangedEvent {
+impl BusProperties for LineCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "LinecountChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -125,14 +173,8 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -140,7 +182,7 @@ impl GenericEvent<'_> for LineCountChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for ApplicationChangedEvent {
+impl BusProperties for ApplicationChangedEvent {
 	const DBUS_MEMBER: &'static str = "ApplicationChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -149,14 +191,8 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -164,7 +200,7 @@ impl GenericEvent<'_> for ApplicationChangedEvent {
 	}
 }
 
-impl GenericEvent<'_> for CharWidthChangedEvent {
+impl BusProperties for CharWidthChangedEvent {
 	const DBUS_MEMBER: &'static str = "CharwidthChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
@@ -173,14 +209,8 @@ impl GenericEvent<'_> for CharWidthChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -221,6 +251,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(LineChangedEvent);
 impl_to_dbus_message!(LineChangedEvent);
 impl_from_dbus_message!(LineChangedEvent);
+impl_event_properties!(LineChangedEvent);
 impl From<LineChangedEvent> for EventBodyOwned {
 	fn from(_event: LineChangedEvent) -> Self {
 		EventBodyOwned {
@@ -247,6 +278,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ColumnCountChangedEvent);
 impl_to_dbus_message!(ColumnCountChangedEvent);
 impl_from_dbus_message!(ColumnCountChangedEvent);
+impl_event_properties!(ColumnCountChangedEvent);
 impl From<ColumnCountChangedEvent> for EventBodyOwned {
 	fn from(_event: ColumnCountChangedEvent) -> Self {
 		EventBodyOwned {
@@ -273,6 +305,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(LineCountChangedEvent);
 impl_to_dbus_message!(LineCountChangedEvent);
 impl_from_dbus_message!(LineCountChangedEvent);
+impl_event_properties!(LineCountChangedEvent);
 impl From<LineCountChangedEvent> for EventBodyOwned {
 	fn from(_event: LineCountChangedEvent) -> Self {
 		EventBodyOwned {
@@ -299,6 +332,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ApplicationChangedEvent);
 impl_to_dbus_message!(ApplicationChangedEvent);
 impl_from_dbus_message!(ApplicationChangedEvent);
+impl_event_properties!(ApplicationChangedEvent);
 impl From<ApplicationChangedEvent> for EventBodyOwned {
 	fn from(_event: ApplicationChangedEvent) -> Self {
 		EventBodyOwned {
@@ -325,6 +359,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(CharWidthChangedEvent);
 impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
+impl_event_properties!(CharWidthChangedEvent);
 impl From<CharWidthChangedEvent> for EventBodyOwned {
 	fn from(_event: CharWidthChangedEvent) -> Self {
 		EventBodyOwned {

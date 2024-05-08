@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -10,6 +10,42 @@ use zvariant::{ObjectPath, OwnedValue};
 pub enum FocusEvents {
 	/// See: [`FocusEvent`].
 	Focus(FocusEvent),
+}
+
+impl EventTypeProperties for FocusEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.member(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.match_rule(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.interface(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for FocusEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Focus(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Focus(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
@@ -27,7 +63,7 @@ pub struct FocusEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl GenericEvent<'_> for FocusEvent {
+impl BusProperties for FocusEvent {
 	const DBUS_MEMBER: &'static str = "Focus";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
 	const MATCH_RULE_STRING: &'static str =
@@ -36,14 +72,8 @@ impl GenericEvent<'_> for FocusEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -73,6 +103,7 @@ impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event:
 event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);
+impl_event_properties!(FocusEvent);
 impl From<FocusEvent> for EventBodyOwned {
 	fn from(_event: FocusEvent) -> Self {
 		EventBodyOwned {

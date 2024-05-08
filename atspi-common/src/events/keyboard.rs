@@ -1,7 +1,7 @@
 use crate::{
 	error::AtspiError,
-	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event,
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -10,6 +10,42 @@ use zvariant::{ObjectPath, OwnedValue};
 pub enum KeyboardEvents {
 	/// See: [`ModifiersEvent`].
 	Modifiers(ModifiersEvent),
+}
+
+impl EventTypeProperties for KeyboardEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.member(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.match_rule(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.interface(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for KeyboardEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Modifiers(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> BusName<'_> {
+		match self {
+			Self::Modifiers(inner) => inner.sender(),
+		}
+	}
 }
 
 impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
@@ -30,7 +66,7 @@ pub struct ModifiersEvent {
 	pub current_modifiers: i32,
 }
 
-impl GenericEvent<'_> for ModifiersEvent {
+impl BusProperties for ModifiersEvent {
 	const DBUS_MEMBER: &'static str = "Modifiers";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 	const MATCH_RULE_STRING: &'static str =
@@ -39,14 +75,8 @@ impl GenericEvent<'_> for ModifiersEvent {
 
 	type Body = EventBodyOwned;
 
-	fn build(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
-	}
-	fn sender(&self) -> BusName<'_> {
-		self.item.name.clone().into()
-	}
-	fn path<'a>(&self) -> ObjectPath<'_> {
-		self.item.path.clone().into()
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -84,6 +114,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(ModifiersEvent);
 impl_to_dbus_message!(ModifiersEvent);
 impl_from_dbus_message!(ModifiersEvent);
+impl_event_properties!(ModifiersEvent);
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {

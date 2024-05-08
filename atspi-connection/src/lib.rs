@@ -14,7 +14,7 @@ use atspi_proxies::{
 	registry::RegistryProxy,
 };
 use common::error::AtspiError;
-use common::events::{Event, GenericEvent, HasMatchRule, HasRegistryEventString};
+use common::events::{BusProperties, Event, EventProperties, HasMatchRule, HasRegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
@@ -283,7 +283,7 @@ impl AccessibilityConnection {
 	}
 
 	/// Send an event over the accessibility bus.
-	/// This converts the event into a [`zbus::Message`] using the [`GenericEvent`] trait.
+	/// This converts the event into a [`zbus::Message`] using the [`BusProperties`] trait.
 	///
 	/// # Errors
 	///
@@ -294,13 +294,13 @@ impl AccessibilityConnection {
 	/// Both of these conditions should never happen as long as you have a valid event.
 	pub async fn send_event<T>(&self, event: T) -> Result<(), AtspiError>
 	where
-		T: for<'a> GenericEvent<'a>,
+		T: BusProperties + EventProperties,
 	{
 		let conn = self.connection();
 		let new_message = zbus::Message::signal(
 			event.path(),
-			<T as GenericEvent>::DBUS_INTERFACE,
-			<T as GenericEvent>::DBUS_MEMBER,
+			<T as BusProperties>::DBUS_INTERFACE,
+			<T as BusProperties>::DBUS_MEMBER,
 		)?
 		.sender(conn.unique_name().ok_or(AtspiError::MissingName)?)?
 		// this re-encodes the entire body; it's not great..., but you can't replace a sender once a message a created.
