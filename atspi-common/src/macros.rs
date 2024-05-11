@@ -252,7 +252,30 @@ macro_rules! impl_from_dbus_message {
 				if msg.matches_event::<$type>()? {
 					<$type>::try_from_message(msg)
 				} else {
-					Err(AtspiError::EventMismatch)
+					let header = msg.header();
+					let msg_interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+					let msg_member = header.member().ok_or(AtspiError::MissingMember)?;
+
+					let event_interface = <$type as BusProperties>::DBUS_INTERFACE;
+					let event_member = <$type as BusProperties>::DBUS_MEMBER;
+
+					let error_msg = match (msg_interface != event_interface, msg_member != event_member) {
+						(true, true) => format!(
+							"Message's interface and member (\"{msg_interface}\", \"{msg_member}\") did not match this events': (\"{event_interface}\", \"{event_member}\") " ),
+						(true, false) => format!(
+							"Message's interface (\"{msg_interface}\") did not match this events' (\"{event_interface}\") " ),
+						(false, true) => format!(
+							"Message's member (\"{msg_member}\") did not match this events' (\"{event_member}\") " ),
+						(false, false) => {
+							let msg_body = msg.body();
+							let msg_body_signature = msg_body.signature().unwrap_or(zvariant::Signature::from_static_str_unchecked(""));
+							let msg_body_signature = msg_body_signature.as_str();
+							let event_body_signature = <<$type as BusProperties>::Body as zvariant::Type>::signature();
+							format!("Message's body signature and this event's body signature do not correspond: (\"{msg_body_signature}\", \"{event_body_signature}\")" )
+							},
+					};
+
+					Err(AtspiError::Owned(error_msg))
 				}
 			}
 		}
