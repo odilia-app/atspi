@@ -25,8 +25,8 @@ tokio = ["zbus/tokio", "atspi-common/tokio"]
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.5.0", default-features = false }
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
-zbus = { workspace = true } 
-zvariant = { version = "4.0", default-features = false }
+zbus = { workspace = true }
+zvariant = { version = "4.1", default-features = false }
 
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes"] }

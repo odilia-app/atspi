@@ -25,12 +25,12 @@ static_assertions = "1.1.0"
 zbus-lockstep = "0.4.4"
 zbus-lockstep-macros = "0.4.4"
 zbus_names = "3.0"
-zvariant = { version = "4.0", default-features = false }
+zvariant = { version = "4.1", default-features = false }
 zbus = { workspace = true, optional = true, default-features = false }
 
 [dev-dependencies]
 atspi-connection = { path = "../atspi-connection" }
-atspi-proxies = { path = "../atspi-proxies"  }
+atspi-proxies = { path = "../atspi-proxies" }
 rename-item = "0.1.0"
 serde_plain = "1.0.1"
 static_assertions = "1.1.0"
