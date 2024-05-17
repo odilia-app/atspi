@@ -296,6 +296,7 @@ macro_rules! impl_from_dbus_message {
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
+		#[cfg(feature = "zbus")]
 		#[test]
 		fn generic_event_uses() {
 			let struct_event = <$type>::default();
@@ -542,6 +543,7 @@ macro_rules! event_wrapper_test_cases {
 		#[rename_item::rename(name($type), prefix = "events_tests_", case = "snake")]
 		mod foo {
 			use super::{$any_subtype, $type, Event, BusProperties};
+			#[cfg(feature = "zbus")]
 			#[test]
 			fn into_and_try_from_event() {
 				// Create a default event struct from its type's `Default::default()` impl.

@@ -232,6 +232,7 @@ impl TryFrom<i32> for Live {
 	}
 }
 
+#[cfg(feature = "zbus")]
 pub trait MessageExt {
 	/// Check if the message matches the event.
 	///
@@ -242,6 +243,7 @@ pub trait MessageExt {
 	fn matches_event<EV: BusProperties>(&self) -> crate::Result<bool>;
 }
 
+#[cfg(feature = "zbus")]
 impl MessageExt for zbus::Message {
 	fn matches_event<EV: BusProperties>(&self) -> crate::Result<bool> {
 		let event_signature = <EV as BusProperties>::Body::signature();

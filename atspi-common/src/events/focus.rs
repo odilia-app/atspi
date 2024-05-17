@@ -72,6 +72,7 @@ impl BusProperties for FocusEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}

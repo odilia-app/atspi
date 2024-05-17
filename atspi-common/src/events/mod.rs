@@ -431,6 +431,7 @@ impl BusProperties for LegacyAddAccessibleEvent {
 
 	type Body = LegacyCacheItem;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body();
 		let node_added: Self::Body = body.deserialize::<Self::Body>()?;
@@ -472,6 +473,7 @@ impl BusProperties for AddAccessibleEvent {
 
 	type Body = CacheItem;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body();
 		let node_added: Self::Body = body.deserialize::<Self::Body>()?;
@@ -512,6 +514,7 @@ impl_from_user_facing_event_for_interface_event_enum!(
 impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent);
+
 impl BusProperties for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
 	const MATCH_RULE_STRING: &'static str =
@@ -521,6 +524,7 @@ impl BusProperties for RemoveAccessibleEvent {
 
 	type Body = ObjectRef;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body();
 		let node_removed: Self::Body = body.deserialize::<Self::Body>()?;
@@ -723,6 +727,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 
 	type Body = EventListeners;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body: Self::Body = msg.body().deserialize::<Self::Body>()?;
@@ -759,6 +764,7 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Listener
 );
 event_test_cases!(EventListenerRegisteredEvent);
+
 impl BusProperties for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
 	const MATCH_RULE_STRING: &'static str =
@@ -768,6 +774,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 
 	type Body = EventListeners;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body: Self::Body = msg.body().deserialize::<Self::Body>()?;
@@ -805,6 +812,7 @@ impl TryFrom<Event> for AvailableEvent {
 	}
 }
 event_test_cases!(AvailableEvent);
+
 impl BusProperties for AvailableEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
 	const MATCH_RULE_STRING: &'static str =
@@ -814,6 +822,7 @@ impl BusProperties for AvailableEvent {
 
 	type Body = ObjectRef;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
@@ -997,6 +1006,7 @@ pub trait BusProperties {
 	///
 	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
 	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> std::result::Result<Self, AtspiError>
 	where
 		Self: Sized;

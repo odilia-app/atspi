@@ -107,6 +107,7 @@ impl BusProperties for AbsEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = ObjectRef::try_from(msg)?;
 		let body = EventBodyOwned::try_from(msg)?;
@@ -128,6 +129,7 @@ impl BusProperties for RelEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = ObjectRef::try_from(msg)?;
 		let body = EventBodyOwned::try_from(msg)?;
@@ -149,6 +151,7 @@ impl BusProperties for ButtonEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = ObjectRef::try_from(msg)?;
 		let body = EventBodyOwned::try_from(msg)?;

@@ -137,6 +137,7 @@ impl BusProperties for LineChangedEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -155,6 +156,7 @@ impl BusProperties for ColumnCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -173,6 +175,7 @@ impl BusProperties for LineCountChangedEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -191,6 +194,7 @@ impl BusProperties for ApplicationChangedEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -209,6 +213,7 @@ impl BusProperties for CharWidthChangedEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}

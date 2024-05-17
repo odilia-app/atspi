@@ -333,6 +333,7 @@ impl BusProperties for PropertyChangeEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = ObjectRef::try_from(msg)?;
 		let body = EventBodyOwned::try_from(msg)?;
@@ -354,6 +355,7 @@ impl BusProperties for MinimizeEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -372,6 +374,7 @@ impl BusProperties for MaximizeEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -390,6 +393,7 @@ impl BusProperties for RestoreEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -408,6 +412,7 @@ impl BusProperties for CloseEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -426,6 +431,7 @@ impl BusProperties for CreateEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -444,6 +450,7 @@ impl BusProperties for ReparentEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -462,6 +469,7 @@ impl BusProperties for DesktopCreateEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -480,6 +488,7 @@ impl BusProperties for DesktopDestroyEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -498,6 +507,7 @@ impl BusProperties for DestroyEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -516,6 +526,7 @@ impl BusProperties for ActivateEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -534,6 +545,7 @@ impl BusProperties for DeactivateEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -552,6 +564,7 @@ impl BusProperties for RaiseEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -570,6 +583,7 @@ impl BusProperties for LowerEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -588,6 +602,7 @@ impl BusProperties for MoveEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -606,6 +621,7 @@ impl BusProperties for ResizeEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -624,6 +640,7 @@ impl BusProperties for ShadeEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -642,6 +659,7 @@ impl BusProperties for UUshadeEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
@@ -660,6 +678,7 @@ impl BusProperties for RestyleEvent {
 
 	type Body = EventBodyOwned;
 
+	#[cfg(feature = "zbus")]
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		Ok(Self { item: msg.try_into()? })
 	}
