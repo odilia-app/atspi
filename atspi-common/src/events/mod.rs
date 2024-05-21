@@ -227,6 +227,7 @@ pub enum Event {
 	Listener(EventListenerEvents),
 }
 
+#[cfg(feature = "strum")]
 impl EventTypeProperties for Event {
 	fn member(&self) -> &'static str {
 		match self {

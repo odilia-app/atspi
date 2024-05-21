@@ -1,10 +1,10 @@
-#[cfg(feature = "strum")]
-use crate::Live;
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties, EventTypeProperties, State,
+	Event, EventProperties, State,
 };
+#[cfg(feature = "strum")]
+use crate::{EventTypeProperties, Live};
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
@@ -56,6 +56,7 @@ pub enum ObjectEvents {
 	TextCaretMoved(TextCaretMovedEvent),
 }
 
+#[cfg(feature = "strum")]
 impl EventTypeProperties for ObjectEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -1042,6 +1043,7 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Object
 );
 
+#[cfg(feature = "strum")]
 event_test_cases!(PropertyChangeEvent);
 impl_to_dbus_message!(PropertyChangeEvent);
 impl_from_dbus_message!(PropertyChangeEvent);
@@ -1124,6 +1126,7 @@ impl_try_from_event_for_user_facing_type!(
 	ObjectEvents::StateChanged,
 	Event::Object
 );
+#[cfg(feature = "strum")]
 event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
@@ -1297,6 +1300,7 @@ impl_try_from_event_for_user_facing_type!(
 	ObjectEvents::Announcement,
 	Event::Object
 );
+#[cfg(feature = "strum")]
 event_test_cases!(AnnouncementEvent);
 impl_to_dbus_message!(AnnouncementEvent);
 impl_from_dbus_message!(AnnouncementEvent);
