@@ -543,6 +543,7 @@ pub enum Role {
 	PushButtonMenu,
 }
 
+#[cfg(feature = "strum")]
 impl Role {
 	/// Get a readable, English name from the role.
 	#[must_use]

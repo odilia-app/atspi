@@ -1,9 +1,11 @@
 use crate::{
 	error::AtspiError,
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, Live, State,
+	Event, State,
 };
 use zvariant::{ObjectPath, OwnedValue, Value};
+#[cfg(feature = "strum")]
+use crate::Live;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
@@ -142,6 +144,7 @@ impl Default for Property {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl TryFrom<EventBodyOwned> for Property {
 	type Error = AtspiError;
 
@@ -411,6 +414,7 @@ pub struct TextCaretMovedEvent {
 	pub position: i32,
 }
 
+#[cfg(feature = "strum")]
 impl GenericEvent<'_> for PropertyChangeEvent {
 	const DBUS_MEMBER: &'static str = "PropertyChange";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -485,6 +489,7 @@ impl GenericEvent<'_> for LinkSelectedEvent {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl GenericEvent<'_> for StateChangedEvent {
 	const DBUS_MEMBER: &'static str = "StateChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -634,6 +639,7 @@ impl GenericEvent<'_> for ActiveDescendantChangedEvent {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl GenericEvent<'_> for AnnouncementEvent {
 	const DBUS_MEMBER: &'static str = "Announcement";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -1087,6 +1093,7 @@ impl_try_from_event_for_user_facing_type!(
 event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
+#[cfg(feature = "strum")]
 impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
