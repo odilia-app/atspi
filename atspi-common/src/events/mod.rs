@@ -9,7 +9,7 @@ pub mod window;
 // Unmarshalled event body signatures: These outline the event specific deserialized event types.
 // Safety: These are evaluated at compile time.
 // ----
-// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
+// The signal signature "(so)" (`ObjectRef`) is ambiguous, because it is used in:
 // -  Cache : RemoveAccessible
 // -  Socket: Available  *( signals the availability of the `Registry` daemon.)
 //
@@ -227,6 +227,7 @@ pub enum Event {
 	Listener(EventListenerEvents),
 }
 
+#[cfg(feature = "strum")]
 impl EventTypeProperties for Event {
 	fn member(&self) -> &'static str {
 		match self {

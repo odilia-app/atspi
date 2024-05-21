@@ -20,5 +20,5 @@ pub use atspi_connection as connection;
 #[cfg(feature = "connection")]
 pub use connection::AccessibilityConnection;
 
-#[cfg(feature = "zbus")]
+#[cfg(any(feature = "async-std", feature = "tokio"))]
 pub use zbus;

@@ -9,74 +9,160 @@ use serde::{
 	ser::{self, Serializer},
 	Deserialize, Serialize,
 };
-use std::fmt;
+use std::{fmt, str::FromStr};
+#[cfg(feature = "strum")]
+use strum::{Display, IntoStaticStr};
 use zvariant::{Signature, Type};
+
+use crate::AtspiError;
 
 /// AT-SPI interfaces an accessible object can implement.
 #[bitflags]
 #[repr(u32)]
+#[cfg_attr(feature = "strum", derive(Display, IntoStaticStr))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Interface {
-	/// Interface to indicate implementation of `AccessibleProxy`.
+	/// Interface to indicate implementation of `AccessibleProxy`.  
 	#[serde(rename = "org.a11y.atspi.Accessible")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Accessible"))]
 	Accessible,
+
 	/// Interface to indicate implementation of `ActionProxy`.
 	#[serde(rename = "org.a11y.atspi.Action")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Action"))]
 	Action,
+
 	/// Interface to indicate implementation of `ApplicationProxy`.
 	#[serde(rename = "org.a11y.atspi.Application")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Application"))]
 	Application,
+
 	/// Interface to indicate implementation of `CacheProxy`.
 	#[serde(rename = "org.a11y.atspi.Cache")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Cache"))]
 	Cache,
+
 	/// Interface to indicate implementation of `CollectionProxy`.
 	#[serde(rename = "org.a11y.atspi.Collection")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Collection"))]
 	Collection,
+
 	/// Interface to indicate implementation of `ComponentProxy`.
 	#[serde(rename = "org.a11y.atspi.Component")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Component"))]
 	Component,
+
 	/// Interface to indicate implementation of `DocumentProxy`.
 	#[serde(rename = "org.a11y.atspi.Document")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Document"))]
 	Document,
+
 	/// Interface to indicate implementation of `DeviceEventControllerProxy`.
 	#[serde(rename = "org.a11y.atspi.DeviceEventController")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.DeviceEventController"))]
 	DeviceEventController,
+
 	/// Interface to indicate implementation of `DeviceEventListenerProxy`.
 	#[serde(rename = "org.a11y.atspi.DeviceEventListener")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.DeviceEventListener"))]
 	DeviceEventListener,
+
 	/// Interface to indicate implementation of `EditableTextProxy`.
 	#[serde(rename = "org.a11y.atspi.EditableText")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.EditableText"))]
 	EditableText,
+
 	/// Interface to indicate implementation of `HyperlinkProxy`.
 	#[serde(rename = "org.a11y.atspi.Hyperlink")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Hyperlink"))]
 	Hyperlink,
+
 	/// Interface to indicate implementation of `HypertextProxy`.
 	#[serde(rename = "org.a11y.atspi.Hypertext")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Hypertext"))]
 	Hypertext,
+
 	/// Interface to indicate implementation of `ImageProxy`.
 	#[serde(rename = "org.a11y.atspi.Image")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Image"))]
 	Image,
+
 	/// Interface to indicate implementation of `RegistryProxy`.
 	#[serde(rename = "org.a11y.atspi.Registry")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Registry"))]
 	Registry,
+
 	/// Interface to indicate implementation of `SelectionProxy`.
 	#[serde(rename = "org.a11y.atspi.Selection")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Selection"))]
 	Selection,
+
 	/// Interface to indicate implementation of `SocketProxy`.
 	#[serde(rename = "org.a11y.atspi.Socket")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Socket"))]
 	Socket,
+
 	/// Interface to indicate implementation of `TableProxy`.
 	#[serde(rename = "org.a11y.atspi.Table")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Table"))]
 	Table,
+
 	/// Interface to indicate implementation of `TableCellProxy`.
 	#[serde(rename = "org.a11y.atspi.TableCell")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.TableCell"))]
 	TableCell,
+
 	/// Interface to indicate implementation of `TextProxy`.
 	#[serde(rename = "org.a11y.atspi.Text")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Text"))]
 	Text,
+
 	/// Interface to indicate implementation of `ValueProxy`.
 	#[serde(rename = "org.a11y.atspi.Value")]
+	#[cfg_attr(feature = "strum", strum(serialize = "org.a11y.atspi.Value"))]
 	Value,
+}
+
+impl Type for Interface {
+	fn signature() -> Signature<'static> {
+		<String as Type>::signature()
+	}
+}
+
+impl FromStr for Interface {
+	type Err = AtspiError;
+
+	fn from_str(iface_str: &str) -> Result<Self, Self::Err> {
+		if let Some(iface_id) = iface_str.strip_prefix("org.a11y.atspi.") {
+			match iface_id {
+				"Accessible" => Ok(Interface::Accessible),
+				"Action" => Ok(Interface::Action),
+				"Application" => Ok(Interface::Application),
+				"Cache" => Ok(Interface::Cache),
+				"Collection" => Ok(Interface::Collection),
+				"Component" => Ok(Interface::Component),
+				"Document" => Ok(Interface::Document),
+				"DeviceEventController" => Ok(Interface::DeviceEventController),
+				"DeviceEventListener" => Ok(Interface::DeviceEventListener),
+				"EditableText" => Ok(Interface::EditableText),
+				"Hyperlink" => Ok(Interface::Hyperlink),
+				"Hypertext" => Ok(Interface::Hypertext),
+				"Image" => Ok(Interface::Image),
+				"Registry" => Ok(Interface::Registry),
+				"Selection" => Ok(Interface::Selection),
+				"Socket" => Ok(Interface::Socket),
+				"Table" => Ok(Interface::Table),
+				"TableCell" => Ok(Interface::TableCell),
+				"Text" => Ok(Interface::Text),
+				"Value" => Ok(Interface::Value),
+				_ => Err(AtspiError::InterfaceMatch(format!(
+					"No interface which matches id: \"{iface_id}\""
+				))),
+			}
+		} else {
+			Err(AtspiError::InterfaceMatch(format!("No interface matches: \"{iface_str}\"")))
+		}
+	}
 }
 
 /// A collection type which encodes the AT-SPI interfaces an accessible object has implemented.
@@ -191,11 +277,301 @@ impl std::ops::BitOr for InterfaceSet {
 	}
 }
 
+#[cfg(feature = "strum")]
+impl std::fmt::Display for InterfaceSet {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		let mut iter = self.0.iter();
+		if let Some(first) = iter.next() {
+			write!(f, "{first}")?;
+			for iface in iter {
+				write!(f, ", {iface}")?;
+			}
+		}
+		Ok(())
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::{Interface, InterfaceSet};
-	use zvariant::serialized::Data;
-	use zvariant::{serialized::Context, to_bytes, LE};
+	use std::str::FromStr;
+	use zvariant::{
+		serialized::{Context, Data},
+		to_bytes, Type, LE,
+	};
+
+	#[test]
+	fn interface_into_static_str_impl() {
+		let iface: Interface = Interface::Accessible;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Accessible");
+
+		let iface: Interface = Interface::Action;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Action");
+
+		let iface: Interface = Interface::Application;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Application");
+
+		let iface: Interface = Interface::Cache;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Cache");
+
+		let iface: Interface = Interface::Collection;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Collection");
+
+		let iface: Interface = Interface::Component;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Component");
+
+		let iface: Interface = Interface::Document;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Document");
+
+		let iface: Interface = Interface::DeviceEventController;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.DeviceEventController");
+
+		let iface: Interface = Interface::DeviceEventListener;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.DeviceEventListener");
+
+		let iface: Interface = Interface::EditableText;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.EditableText");
+
+		let iface: Interface = Interface::Hyperlink;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Hyperlink");
+
+		let iface: Interface = Interface::Hypertext;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Hypertext");
+
+		let iface: Interface = Interface::Image;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Image");
+
+		let iface: Interface = Interface::Registry;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Registry");
+
+		let iface: Interface = Interface::Selection;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Selection");
+
+		let iface: Interface = Interface::Socket;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Socket");
+
+		let iface: Interface = Interface::Table;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Table");
+
+		let iface: Interface = Interface::TableCell;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.TableCell");
+
+		let iface: Interface = Interface::Text;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Text");
+
+		let iface = Interface::Value;
+		let iface_str: &'static str = iface.into();
+		assert_eq!(iface_str, "org.a11y.atspi.Value");
+	}
+
+	#[test]
+	fn interface_from_str_impl() {
+		let iface = Interface::from_str("org.a11y.atspi.Accessible").unwrap();
+		assert_eq!(iface, Interface::Accessible);
+
+		let iface = Interface::from_str("org.a11y.atspi.Action").unwrap();
+		assert_eq!(iface, Interface::Action);
+
+		let iface = Interface::from_str("org.a11y.atspi.Application").unwrap();
+		assert_eq!(iface, Interface::Application);
+
+		let iface = Interface::from_str("org.a11y.atspi.Cache").unwrap();
+		assert_eq!(iface, Interface::Cache);
+
+		let iface = Interface::from_str("org.a11y.atspi.Collection").unwrap();
+		assert_eq!(iface, Interface::Collection);
+
+		let iface = Interface::from_str("org.a11y.atspi.Component").unwrap();
+		assert_eq!(iface, Interface::Component);
+
+		let iface = Interface::from_str("org.a11y.atspi.Document").unwrap();
+		assert_eq!(iface, Interface::Document);
+
+		let iface = Interface::from_str("org.a11y.atspi.DeviceEventController").unwrap();
+		assert_eq!(iface, Interface::DeviceEventController);
+
+		let iface = Interface::from_str("org.a11y.atspi.DeviceEventListener").unwrap();
+		assert_eq!(iface, Interface::DeviceEventListener);
+
+		let iface = Interface::from_str("org.a11y.atspi.EditableText").unwrap();
+		assert_eq!(iface, Interface::EditableText);
+
+		let iface = Interface::from_str("org.a11y.atspi.Hyperlink").unwrap();
+		assert_eq!(iface, Interface::Hyperlink);
+
+		let iface = Interface::from_str("org.a11y.atspi.Hypertext").unwrap();
+		assert_eq!(iface, Interface::Hypertext);
+
+		let iface = Interface::from_str("org.a11y.atspi.Image").unwrap();
+		assert_eq!(iface, Interface::Image);
+
+		let iface = Interface::from_str("org.a11y.atspi.Registry").unwrap();
+		assert_eq!(iface, Interface::Registry);
+
+		let iface = Interface::from_str("org.a11y.atspi.Selection").unwrap();
+		assert_eq!(iface, Interface::Selection);
+
+		let iface = Interface::from_str("org.a11y.atspi.Socket").unwrap();
+		assert_eq!(iface, Interface::Socket);
+
+		let iface = Interface::from_str("org.a11y.atspi.Table").unwrap();
+		assert_eq!(iface, Interface::Table);
+
+		let iface = Interface::from_str("org.a11y.atspi.TableCell").unwrap();
+		assert_eq!(iface, Interface::TableCell);
+
+		let iface = Interface::from_str("org.a11y.atspi.Text").unwrap();
+		assert_eq!(iface, Interface::Text);
+
+		let iface = Interface::from_str("org.a11y.atspi.Value").unwrap();
+		assert_eq!(iface, Interface::Value);
+	}
+
+	#[test]
+	fn interface_from_str_impl_no_match() {
+		let res = Interface::from_str("org.a11y.atspi.Foo");
+		assert!(res.is_err());
+
+		let res = Interface::from_str("com.a11y.atspi.Accessible");
+		assert!(res.is_err());
+	}
+
+	#[cfg(feature = "strum")]
+	#[test]
+	fn interface_display_impl() {
+		use Interface::*;
+		// `ToSting` impl is derived from Display trait.
+		assert_eq!(Accessible.to_string(), "org.a11y.atspi.Accessible");
+		assert_eq!(Action.to_string(), "org.a11y.atspi.Action");
+		assert_eq!(Application.to_string(), "org.a11y.atspi.Application");
+		assert_eq!(Cache.to_string(), "org.a11y.atspi.Cache");
+		assert_eq!(Collection.to_string(), "org.a11y.atspi.Collection");
+		assert_eq!(Component.to_string(), "org.a11y.atspi.Component");
+		assert_eq!(Document.to_string(), "org.a11y.atspi.Document");
+		assert_eq!(DeviceEventController.to_string(), "org.a11y.atspi.DeviceEventController");
+		assert_eq!(DeviceEventListener.to_string(), "org.a11y.atspi.DeviceEventListener");
+		assert_eq!(EditableText.to_string(), "org.a11y.atspi.EditableText");
+		assert_eq!(Hyperlink.to_string(), "org.a11y.atspi.Hyperlink");
+		assert_eq!(Hypertext.to_string(), "org.a11y.atspi.Hypertext");
+		assert_eq!(Image.to_string(), "org.a11y.atspi.Image");
+		assert_eq!(Registry.to_string(), "org.a11y.atspi.Registry");
+		assert_eq!(Selection.to_string(), "org.a11y.atspi.Selection");
+		assert_eq!(Socket.to_string(), "org.a11y.atspi.Socket");
+		assert_eq!(Table.to_string(), "org.a11y.atspi.Table");
+		assert_eq!(TableCell.to_string(), "org.a11y.atspi.TableCell");
+		assert_eq!(Text.to_string(), "org.a11y.atspi.Text");
+		assert_eq!(Value.to_string(), "org.a11y.atspi.Value");
+	}
+
+	#[cfg(feature = "strum")]
+	#[test]
+	fn interface_set_display_impl() {
+		let ifaceset = InterfaceSet::new(Interface::Accessible);
+		assert_eq!(ifaceset.to_string(), "org.a11y.atspi.Accessible");
+
+		let ifaceset = InterfaceSet::new(Interface::Accessible | Interface::Action);
+		assert_eq!(ifaceset.to_string(), "org.a11y.atspi.Accessible, org.a11y.atspi.Action");
+
+		let ifaceset =
+			InterfaceSet::new(Interface::Accessible | Interface::Action | Interface::Component);
+		assert_eq!(
+			ifaceset.to_string(),
+			"org.a11y.atspi.Accessible, org.a11y.atspi.Action, org.a11y.atspi.Component"
+		);
+	}
+
+	#[test]
+	fn interface_type_signature() {
+		assert_eq!(Interface::signature().as_str(), "s");
+	}
+
+	#[test]
+	fn interface_set_type_signature() {
+		assert_eq!(InterfaceSet::signature().as_str(), "as");
+	}
+
+	#[test]
+	fn serialize_and_deserialize_accessible_interface() {
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &Interface::Accessible).unwrap();
+		assert_eq!(
+			encoded.bytes(),
+			&[
+				25, 0, 0, 0, 111, 114, 103, 46, 97, 49, 49, 121, 46, 97, 116, 115, 112, 105, 46,
+				65, 99, 99, 101, 115, 115, 105, 98, 108, 101, 0
+			]
+		);
+
+		let (decoded, _) = encoded.deserialize::<Interface>().unwrap();
+		assert_eq!(decoded, Interface::Accessible);
+	}
+
+	#[test]
+	fn serialize_and_deserialize_editable_text_interface() {
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &Interface::EditableText).unwrap();
+		assert_eq!(
+			encoded.bytes(),
+			&[
+				27, 0, 0, 0, 111, 114, 103, 46, 97, 49, 49, 121, 46, 97, 116, 115, 112, 105, 46,
+				69, 100, 105, 116, 97, 98, 108, 101, 84, 101, 120, 116, 0
+			]
+		);
+
+		let (decoded, _) = encoded.deserialize::<Interface>().unwrap();
+		assert_eq!(decoded, Interface::EditableText);
+	}
+
+	#[test]
+	fn serialize_and_deserialize_hyperlink_interface() {
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &Interface::Hyperlink).unwrap();
+		assert_eq!(
+			encoded.bytes(),
+			&[
+				24, 0, 0, 0, 111, 114, 103, 46, 97, 49, 49, 121, 46, 97, 116, 115, 112, 105, 46,
+				72, 121, 112, 101, 114, 108, 105, 110, 107, 0
+			]
+		);
+
+		let (decoded, _) = encoded.deserialize::<Interface>().unwrap();
+		assert_eq!(decoded, Interface::Hyperlink);
+	}
+
+	#[test]
+	fn serialize_and_deserialize_value_interface() {
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &Interface::Value).unwrap();
+		assert_eq!(
+			encoded.bytes(),
+			&[
+				20, 0, 0, 0, 111, 114, 103, 46, 97, 49, 49, 121, 46, 97, 116, 115, 112, 105, 46,
+				86, 97, 108, 117, 101, 0
+			]
+		);
+
+		let (decoded, _) = encoded.deserialize::<Interface>().unwrap();
+		assert_eq!(decoded, Interface::Value);
+	}
 
 	#[test]
 	fn serialize_empty_interface_set() {
@@ -248,5 +624,26 @@ mod tests {
 		let encoded = to_bytes(ctxt, &object).unwrap();
 		let (decoded, _) = encoded.deserialize::<InterfaceSet>().unwrap();
 		assert!(object == decoded);
+	}
+
+	#[test]
+	fn match_various_de_serialization_methods() {
+		for iface in InterfaceSet::all().iter() {
+			let displayed = format!("{iface}");
+			let serde_val = serde_plain::to_string(&iface)
+				.unwrap_or_else(|_| panic!("Unable to serialize {iface}"));
+
+			// Check that the Display trait and Serde's serialization match.
+			assert_eq!(
+				displayed, serde_val,
+				"Serde's serialization does not match the Display trait implementation."
+			);
+
+			// Check that the Display trait and TryFrom<&str> match.
+			let from_str = Interface::from_str(&displayed).unwrap();
+			assert_eq!(iface, from_str, "The display trait for {iface} became \"{displayed}\", but was re-serialized as {from_str} via TryFrom<&str>");
+			let serde_from_str: Interface = serde_plain::from_str(&serde_val).unwrap();
+			assert_eq!(serde_from_str, iface, "Serde's deserialization does not match its serialization. {iface} was serialized to \"{serde_val}\", but deserialized into {serde_from_str}");
+		}
 	}
 }

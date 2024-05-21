@@ -1,10 +1,10 @@
-use std::hash::Hash;
-
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties, EventTypeProperties, State,
+	Event, EventProperties, State,
 };
+#[cfg(feature = "strum")]
+use crate::{EventTypeProperties, Live};
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
@@ -56,6 +56,7 @@ pub enum ObjectEvents {
 	TextCaretMoved(TextCaretMovedEvent),
 }
 
+#[cfg(feature = "strum")]
 impl EventTypeProperties for ObjectEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -236,7 +237,7 @@ pub struct PropertyChangeEvent {
 	pub value: Property,
 }
 
-impl Hash for PropertyChangeEvent {
+impl core::hash::Hash for PropertyChangeEvent {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.item.hash(state);
 		self.property.hash(state);
@@ -307,6 +308,7 @@ impl Default for Property {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl TryFrom<EventBodyOwned> for Property {
 	type Error = AtspiError;
 
@@ -329,9 +331,7 @@ impl TryFrom<EventBodyOwned> for Property {
 					.any_data
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				let role: crate::Role = crate::Role::try_from(role_int)
-					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				role
+				crate::Role::from_repr(role_int).ok_or(AtspiError::ParseError("accessible-role"))?
 			})),
 			"accessible-parent" => Ok(Self::Parent(
 				body.any_data
@@ -578,6 +578,7 @@ pub struct TextCaretMovedEvent {
 	pub position: i32,
 }
 
+#[cfg(feature = "strum")]
 impl BusProperties for PropertyChangeEvent {
 	const DBUS_MEMBER: &'static str = "PropertyChange";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -634,6 +635,7 @@ impl BusProperties for LinkSelectedEvent {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl BusProperties for StateChangedEvent {
 	const DBUS_MEMBER: &'static str = "StateChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -747,6 +749,7 @@ impl BusProperties for ActiveDescendantChangedEvent {
 	}
 }
 
+#[cfg(feature = "strum")]
 impl BusProperties for AnnouncementEvent {
 	const DBUS_MEMBER: &'static str = "Announcement";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -760,7 +763,8 @@ impl BusProperties for AnnouncementEvent {
 		Ok(Self {
 			item,
 			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
-			live: body.detail1.try_into()?,
+			live: Live::from_repr(body.detail1)
+				.ok_or(AtspiError::Conversion("\"detail1\" not convertable to \"Live\""))?,
 		})
 	}
 	fn body(&self) -> Self::Body {
@@ -1039,6 +1043,7 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Object
 );
 
+#[cfg(feature = "strum")]
 event_test_cases!(PropertyChangeEvent);
 impl_to_dbus_message!(PropertyChangeEvent);
 impl_from_dbus_message!(PropertyChangeEvent);
@@ -1121,10 +1126,12 @@ impl_try_from_event_for_user_facing_type!(
 	ObjectEvents::StateChanged,
 	Event::Object
 );
+#[cfg(feature = "strum")]
 event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
 impl_event_properties!(StateChangedEvent);
+#[cfg(feature = "strum")]
 impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1293,6 +1300,7 @@ impl_try_from_event_for_user_facing_type!(
 	ObjectEvents::Announcement,
 	Event::Object
 );
+#[cfg(feature = "strum")]
 event_test_cases!(AnnouncementEvent);
 impl_to_dbus_message!(AnnouncementEvent);
 impl_from_dbus_message!(AnnouncementEvent);

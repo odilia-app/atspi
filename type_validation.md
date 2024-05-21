@@ -31,3 +31,4 @@ We leverage [zbus-lockstep](https://github.com/luukvanderduim/zbus-lockstep/) to
 | `Layer` | ✓ | `Component::GetLayer` return type.|
 | `ScrollType` | ✓ | `Component::ScrollTo` argument `type`|
 | `Live` | ✓ | `Event.Object::Announcement` argument `politeness`|
+| `RelationType` | ✓ | Part of `Accessible::GetRelationSet` return type |
