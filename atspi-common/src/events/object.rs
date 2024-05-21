@@ -1,11 +1,11 @@
+#[cfg(feature = "strum")]
+use crate::Live;
 use crate::{
 	error::AtspiError,
 	events::{EventBodyOwned, GenericEvent, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, State,
 };
 use zvariant::{ObjectPath, OwnedValue, Value};
-#[cfg(feature = "strum")]
-use crate::Live;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {

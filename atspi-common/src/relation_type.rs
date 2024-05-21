@@ -4,17 +4,7 @@ use strum::{Display, FromRepr, IntoStaticStr};
 use zvariant::Type;
 
 /// Describes a relationship between one object and another.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	PartialEq,
-	Eq,
-	Serialize,
-	Deserialize,
-	Type,
-	Hash,
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 #[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 #[repr(u32)]

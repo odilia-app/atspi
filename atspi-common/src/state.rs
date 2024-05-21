@@ -31,17 +31,7 @@ use crate::AtspiError;
 #[bitflags]
 #[non_exhaustive]
 #[repr(u64)]
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Serialize,
-	Deserialize,
-	PartialEq,
-	Eq,
-	Hash,
-	Default,
-)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "kebab-case"))]

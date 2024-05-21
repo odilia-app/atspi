@@ -16,17 +16,7 @@ use zvariant::Type;
 /// Non-semantic elements like `<span>`, `<div>` and `<b>` will not be represented here, and this
 /// information is not passed through via the atspi library.
 /// TODO: add examples for GTK/Qt libraries in addition to HTML examples.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	PartialEq,
-	Eq,
-	Serialize,
-	Deserialize,
-	Type,
-	Hash,
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 #[cfg_attr(feature = "strum", derive(Display, EnumIter, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "lowercase"))]
 #[repr(u32)]

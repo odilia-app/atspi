@@ -54,19 +54,9 @@ pub type MatchArgs<'a> = (
 /// objects should be sorted.
 ///
 /// [`ObjectRef`]: crate::object_ref::ObjectRef
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum SortOrder {
 	/// Invalid sort order
@@ -86,19 +76,9 @@ pub enum SortOrder {
 }
 
 /// Method of traversing a tree in the `CollectionProxy`.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum TreeTraversalType {
 	/// Restrict children tree traversal
@@ -112,19 +92,9 @@ pub enum TreeTraversalType {
 /// Enumeration used by [`MatchArgs`] to specify how to interpret [`ObjectRef`] objects.
 ///
 /// [`ObjectRef`]: crate::object_ref::ObjectRef
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(i32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum MatchType {
 	/// Invalid match type
@@ -141,19 +111,9 @@ pub enum MatchType {
 }
 
 /// The coordinate type encodes the frame of reference.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum CoordType {
 	/// In relation to the entire screen.
@@ -165,19 +125,9 @@ pub enum CoordType {
 }
 
 /// Enumeration used by `TextProxy` to indicate how to treat characters intersecting bounding boxes.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum ClipType {
 	/// No characters/glyphs are omitted.
@@ -191,19 +141,9 @@ pub enum ClipType {
 }
 
 /// Level of granularity to get text of, in relation to a cursor position.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum Granularity {
 	/// Gives the character at the index of the cursor. With a line-style cursor (which is standard) this will get the character that appears after the cursor.
@@ -232,19 +172,9 @@ pub enum Granularity {
 /// the recommended heuristic is first child paints first. In other words,
 /// assume that the first siblings in the child list are subject to being
 /// overpainted by later siblings if their bounds intersect.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum Layer {
 	/// Indicates an error condition or uninitialized value.
@@ -271,19 +201,9 @@ pub enum Layer {
 }
 
 /// Enumeration used by interface the [`crate::interface::Interface::Accessible`] to specify where an object should be placed on the screen when using `scroll_to`.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(u32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum ScrollType {
 	/// Scroll the object to the top left corner of the window.
@@ -307,20 +227,9 @@ pub enum ScrollType {
 /// for `Announcement` events, but it may be used for additional purposes
 /// in the future.
 /// The argument in the `Announcement` event is named `politeness`.
-#[derive(
-	Clone,
-	Copy,
-	Debug,
-	Default,
-	Eq,
-	Hash,
-	PartialEq,
-	Serialize,
-	Deserialize,
-	Type,
-)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Serialize, Deserialize, Type)]
 #[repr(i32)]
-#[cfg_attr(feature = "strum", derive(	Display, FromRepr, IntoStaticStr))]
+#[cfg_attr(feature = "strum", derive(Display, FromRepr, IntoStaticStr))]
 #[cfg_attr(feature = "strum", strum(serialize_all = "snake_case"))]
 pub enum Live {
 	/// No live region.
