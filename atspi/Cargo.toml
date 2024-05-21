@@ -17,8 +17,8 @@ include = ["src/**/*", "LICENSE-*", "README.md"]
 
 [features]
 default = ["async-std"]
-async-std = ["proxies-async-std", "connection-async-std"]
-tokio = ["proxies-tokio", "connection-tokio"]
+async-std = ["proxies-async-std", "connection-async-std", "dep:zbus"]
+tokio = ["proxies-tokio", "connection-tokio", "dep:zbus"]
 
 proxies = []
 proxies-async-std = ["atspi-proxies/async-std", "proxies"]
@@ -32,6 +32,7 @@ tracing = ["atspi-connection/tracing"]
 atspi-common = { path = "../atspi-common", version = "0.5.0", default-features = false }
 atspi-connection = { path = "../atspi-connection", version = "0.5.0", default-features = false, optional = true }
 atspi-proxies = { path = "../atspi-proxies", version = "0.5.0", default-features = false, optional = true }
+zbus = { workspace = true, optional = true }
 
 [[bench]]
 name = "event_parsing"
