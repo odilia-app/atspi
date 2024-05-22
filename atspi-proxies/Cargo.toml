@@ -25,8 +25,8 @@ tokio = ["zbus/tokio", "atspi-common/tokio"]
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.5.0", default-features = false }
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
-zbus = { workspace = true } 
-zvariant = { version = "4.0", default-features = false }
+zbus = { workspace = true }
+zvariant = { version = "4.1", default-features = false }
 
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes"] }
@@ -36,7 +36,7 @@ futures-lite = { version = "2", default-features = false }
 rename-item = "0.1.0"
 serde_json = "1.0.96"
 serde_plain = "1.0.1"
-tokio = { version = "1", default_features = false, features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
 tokio-test = "0.4.2"
 tracing = "0.1.37"
