@@ -233,7 +233,7 @@ impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
 		Ok(ObjectRef {
-			name: proxy.inner().destination().to_owned().into(),
+			name: proxy.inner().destination().as_str().try_into()?,
 			path: proxy.inner().path().to_string().try_into()?,
 		})
 	}
@@ -243,7 +243,7 @@ impl TryFrom<&AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
 		Ok(ObjectRef {
-			name: proxy.inner().destination().to_owned().into(),
+			name: proxy.inner().destination().as_str().try_into()?,
 			path: proxy.inner().path().to_string().try_into()?,
 		})
 	}
@@ -254,7 +254,7 @@ pub trait ObjectRefExt {
 	///
 	/// # Errors  
 	///
-	/// `BusName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
+	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
 	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::ProxyBuilder::build`].
 	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
 	fn as_accessible_proxy(

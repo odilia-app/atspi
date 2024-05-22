@@ -3,7 +3,7 @@ use crate::{
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, EventProperties, EventTypeProperties,
 };
-use zbus_names::BusName;
+use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -76,7 +76,7 @@ impl EventProperties for DocumentEvents {
 			Self::PageChanged(inner) => inner.path(),
 		}
 	}
-	fn sender(&self) -> BusName<'_> {
+	fn sender(&self) -> UniqueName<'_> {
 		match self {
 			Self::LoadComplete(inner) => inner.sender(),
 			Self::Reload(inner) => inner.sender(),

@@ -4,7 +4,7 @@
 use crate::{InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zbus_names::BusName;
+use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
 
 /// The item type provided by `Cache:Add` signals
@@ -38,19 +38,19 @@ impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
 			object: ObjectRef {
-				name: BusName::from_static_str(":0.0").unwrap().into(),
+				name: UniqueName::from_static_str(":0.0").unwrap().into(),
 				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/object")
 					.unwrap()
 					.into(),
 			},
 			app: ObjectRef {
-				name: BusName::from_static_str(":0.0").unwrap().into(),
+				name: UniqueName::from_static_str(":0.0").unwrap().into(),
 				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/application")
 					.unwrap()
 					.into(),
 			},
 			parent: ObjectRef {
-				name: BusName::from_static_str(":0.0").unwrap().into(),
+				name: UniqueName::from_static_str(":0.0").unwrap().into(),
 				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/parent")
 					.unwrap()
 					.into(),
@@ -93,19 +93,19 @@ impl Default for LegacyCacheItem {
 	fn default() -> Self {
 		Self {
 			object: ObjectRef {
-				name: BusName::from_static_str(":0.0").unwrap().into(),
+				name: UniqueName::from_static_str(":0.0").unwrap().into(),
 				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/object")
 					.unwrap()
 					.into(),
 			},
 			app: ObjectRef {
-				name: BusName::from_static_str(":0.0").unwrap().into(),
+				name: UniqueName::from_static_str(":0.0").unwrap().into(),
 				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/application")
 					.unwrap()
 					.into(),
 			},
 			parent: ObjectRef {
-				name: BusName::from_static_str(":0.0").unwrap().into(),
+				name: UniqueName::from_static_str(":0.0").unwrap().into(),
 				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/parent")
 					.unwrap()
 					.into(),

@@ -3,7 +3,7 @@ use crate::{
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, EventProperties, EventTypeProperties,
 };
-use zbus_names::BusName;
+use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -55,7 +55,7 @@ impl EventProperties for MouseEvents {
 			Self::Button(inner) => inner.path(),
 		}
 	}
-	fn sender(&self) -> BusName<'_> {
+	fn sender(&self) -> UniqueName<'_> {
 		match self {
 			Self::Abs(inner) => inner.sender(),
 			Self::Rel(inner) => inner.sender(),

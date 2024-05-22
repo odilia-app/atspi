@@ -3,7 +3,7 @@ use crate::{
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, EventProperties, EventTypeProperties,
 };
-use zbus_names::BusName;
+use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 /// All events on the `org.a11y.atspi.Event.Window` interface.
@@ -168,7 +168,7 @@ impl EventProperties for WindowEvents {
 			Self::Restyle(inner) => inner.path(),
 		}
 	}
-	fn sender(&self) -> BusName<'_> {
+	fn sender(&self) -> UniqueName<'_> {
 		match self {
 			Self::PropertyChange(inner) => inner.sender(),
 			Self::Minimize(inner) => inner.sender(),

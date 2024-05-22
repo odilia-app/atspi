@@ -9,7 +9,7 @@
 ///
 /// ```ignore
 /// impl EventProperties for TextCaretMovedEvent {
-///   fn sender(&self) -> BusName<'_> {
+///   fn sender(&self) -> UniqueName<'_> {
 ///     self.item.name.as_ref()
 ///   }
 ///   fn path(&self) -> ObjectPath<'_> {
@@ -20,7 +20,7 @@
 macro_rules! impl_event_properties {
 	($type:ty) => {
 		impl EventProperties for $type {
-			fn sender(&self) -> BusName<'_> {
+			fn sender(&self) -> UniqueName<'_> {
 				self.item.name.as_ref()
 			}
 			fn path(&self) -> ObjectPath<'_> {
