@@ -572,8 +572,7 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 		let owned_path: OwnedObjectPath = path.clone().into();
 
 		let sender: UniqueName<'_> = header.sender().expect("No sender in header").into();
-		let bus_name: UniqueName<'_> = sender.into();
-		let name: OwnedUniqueName = bus_name.to_owned().into();
+		let name: OwnedUniqueName = sender.to_owned().into();
 
 		Ok(ObjectRef { name, path: owned_path })
 	}
