@@ -48,6 +48,8 @@ pub type MatchArgs<'a> = (
 	bool,
 );
 
+pub type TextSelection = (ObjectRef, i32, ObjectRef, i32, bool);
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 /// Enumeration used by interface `CollectionProxy` to specify the way [`ObjectRef`]
