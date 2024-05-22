@@ -38,7 +38,7 @@ trait Socket {
 	fn embedded(&self, path: zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
 
 	/// Unembed method
-	/// [`plug`]: a string for the unique bus name of the application, and an object path
+	/// @plug: a string for the unique bus name of the application, and an object path
 	/// for the application's' root object.
 	///
 	/// Unregisters an application from the accesibility registry.  It is not necessary to
