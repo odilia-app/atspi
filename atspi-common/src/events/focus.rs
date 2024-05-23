@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
@@ -59,7 +59,7 @@ impl HasMatchRule for FocusEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct FocusEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`ObjectRef`][crate::events::ObjectRef] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -72,9 +72,11 @@ impl BusProperties for FocusEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()

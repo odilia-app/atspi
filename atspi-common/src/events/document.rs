@@ -1,6 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::BusName;
@@ -102,7 +102,7 @@ impl HasMatchRule for DocumentEvents {
 /// `LibreOffice` has loaded a document from disk.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`ObjectRef`][crate::object_ref::ObjectRef] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -110,7 +110,7 @@ pub struct LoadCompleteEvent {
 /// For example: pressing F5, or `Control + r` will reload a page in a web browser.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReloadEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`ObjectRef`][crate::events::ObjectRef] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -118,25 +118,25 @@ pub struct ReloadEvent {
 /// For example: during the loading of a large web page, a user may press `Escape` to stop loading the page.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadStoppedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`ObjectRef`][crate::events::ObjectRef] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ContentChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`ObjectRef`][crate::events::ObjectRef] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`ObjectRef`][crate::events::ObjectRef] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`ObjectRef`][crate::events::ObjectRef] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -149,9 +149,11 @@ impl BusProperties for LoadCompleteEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -167,15 +169,16 @@ impl BusProperties for ReloadEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
 	}
 }
-
 impl BusProperties for LoadStoppedEvent {
 	const DBUS_MEMBER: &'static str = "LoadStopped";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
@@ -185,9 +188,11 @@ impl BusProperties for LoadStoppedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -203,9 +208,11 @@ impl BusProperties for ContentChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -221,9 +228,11 @@ impl BusProperties for AttributesChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -239,9 +248,11 @@ impl BusProperties for PageChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()

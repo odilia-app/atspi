@@ -1,7 +1,10 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties, EventTypeProperties,
+	events::{
+		BusProperties, EventBodyOwned, EventProperties, HasMatchRule, HasRegistryEventString,
+		ObjectRef,
+	},
+	Event, EventTypeProperties,
 };
 use zbus_names::BusName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -75,9 +78,13 @@ impl BusProperties for ModifiersEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body: EventBodyOwned = msg.try_into()?;
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()

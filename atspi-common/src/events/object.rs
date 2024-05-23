@@ -587,7 +587,10 @@ impl BusProperties for PropertyChangeEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
 		let property = body.kind.clone();
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
@@ -607,9 +610,11 @@ impl BusProperties for BoundsChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -625,9 +630,11 @@ impl BusProperties for LinkSelectedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -643,9 +650,13 @@ impl BusProperties for StateChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -661,7 +672,11 @@ impl BusProperties for ChildrenChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
+
 		Ok(Self {
 			item,
 			operation: body.kind,
@@ -669,6 +684,7 @@ impl BusProperties for ChildrenChangedEvent {
 			child: body.any_data.try_into()?,
 		})
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -684,9 +700,11 @@ impl BusProperties for VisibleDataChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -702,9 +720,11 @@ impl BusProperties for SelectionChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -720,9 +740,11 @@ impl BusProperties for ModelChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -738,9 +760,13 @@ impl BusProperties for ActiveDescendantChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
 		Ok(Self { item, child: body.any_data.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -756,7 +782,11 @@ impl BusProperties for AnnouncementEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
+
 		Ok(Self {
 			item,
 			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
@@ -778,8 +808,9 @@ impl BusProperties for AttributesChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -796,8 +827,9 @@ impl BusProperties for RowInsertedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -814,8 +846,9 @@ impl BusProperties for RowReorderedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -832,8 +865,9 @@ impl BusProperties for RowDeletedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -850,8 +884,9 @@ impl BusProperties for ColumnInsertedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -868,8 +903,9 @@ impl BusProperties for ColumnReorderedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -886,9 +922,11 @@ impl BusProperties for ColumnDeletedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -904,9 +942,11 @@ impl BusProperties for TextBoundsChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -922,9 +962,11 @@ impl BusProperties for TextSelectionChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -940,7 +982,11 @@ impl BusProperties for TextChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
+
 		Ok(Self {
 			item,
 			operation: body.kind,
@@ -964,9 +1010,11 @@ impl BusProperties for TextAttributesChangedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		Ok(Self { item: msg.try_into()? })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
@@ -982,9 +1030,14 @@ impl BusProperties for TextCaretMovedEvent {
 
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	#[cfg(feature = "zbus")]
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = ObjectRef::try_from(msg)?;
+		let body = EventBodyOwned::try_from(msg)?;
+
 		Ok(Self { item, position: body.detail1 })
 	}
+
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
