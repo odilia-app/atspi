@@ -155,7 +155,7 @@ trait Accessible {
 	/// Application-specific identifier for the current object.
 	///
 	/// A special id given to an object.
-	/// ObjectRef application developers can use this to give a special id to an object
+	/// Accessible application developers can use this to give a special id to an object
 	/// to use in tests, for example, "my_widget".
 	///
 	/// Note that there is no way to directly find an object by its id;
