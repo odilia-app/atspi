@@ -32,7 +32,7 @@ tracing = ["atspi-connection/tracing"]
 atspi-common = { path = "../atspi-common", version = "0.5.0", default-features = false }
 atspi-connection = { path = "../atspi-connection", version = "0.5.0", default-features = false, optional = true }
 atspi-proxies = { path = "../atspi-proxies", version = "0.5.0", default-features = false, optional = true }
-zbus = { workspace = true, defaul-features = false, optional = true }
+zbus = { workspace = true, default-features = false, optional = true }
 
 [[bench]]
 name = "event_parsing"
