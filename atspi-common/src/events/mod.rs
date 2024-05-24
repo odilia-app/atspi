@@ -28,7 +28,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zbus_names::{BusName, OwnedBusName, OwnedUniqueName, UniqueName};
+use zbus_names::{OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
 use zvariant::OwnedObjectPath;
 use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
@@ -60,7 +60,7 @@ pub struct EventBody<'a, T> {
 	/// Map of string to an any type.
 	/// This is not used for anything, but it is defined by AT-SPI.
 	#[serde(borrow)]
-	pub properties: HashMap<BusName<'a>, Value<'a>>,
+	pub properties: HashMap<UniqueName<'a>, Value<'a>>,
 }
 
 impl<T> Type for EventBody<'_, T> {
@@ -120,7 +120,7 @@ pub struct EventBodyOwned {
 	pub any_data: OwnedValue,
 	/// A map of properties.
 	/// Not in use.
-	pub properties: HashMap<OwnedBusName, OwnedValue>,
+	pub properties: HashMap<OwnedUniqueName, OwnedValue>,
 }
 
 impl From<EventBodyQT> for EventBodyOwned {
@@ -301,7 +301,7 @@ impl EventProperties for Event {
 			Self::Listener(inner) => inner.path(),
 		}
 	}
-	fn sender(&self) -> BusName<'_> {
+	fn sender(&self) -> UniqueName<'_> {
 		match self {
 			Self::Document(inner) => inner.sender(),
 			Self::Focus(inner) => inner.sender(),
@@ -387,7 +387,7 @@ impl EventProperties for CacheEvents {
 			Self::Remove(inner) => inner.path(),
 		}
 	}
-	fn sender(&self) -> BusName<'_> {
+	fn sender(&self) -> UniqueName<'_> {
 		match self {
 			Self::Add(inner) => inner.sender(),
 			Self::LegacyAdd(inner) => inner.sender(),
@@ -572,8 +572,7 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 		let owned_path: OwnedObjectPath = path.clone().into();
 
 		let sender: UniqueName<'_> = header.sender().expect("No sender in header").into();
-		let bus_name: BusName<'_> = sender.into();
-		let name: OwnedBusName = bus_name.to_owned().into();
+		let name: OwnedUniqueName = sender.to_owned().into();
 
 		Ok(ObjectRef { name, path: owned_path })
 	}
@@ -670,7 +669,7 @@ impl EventProperties for EventListenerEvents {
 			Self::Deregistered(inner) => inner.path(),
 		}
 	}
-	fn sender(&self) -> BusName<'_> {
+	fn sender(&self) -> UniqueName<'_> {
 		match self {
 			Self::Registered(inner) => inner.sender(),
 			Self::Deregistered(inner) => inner.sender(),
@@ -921,7 +920,7 @@ assert_obj_safe!(EventTypeProperties);
 ///
 /// This trait *is* object-safe.
 pub trait EventProperties {
-	fn sender(&self) -> BusName<'_>;
+	fn sender(&self) -> UniqueName<'_>;
 	fn path(&self) -> ObjectPath<'_>;
 	fn object_ref(&self) -> ObjectRef {
 		ObjectRef { name: self.sender().into(), path: self.path().into() }

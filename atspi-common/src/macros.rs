@@ -9,7 +9,7 @@
 ///
 /// ```ignore
 /// impl EventProperties for TextCaretMovedEvent {
-///   fn sender(&self) -> BusName<'_> {
+///   fn sender(&self) -> UniqueName<'_> {
 ///     self.item.name.as_ref()
 ///   }
 ///   fn path(&self) -> ObjectPath<'_> {
@@ -20,7 +20,7 @@
 macro_rules! impl_event_properties {
 	($type:ty) => {
 		impl EventProperties for $type {
-			fn sender(&self) -> BusName<'_> {
+			fn sender(&self) -> UniqueName<'_> {
 				self.item.name.as_ref()
 			}
 			fn path(&self) -> ObjectPath<'_> {
@@ -118,9 +118,9 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 
 /// Expands to a conversion given two arguments,
 /// 1. the user facing event type `(inner_type)`
-/// which relies on a conversion to its interface variant enum type variant.
+///    which relies on a conversion to its interface variant enum type variant.
 /// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.,
-/// the enum type and outtermost variant.
+///    the enum type and outtermost variant.
 ///
 /// ```ignore                                   user facing type, outer event variant
 /// impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);

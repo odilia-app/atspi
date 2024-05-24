@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zbus_names::{BusName, OwnedBusName};
+use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
 pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
@@ -16,14 +16,14 @@ pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unche
 #[validate(signal: "Available")]
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRef {
-	pub name: OwnedBusName,
+	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
 }
 
 impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {
-			name: BusName::from_static_str(":0.0").unwrap().into(),
+			name: UniqueName::from_static_str(":0.0").unwrap().into(),
 			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
 				.unwrap()
 				.into(),

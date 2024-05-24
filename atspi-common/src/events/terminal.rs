@@ -3,7 +3,7 @@ use crate::{
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, EventProperties, EventTypeProperties,
 };
-use zbus_names::BusName;
+use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
 /// All events related to the `org.a11y.atspi.Event.Terminal` interface.
@@ -70,7 +70,7 @@ impl EventProperties for TerminalEvents {
 			Self::CharWidthChanged(inner) => inner.path(),
 		}
 	}
-	fn sender(&self) -> BusName<'_> {
+	fn sender(&self) -> UniqueName<'_> {
 		match self {
 			Self::LineChanged(inner) => inner.sender(),
 			Self::ColumnCountChanged(inner) => inner.sender(),
