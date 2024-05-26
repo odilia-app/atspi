@@ -45,11 +45,14 @@ path = "./benches/event_parsing_100k.rs"
 harness = false
 
 [dev-dependencies]
-atspi = { path = "." }
-zbus.workspace = true
-criterion = "0.5"
-futures-lite = { version = "2", default-features = false }
-fastrand = "2.0"
 async-std = { version = "1.12", default-features = false }
+atspi = { path = "." }
+criterion = "0.5"
+display_tree = "1.1"
+fastrand = "2.0"
+futures = { version = "0.3", default-features = false }
+futures-lite = { version = "2", default-features = false }
+static_assertions = "1.1"
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
+zbus.workspace = true
