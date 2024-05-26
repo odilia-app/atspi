@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.cargo.features": [
+        "zbus",
+        "proxies-tokio",
+        "tokio"
+    ]
+}
