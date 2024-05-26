@@ -44,6 +44,21 @@ name = "event_parsing_100k"
 path = "./benches/event_parsing_100k.rs"
 harness = false
 
+[[example]]
+name = "tree"
+path = "./examples/bus-tree.rs"
+required-features = ["proxies-tokio", "zbus"]
+
+[[example]]
+name = "focused-tokio"
+path = "./examples/focused-tokio.rs"
+required-features = ["connection-tokio"]
+
+[[example]]
+name = "focused-async-std"
+path = "./examples/focused-async-std.rs"
+required-features = ["connection-async-std"]
+
 [dev-dependencies]
 async-std = { version = "1.12", default-features = false }
 atspi = { path = "." }
@@ -52,7 +67,6 @@ display_tree = "1.1"
 fastrand = "2.0"
 futures = { version = "0.3", default-features = false }
 futures-lite = { version = "2", default-features = false }
-static_assertions = "1.1"
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
 zbus.workspace = true

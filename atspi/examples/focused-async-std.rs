@@ -1,11 +1,7 @@
-#[cfg(feature = "connection")]
 use atspi::events::object::{ObjectEvents, StateChangedEvent};
-#[cfg(feature = "connection")]
 use futures_lite::stream::StreamExt;
-#[cfg(feature = "connection")]
 use std::error::Error;
 
-#[cfg(feature = "connection")]
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 	let atspi = atspi::AccessibilityConnection::new().await?;
@@ -23,8 +19,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
 		}
 	}
 	Ok(())
-}
-#[cfg(not(feature = "connection"))]
-fn main() {
-	println!("This test can not be run without the \"connection\" feature.");
 }
