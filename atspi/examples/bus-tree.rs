@@ -10,7 +10,7 @@
 //!    Tait Hoyem
 use static_assertions as sa;
 
-sa::assert_cfg!(all(all(feature = "zbus", feature = "tokio", feature = "proxies-tokio")), "This example requires the `zbus`, `tokio` and `proxies-tokio` features to be enabled.\n\n Run with: `cargo run --example bus-tree --features zbus,proxies-tokio,tokio`.\n\n");
+sa::assert_cfg!(all(feature = "zbus", feature = "tokio", feature = "proxies-tokio"), "This example requires the `zbus`, `tokio` and `proxies-tokio` features to be enabled.\n\n Run with: `cargo run --example bus-tree --features zbus,proxies-tokio,tokio`.\n\n");
 
 use atspi::{
 	connection::set_session_accessibility,
