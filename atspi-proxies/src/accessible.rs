@@ -261,6 +261,18 @@ pub trait ObjectRefExt {
 		&self,
 		conn: &zbus::Connection,
 	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, zbus::Error>> + Send;
+
+	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
+	///
+	/// # Errors  
+	///
+	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
+	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::ProxyBuilder::build`].
+	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
+	fn into_accessible_proxy(
+		self,
+		conn: &zbus::Connection,
+	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, zbus::Error>> + Send;
 }
 
 impl ObjectRefExt for ObjectRef {
@@ -274,6 +286,26 @@ impl ObjectRefExt for ObjectRef {
 		};
 
 		let builder = builder.path(self.path.as_str());
+		let Ok(builder) = builder else {
+			return Err(builder.unwrap_err());
+		};
+
+		builder
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await
+	}
+
+	async fn into_accessible_proxy(
+		self,
+		conn: &zbus::Connection,
+	) -> Result<AccessibleProxy<'_>, zbus::Error> {
+		let builder = AccessibleProxy::builder(conn).destination(self.name);
+		let Ok(builder) = builder else {
+			return Err(builder.unwrap_err());
+		};
+
+		let builder = builder.path(self.path);
 		let Ok(builder) = builder else {
 			return Err(builder.unwrap_err());
 		};
