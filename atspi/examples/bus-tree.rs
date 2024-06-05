@@ -16,6 +16,7 @@ use atspi::{
 	AccessibilityConnection, Role,
 };
 use display_tree::{AsTree, DisplayTree, Style};
+use futures::future::try_join_all;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -70,37 +71,51 @@ impl A11yNode {
 
 impl A11yNode {
 	async fn from_accessible_proxy(ap: AccessibleProxy<'_>) -> Result<Self> {
-		let role = ap.get_role().await?;
-		let child_objs = ap.get_children().await?;
-		let connection = ap.inner().connection();
+		let connection = ap.inner().connection().clone();
+		// Contains the processed `A11yNode`'s.
+		let mut nodes: Vec<A11yNode> = Vec::new();
 
-		// Convert `Vec<ObjectRef>` to a `Vec<Future<Output = AccessibleProxy>`.
-		let children = child_objs
-			.iter()
-			.map(|child| child.as_accessible_proxy(connection))
-			.collect::<Vec<_>>();
+		// Contains the `AccessibleProxy` yet to be processed.
+		let mut stack: Vec<AccessibleProxy> = vec![ap];
 
-		// Resolve the futures and filter out the errors.
-		let children = futures::future::join_all(children)
-			.await
-			.into_iter()
-			.filter_map(|child| child.ok())
-			.collect::<Vec<_>>();
+		// If the stack has an `AccessibleProxy`, we take the last.
+		while let Some(ap) = stack.pop() {
+			let child_objects = ap.get_children().await?;
+			let mut children_proxies = try_join_all(
+				child_objects
+					.into_iter()
+					.map(|child| child.into_accessible_proxy(&connection)),
+			)
+			.await?;
 
-		// Convert to a `Vec<Future<Output = Result<A11yNode>>`.
-		let children = children
-			.into_iter()
-			.map(|child| Box::pin(Self::from_accessible_proxy(child)))
-			.collect::<Vec<_>>();
+			let roles = try_join_all(children_proxies.iter().map(|child| child.get_role())).await?;
+			stack.append(&mut children_proxies);
 
-		// Resolve the futures and filter out the errors.
-		let children = futures::future::join_all(children)
-			.await
-			.into_iter()
-			.filter_map(|child| child.ok())
-			.collect::<Vec<_>>();
+			let children = roles
+				.into_iter()
+				.map(|role| A11yNode { role, children: Vec::new() })
+				.collect::<Vec<_>>();
 
-		Ok(A11yNode { role, children })
+			let role = ap.get_role().await?;
+			nodes.push(A11yNode { role, children });
+		}
+
+		let mut fold_stack: Vec<A11yNode> = Vec::with_capacity(nodes.len());
+
+		while let Some(mut node) = nodes.pop() {
+			if node.children.is_empty() {
+				fold_stack.push(node);
+				continue;
+			}
+
+			// If the node has children, we fold in the children from 'fold_stack'.
+			// There may be more on 'fold_stack' than the node requires.
+			let begin = fold_stack.len().saturating_sub(node.children.len());
+			node.children = fold_stack.split_off(begin);
+			fold_stack.push(node);
+		}
+
+		fold_stack.pop().ok_or("No root node built".into())
 	}
 }
 
