@@ -280,17 +280,9 @@ impl ObjectRefExt for ObjectRef {
 		&self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, zbus::Error> {
-		let builder = AccessibleProxy::builder(conn).destination(self.name.as_str());
-		let Ok(builder) = builder else {
-			return Err(builder.unwrap_err());
-		};
-
-		let builder = builder.path(self.path.as_str());
-		let Ok(builder) = builder else {
-			return Err(builder.unwrap_err());
-		};
-
-		builder
+		AccessibleProxy::builder(conn)
+			.destination(self.name.clone())?
+			.path(self.path.clone())?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await
@@ -300,17 +292,9 @@ impl ObjectRefExt for ObjectRef {
 		self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, zbus::Error> {
-		let builder = AccessibleProxy::builder(conn).destination(self.name);
-		let Ok(builder) = builder else {
-			return Err(builder.unwrap_err());
-		};
-
-		let builder = builder.path(self.path);
-		let Ok(builder) = builder else {
-			return Err(builder.unwrap_err());
-		};
-
-		builder
+		AccessibleProxy::builder(conn)
+			.destination(self.name)?
+			.path(self.path)?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await
