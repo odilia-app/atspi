@@ -246,12 +246,45 @@ macro_rules! impl_to_dbus_message {
 ///         msg.header().member().unwrap(),
 ///         StateChangedEvent::DBUS_MEMBER)));
 ///     }
-///     StateChangedEvent::from_message_parts(msg.try_into()?, msg.body().deserialize::<StateChangedEvent::Body>()?)
+///     StateChangedEvent::from_message_parts(msg.try_into()?, msg.body().try_into()?)
 ///  }
 /// }
 /// ```
+///
+/// There is also a variant that can be used for events whose [`crate::events::BusProperties::Body`] is not
+/// [`crate::events::EventBodyOwned`]. You can call this by setting the second parameter to `false`.
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
+		impl_from_dbus_message!($type, true);
+	};
+	($type:ty, true) => {
+		#[cfg(feature = "zbus")]
+		impl TryFrom<&zbus::Message> for $type {
+			type Error = AtspiError;
+			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+				let header = msg.header();
+				if header.interface().ok_or(AtspiError::MissingInterface)?
+					!= <$type as BusProperties>::DBUS_INTERFACE
+				{
+					return Err(AtspiError::InterfaceMatch(format!(
+						"The interface {} does not match the signal's interface: {}",
+						header.interface().unwrap(),
+						<$type as BusProperties>::DBUS_INTERFACE
+					)));
+				}
+				if header.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
+					return Err(AtspiError::MemberMatch(format!(
+						"The member {} does not match the signal's member: {}",
+						// unwrap is safe here because of guard above
+						header.member().unwrap(),
+						<$type as BusProperties>::DBUS_MEMBER
+					)));
+				}
+				<$type>::from_message_parts(msg.try_into()?, msg.try_into()?)
+			}
+		}
+	};
+	($type:ty, false) => {
 		#[cfg(feature = "zbus")]
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
@@ -383,6 +416,32 @@ macro_rules! event_enum_transparency_test_case {
 	};
 }
 
+#[cfg(test)]
+macro_rules! zbus_message_qtspi_test_case {
+    ($type:ty, true) => {
+      #[cfg(feature = "zbus")]
+     #[test]
+    fn zbus_message_conversion_qtspi() {
+      // in the case that the body type is EventBodyOwned, we need to also check successful
+      // conversion from a QSPI-style body.
+        let ev = <$type>::default();
+          let qt: crate::events::EventBodyQT = ev.body().into();
+          let msg = zbus::Message::signal(
+            ev.path(),
+            ev.interface(),
+            ev.member(),
+          )
+          .unwrap()
+          .sender(":0.0")
+          .unwrap()
+          .build(&(qt,))
+          .unwrap();
+          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
+        }
+    };
+    ($type:ty, false) => {};
+}
+
 // We decorate the macro with a `#[cfg(test)]` attribute.
 // This prevents Clippy from complaining about the macro not being used.
 // It is being used, but only in test mode.
@@ -390,7 +449,11 @@ macro_rules! event_enum_transparency_test_case {
 /// As of writing, this macro is expanded only once: in the `event_test_cases!` macro.
 #[cfg(test)]
 macro_rules! zbus_message_test_case {
-	($type:ty) => {
+  ($type:ty) => {
+      zbus_message_test_case!($type, true);
+    };
+	($type:ty, $val:tt) => {
+    zbus_message_qtspi_test_case!($type, $val);
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_to_specific_event_type() {
@@ -399,7 +462,7 @@ macro_rules! zbus_message_test_case {
 				.expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
 			let struct_event_back =
 				<$type>::try_from(&msg).expect("Should convert from `$type::default()` originated `Message` back into a specific event type. Check the `impl_from_dbus_message` macro.");
-			assert_eq!(struct_event, struct_event_back);
+        assert_eq!(struct_event, struct_event_back, "Events converted into a message and back must be the same");
 		}
 
 		#[cfg(feature = "zbus")]
@@ -632,7 +695,10 @@ macro_rules! event_wrapper_test_cases {
 }
 
 macro_rules! event_test_cases {
-	($type:ty) => {
+  ($type:ty) => {
+      event_test_cases!($type, true);
+  };
+	($type:ty, $qt:tt) => {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
@@ -640,7 +706,7 @@ macro_rules! event_test_cases {
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);
-			zbus_message_test_case!($type);
+			zbus_message_test_case!($type, $qt);
 			event_enum_transparency_test_case!($type);
 		}
 		assert_impl_all!(
