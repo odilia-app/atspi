@@ -10,8 +10,16 @@
 //! section of the zbus documentation.
 //!
 
+use crate::common::TextSelection;
+
 #[zbus::proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
 trait Document {
+	/// GetTextSelections method
+	fn get_text_selections(&self) -> zbus::Result<Vec<TextSelection>>;
+
+	/// SetTextSelections method
+	fn set_text_selections(&self, selections: Vec<TextSelection>) -> zbus::Result<bool>;
+
 	/// GetAttributeValue method
 	fn get_attribute_value(&self, attributename: &str) -> zbus::Result<String>;
 
