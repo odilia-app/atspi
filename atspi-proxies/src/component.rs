@@ -35,7 +35,8 @@ trait Component {
 	fn get_layer(&self) -> zbus::Result<Layer>;
 
 	/// GetMDIZOrder method
-	fn get_mdizorder(&self) -> zbus::Result<i16>;
+	#[zbus(name = "GetMDIZOrder")]
+	fn get_mdiz_order(&self) -> zbus::Result<i16>;
 
 	/// GetPosition method
 	fn get_position(&self, coord_type: CoordType) -> zbus::Result<(i32, i32)>;
