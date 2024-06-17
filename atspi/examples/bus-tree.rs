@@ -80,6 +80,11 @@ impl A11yNode {
 
 		// If the stack has an `AccessibleProxy`, we take the last.
 		while let Some(ap) = stack.pop() {
+			// Prevent obects with huge child counts from stalling the program.
+			if ap.child_count().await? > 65536 {
+				continue;
+			}
+
 			let child_objects = ap.get_children().await?;
 			let mut children_proxies = try_join_all(
 				child_objects
