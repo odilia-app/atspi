@@ -34,6 +34,38 @@ impl AccessibilityConnection {
 	/// May error when a bus is not available,
 	/// or when the accessibility bus (AT-SPI) can not be found.
 	#[cfg_attr(feature = "tracing", tracing::instrument)]
+	pub async fn new_with_size(queue_size: usize) -> zbus::Result<Self> {
+		// Grab the a11y bus address from the session bus
+		let a11y_bus_addr = {
+			#[cfg(feature = "tracing")]
+			tracing::debug!("Connecting to session bus");
+			let mut session_bus = Box::pin(zbus::Connection::session()).await?;
+			session_bus.set_max_queued(queue_size);
+
+			#[cfg(feature = "tracing")]
+			tracing::debug!(
+				name = session_bus.unique_name().map(|n| n.as_str()),
+				"Connected to session bus"
+			);
+
+			let proxy = BusProxy::new(&session_bus).await?;
+			#[cfg(feature = "tracing")]
+			tracing::debug!("Getting a11y bus address from session bus");
+			proxy.get_address().await?
+		};
+
+		#[cfg(feature = "tracing")]
+		tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
+		let addr: Address = a11y_bus_addr.parse()?;
+
+		Self::from_address(addr).await
+	}
+
+	/// Open a new connection to the bus
+	/// # Errors
+	/// May error when a bus is not available,
+	/// or when the accessibility bus (AT-SPI) can not be found.
+	#[cfg_attr(feature = "tracing", tracing::instrument)]
 	pub async fn new() -> zbus::Result<Self> {
 		// Grab the a11y bus address from the session bus
 		let a11y_bus_addr = {
