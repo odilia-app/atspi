@@ -48,6 +48,8 @@ pub type MatchArgs<'a> = (
 	bool,
 );
 
+pub type TextSelection = (ObjectRef, i32, ObjectRef, i32, bool);
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 /// Enumeration used by interface `CollectionProxy` to specify the way [`ObjectRef`]
@@ -209,25 +211,25 @@ pub enum ScrollType {
 /// The argument in the `Announcement` event is named `politeness`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
 #[repr(i32)]
-pub enum Live {
+pub enum Politeness {
 	/// No live region.
 	#[default]
-	None,
+	None = 0,
 	/// This live region should be considered polite.
-	Polite,
+	Polite = 1,
 	/// This live region should be considered assertive.
-	Assertive,
+	Assertive = 2,
 }
 
-impl TryFrom<i32> for Live {
+impl TryFrom<i32> for Politeness {
 	type Error = AtspiError;
 
 	fn try_from(value: i32) -> std::result::Result<Self, Self::Error> {
 		match value {
-			0 => Ok(Live::None),
-			1 => Ok(Live::Polite),
-			2 => Ok(Live::Assertive),
-			_ => Err(AtspiError::Conversion("Unknown Live variant")),
+			0 => Ok(Politeness::None),
+			1 => Ok(Politeness::Polite),
+			2 => Ok(Politeness::Assertive),
+			_ => Err(AtspiError::Conversion("Unknown Politeness variant")),
 		}
 	}
 }
@@ -241,18 +243,18 @@ mod tests {
 
 	#[test]
 	fn convert_i32_to_live() {
-		assert_eq!(Live::None, Live::try_from(0).unwrap());
-		assert_eq!(Live::Polite, Live::try_from(1).unwrap());
-		assert_eq!(Live::Assertive, Live::try_from(2).unwrap());
-		assert!(Live::try_from(3).is_err());
-		assert!(Live::try_from(-1).is_err());
+		assert_eq!(Politeness::None, Politeness::try_from(0).unwrap());
+		assert_eq!(Politeness::Polite, Politeness::try_from(1).unwrap());
+		assert_eq!(Politeness::Assertive, Politeness::try_from(2).unwrap());
+		assert!(Politeness::try_from(3).is_err());
+		assert!(Politeness::try_from(-1).is_err());
 	}
 
 	#[test]
 	fn validate_live_signature() {
 		let signature = signal_body_type_signature!("Announcement");
 		let politeness_signature = signature.slice(1..2);
-		assert_eq!(Live::signature(), politeness_signature);
+		assert_eq!(Politeness::signature(), politeness_signature);
 	}
 
 	#[test]

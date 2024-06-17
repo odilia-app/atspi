@@ -227,6 +227,10 @@ trait Accessible {
 	/// All other objects should have that one as their highest-level ancestor.
 	#[zbus(property)]
 	fn parent(&self) -> zbus::Result<ObjectRef>;
+
+	/// Help text for the current object.
+	#[zbus(property)]
+	fn help_text(&self) -> zbus::Result<String>;
 }
 
 impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
