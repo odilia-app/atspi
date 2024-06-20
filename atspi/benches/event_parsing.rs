@@ -6,10 +6,11 @@ use atspi::events::focus::FocusEvent;
 use atspi::events::mouse::{AbsEvent, ButtonEvent, RelEvent};
 use atspi::events::object::{
 	ActiveDescendantChangedEvent, AnnouncementEvent, AttributesChangedEvent, BoundsChangedEvent,
-	ChildrenChangedEvent, ColumnDeletedEvent, ColumnInsertedEvent, ColumnReorderedEvent,
-	LinkSelectedEvent, ModelChangedEvent, PropertyChangeEvent, RowDeletedEvent, RowInsertedEvent,
-	RowReorderedEvent, SelectionChangedEvent, TextAttributesChangedEvent, TextBoundsChangedEvent,
-	TextCaretMovedEvent, TextChangedEvent, TextSelectionChangedEvent, VisibleDataChangedEvent,
+	ChildrenDeletedEvent, ChildrenInsertedEvent, ColumnDeletedEvent, ColumnInsertedEvent,
+	ColumnReorderedEvent, LinkSelectedEvent, ModelChangedEvent, PropertyChangeEvent,
+	RowDeletedEvent, RowInsertedEvent, RowReorderedEvent, SelectionChangedEvent,
+	TextAttributesChangedEvent, TextBoundsChangedEvent, TextCaretMovedEvent, TextDeletedEvent,
+	TextInsertedEvent, TextSelectionChangedEvent, VisibleDataChangedEvent,
 };
 use atspi::events::terminal::{
 	ApplicationChangedEvent, CharWidthChangedEvent, ColumnCountChangedEvent, LineChangedEvent,
@@ -45,7 +46,8 @@ fn vec_of_all_atspi_messages() -> Vec<Message> {
 		AnnouncementEvent::default().try_into().unwrap(),
 		AttributesChangedEvent::default().try_into().unwrap(),
 		BoundsChangedEvent::default().try_into().unwrap(),
-		ChildrenChangedEvent::default().try_into().unwrap(),
+		ChildrenInsertedEvent::default().try_into().unwrap(),
+		ChildrenDeletedEvent::default().try_into().unwrap(),
 		ColumnDeletedEvent::default().try_into().unwrap(),
 		ColumnInsertedEvent::default().try_into().unwrap(),
 		ColumnReorderedEvent::default().try_into().unwrap(),
@@ -59,7 +61,8 @@ fn vec_of_all_atspi_messages() -> Vec<Message> {
 		TextAttributesChangedEvent::default().try_into().unwrap(),
 		TextBoundsChangedEvent::default().try_into().unwrap(),
 		TextCaretMovedEvent::default().try_into().unwrap(),
-		TextChangedEvent::default().try_into().unwrap(),
+		TextInsertedEvent::default().try_into().unwrap(),
+		TextDeletedEvent::default().try_into().unwrap(),
 		TextSelectionChangedEvent::default().try_into().unwrap(),
 		VisibleDataChangedEvent::default().try_into().unwrap(),
 		// terminal events
