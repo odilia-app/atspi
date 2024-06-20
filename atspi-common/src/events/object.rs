@@ -48,8 +48,10 @@ pub enum ObjectEvents {
 	TextBoundsChanged(TextBoundsChangedEvent),
 	/// See: [`TextSelectionChangedEvent`].
 	TextSelectionChanged(TextSelectionChangedEvent),
-	/// See: [`TextChangedEvent`].
-	TextChanged(TextChangedEvent),
+	/// See: [`TextInsertedEvent`].
+	TextInserted(TextInsertedEvent),
+	/// See: [`TextDeletedEvent`].
+	TextDeleted(TextDeletedEvent),
 	/// See: [`TextAttributesChangedEvent`].
 	TextAttributesChanged(TextAttributesChangedEvent),
 	/// See: [`TextCaretMovedEvent`].
@@ -78,7 +80,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::ColumnDeleted(inner) => inner.member(),
 			Self::TextBoundsChanged(inner) => inner.member(),
 			Self::TextSelectionChanged(inner) => inner.member(),
-			Self::TextChanged(inner) => inner.member(),
+			Self::TextInserted(inner) => inner.member(),
+			Self::TextDeleted(inner) => inner.member(),
 			Self::TextAttributesChanged(inner) => inner.member(),
 			Self::TextCaretMoved(inner) => inner.member(),
 		}
@@ -104,7 +107,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::ColumnDeleted(inner) => inner.interface(),
 			Self::TextBoundsChanged(inner) => inner.interface(),
 			Self::TextSelectionChanged(inner) => inner.interface(),
-			Self::TextChanged(inner) => inner.interface(),
+			Self::TextInserted(inner) => inner.interface(),
+			Self::TextDeleted(inner) => inner.interface(),
 			Self::TextAttributesChanged(inner) => inner.interface(),
 			Self::TextCaretMoved(inner) => inner.interface(),
 		}
@@ -130,7 +134,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::ColumnDeleted(inner) => inner.match_rule(),
 			Self::TextBoundsChanged(inner) => inner.match_rule(),
 			Self::TextSelectionChanged(inner) => inner.match_rule(),
-			Self::TextChanged(inner) => inner.match_rule(),
+			Self::TextInserted(inner) => inner.match_rule(),
+			Self::TextDeleted(inner) => inner.match_rule(),
 			Self::TextAttributesChanged(inner) => inner.match_rule(),
 			Self::TextCaretMoved(inner) => inner.match_rule(),
 		}
@@ -156,7 +161,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::ColumnDeleted(inner) => inner.registry_string(),
 			Self::TextBoundsChanged(inner) => inner.registry_string(),
 			Self::TextSelectionChanged(inner) => inner.registry_string(),
-			Self::TextChanged(inner) => inner.registry_string(),
+			Self::TextInserted(inner) => inner.registry_string(),
+			Self::TextDeleted(inner) => inner.registry_string(),
 			Self::TextAttributesChanged(inner) => inner.registry_string(),
 			Self::TextCaretMoved(inner) => inner.registry_string(),
 		}
@@ -185,7 +191,8 @@ impl EventProperties for ObjectEvents {
 			Self::ColumnDeleted(inner) => inner.path(),
 			Self::TextBoundsChanged(inner) => inner.path(),
 			Self::TextSelectionChanged(inner) => inner.path(),
-			Self::TextChanged(inner) => inner.path(),
+			Self::TextInserted(inner) => inner.path(),
+			Self::TextDeleted(inner) => inner.path(),
 			Self::TextAttributesChanged(inner) => inner.path(),
 			Self::TextCaretMoved(inner) => inner.path(),
 		}
@@ -211,7 +218,8 @@ impl EventProperties for ObjectEvents {
 			Self::ColumnDeleted(inner) => inner.sender(),
 			Self::TextBoundsChanged(inner) => inner.sender(),
 			Self::TextSelectionChanged(inner) => inner.sender(),
-			Self::TextChanged(inner) => inner.sender(),
+			Self::TextInserted(inner) => inner.sender(),
+			Self::TextDeleted(inner) => inner.sender(),
 			Self::TextAttributesChanged(inner) => inner.sender(),
 			Self::TextCaretMoved(inner) => inner.sender(),
 		}
@@ -540,26 +548,29 @@ pub struct TextSelectionChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-/// Text has changed within an [`ObjectRef`].
+/// Text insertion within an [`ObjectRef`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct TextChangedEvent {
+pub struct TextInsertedEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// Operation, which may be one of:
-	///
-	/// * "insert/system"
-	/// * "insert"
-	/// * "delete/system"
-	/// * "delete"
-	///
-	/// The operation is the same whether it contains the "/system" suffix or not.
-	/// TODO: This should be an enum.
-	pub operation: String,
-	/// starting index of the insertion/deletion
+	/// Starting index of the insertion
 	pub start_pos: i32,
-	/// length of the insertion/deletion
+	/// Length of the insertion
 	pub length: i32,
-	/// the text being inserted/deleted
+	/// The text being inserted
+	pub text: String,
+}
+
+/// Text deletion within an [`ObjectRef`].
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+pub struct TextDeletedEvent {
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
+	/// Starting index of the deletion
+	pub start_pos: i32,
+	/// Length of the deletion
+	pub length: i32,
+	/// The text being deleted
 	pub text: String,
 }
 
@@ -931,7 +942,7 @@ impl BusProperties for TextSelectionChangedEvent {
 	}
 }
 
-impl BusProperties for TextChangedEvent {
+impl BusProperties for TextInsertedEvent {
 	const DBUS_MEMBER: &'static str = "TextChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -943,7 +954,29 @@ impl BusProperties for TextChangedEvent {
 	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			operation: body.kind,
+			start_pos: body.detail1,
+			length: body.detail2,
+			text: body.any_data.try_into()?,
+		})
+	}
+	fn body(&self) -> Self::Body {
+		let copy = self.clone();
+		copy.into()
+	}
+}
+
+impl BusProperties for TextDeletedEvent {
+	const DBUS_MEMBER: &'static str = "TextChanged";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
+	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+
+	type Body = EventBodyOwned;
+
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self {
+			item,
 			start_pos: body.detail1,
 			length: body.detail2,
 			text: body.any_data.try_into()?,
@@ -1019,7 +1052,14 @@ impl TryFrom<&zbus::Message> for ObjectEvents {
 			"ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ev.try_into()?)),
 			"TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(ev.try_into()?)),
 			"TextSelectionChanged" => Ok(ObjectEvents::TextSelectionChanged(ev.try_into()?)),
-			"TextChanged" => Ok(ObjectEvents::TextChanged(ev.try_into()?)),
+			"TextChanged" => {
+				let body: EventBodyOwned = ev.try_into()?;
+				match body.kind.as_str() {
+					"insert" | "insert/system" => Ok(ObjectEvents::TextInserted(ev.try_into()?)),
+					"delete" | "delete/system" => Ok(ObjectEvents::TextDeleted(ev.try_into()?)),
+					_ => Err(AtspiError::KindMismatch("No matching kind for TextChanged".into())),
+				}
+			}
 			"TextAttributesChanged" => Ok(ObjectEvents::TextAttributesChanged(ev.try_into()?)),
 			"TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(ev.try_into()?)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
@@ -1551,25 +1591,58 @@ impl From<TextSelectionChangedEvent> for EventBodyOwned {
 }
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	TextChangedEvent,
+	TextInsertedEvent,
 	ObjectEvents,
-	ObjectEvents::TextChanged
+	ObjectEvents::TextInserted
 );
-impl_from_user_facing_type_for_event_enum!(TextChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextInsertedEvent, Event::Object);
 impl_try_from_event_for_user_facing_type!(
-	TextChangedEvent,
-	ObjectEvents::TextChanged,
+	TextInsertedEvent,
+	ObjectEvents::TextInserted,
 	Event::Object
 );
-event_test_cases!(TextChangedEvent);
-impl_to_dbus_message!(TextChangedEvent);
-impl_from_dbus_message!(TextChangedEvent);
-impl_event_properties!(TextChangedEvent);
-impl From<TextChangedEvent> for EventBodyOwned {
-	fn from(event: TextChangedEvent) -> Self {
+event_test_cases!(TextInsertedEvent);
+impl_to_dbus_message!(TextInsertedEvent);
+impl_from_dbus_message!(TextInsertedEvent);
+impl_event_properties!(TextInsertedEvent);
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	TextDeletedEvent,
+	ObjectEvents,
+	ObjectEvents::TextDeleted
+);
+impl_from_user_facing_type_for_event_enum!(TextDeletedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	TextDeletedEvent,
+	ObjectEvents::TextDeleted,
+	Event::Object
+);
+event_test_cases!(TextDeletedEvent);
+impl_to_dbus_message!(TextDeletedEvent);
+impl_from_dbus_message!(TextDeletedEvent);
+impl_event_properties!(TextDeletedEvent);
+impl From<TextInsertedEvent> for EventBodyOwned {
+	fn from(event: TextInsertedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.operation,
+			kind: "insert".to_string(),
+			detail1: event.start_pos,
+			detail2: event.length,
+
+			// `OwnedValue` is constructed from a `String`
+			// Therefore, this is safe.
+			any_data: Value::from(event.text)
+				.try_to_owned()
+				.expect("Failed to convert child to OwnedValue"),
+		}
+	}
+}
+
+impl From<TextDeletedEvent> for EventBodyOwned {
+	fn from(event: TextDeletedEvent) -> Self {
+		EventBodyOwned {
+			properties: std::collections::HashMap::new(),
+			kind: "delete".to_string(),
 			detail1: event.start_pos,
 			detail2: event.length,
 
