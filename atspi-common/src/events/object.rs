@@ -18,8 +18,10 @@ pub enum ObjectEvents {
 	LinkSelected(LinkSelectedEvent),
 	/// See: [`StateChangedEvent`].
 	StateChanged(StateChangedEvent),
-	/// See: [`ChildrenChangedEvent`].
-	ChildrenChanged(ChildrenChangedEvent),
+	/// See: [`ChildrenInsertedEvent`].
+	ChildrenInserted(ChildrenInsertedEvent),
+	/// See: [`ChildrenRemovedEvent`].
+	ChildrenRemoved(ChildrenRemovedEvent),
 	/// See: [`VisibleDataChangedEvent`].
 	VisibleDataChanged(VisibleDataChangedEvent),
 	/// See: [`SelectionChangedEvent`].
@@ -65,7 +67,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::BoundsChanged(inner) => inner.member(),
 			Self::LinkSelected(inner) => inner.member(),
 			Self::StateChanged(inner) => inner.member(),
-			Self::ChildrenChanged(inner) => inner.member(),
+			Self::ChildrenInserted(inner) => inner.member(),
+			Self::ChildrenRemoved(inner) => inner.member(),
 			Self::VisibleDataChanged(inner) => inner.member(),
 			Self::SelectionChanged(inner) => inner.member(),
 			Self::ModelChanged(inner) => inner.member(),
@@ -92,7 +95,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::BoundsChanged(inner) => inner.interface(),
 			Self::LinkSelected(inner) => inner.interface(),
 			Self::StateChanged(inner) => inner.interface(),
-			Self::ChildrenChanged(inner) => inner.interface(),
+			Self::ChildrenInserted(inner) => inner.interface(),
+			Self::ChildrenRemoved(inner) => inner.interface(),
 			Self::VisibleDataChanged(inner) => inner.interface(),
 			Self::SelectionChanged(inner) => inner.interface(),
 			Self::ModelChanged(inner) => inner.interface(),
@@ -119,7 +123,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::BoundsChanged(inner) => inner.match_rule(),
 			Self::LinkSelected(inner) => inner.match_rule(),
 			Self::StateChanged(inner) => inner.match_rule(),
-			Self::ChildrenChanged(inner) => inner.match_rule(),
+			Self::ChildrenInserted(inner) => inner.match_rule(),
+			Self::ChildrenRemoved(inner) => inner.match_rule(),
 			Self::VisibleDataChanged(inner) => inner.match_rule(),
 			Self::SelectionChanged(inner) => inner.match_rule(),
 			Self::ModelChanged(inner) => inner.match_rule(),
@@ -146,7 +151,8 @@ impl EventTypeProperties for ObjectEvents {
 			Self::BoundsChanged(inner) => inner.registry_string(),
 			Self::LinkSelected(inner) => inner.registry_string(),
 			Self::StateChanged(inner) => inner.registry_string(),
-			Self::ChildrenChanged(inner) => inner.registry_string(),
+			Self::ChildrenInserted(inner) => inner.registry_string(),
+			Self::ChildrenRemoved(inner) => inner.registry_string(),
 			Self::VisibleDataChanged(inner) => inner.registry_string(),
 			Self::SelectionChanged(inner) => inner.registry_string(),
 			Self::ModelChanged(inner) => inner.registry_string(),
@@ -176,7 +182,8 @@ impl EventProperties for ObjectEvents {
 			Self::BoundsChanged(inner) => inner.path(),
 			Self::LinkSelected(inner) => inner.path(),
 			Self::StateChanged(inner) => inner.path(),
-			Self::ChildrenChanged(inner) => inner.path(),
+			Self::ChildrenInserted(inner) => inner.path(),
+			Self::ChildrenRemoved(inner) => inner.path(),
 			Self::VisibleDataChanged(inner) => inner.path(),
 			Self::SelectionChanged(inner) => inner.path(),
 			Self::ModelChanged(inner) => inner.path(),
@@ -203,7 +210,8 @@ impl EventProperties for ObjectEvents {
 			Self::BoundsChanged(inner) => inner.sender(),
 			Self::LinkSelected(inner) => inner.sender(),
 			Self::StateChanged(inner) => inner.sender(),
-			Self::ChildrenChanged(inner) => inner.sender(),
+			Self::ChildrenInserted(inner) => inner.sender(),
+			Self::ChildrenRemoved(inner) => inner.sender(),
 			Self::VisibleDataChanged(inner) => inner.sender(),
 			Self::SelectionChanged(inner) => inner.sender(),
 			Self::ModelChanged(inner) => inner.sender(),
@@ -432,24 +440,25 @@ pub struct StateChangedEvent {
 	pub enabled: i32,
 }
 
-/// A child of an [`ObjectRef`] has been added or removed.
+/// A child of an [`ObjectRef`] has been added.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ChildrenChangedEvent {
+pub struct ChildrenInsertedEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// Operation, which may be one of:
-	///
-	/// * "insert/system"
-	/// * "insert"
-	/// * "delete/system"
-	/// * "delete"
-	///
-	/// The operation is the same whether it contains the "/system" suffix or not.
-	/// TODO: This should be an enum.
-	pub operation: String,
-	/// Index to remove from/add to.
+	/// Index to insert into.
 	pub index_in_parent: i32,
 	/// A reference to the new child.
+	pub child: ObjectRef,
+}
+
+/// A child of an [`ObjectRef`] has been removed.
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+pub struct ChildrenRemovedEvent {
+	/// The [`ObjectRef`] which the event applies to.
+	pub item: crate::events::ObjectRef,
+	/// Index to remove.
+	pub index_in_parent: i32,
+	/// A reference to the old child.
 	pub child: ObjectRef,
 }
 
@@ -663,7 +672,7 @@ impl BusProperties for StateChangedEvent {
 	}
 }
 
-impl BusProperties for ChildrenChangedEvent {
+impl BusProperties for ChildrenInsertedEvent {
 	const DBUS_MEMBER: &'static str = "ChildrenChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
@@ -673,12 +682,25 @@ impl BusProperties for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self {
-			item,
-			operation: body.kind,
-			index_in_parent: body.detail1,
-			child: body.any_data.try_into()?,
-		})
+		Ok(Self { item, index_in_parent: body.detail1, child: body.any_data.try_into()? })
+	}
+	fn body(&self) -> Self::Body {
+		let copy = self.clone();
+		copy.into()
+	}
+}
+
+impl BusProperties for ChildrenRemovedEvent {
+	const DBUS_MEMBER: &'static str = "ChildrenChanged";
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
+	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+
+	type Body = EventBodyOwned;
+
+	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+		Ok(Self { item, index_in_parent: body.detail1, child: body.any_data.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -1037,7 +1059,20 @@ impl TryFrom<&zbus::Message> for ObjectEvents {
 			"BoundsChanged" => Ok(ObjectEvents::BoundsChanged(ev.try_into()?)),
 			"LinkSelected" => Ok(ObjectEvents::LinkSelected(ev.try_into()?)),
 			"StateChanged" => Ok(ObjectEvents::StateChanged(ev.try_into()?)),
-			"ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ev.try_into()?)),
+			"ChildrenChanged" => {
+				let body: EventBodyOwned = ev.try_into()?;
+				match body.kind.as_str() {
+					"insert" | "insert/system" => {
+						Ok(ObjectEvents::ChildrenInserted(ev.try_into()?))
+					}
+					"delete" | "delete/system" => {
+						Ok(ObjectEvents::ChildrenInserted(ev.try_into()?))
+					}
+					_ => {
+						Err(AtspiError::KindMismatch("No matching kind for ChildrenChanged".into()))
+					}
+				}
+			}
 			"VisibleDataChanged" => Ok(ObjectEvents::VisibleDataChanged(ev.try_into()?)),
 			"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(ev.try_into()?)),
 			"ModelChanged" => Ok(ObjectEvents::ModelChanged(ev.try_into()?)),
@@ -1178,25 +1213,59 @@ impl From<StateChangedEvent> for EventBodyOwned {
 }
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	ChildrenChangedEvent,
+	ChildrenInsertedEvent,
 	ObjectEvents,
-	ObjectEvents::ChildrenChanged
+	ObjectEvents::ChildrenInserted
 );
-impl_from_user_facing_type_for_event_enum!(ChildrenChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ChildrenInsertedEvent, Event::Object);
 impl_try_from_event_for_user_facing_type!(
-	ChildrenChangedEvent,
-	ObjectEvents::ChildrenChanged,
+	ChildrenInsertedEvent,
+	ObjectEvents::ChildrenInserted,
 	Event::Object
 );
-event_test_cases!(ChildrenChangedEvent);
-impl_to_dbus_message!(ChildrenChangedEvent);
-impl_from_dbus_message!(ChildrenChangedEvent);
-impl_event_properties!(ChildrenChangedEvent);
-impl From<ChildrenChangedEvent> for EventBodyOwned {
-	fn from(event: ChildrenChangedEvent) -> Self {
+event_test_cases!(ChildrenInsertedEvent);
+impl_to_dbus_message!(ChildrenInsertedEvent);
+impl_from_dbus_message!(ChildrenInsertedEvent);
+impl_event_properties!(ChildrenInsertedEvent);
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	ChildrenRemovedEvent,
+	ObjectEvents,
+	ObjectEvents::ChildrenRemoved
+);
+impl_from_user_facing_type_for_event_enum!(ChildrenRemovedEvent, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	ChildrenRemovedEvent,
+	ObjectEvents::ChildrenRemoved,
+	Event::Object
+);
+event_test_cases!(ChildrenRemovedEvent);
+impl_to_dbus_message!(ChildrenRemovedEvent);
+impl_from_dbus_message!(ChildrenRemovedEvent);
+impl_event_properties!(ChildrenRemovedEvent);
+
+impl From<ChildrenInsertedEvent> for EventBodyOwned {
+	fn from(event: ChildrenInsertedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.operation,
+			kind: "insert".to_string(),
+			detail1: event.index_in_parent,
+			detail2: i32::default(),
+			// `OwnedValue` is constructed from the `ObjectRef`
+			// Only path to fail is to convert a Fd into an `OwnedValue`.
+			// Therefore, this is safe.
+			any_data: Value::from(event.child)
+				.try_into()
+				.expect("Failed to convert child to OwnedValue"),
+		}
+	}
+}
+
+impl From<ChildrenRemovedEvent> for EventBodyOwned {
+	fn from(event: ChildrenRemovedEvent) -> Self {
+		EventBodyOwned {
+			properties: std::collections::HashMap::new(),
+			kind: "delete".to_string(),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `ObjectRef`
