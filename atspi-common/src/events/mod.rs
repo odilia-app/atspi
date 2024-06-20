@@ -940,7 +940,7 @@ assert_obj_safe!(EventProperties);
 /// For a similar, but object-safe trait, see [`EventProperties`].
 pub trait BusProperties {
 	/// The `DBus` member for the event.
-	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
+	/// For example, for an [`object::TextInsertedEvent`] this should be `"TextChanged"`
 	const DBUS_MEMBER: &'static str;
 	/// The `DBus` interface name for this event.
 	/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
