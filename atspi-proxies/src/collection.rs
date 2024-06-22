@@ -9,31 +9,19 @@
 //! [Writing a client proxy](https://dbus.pages.freedesktop.org/zbus/client.html)
 //! section of the zbus documentation.
 //!
-#![allow(clippy::too_many_arguments)]
-// this allow zbus to change the number of parameters in a function without setting off clippy
+use atspi_common::ObjectMatchRule;
 
-use crate::common::{MatchArgs, ObjectRef, SortOrder, TreeTraversalType};
+use crate::common::{ObjectRef, SortOrder, TreeTraversalType};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
-	/// GetActiveDescendant method
+	/// Get the active child-objects to the current object.
 	fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
 
-	/* ROLE fields:
-	  &[i32]: AtspiStateSet,
-	  i32: AtspiCollectionMatchType,
-	  HashMap<&str, &str>: attributes,
-	  i32: AtspiCollectionMatchType (attribute match type),
-	  &[i32]: roles,
-	  i32: AtspiCollectionMatchType (role match type),
-	  &[&str]: interfaces,
-	  i32: AtspiCollectionMatchType (interface match type),
-	  bool: invert
-	*/
 	/// GetMatches method
 	fn get_matches(
 		&self,
-		rule: &MatchArgs<'_>,
+		rule: ObjectMatchRule,
 		sortby: SortOrder,
 		count: i32,
 		traverse: bool,
@@ -43,7 +31,7 @@ trait Collection {
 	fn get_matches_from(
 		&self,
 		current_object: &zbus::zvariant::ObjectPath<'_>,
-		rule: &MatchArgs<'_>,
+		rule: ObjectMatchRule,
 		sortby: SortOrder,
 		tree: TreeTraversalType,
 		count: i32,
@@ -51,10 +39,11 @@ trait Collection {
 	) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// GetMatchesTo method
+	#[allow(clippy::too_many_arguments)]
 	fn get_matches_to(
 		&self,
 		current_object: &zbus::zvariant::ObjectPath<'_>,
-		rule: &MatchArgs<'_>,
+		rule: ObjectMatchRule,
 		sortby: SortOrder,
 		tree: TreeTraversalType,
 		limit_scope: bool,
