@@ -14,6 +14,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
+pub mod object_match;
+pub use object_match::{MatchType, ObjectMatchRule, TreeTraversalType};
 pub mod object_ref;
 pub use object_ref::ObjectRef;
 pub mod interface;
@@ -35,18 +37,6 @@ use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
 pub type Result<T> = std::result::Result<T, AtspiError>;
-
-pub type MatchArgs<'a> = (
-	&'a [i32],
-	MatchType,
-	std::collections::HashMap<&'a str, &'a str>,
-	MatchType,
-	&'a [i32],
-	MatchType,
-	&'a [&'a str],
-	MatchType,
-	bool,
-);
 
 pub type TextSelection = (ObjectRef, i32, ObjectRef, i32, bool);
 
@@ -71,37 +61,6 @@ pub enum SortOrder {
 	ReverseFlow,
 	/// Reverse tab sort order
 	ReverseTab,
-}
-
-/// Method of traversing a tree in the `CollectionProxy`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
-pub enum TreeTraversalType {
-	/// Restrict children tree traversal
-	RestrictChildren,
-	/// Restrict sibling tree traversal
-	RestrictSibling,
-	/// In-order tree traversal.
-	Inorder,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(i32)]
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`ObjectRef`] objects.
-///
-/// [`ObjectRef`]: crate::object_ref::ObjectRef
-pub enum MatchType {
-	/// Invalid match type
-	Invalid,
-	/// true if all of the criteria are met.
-	All,
-	/// true if any of the criteria are met.
-	Any,
-	/// true if none of the criteria are met.
-	NA,
-	/// Same as [`Self::All`] if the criteria is non-empty;
-	/// for empty criteria this rule requires returned value to also have empty set.
-	Empty,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
