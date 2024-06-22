@@ -116,6 +116,12 @@ impl InterfaceSet {
 	}
 }
 
+impl Default for InterfaceSet {
+	fn default() -> Self {
+		Self::empty()
+	}
+}
+
 impl<'de> de::Deserialize<'de> for InterfaceSet {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
@@ -158,6 +164,12 @@ impl ser::Serialize for InterfaceSet {
 impl Type for InterfaceSet {
 	fn signature() -> Signature<'static> {
 		<Vec<String> as Type>::signature()
+	}
+}
+
+impl FromIterator<Interface> for InterfaceSet {
+	fn from_iter<T: IntoIterator<Item = Interface>>(iter: T) -> Self {
+		Self(BitFlags::from_iter(iter))
 	}
 }
 
