@@ -30,4 +30,5 @@ We leverage [zbus-lockstep](https://github.com/luukvanderduim/zbus-lockstep/) to
 | `Granularity` | ✓ | `Text::GetStringAtOffset` argument `granularity`|
 | `Layer` | ✓ | `Component::GetLayer` return type.|
 | `ScrollType` | ✓ | `Component::ScrollTo` argument `type`|
-| `Live` | ✓ | `Event.Object::Announcement` argument `politeness`|
+| `Politeness` | ✓ | `Event.Object::Announcement` argument `politeness`|
+| `ObjectMatchRule` | ⚠ | `Collection::GetMatches` argument 'rule' contains `Vec<Role>` and `StateSet` which are defined as "ai", but `Role` and `StateSet` are not.|
