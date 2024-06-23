@@ -10,7 +10,7 @@
 //!
 //! [`CollectionProxy`]: crate::collection::CollectionProxy
 
-use crate::common::{ObjectRef, SortOrder, TreeTraversalType};
+use crate::common::{ObjectMatchRule, ObjectRef, SortOrder, TreeTraversalType};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
