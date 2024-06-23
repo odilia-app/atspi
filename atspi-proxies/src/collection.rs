@@ -14,8 +14,13 @@ use crate::common::{ObjectRef, SortOrder, TreeTraversalType};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
-	/// Get the active child-objects to the current object.
-	fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
+	// The active descendant of the given object.
+	//
+	// Looks like this is unimplemented.
+	//
+	// See [atspi/collection.c](https://gitlab.gnome.org/GNOME/at-spi2-core/-/blob/main/atspi/atspi-collection.c?ref_type=heads#L272)
+	//
+	// fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
 
 	/// GetMatches method
 	fn get_matches(
