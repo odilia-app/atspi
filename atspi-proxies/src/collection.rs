@@ -6,7 +6,11 @@
 //! `Collection` is the interface which is implemented by objects that contain
 //! other objects, such as a window or a table.
 //!
-//! See the documentation on the individual methods for details.
+//! See the documentation on the individual methods for details:
+//!
+//! * [`get_matches`](struct.CollectionProxy.html#method.get_matches)
+//! * [`get_matches_from`](struct.CollectionProxy.html#method.get_matches_from)
+//! * [`get_matches_to`](struct.CollectionProxy.html#method.get_matches_to)
 //!
 //! [`CollectionProxy`]: crate::collection::CollectionProxy
 
