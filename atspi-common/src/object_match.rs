@@ -145,7 +145,7 @@ impl ObjectMatchRuleBuilder {
 	}
 }
 
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`ObjectRef`] objects.
+/// Enumeration used by [`ObjectMatchRule`] to specify how to interpret [`ObjectRef`] objects.
 ///
 /// [`ObjectRef`]: crate::object_ref::ObjectRef
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Default)]
