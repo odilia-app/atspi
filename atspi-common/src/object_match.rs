@@ -169,6 +169,51 @@ pub enum MatchType {
 	Empty,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[repr(u32)]
+/// Enumeration used by interface `CollectionProxy` to specify the way [`ObjectRef`]
+/// objects should be sorted.
+///
+/// # Note
+///
+/// Only `Canonical` and `ReverseCanonical` are currently implemented.
+///
+/// see: [issue 140. "Are all the AtspiCollectionSortOrder types really a thing?"](https://gitlab.gnome.org/GNOME/at-spi2-core/-/issues/140)
+///
+/// [`ObjectRef`]: crate::object_ref::ObjectRef
+pub enum SortOrder {
+	/// Invalid sort order
+	///
+	/// Unimplemented
+	Invalid,
+
+	/// Canonical sort order
+	Canonical,
+
+	/// Flow sort order
+	///
+	/// Unimplemented
+	Flow,
+
+	/// Tab sort order
+	///
+	/// Unimplemented
+	Tab,
+
+	/// Reverse canonical sort order
+	ReverseCanonical,
+
+	/// Reverse flow sort order
+	///
+	/// Unimplemented
+	ReverseFlow,
+
+	/// Reverse tab sort order
+	///
+	/// Unimplemented
+	ReverseTab,
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
