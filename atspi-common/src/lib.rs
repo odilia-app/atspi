@@ -15,7 +15,7 @@ extern crate static_assertions;
 pub(crate) mod macros;
 
 pub mod object_match;
-pub use object_match::{MatchType, ObjectMatchRule, TreeTraversalType};
+pub use object_match::{MatchType, ObjectMatchRule, SortOrder, TreeTraversalType};
 pub mod object_ref;
 pub use object_ref::ObjectRef;
 pub mod interface;
@@ -39,29 +39,6 @@ use zvariant::Type;
 pub type Result<T> = std::result::Result<T, AtspiError>;
 
 pub type TextSelection = (ObjectRef, i32, ObjectRef, i32, bool);
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
-/// Enumeration used by interface `CollectionProxy` to specify the way [`ObjectRef`]
-/// objects should be sorted.
-///
-/// [`ObjectRef`]: crate::object_ref::ObjectRef
-pub enum SortOrder {
-	/// Invalid sort order
-	Invalid,
-	/// Canonical sort order
-	Canonical,
-	/// Flow sort order
-	Flow,
-	/// Tab sort order
-	Tab,
-	/// Reverse canonical sort order
-	ReverseCanonical,
-	/// Reverse flow sort order
-	ReverseFlow,
-	/// Reverse tab sort order
-	ReverseTab,
-}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -251,17 +228,5 @@ mod tests {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
 		let match_type_signature = rule_signature.slice(3..4);
 		assert_eq!(MatchType::signature(), match_type_signature);
-	}
-
-	#[test]
-	fn validate_tree_traversal_type_signature() {
-		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "tree");
-		assert_eq!(TreeTraversalType::signature(), signature);
-	}
-
-	#[test]
-	fn validate_sort_order_signature() {
-		let signature = method_args_signature!(member: "GetMatches", interface: "org.a11y.atspi.Collection", argument: "sortby");
-		assert_eq!(SortOrder::signature(), signature);
 	}
 }
