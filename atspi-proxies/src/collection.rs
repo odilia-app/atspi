@@ -74,7 +74,25 @@ trait Collection {
 		traverse: bool,
 	) -> zbus::Result<Vec<ObjectRef>>;
 
-	/// GetMatchesTo method
+	/// Retrieves objects from the collection, before `current_object`, matching a given `rule`.
+	///
+	/// # Arguments
+	///
+	/// * `current_object` - The object at which to start searching.
+	/// * `rule` - An [`ObjectMatchRule`] describing the match criteria.
+	/// * `sortby` - A [`SortOrder`] specifying the way the results are to be sorted.
+	/// * `tree` - A [`TreeTraversalType`] specifying restrictions on the objects to be traversed.
+	/// * `limit_scope` - If `true`, only descendants of `current_object`'s parent will be returned. Otherwise (if `false`), any accessible may be returned if it would preceed `current_object` in a flattened hierarchy.
+	/// * `count` - The maximum number of results to return, or 0 for no limit.
+	/// * `traverse` - Not supported.
+	///
+	/// # Maximum number of objects
+	///
+	/// This method will never return more than 65536 objects.
+	///
+	/// [`ObjectMatchRule`]: atspi_common::object_match::ObjectMatchRule
+	/// [`SortOrder`]: atspi_common::SortOrder
+	/// [`TreeTraversalType`]: atspi_common::TreeTraversalType
 	#[allow(clippy::too_many_arguments)]
 	fn get_matches_to(
 		&self,
