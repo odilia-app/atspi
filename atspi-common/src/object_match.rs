@@ -176,7 +176,7 @@ pub enum MatchType {
 ///
 /// # Note
 ///
-/// Only `Canonical` and `ReverseCanonical` are currently implemented.
+/// Only `Canonical` and `ReverseCanonical` are currently implemented in the known implementation of `Collection`.
 ///
 /// see: [issue 140. "Are all the AtspiCollectionSortOrder types really a thing?"](https://gitlab.gnome.org/GNOME/at-spi2-core/-/issues/140)
 ///
