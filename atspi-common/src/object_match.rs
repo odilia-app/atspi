@@ -1,4 +1,4 @@
-use std::{collections::HashMap, marker::PhantomData};
+use std::{borrow::Borrow, collections::HashMap, marker::PhantomData};
 
 use serde::{Deserialize, Serialize};
 use zvariant::{Signature, Type};
