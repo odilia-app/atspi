@@ -110,10 +110,14 @@ impl ObjectMatchRuleBuilder {
 		self
 	}
 
-	/// Insert a slice of `Interface`s
+	/// Insert an `InterfaceSet` from a collection of `Interface`s
 	#[must_use]
-	pub fn interfaces(mut self, interfaces: &[Interface], mt: MatchType) -> Self {
-		self.ifaces = interfaces.iter().copied().collect::<InterfaceSet>();
+	pub fn interfaces<I>(mut self, interfaces: I, mt: MatchType) -> Self
+	where
+		I: IntoIterator,
+		I::Item: Borrow<Interface>,
+	{
+		self.ifaces = interfaces.into_iter().map(|iface| *iface.borrow()).collect();
 		self.ifaces_mt = mt;
 		self
 	}
@@ -265,7 +269,7 @@ mod tests {
 				MatchType::Any,
 			)
 			.roles(&[Role::Alert], MatchType::All)
-			.interfaces(&[Interface::Action], MatchType::Any)
+			.interfaces([Interface::Action], MatchType::Any)
 			.invert(true)
 			.build();
 
