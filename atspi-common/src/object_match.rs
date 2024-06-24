@@ -43,7 +43,7 @@ pub struct ObjectMatchRule {
 	// Private phantom, gets compiled away.
 	// Here to ensure the builder is the only route to obtain a `MatchRule`
 	#[serde(skip)]
-	phantom: std::marker::PhantomData<()>,
+	_marker: std::marker::PhantomData<()>,
 }
 
 // !!! WARNING !!! :
@@ -140,7 +140,7 @@ impl ObjectMatchRuleBuilder {
 			ifaces: self.ifaces,
 			ifaces_mt: self.ifaces_mt,
 			invert: self.invert,
-			phantom: PhantomData,
+			_marker: PhantomData,
 		}
 	}
 }
