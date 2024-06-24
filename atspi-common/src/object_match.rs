@@ -151,10 +151,10 @@ impl ObjectMatchRuleBuilder {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Default)]
 #[repr(i32)]
 pub enum MatchType {
-	#[default]
 	/// Invalidates match criterion.
 	Invalid,
 
+	#[default]
 	/// All of the criteria must be met.
 	All,
 
