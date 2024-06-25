@@ -660,4 +660,43 @@ mod tests {
 			assert_eq!(state, state_two, "The {state:?} was serialized as {state_str}, which deserializes to {state_two:?} (serde)");
 		}
 	}
+
+	#[test]
+	fn collect_stateset_from_owned_states() {
+		let states = vec![State::Active, State::Focused, State::Focusable];
+		let set = StateSet::from_iter(states);
+		assert!(set.contains(State::Active));
+		assert!(set.contains(State::Focused));
+		assert!(set.contains(State::Focusable));
+	}
+
+	#[test]
+	fn collect_stateset_from_borrowed_states() {
+		// &[T].iter() yields &T
+		let states = &[State::Active, State::Focused, State::Focusable];
+		let set = states.iter().collect::<StateSet>();
+		assert!(set.contains(State::Active));
+		assert!(set.contains(State::Focused));
+		assert!(set.contains(State::Focusable));
+	}
+
+	#[test]
+	fn into_iterator_owned_stateset() {
+		let set = StateSet::new(State::Active | State::Focused | State::Focusable);
+		let states: Vec<State> = set.into_iter().collect();
+		assert_eq!(states.len(), 3);
+		assert!(states.contains(&State::Active));
+		assert!(states.contains(&State::Focused));
+		assert!(states.contains(&State::Focusable));
+	}
+
+	#[test]
+	fn into_iterator_borrowed_stateset() {
+		let set = StateSet::new(State::Active | State::Focused | State::Focusable);
+		let states: Vec<State> = (&set).into_iter().collect();
+		assert_eq!(states.len(), 3);
+		assert!(states.contains(&State::Active));
+		assert!(states.contains(&State::Focused));
+		assert!(states.contains(&State::Focusable));
+	}
 }
