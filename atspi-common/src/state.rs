@@ -606,9 +606,8 @@ mod tests {
 
 	#[test]
 	fn convert_state_direct_string() {
-		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
-			.unwrap()
-			.iter()
+		for state in
+			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
 			let state_str: String = state.into();
 			let state_two: State = state_str.clone().into();
@@ -620,9 +619,8 @@ mod tests {
 	}
 	#[test]
 	fn convert_state_direct_string_is_equal_to_serde_output() {
-		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
-			.unwrap()
-			.iter()
+		for state in
+			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
 			let serde_state_str: String = serde_plain::to_string(&state).unwrap();
 			let state_str: String = state.into();
