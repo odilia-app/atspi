@@ -53,9 +53,8 @@ trait Collection {
 	/// * `rule` - An [`ObjectMatchRule`] describing the match criteria.
 	/// * `sortby` - A [`SortOrder`] specifying the way the results are to be sorted.
 	/// * `tree` - A [`TreeTraversalType`] specifying restrictions on the objects to be traversed.
-	/// * `limit_scope` - If `true`, only descendants of `current_object`'s parent will be returned. Otherwise (if `false`), any accessible may be returned if it would preceed `current_object` in a flattened hierarchy.
 	/// * `count` - The maximum number of results to return, or 0 for no limit.
-	/// * `traverse` - Not supported.
+	/// * `traverse` - Not supported by the known implementation (atk-collection).
 	///
 	/// [`ObjectMatchRule`]: atspi_common::object_match::ObjectMatchRule
 	/// [`SortOrder`]: atspi_common::SortOrder
@@ -78,9 +77,10 @@ trait Collection {
 	/// * `rule` - An [`ObjectMatchRule`] describing the match criteria.
 	/// * `sortby` - A [`SortOrder`] specifying the way the results are to be sorted.
 	/// * `tree` - A [`TreeTraversalType`] specifying restrictions on the objects to be traversed.
-	/// # Maximum number of objects
-	///
-	/// This method will never return more than 65536 objects.
+	/// * `limit_scope` - If `true`, only descendants of `current_object`'s parent will be returned.
+	///    Otherwise (if `false`), any accessible may be returned if it would preceed `current_object` in a flattened hierarchy.
+	/// * `count` - The maximum number of results to return, or 0 for no limit.
+	/// * `traverse` - Not supported by the known implementation (atk-collection).
 	///
 	/// [`ObjectMatchRule`]: atspi_common::object_match::ObjectMatchRule
 	/// [`SortOrder`]: atspi_common::SortOrder
