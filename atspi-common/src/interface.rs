@@ -192,6 +192,12 @@ impl FromIterator<Interface> for InterfaceSet {
 	}
 }
 
+impl<'a> FromIterator<&'a Interface> for InterfaceSet {
+	fn from_iter<I: IntoIterator<Item = &'a Interface>>(iter: I) -> Self {
+		InterfaceSet(iter.into_iter().copied().collect())
+	}
+}
+
 impl From<Interface> for InterfaceSet {
 	fn from(value: Interface) -> Self {
 		Self(value.into())
