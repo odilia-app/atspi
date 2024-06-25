@@ -407,6 +407,36 @@ impl StateSet {
 	}
 }
 
+impl IntoIterator for StateSet {
+	type IntoIter = enumflags2::Iter<State>;
+	type Item = State;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl IntoIterator for &StateSet {
+	type IntoIter = enumflags2::Iter<State>;
+	type Item = State;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl FromIterator<State> for StateSet {
+	fn from_iter<I: IntoIterator<Item = State>>(iter: I) -> Self {
+		StateSet(iter.into_iter().collect())
+	}
+}
+
+impl<'a> FromIterator<&'a State> for StateSet {
+	fn from_iter<I: IntoIterator<Item = &'a State>>(iter: I) -> Self {
+		StateSet(iter.into_iter().copied().collect())
+	}
+}
+
 impl<'de> Deserialize<'de> for StateSet {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
