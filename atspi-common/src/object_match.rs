@@ -3,7 +3,7 @@ use std::{borrow::Borrow, collections::HashMap, marker::PhantomData};
 use serde::{Deserialize, Serialize};
 use zvariant::{Signature, Type};
 
-use crate::{Interface, InterfaceSet, Role, StateSet};
+use crate::{Interface, InterfaceSet, Role, State, StateSet};
 
 /// Defines how an object-tree is to be traversed.
 /// Used in `CollectionProxy`.
@@ -88,8 +88,12 @@ pub struct ObjectMatchRuleBuilder {
 impl ObjectMatchRuleBuilder {
 	/// Insert a `StateSet` to the builder
 	#[must_use]
-	pub fn states(mut self, state_set: StateSet, mt: MatchType) -> Self {
-		self.states = state_set;
+	pub fn states<I>(mut self, states: I, mt: MatchType) -> Self
+	where
+		I: IntoIterator,
+		I::Item: Borrow<State>,
+	{
+		self.states = states.into_iter().map(|state| *state.borrow()).collect();
 		self.states_mt = mt;
 		self
 	}
