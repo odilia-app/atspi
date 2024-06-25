@@ -385,7 +385,8 @@ impl StateSet {
 	}
 
 	/// Returns an iterator that yields each set [`State`].
-	pub fn iter(self) -> impl Iterator<Item = State> {
+	#[must_use]
+	pub fn iter(self) -> enumflags2::Iter<State> {
 		self.0.iter()
 	}
 
