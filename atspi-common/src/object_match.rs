@@ -237,6 +237,7 @@ mod tests {
 	#[test]
 	fn validate_match_type_signature() {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
+		// The match type signature is the fourth element in the signature
 		let match_type_signature = rule_signature.slice(3..4);
 		assert_eq!(MatchType::signature(), match_type_signature);
 	}
