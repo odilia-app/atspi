@@ -111,8 +111,33 @@ impl InterfaceSet {
 		self.0.insert(other);
 	}
 
-	pub fn iter(self) -> impl Iterator<Item = Interface> {
+	#[must_use]
+	pub fn iter(&self) -> enumflags2::Iter<Interface> {
 		self.0.iter()
+	}
+}
+
+impl IntoIterator for InterfaceSet {
+	type IntoIter = enumflags2::Iter<Interface>;
+	type Item = Interface;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl IntoIterator for &InterfaceSet {
+	type IntoIter = enumflags2::Iter<Interface>;
+	type Item = Interface;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl Default for InterfaceSet {
+	fn default() -> Self {
+		Self::empty()
 	}
 }
 
@@ -158,6 +183,18 @@ impl ser::Serialize for InterfaceSet {
 impl Type for InterfaceSet {
 	fn signature() -> Signature<'static> {
 		<Vec<String> as Type>::signature()
+	}
+}
+
+impl FromIterator<Interface> for InterfaceSet {
+	fn from_iter<T: IntoIterator<Item = Interface>>(iter: T) -> Self {
+		Self(BitFlags::from_iter(iter))
+	}
+}
+
+impl<'a> FromIterator<&'a Interface> for InterfaceSet {
+	fn from_iter<I: IntoIterator<Item = &'a Interface>>(iter: I) -> Self {
+		InterfaceSet(iter.into_iter().copied().collect())
 	}
 }
 
@@ -248,5 +285,26 @@ mod tests {
 		let encoded = to_bytes(ctxt, &object).unwrap();
 		let (decoded, _) = encoded.deserialize::<InterfaceSet>().unwrap();
 		assert!(object == decoded);
+	}
+
+	// The order of appearance of the interfaces is equal to the order in the enum.
+	#[test]
+	fn iterator_on_interface_set() {
+		let set =
+			InterfaceSet::new(Interface::Accessible | Interface::Action | Interface::Component);
+		let mut iter = set.into_iter();
+		assert_eq!(iter.next(), Some(Interface::Accessible));
+		assert_eq!(iter.next(), Some(Interface::Action));
+		assert_eq!(iter.next(), Some(Interface::Component));
+		assert_eq!(iter.next(), None);
+	}
+
+	#[test]
+	fn iterator_on_interface_set_ref() {
+		let set = InterfaceSet::new(Interface::Text | Interface::Collection | Interface::Component);
+		let mut iter = (&set).into_iter();
+		assert_eq!(iter.next(), Some(Interface::Collection));
+		assert_eq!(iter.next(), Some(Interface::Component));
+		assert_eq!(iter.next(), Some(Interface::Text));
 	}
 }

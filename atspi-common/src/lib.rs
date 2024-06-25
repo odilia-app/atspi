@@ -14,6 +14,8 @@ extern crate static_assertions;
 #[macro_use]
 pub(crate) mod macros;
 
+pub mod object_match;
+pub use object_match::{MatchType, ObjectMatchRule, SortOrder, TreeTraversalType};
 pub mod object_ref;
 pub use object_ref::ObjectRef;
 pub mod interface;
@@ -36,73 +38,7 @@ use zvariant::Type;
 
 pub type Result<T> = std::result::Result<T, AtspiError>;
 
-pub type MatchArgs<'a> = (
-	&'a [i32],
-	MatchType,
-	std::collections::HashMap<&'a str, &'a str>,
-	MatchType,
-	&'a [i32],
-	MatchType,
-	&'a [&'a str],
-	MatchType,
-	bool,
-);
-
 pub type TextSelection = (ObjectRef, i32, ObjectRef, i32, bool);
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
-/// Enumeration used by interface `CollectionProxy` to specify the way [`ObjectRef`]
-/// objects should be sorted.
-///
-/// [`ObjectRef`]: crate::object_ref::ObjectRef
-pub enum SortOrder {
-	/// Invalid sort order
-	Invalid,
-	/// Canonical sort order
-	Canonical,
-	/// Flow sort order
-	Flow,
-	/// Tab sort order
-	Tab,
-	/// Reverse canonical sort order
-	ReverseCanonical,
-	/// Reverse flow sort order
-	ReverseFlow,
-	/// Reverse tab sort order
-	ReverseTab,
-}
-
-/// Method of traversing a tree in the `CollectionProxy`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(u32)]
-pub enum TreeTraversalType {
-	/// Restrict children tree traversal
-	RestrictChildren,
-	/// Restrict sibling tree traversal
-	RestrictSibling,
-	/// In-order tree traversal.
-	Inorder,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[repr(i32)]
-/// Enumeration used by [`MatchArgs`] to specify how to interpret [`ObjectRef`] objects.
-///
-/// [`ObjectRef`]: crate::object_ref::ObjectRef
-pub enum MatchType {
-	/// Invalid match type
-	Invalid,
-	/// true if all of the criteria are met.
-	All,
-	/// true if any of the criteria are met.
-	Any,
-	/// true if none of the criteria are met.
-	NA,
-	/// Same as [`Self::All`] if the criteria is non-empty;
-	/// for empty criteria this rule requires returned value to also have empty set.
-	Empty,
-}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -292,17 +228,5 @@ mod tests {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
 		let match_type_signature = rule_signature.slice(3..4);
 		assert_eq!(MatchType::signature(), match_type_signature);
-	}
-
-	#[test]
-	fn validate_tree_traversal_type_signature() {
-		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "tree");
-		assert_eq!(TreeTraversalType::signature(), signature);
-	}
-
-	#[test]
-	fn validate_sort_order_signature() {
-		let signature = method_args_signature!(member: "GetMatches", interface: "org.a11y.atspi.Collection", argument: "sortby");
-		assert_eq!(SortOrder::signature(), signature);
 	}
 }

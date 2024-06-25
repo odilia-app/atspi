@@ -385,7 +385,8 @@ impl StateSet {
 	}
 
 	/// Returns an iterator that yields each set [`State`].
-	pub fn iter(self) -> impl Iterator<Item = State> {
+	#[must_use]
+	pub fn iter(self) -> enumflags2::Iter<State> {
 		self.0.iter()
 	}
 
@@ -403,6 +404,36 @@ impl StateSet {
 	/// Toggles the matching bits.
 	pub fn toggle<B: Into<BitFlags<State>>>(&mut self, other: B) {
 		self.0.toggle(other);
+	}
+}
+
+impl IntoIterator for StateSet {
+	type IntoIter = enumflags2::Iter<State>;
+	type Item = State;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl IntoIterator for &StateSet {
+	type IntoIter = enumflags2::Iter<State>;
+	type Item = State;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl FromIterator<State> for StateSet {
+	fn from_iter<I: IntoIterator<Item = State>>(iter: I) -> Self {
+		StateSet(iter.into_iter().collect())
+	}
+}
+
+impl<'a> FromIterator<&'a State> for StateSet {
+	fn from_iter<I: IntoIterator<Item = &'a State>>(iter: I) -> Self {
+		StateSet(iter.into_iter().copied().collect())
 	}
 }
 
@@ -606,9 +637,8 @@ mod tests {
 
 	#[test]
 	fn convert_state_direct_string() {
-		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
-			.unwrap()
-			.iter()
+		for state in
+			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
 			let state_str: String = state.into();
 			let state_two: State = state_str.clone().into();
@@ -620,9 +650,8 @@ mod tests {
 	}
 	#[test]
 	fn convert_state_direct_string_is_equal_to_serde_output() {
-		for state in StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111)
-			.unwrap()
-			.iter()
+		for state in
+			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
 			let serde_state_str: String = serde_plain::to_string(&state).unwrap();
 			let state_str: String = state.into();
@@ -630,5 +659,44 @@ mod tests {
 			let state_two: State = serde_plain::from_str(&state_str).unwrap();
 			assert_eq!(state, state_two, "The {state:?} was serialized as {state_str}, which deserializes to {state_two:?} (serde)");
 		}
+	}
+
+	#[test]
+	fn collect_stateset_from_owned_states() {
+		let states = vec![State::Active, State::Focused, State::Focusable];
+		let set = StateSet::from_iter(states);
+		assert!(set.contains(State::Active));
+		assert!(set.contains(State::Focused));
+		assert!(set.contains(State::Focusable));
+	}
+
+	#[test]
+	fn collect_stateset_from_borrowed_states() {
+		// &[T].iter() yields &T
+		let states = &[State::Active, State::Focused, State::Focusable];
+		let set = states.iter().collect::<StateSet>();
+		assert!(set.contains(State::Active));
+		assert!(set.contains(State::Focused));
+		assert!(set.contains(State::Focusable));
+	}
+
+	#[test]
+	fn into_iterator_owned_stateset() {
+		let set = StateSet::new(State::Active | State::Focused | State::Focusable);
+		let states: Vec<State> = set.into_iter().collect();
+		assert_eq!(states.len(), 3);
+		assert!(states.contains(&State::Active));
+		assert!(states.contains(&State::Focused));
+		assert!(states.contains(&State::Focusable));
+	}
+
+	#[test]
+	fn into_iterator_borrowed_stateset() {
+		let set = StateSet::new(State::Active | State::Focused | State::Focusable);
+		let states: Vec<State> = (&set).into_iter().collect();
+		assert_eq!(states.len(), 3);
+		assert!(states.contains(&State::Active));
+		assert!(states.contains(&State::Focused));
+		assert!(states.contains(&State::Focusable));
 	}
 }
