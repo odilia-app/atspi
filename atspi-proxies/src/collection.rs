@@ -18,13 +18,13 @@ use crate::common::{ObjectMatchRule, ObjectRef, SortOrder, TreeTraversalType};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 trait Collection {
-	// The active descendant of the given object.
-	//
-	// Looks like this is unimplemented.
-	//
-	// See [atspi/collection.c](https://gitlab.gnome.org/GNOME/at-spi2-core/-/blob/main/atspi/atspi-collection.c?ref_type=heads#L272)
-	//
-	// fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
+	/// The active descendant of the given object.
+	///
+	/// May not be implemented by any known toolkit or private implementation.
+	///
+	/// See [atspi/collection.c](https://gitlab.gnome.org/GNOME/at-spi2-core/-/blob/main/atspi/atspi-collection.c?ref_type=heads#L272)
+	///
+	fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
 
 	/// Retrieves a list of objects that match the specified ObjectMatchRule, ordered according to SortOrder and limited by the count parameter.
 	///
