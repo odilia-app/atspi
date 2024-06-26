@@ -22,11 +22,11 @@ impl TryFrom<&str> for Operation {
 	}
 }
 
-impl Into<String> for Operation {
-	fn into(self) -> String {
-		match self {
-			Self::Insert => "add",
-			Self::Delete => "delete",
+impl From<Operation> for String {
+	fn from(op: Operation) -> String {
+		match op {
+			Operation::Insert => "add",
+			Operation::Delete => "delete",
 		}
 		.to_string()
 	}
