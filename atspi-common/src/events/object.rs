@@ -232,6 +232,7 @@ impl HasMatchRule for ObjectEvents {
 pub struct PropertyChangeEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
+	// TODO: this is not necessary since the string is encoded in the `Property` type.
 	pub property: String,
 	pub value: Property,
 }
@@ -254,6 +255,9 @@ impl Default for PropertyChangeEvent {
 	}
 }
 
+/// Any accessibility related property on an [`ObjectRef`].
+/// This is used only in the [`PropertyChangeEvent`]; this event gets triggered if a role or accessible
+/// description of an item changes.
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[non_exhaustive]
 pub enum Property {
@@ -563,6 +567,9 @@ pub struct TextChangedEvent {
 	pub text: String,
 }
 
+/// Signal that some attributes about the text (usually styling) has changed.
+/// This event does not encode _what_ has changed about the attributes, merely that they have
+/// changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
 	/// The [`ObjectRef`] which the event applies to.

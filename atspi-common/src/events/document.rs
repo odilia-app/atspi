@@ -134,6 +134,13 @@ pub struct AttributesChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+/// The focused page has changed. This event is usually sent only by document readers, signaling
+/// that the _physical page equivelant_ is now different.
+/// This event does not encode _which_ page is the new one, only that a new page is now the primary
+/// one.
+///
+/// See `atspi_proxies::document::DocumentProxy::current_page_number` to actively find the
+/// page number.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
 	/// The [`ObjectRef`] which the event applies to.
