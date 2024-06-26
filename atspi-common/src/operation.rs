@@ -5,6 +5,8 @@ pub enum Operation {
 	#[default]
 	#[serde(rename = "add")]
 	#[serde(alias = "add/system")]
+	#[serde(alias = "insert")]
+	#[serde(alias = "insert/system")]
 	Insert,
 	#[serde(rename = "delete")]
 	#[serde(alias = "delete/system")]
