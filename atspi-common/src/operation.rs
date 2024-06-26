@@ -10,6 +10,8 @@ pub enum Operation {
 	Insert,
 	#[serde(rename = "delete")]
 	#[serde(alias = "delete/system")]
+	#[serde(alias = "remove")]
+	#[serde(alias = "remove/system")]
 	Delete,
 }
 
@@ -17,9 +19,9 @@ impl TryFrom<&str> for Operation {
 	type Error = crate::AtspiError;
 	fn try_from(s: &str) -> Result<Operation, Self::Error> {
 		match s {
-			"add" | "add/system" => Ok(Operation::Insert),
-			"delete" | "delete/system" => Ok(Operation::Delete),
-			_ => Err(crate::AtspiError::KindMatch(format!("\"{s}\" is not a type of Operation"))),
+			"add" | "add/system" | "insert" | "insert/system" => Ok(Operation::Insert),
+			"delete" | "delete/system" | "remove" | "remove/system" => Ok(Operation::Delete),
+			_ => Err(crate::AtspiError::KindMatch(format!("{s} is not a type of Operation"))),
 		}
 	}
 }
@@ -27,8 +29,8 @@ impl TryFrom<&str> for Operation {
 impl From<Operation> for String {
 	fn from(op: Operation) -> String {
 		match op {
-			Operation::Insert => "add",
-			Operation::Delete => "delete",
+			Operation::Insert => "insert",
+			Operation::Delete => "remove",
 		}
 		.to_string()
 	}
