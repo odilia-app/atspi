@@ -416,12 +416,33 @@ pub struct StateChangedEvent {
 	pub item: crate::events::ObjectRef,
 	/// The state to be enabled/disabled.
 	pub state: State,
-	/// Enabled or disabled the state.
-	///
-	/// 1 == enabled
-	///
-	/// 0 == disabled
-	pub enabled: i32,
+	/// Whether the state was enabled or disabled.
+	#[serde(with = "i32_bool_conversion")]
+	pub enabled: bool,
+}
+
+mod i32_bool_conversion {
+	use serde::{Deserialize, Deserializer, Serializer};
+	/// Convert an integer flag to a boolean.
+	/// returns true if value is more than 0, otherwise false
+	pub fn deserialize<'de, D>(de: D) -> Result<bool, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let int: i32 = Deserialize::deserialize(de)?;
+		Ok(int > 0)
+	}
+
+	/// Convert a boolean flag to an integer.
+	/// returns 0 if false and 1 if true
+	#[allow(clippy::trivially_copy_pass_by_ref)]
+	pub fn serialize<S>(b: &bool, ser: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		let val: i32 = (*b).into();
+		ser.serialize_i32(val)
+	}
 }
 
 /// A child of an [`ObjectRef`] has been added or removed.
@@ -644,7 +665,7 @@ impl BusProperties for StateChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 })
+		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 > 0 })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -1130,7 +1151,7 @@ impl From<StateChangedEvent> for EventBodyOwned {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
 			kind: event.state.into(),
-			detail1: event.enabled,
+			detail1: event.enabled.into(),
 			detail2: i32::default(),
 			any_data: u8::default().into(),
 		}
