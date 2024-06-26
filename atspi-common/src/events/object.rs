@@ -454,7 +454,7 @@ mod i32_bool_conversion {
 pub struct ChildrenChangedEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// The [`Operation`] being performed.
+	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// Index to remove from/add to.
 	pub index_in_parent: i32,
@@ -562,7 +562,7 @@ pub struct TextSelectionChangedEvent {
 pub struct TextChangedEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// The [`Operation`] being performed.
+	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// starting index of the insertion/deletion
 	pub start_pos: i32,
