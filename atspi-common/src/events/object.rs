@@ -567,7 +567,7 @@ pub struct TextChangedEvent {
 	pub text: String,
 }
 
-/// Signal that some attributes about the text (usually styling) has changed.
+/// Signal that some attributes about the text (usually styling) have changed.
 /// This event does not encode _what_ has changed about the attributes, merely that they have
 /// changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]

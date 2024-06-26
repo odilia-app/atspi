@@ -135,7 +135,7 @@ pub struct AttributesChangedEvent {
 }
 
 /// The focused page has changed. This event is usually sent only by document readers, signaling
-/// that the _physical page equivelant_ is now different.
+/// that the _physical page equivalent is now different.
 /// This event does not encode _which_ page is the new one, only that a new page is now the primary
 /// one.
 ///
