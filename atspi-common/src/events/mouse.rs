@@ -1,6 +1,9 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -104,10 +107,12 @@ impl BusProperties for AbsEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
 
+impl MessageConversion for AbsEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
@@ -122,10 +127,12 @@ impl BusProperties for RelEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
 
+impl MessageConversion for RelEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
@@ -140,10 +147,12 @@ impl BusProperties for ButtonEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
 
+impl MessageConversion for ButtonEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {

@@ -1,6 +1,9 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -69,10 +72,15 @@ impl BusProperties for FocusEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
+}
 
+impl MessageConversion for FocusEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {

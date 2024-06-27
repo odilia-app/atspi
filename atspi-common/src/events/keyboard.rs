@@ -1,6 +1,9 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -72,10 +75,12 @@ impl BusProperties for ModifiersEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
 	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
+}
 
+impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
 	fn body(&self) -> Self::Body {

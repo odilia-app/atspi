@@ -412,10 +412,12 @@ impl BusProperties for LegacyAddAccessibleEvent {
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
 	const DBUS_MEMBER: &'static str = "AddAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+}
 
+impl MessageConversion for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -449,10 +451,12 @@ impl BusProperties for AddAccessibleEvent {
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
 	const DBUS_MEMBER: &'static str = "AddAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+}
 
+impl MessageConversion for AddAccessibleEvent {
 	type Body = CacheItem;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 
@@ -494,10 +498,12 @@ impl BusProperties for RemoveAccessibleEvent {
 		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
 	const DBUS_MEMBER: &'static str = "RemoveAccessible";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+}
 
+impl MessageConversion for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -690,10 +696,12 @@ impl BusProperties for EventListenerDeregisteredEvent {
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
 	const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+}
 
+impl MessageConversion for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, deregistered_event: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -732,10 +740,12 @@ impl BusProperties for EventListenerRegisteredEvent {
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
 	const DBUS_MEMBER: &'static str = "EventListenerRegistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+}
 
+impl MessageConversion for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, registered_event: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -775,10 +785,12 @@ impl BusProperties for AvailableEvent {
 		"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
 	const DBUS_MEMBER: &'static str = "Available";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
+}
 
+impl MessageConversion for AvailableEvent {
 	type Body = ObjectRef;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, socket: body })
 	}
 	fn body(&self) -> Self::Body {
@@ -936,17 +948,22 @@ pub trait BusProperties {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
 	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
+}
 
+pub trait MessageConversion {
 	/// What is the body type of this event.
 	type Body: Type + Serialize + for<'a> Deserialize<'a>;
 
-	/// Build the event from the object pair (`ObjectRef` and the Body).
+	/// Build the event from the object pair ([`crate::ObjectRef`] and the body type
+	/// [`zbus::message::Body`]).
 	///
 	/// # Errors
 	///
-	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
-	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
+	/// When the body type does not match the [`Self::Body`] type defined in this trait.
+	/// Technically, it may also panic if you are accepting file descriptors over the
+	/// [`enum@zvariant::Value`] variant, and you are out of file descriptors for the process.
+	/// THis is considered exceptionally rare and should never happen.
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 

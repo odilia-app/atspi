@@ -1,6 +1,9 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -134,10 +137,15 @@ impl BusProperties for LineChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+}
 
+impl MessageConversion for LineChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -152,10 +160,15 @@ impl BusProperties for ColumnCountChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+}
 
+impl MessageConversion for ColumnCountChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -170,10 +183,15 @@ impl BusProperties for LineCountChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+}
 
+impl MessageConversion for LineCountChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -188,10 +206,15 @@ impl BusProperties for ApplicationChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+}
 
+impl MessageConversion for ApplicationChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -206,10 +229,15 @@ impl BusProperties for CharWidthChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+}
 
+impl MessageConversion for CharWidthChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {

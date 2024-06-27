@@ -1,6 +1,9 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -330,10 +333,12 @@ impl BusProperties for PropertyChangeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, property: body.kind })
 	}
 	fn body(&self) -> Self::Body {
@@ -348,10 +353,15 @@ impl BusProperties for MinimizeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for MinimizeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -366,10 +376,15 @@ impl BusProperties for MaximizeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for MaximizeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -384,10 +399,15 @@ impl BusProperties for RestoreEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for RestoreEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -402,10 +422,15 @@ impl BusProperties for CloseEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for CloseEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -420,10 +445,15 @@ impl BusProperties for CreateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for CreateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -438,10 +468,15 @@ impl BusProperties for ReparentEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for ReparentEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -456,10 +491,15 @@ impl BusProperties for DesktopCreateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for DesktopCreateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -474,10 +514,15 @@ impl BusProperties for DesktopDestroyEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for DesktopDestroyEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -492,10 +537,15 @@ impl BusProperties for DestroyEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for DestroyEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -510,10 +560,15 @@ impl BusProperties for ActivateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for ActivateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -528,10 +583,15 @@ impl BusProperties for DeactivateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for DeactivateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -546,10 +606,15 @@ impl BusProperties for RaiseEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for RaiseEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -564,10 +629,15 @@ impl BusProperties for LowerEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for LowerEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -582,10 +652,15 @@ impl BusProperties for MoveEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for MoveEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -600,10 +675,15 @@ impl BusProperties for ResizeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for ResizeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -618,10 +698,15 @@ impl BusProperties for ShadeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for ShadeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -636,10 +721,15 @@ impl BusProperties for UUshadeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for UUshadeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -654,10 +744,15 @@ impl BusProperties for RestyleEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+impl MessageConversion for RestyleEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {

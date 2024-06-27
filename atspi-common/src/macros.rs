@@ -246,7 +246,7 @@ macro_rules! impl_to_dbus_message {
 ///         msg.header().member().unwrap(),
 ///         StateChangedEvent::DBUS_MEMBER)));
 ///     }
-///     StateChangedEvent::from_message_parts(msg.try_into()?, msg.body().try_into()?)
+///     StateChangedEvent::from_message_parts_unchecked(msg.try_into()?, msg.body().deserialize::<StateChangedEvent::Body>()?)
 ///  }
 /// }
 /// ```
@@ -307,9 +307,9 @@ macro_rules! impl_from_dbus_message {
 						<$type as BusProperties>::DBUS_MEMBER
 					)));
 				}
-				<$type>::from_message_parts(
+				<$type>::from_message_parts_unchecked(
 					msg.try_into()?,
-					msg.body().deserialize::<<$type as BusProperties>::Body>()?,
+					msg.body().deserialize::<<$type as MessageConversion>::Body>()?,
 				)
 			}
 		}
@@ -320,13 +320,13 @@ macro_rules! impl_from_dbus_message {
 // This prevents Clippy from complaining about the macro not being used.
 // It is being used, but only in test mode.
 //
-/// Tests `Default` and `BusProperties::from_message_parts` for a given event struct.
+/// Tests `Default` and `BusProperties::from_message_parts_unchecked` for a given event struct.
 ///
 /// Obtains a default for the given event struct.
 /// Asserts that the path and sender are the default.
 ///
 /// Breaks the struct down into item (the associated object) and body.
-/// Then tests `BusProperties::from_message_parts` with the item and body.
+/// Then tests `BusProperties::from_message_parts_unchecked` with the item and body.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
@@ -337,7 +337,7 @@ macro_rules! generic_event_test_case {
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let item = struct_event.item.clone();
 			let body = struct_event.body();
-			let build_struct = <$type>::from_message_parts(item, body)
+			let build_struct = <$type>::from_message_parts_unchecked(item, body)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}

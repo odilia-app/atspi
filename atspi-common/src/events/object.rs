@@ -2,7 +2,10 @@ use std::hash::Hash;
 
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties, State,
 };
 use zbus_names::UniqueName;
@@ -596,10 +599,12 @@ impl BusProperties for PropertyChangeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		let property = body.kind.clone();
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
@@ -616,10 +621,15 @@ impl BusProperties for BoundsChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for BoundsChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -634,10 +644,15 @@ impl BusProperties for LinkSelectedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for LinkSelectedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -652,10 +667,12 @@ impl BusProperties for StateChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 > 0 })
 	}
 	fn body(&self) -> Self::Body {
@@ -670,10 +687,12 @@ impl BusProperties for ChildrenChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind.as_str().parse()?,
@@ -693,10 +712,15 @@ impl BusProperties for VisibleDataChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for VisibleDataChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -711,10 +735,15 @@ impl BusProperties for SelectionChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for SelectionChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -729,10 +758,15 @@ impl BusProperties for ModelChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for ModelChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -747,10 +781,12 @@ impl BusProperties for ActiveDescendantChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
@@ -765,10 +801,12 @@ impl BusProperties for AnnouncementEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
@@ -787,10 +825,15 @@ impl BusProperties for AttributesChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for AttributesChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -805,10 +848,15 @@ impl BusProperties for RowInsertedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for RowInsertedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -823,10 +871,15 @@ impl BusProperties for RowReorderedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for RowReorderedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -841,10 +894,15 @@ impl BusProperties for RowDeletedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for RowDeletedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -859,10 +917,15 @@ impl BusProperties for ColumnInsertedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for ColumnInsertedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -877,10 +940,15 @@ impl BusProperties for ColumnReorderedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for ColumnReorderedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -895,10 +963,15 @@ impl BusProperties for ColumnDeletedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for ColumnDeletedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -913,10 +986,15 @@ impl BusProperties for TextBoundsChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for TextBoundsChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -931,10 +1009,15 @@ impl BusProperties for TextSelectionChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for TextSelectionChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -949,10 +1032,12 @@ impl BusProperties for TextChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind.as_str().parse()?,
@@ -973,10 +1058,15 @@ impl BusProperties for TextAttributesChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for TextAttributesChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		_body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -991,10 +1081,12 @@ impl BusProperties for TextCaretMovedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
 	}
 	fn body(&self) -> Self::Body {
