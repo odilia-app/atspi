@@ -221,9 +221,9 @@ pub enum State {
 	ReadOnly,
 }
 
-impl From<State> for String {
-	fn from(state: State) -> String {
-		match state {
+impl fmt::Display for State {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		let state_str = match self {
 			State::Invalid => "invalid",
 			State::Active => "active",
 			State::Armed => "armed",
@@ -268,8 +268,8 @@ impl From<State> for String {
 			State::Checkable => "checkable",
 			State::HasPopup => "has-popup",
 			State::ReadOnly => "read-only",
-		}
-		.to_string()
+		};
+		f.write_str(state_str)
 	}
 }
 

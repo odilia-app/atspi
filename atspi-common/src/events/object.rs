@@ -1157,7 +1157,7 @@ impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.state.into(),
+			kind: event.state.to_string(),
 			detail1: event.enabled.into(),
 			detail2: i32::default(),
 			any_data: u8::default().into(),
