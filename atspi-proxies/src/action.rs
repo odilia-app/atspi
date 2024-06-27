@@ -17,6 +17,8 @@
 //! [TextProxy]: crate::text::TextProxy
 //! [ValueProxy]: crate::value::ValueProxy
 
+use atspi_common::Action;
+
 /// A handle for a remote object implementing the `org.a11y.atspi.Action`
 /// interface.
 ///
@@ -60,7 +62,7 @@ trait Action {
 	/// [`get_key_binding`]: ActionProxy#method.get_key_binding
 	/// [`get_localized_name`]: ActionProxy#method.get_localized_name
 	/// [`get_description`]: ActionProxy#method.get_description
-	fn get_actions(&self) -> zbus::Result<Vec<(String, String, String)>>;
+	fn get_actions(&self) -> zbus::Result<Vec<Action>>;
 
 	/// Returns the localized description for the action at the specified
 	/// index, starting at zero.
