@@ -676,7 +676,7 @@ impl BusProperties for ChildrenChangedEvent {
 	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			operation: body.kind.as_str().try_into()?,
+			operation: body.kind.as_str().parse()?,
 			index_in_parent: body.detail1,
 			child: body.any_data.try_into()?,
 		})
@@ -955,7 +955,7 @@ impl BusProperties for TextChangedEvent {
 	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			operation: body.kind.as_str().try_into()?,
+			operation: body.kind.as_str().parse()?,
 			start_pos: body.detail1,
 			length: body.detail2,
 			text: body.any_data.try_into()?,
@@ -1168,7 +1168,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.operation.into(),
+			kind: event.operation.to_string(),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `ObjectRef`
@@ -1581,7 +1581,7 @@ impl From<TextChangedEvent> for EventBodyOwned {
 	fn from(event: TextChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.operation.into(),
+			kind: event.operation.to_string(),
 			detail1: event.start_pos,
 			detail2: event.length,
 
