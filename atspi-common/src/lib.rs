@@ -38,7 +38,25 @@ use zvariant::Type;
 
 pub type Result<T> = std::result::Result<T, AtspiError>;
 
-pub type TextSelection = (ObjectRef, i32, ObjectRef, i32, bool);
+/// Describes a selection of text, including selections across object boundaries.
+/// For example, selecting from the beginning of a paragraph to half way through a link would cause
+/// the start and end object references to be different.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct TextSelection {
+	/// starting object reference
+	start_obj: ObjectRef,
+	/// text offset within `start_obj`
+	start_idx: i32,
+	/// ending object reference
+	end_obj: ObjectRef,
+	/// text offset within `end_obj`
+	end_idx: i32,
+	/// is the `start_obj` active;
+	///
+	/// This is the same as querying for the [`StateSet`], then checking if [`State::Active`] is contained.
+	/// See `atspi_proxies::accessible::AccessibleProxy` for more information on checking state.
+	start_is_active: bool,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
@@ -228,5 +246,13 @@ mod tests {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
 		let match_type_signature = rule_signature.slice(3..4);
 		assert_eq!(MatchType::signature(), match_type_signature);
+	}
+
+	#[test]
+	fn validate_text_selection_signature() {
+		let selection_signature = method_args_signature!(member: "GetTextSelections", interface: "org.a11y.atspi.Document", argument: "selections")
+        .slice(1..);
+		// this signature is written: `a(...)`, where `(...)` is the signature we want to compare against
+		assert_eq!(TextSelection::signature(), selection_signature);
 	}
 }
