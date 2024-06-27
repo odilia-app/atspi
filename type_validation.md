@@ -32,3 +32,4 @@ We leverage [zbus-lockstep](https://github.com/luukvanderduim/zbus-lockstep/) to
 | `ScrollType` | ✓ | `Component::ScrollTo` argument `type`|
 | `Politeness` | ✓ | `Event.Object::Announcement` argument `politeness`|
 | `ObjectMatchRule` | ⚠ | `Collection::GetMatches` argument 'rule' contains `Vec<Role>` and `StateSet` which are defined as "ai", but `Role` and `StateSet` are not.|
+| `TextSelection` | ✓ | `Document::GetTextSelections` argument `selections` contains `Vec<TextSelection>`
