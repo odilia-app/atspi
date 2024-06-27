@@ -4,7 +4,7 @@ use serde::{
 	ser::{SerializeSeq, Serializer},
 	Deserialize, Serialize,
 };
-use std::fmt;
+use std::{convert::Infallible, fmt, str::FromStr};
 use zvariant::{Signature, Type};
 
 /// Used by various interfaces indicating every possible state
@@ -279,6 +279,13 @@ impl From<String> for State {
 	}
 }
 
+impl FromStr for State {
+	type Err = Infallible;
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(s.into())
+	}
+}
+
 impl From<&str> for State {
 	fn from(string: &str) -> State {
 		match string {
@@ -338,20 +345,20 @@ pub struct StateSet(BitFlags<State>);
 impl StateSet {
 	/// Create a new `StateSet`.
 	///
-	///## Example
-	///```Rust
-	///     let states = State::Focusable | State::Sensitive | State::Active;
-	///     let set = StateSet::new(states);
+	/// ## Example
+	/// ```rust
+	/// let states = State::Focusable | State::Sensitive | State::Active;
+	/// let set = StateSet::new(states);
 	///
-	///     assert!(set.contains(State::Active));
-	///     assert!(!set.contains(State::Busy));
+	/// assert!(set.contains(State::Active));
+	/// assert!(!set.contains(State::Busy));
 	/// ```
 	pub fn new<B: Into<BitFlags<State>>>(value: B) -> Self {
 		Self(value.into())
 	}
 
 	/// Returns the `StateSet` that corresponds to the provided `u64`s bit pattern.
-	///# Errors
+	/// # Errors
 	/// When the argument encodes an undefined [`State`].
 	pub fn from_bits(bits: u64) -> Result<StateSet, FromBitsError<State>> {
 		Ok(StateSet(BitFlags::from_bits(bits)?))
