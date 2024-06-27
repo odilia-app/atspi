@@ -42,33 +42,6 @@ use crate::{
 	AtspiError, ObjectRef,
 };
 
-/// A borrowed body for events.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EventBody<'a, T> {
-	/// A generic "kind" type, defined by AT-SPI:
-	/// usually a `&'a str`, but can be another type like [`crate::state::State`].
-	#[serde(rename = "type")]
-	pub kind: T,
-	/// Generic first detail defined by AT-SPI.
-	pub detail1: i32,
-	/// Generic second detail defined by AT-SPI.
-	pub detail2: i32,
-	/// Generic `any_data` field defined in AT-SPI.
-	/// Can contain any type.
-	#[serde(borrow)]
-	pub any_data: Value<'a>,
-	/// Map of string to an any type.
-	/// This is not used for anything, but it is defined by AT-SPI.
-	#[serde(borrow)]
-	pub properties: HashMap<UniqueName<'a>, Value<'a>>,
-}
-
-impl<T> Type for EventBody<'_, T> {
-	fn signature() -> Signature<'static> {
-		<(&str, i32, i32, Value, HashMap<&str, Value>)>::signature()
-	}
-}
-
 /// Qt event body, which is not the same as other GUI frameworks.
 /// Signature:  "siiv(so)"
 #[derive(Debug, Serialize, Deserialize, Type)]
