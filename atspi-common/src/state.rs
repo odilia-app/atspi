@@ -347,6 +347,7 @@ impl StateSet {
 	///
 	/// ## Example
 	/// ```rust
+	/// # use atspi_common::{State, StateSet};
 	/// let states = State::Focusable | State::Sensitive | State::Active;
 	/// let set = StateSet::new(states);
 	///
