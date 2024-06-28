@@ -308,8 +308,8 @@ macro_rules! impl_from_dbus_message {
 					)));
 				}
 				<$type>::try_from_message_unchecked(
-					msg.try_into()?,
-					msg.body(), //.deserialize::<<$type as MessageConversion>::Body>()?,
+					msg, //msg.try_into()?,
+					    //msg.body(), //.deserialize::<<$type as MessageConversion>::Body>()?,
 				)
 			}
 		}
@@ -335,14 +335,12 @@ macro_rules! generic_event_test_case {
 			let struct_event = <$type>::default();
 			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
-			let item = struct_event.item.clone();
 			let body = struct_event.body();
 			let body2 = Message::method("/my/fake/path", "my.fake.interface")
 				.expect("A message must be able to be built to run this test.")
 				.build(&(body,))
-				.expect("A message must be able to be built to run this test.")
-				.body();
-			let build_struct = <$type>::try_from_message_unchecked(item, body2)
+				.expect("A message must be able to be built to run this test.");
+			let build_struct = <$type>::try_from_message_unchecked(&body2)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}

@@ -142,10 +142,8 @@ impl BusProperties for LineChangedEvent {
 impl MessageConversion for LineChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -166,10 +164,8 @@ impl BusProperties for ColumnCountChangedEvent {
 impl MessageConversion for ColumnCountChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -190,10 +186,8 @@ impl BusProperties for LineCountChangedEvent {
 impl MessageConversion for LineCountChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -214,10 +208,8 @@ impl BusProperties for ApplicationChangedEvent {
 impl MessageConversion for ApplicationChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -238,10 +230,8 @@ impl BusProperties for CharWidthChangedEvent {
 impl MessageConversion for CharWidthChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {

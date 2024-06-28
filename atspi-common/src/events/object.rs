@@ -604,10 +604,9 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		let property = ev_body.kind.to_string();
 		let value: Property = ev_body.try_into()?;
@@ -631,10 +630,8 @@ impl BusProperties for BoundsChangedEvent {
 impl MessageConversion for BoundsChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -655,10 +652,8 @@ impl BusProperties for LinkSelectedEvent {
 impl MessageConversion for LinkSelectedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -679,10 +674,9 @@ impl BusProperties for StateChangedEvent {
 impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self { item, state: ev_body.kind.into(), enabled: ev_body.detail1 > 0 })
 	}
@@ -704,10 +698,9 @@ impl BusProperties for ChildrenChangedEvent {
 impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self {
 			item,
@@ -734,10 +727,8 @@ impl BusProperties for VisibleDataChangedEvent {
 impl MessageConversion for VisibleDataChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -758,10 +749,8 @@ impl BusProperties for SelectionChangedEvent {
 impl MessageConversion for SelectionChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -782,10 +771,8 @@ impl BusProperties for ModelChangedEvent {
 impl MessageConversion for ModelChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -806,10 +793,9 @@ impl BusProperties for ActiveDescendantChangedEvent {
 impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		Ok(Self { item, child: body.deserialize_unchecked::<Self::Body>()?.any_data.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
@@ -830,10 +816,9 @@ impl BusProperties for AnnouncementEvent {
 impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self {
 			item,
@@ -862,10 +847,8 @@ impl BusProperties for AttributesChangedEvent {
 impl MessageConversion for AttributesChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -886,10 +869,8 @@ impl BusProperties for RowInsertedEvent {
 impl MessageConversion for RowInsertedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -910,10 +891,8 @@ impl BusProperties for RowReorderedEvent {
 impl MessageConversion for RowReorderedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -934,10 +913,8 @@ impl BusProperties for RowDeletedEvent {
 impl MessageConversion for RowDeletedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -958,10 +935,8 @@ impl BusProperties for ColumnInsertedEvent {
 impl MessageConversion for ColumnInsertedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -982,10 +957,8 @@ impl BusProperties for ColumnReorderedEvent {
 impl MessageConversion for ColumnReorderedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -1006,10 +979,8 @@ impl BusProperties for ColumnDeletedEvent {
 impl MessageConversion for ColumnDeletedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -1030,10 +1001,8 @@ impl BusProperties for TextBoundsChangedEvent {
 impl MessageConversion for TextBoundsChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -1054,10 +1023,8 @@ impl BusProperties for TextSelectionChangedEvent {
 impl MessageConversion for TextSelectionChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -1078,10 +1045,9 @@ impl BusProperties for TextChangedEvent {
 impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self {
 			item,
@@ -1109,10 +1075,8 @@ impl BusProperties for TextAttributesChangedEvent {
 impl MessageConversion for TextAttributesChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		_body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
 		Ok(Self { item })
 	}
 	fn body(&self) -> Self::Body {
@@ -1133,10 +1097,9 @@ impl BusProperties for TextCaretMovedEvent {
 impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		Ok(Self { item, position: body.deserialize_unchecked::<Self::Body>()?.detail1 })
 	}
 	fn body(&self) -> Self::Body {

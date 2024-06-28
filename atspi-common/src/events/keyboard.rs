@@ -80,10 +80,9 @@ impl BusProperties for ModifiersEvent {
 impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(
-		item: ObjectRef,
-		body: zbus::message::Body,
-	) -> Result<Self, AtspiError> {
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self { item, previous_modifiers: ev_body.detail1, current_modifiers: ev_body.detail2 })
 	}
