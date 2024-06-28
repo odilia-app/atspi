@@ -157,40 +157,12 @@ impl BusProperties for LoadCompleteEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for LoadCompleteEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ReloadEvent {
 	const DBUS_MEMBER: &'static str = "Reload";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ReloadEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for LoadStoppedEvent {
@@ -201,40 +173,12 @@ impl BusProperties for LoadStoppedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for LoadStoppedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ContentChangedEvent {
 	const DBUS_MEMBER: &'static str = "ContentChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ContentChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for AttributesChangedEvent {
@@ -245,40 +189,12 @@ impl BusProperties for AttributesChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for AttributesChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for PageChangedEvent {
 	const DBUS_MEMBER: &'static str = "PageChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for PageChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 #[cfg(feature = "zbus")]
@@ -317,6 +233,7 @@ event_test_cases!(LoadCompleteEvent);
 impl_to_dbus_message!(LoadCompleteEvent);
 impl_from_dbus_message!(LoadCompleteEvent);
 impl_event_properties!(LoadCompleteEvent);
+impl_from_object_ref!(LoadCompleteEvent);
 impl From<LoadCompleteEvent> for EventBodyOwned {
 	fn from(_event: LoadCompleteEvent) -> Self {
 		EventBodyOwned {
@@ -341,6 +258,7 @@ event_test_cases!(ReloadEvent);
 impl_to_dbus_message!(ReloadEvent);
 impl_from_dbus_message!(ReloadEvent);
 impl_event_properties!(ReloadEvent);
+impl_from_object_ref!(ReloadEvent);
 impl From<ReloadEvent> for EventBodyOwned {
 	fn from(_event: ReloadEvent) -> Self {
 		EventBodyOwned {
@@ -369,6 +287,7 @@ event_test_cases!(LoadStoppedEvent);
 impl_to_dbus_message!(LoadStoppedEvent);
 impl_from_dbus_message!(LoadStoppedEvent);
 impl_event_properties!(LoadStoppedEvent);
+impl_from_object_ref!(LoadStoppedEvent);
 impl From<LoadStoppedEvent> for EventBodyOwned {
 	fn from(_event: LoadStoppedEvent) -> Self {
 		EventBodyOwned {
@@ -397,6 +316,7 @@ event_test_cases!(ContentChangedEvent);
 impl_to_dbus_message!(ContentChangedEvent);
 impl_from_dbus_message!(ContentChangedEvent);
 impl_event_properties!(ContentChangedEvent);
+impl_from_object_ref!(ContentChangedEvent);
 impl From<ContentChangedEvent> for EventBodyOwned {
 	fn from(_event: ContentChangedEvent) -> Self {
 		EventBodyOwned {
@@ -425,6 +345,7 @@ event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
+impl_from_object_ref!(AttributesChangedEvent);
 impl From<AttributesChangedEvent> for EventBodyOwned {
 	fn from(_event: AttributesChangedEvent) -> Self {
 		EventBodyOwned {
@@ -453,6 +374,7 @@ event_test_cases!(PageChangedEvent);
 impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);
 impl_event_properties!(PageChangedEvent);
+impl_from_object_ref!(PageChangedEvent);
 impl From<PageChangedEvent> for EventBodyOwned {
 	fn from(_event: PageChangedEvent) -> Self {
 		EventBodyOwned {

@@ -1,5 +1,5 @@
 #[cfg(feature = "zbus")]
-use crate::events::{MessageConversion, ObjectRef};
+use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
@@ -62,7 +62,7 @@ impl HasMatchRule for KeyboardEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,

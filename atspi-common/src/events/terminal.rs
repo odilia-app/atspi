@@ -138,40 +138,12 @@ impl BusProperties for LineChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for LineChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ColumnCountChangedEvent {
 	const DBUS_MEMBER: &'static str = "ColumncountChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ColumnCountChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for LineCountChangedEvent {
@@ -182,20 +154,6 @@ impl BusProperties for LineCountChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for LineCountChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ApplicationChangedEvent {
 	const DBUS_MEMBER: &'static str = "ApplicationChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
@@ -204,40 +162,12 @@ impl BusProperties for ApplicationChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for ApplicationChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for CharWidthChangedEvent {
 	const DBUS_MEMBER: &'static str = "CharwidthChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for CharWidthChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 #[cfg(feature = "zbus")]
@@ -274,6 +204,7 @@ event_test_cases!(LineChangedEvent);
 impl_to_dbus_message!(LineChangedEvent);
 impl_from_dbus_message!(LineChangedEvent);
 impl_event_properties!(LineChangedEvent);
+impl_from_object_ref!(LineChangedEvent);
 impl From<LineChangedEvent> for EventBodyOwned {
 	fn from(_event: LineChangedEvent) -> Self {
 		EventBodyOwned {
@@ -301,6 +232,7 @@ event_test_cases!(ColumnCountChangedEvent);
 impl_to_dbus_message!(ColumnCountChangedEvent);
 impl_from_dbus_message!(ColumnCountChangedEvent);
 impl_event_properties!(ColumnCountChangedEvent);
+impl_from_object_ref!(ColumnCountChangedEvent);
 impl From<ColumnCountChangedEvent> for EventBodyOwned {
 	fn from(_event: ColumnCountChangedEvent) -> Self {
 		EventBodyOwned {
@@ -328,6 +260,7 @@ event_test_cases!(LineCountChangedEvent);
 impl_to_dbus_message!(LineCountChangedEvent);
 impl_from_dbus_message!(LineCountChangedEvent);
 impl_event_properties!(LineCountChangedEvent);
+impl_from_object_ref!(LineCountChangedEvent);
 impl From<LineCountChangedEvent> for EventBodyOwned {
 	fn from(_event: LineCountChangedEvent) -> Self {
 		EventBodyOwned {
@@ -355,6 +288,7 @@ event_test_cases!(ApplicationChangedEvent);
 impl_to_dbus_message!(ApplicationChangedEvent);
 impl_from_dbus_message!(ApplicationChangedEvent);
 impl_event_properties!(ApplicationChangedEvent);
+impl_from_object_ref!(ApplicationChangedEvent);
 impl From<ApplicationChangedEvent> for EventBodyOwned {
 	fn from(_event: ApplicationChangedEvent) -> Self {
 		EventBodyOwned {
@@ -382,6 +316,7 @@ event_test_cases!(CharWidthChangedEvent);
 impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
 impl_event_properties!(CharWidthChangedEvent);
+impl_from_object_ref!(CharWidthChangedEvent);
 impl From<CharWidthChangedEvent> for EventBodyOwned {
 	fn from(_event: CharWidthChangedEvent) -> Self {
 		EventBodyOwned {

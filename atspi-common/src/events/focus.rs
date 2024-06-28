@@ -74,20 +74,6 @@ impl BusProperties for FocusEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for FocusEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
-#[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for FocusEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
@@ -110,6 +96,7 @@ event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);
 impl_event_properties!(FocusEvent);
+impl_from_object_ref!(FocusEvent);
 impl From<FocusEvent> for EventBodyOwned {
 	fn from(_event: FocusEvent) -> Self {
 		EventBodyOwned {

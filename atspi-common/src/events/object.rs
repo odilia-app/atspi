@@ -626,40 +626,12 @@ impl BusProperties for BoundsChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for BoundsChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for LinkSelectedEvent {
 	const DBUS_MEMBER: &'static str = "LinkSelected";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for LinkSelectedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for StateChangedEvent {
@@ -723,20 +695,6 @@ impl BusProperties for VisibleDataChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for VisibleDataChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for SelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "SelectionChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -745,40 +703,12 @@ impl BusProperties for SelectionChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for SelectionChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ModelChangedEvent {
 	const DBUS_MEMBER: &'static str = "ModelChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ModelChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ActiveDescendantChangedEvent {
@@ -843,40 +773,12 @@ impl BusProperties for AttributesChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for AttributesChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for RowInsertedEvent {
 	const DBUS_MEMBER: &'static str = "RowInserted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for RowInsertedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RowReorderedEvent {
@@ -887,40 +789,12 @@ impl BusProperties for RowReorderedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for RowReorderedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for RowDeletedEvent {
 	const DBUS_MEMBER: &'static str = "RowDeleted";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for RowDeletedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ColumnInsertedEvent {
@@ -931,40 +805,12 @@ impl BusProperties for ColumnInsertedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for ColumnInsertedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ColumnReorderedEvent {
 	const DBUS_MEMBER: &'static str = "ColumnReordered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ColumnReorderedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ColumnDeletedEvent {
@@ -975,20 +821,6 @@ impl BusProperties for ColumnDeletedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for ColumnDeletedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for TextBoundsChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextBoundsChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
@@ -997,40 +829,12 @@ impl BusProperties for TextBoundsChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for TextBoundsChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for TextSelectionChangedEvent {
 	const DBUS_MEMBER: &'static str = "TextSelectionChanged";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for TextSelectionChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for TextChangedEvent {
@@ -1069,20 +873,6 @@ impl BusProperties for TextAttributesChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for TextAttributesChangedEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for TextCaretMovedEvent {
@@ -1188,6 +978,7 @@ event_test_cases!(BoundsChangedEvent);
 impl_to_dbus_message!(BoundsChangedEvent);
 impl_from_dbus_message!(BoundsChangedEvent);
 impl_event_properties!(BoundsChangedEvent);
+impl_from_object_ref!(BoundsChangedEvent);
 impl From<BoundsChangedEvent> for EventBodyOwned {
 	fn from(_event: BoundsChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1215,6 +1006,7 @@ event_test_cases!(LinkSelectedEvent);
 impl_to_dbus_message!(LinkSelectedEvent);
 impl_from_dbus_message!(LinkSelectedEvent);
 impl_event_properties!(LinkSelectedEvent);
+impl_from_object_ref!(LinkSelectedEvent);
 impl From<LinkSelectedEvent> for EventBodyOwned {
 	fn from(_event: LinkSelectedEvent) -> Self {
 		EventBodyOwned {
@@ -1301,6 +1093,7 @@ event_test_cases!(VisibleDataChangedEvent);
 impl_to_dbus_message!(VisibleDataChangedEvent);
 impl_from_dbus_message!(VisibleDataChangedEvent);
 impl_event_properties!(VisibleDataChangedEvent);
+impl_from_object_ref!(VisibleDataChangedEvent);
 impl From<VisibleDataChangedEvent> for EventBodyOwned {
 	fn from(_event: VisibleDataChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1328,6 +1121,7 @@ event_test_cases!(SelectionChangedEvent);
 impl_to_dbus_message!(SelectionChangedEvent);
 impl_from_dbus_message!(SelectionChangedEvent);
 impl_event_properties!(SelectionChangedEvent);
+impl_from_object_ref!(SelectionChangedEvent);
 impl From<SelectionChangedEvent> for EventBodyOwned {
 	fn from(_event: SelectionChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1355,6 +1149,7 @@ event_test_cases!(ModelChangedEvent);
 impl_to_dbus_message!(ModelChangedEvent);
 impl_from_dbus_message!(ModelChangedEvent);
 impl_event_properties!(ModelChangedEvent);
+impl_from_object_ref!(ModelChangedEvent);
 impl From<ModelChangedEvent> for EventBodyOwned {
 	fn from(_event: ModelChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1443,6 +1238,7 @@ event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
+impl_from_object_ref!(AttributesChangedEvent);
 impl From<AttributesChangedEvent> for EventBodyOwned {
 	fn from(_event: AttributesChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1470,6 +1266,7 @@ event_test_cases!(RowInsertedEvent);
 impl_to_dbus_message!(RowInsertedEvent);
 impl_from_dbus_message!(RowInsertedEvent);
 impl_event_properties!(RowInsertedEvent);
+impl_from_object_ref!(RowInsertedEvent);
 impl From<RowInsertedEvent> for EventBodyOwned {
 	fn from(_event: RowInsertedEvent) -> Self {
 		EventBodyOwned {
@@ -1497,6 +1294,7 @@ event_test_cases!(RowReorderedEvent);
 impl_to_dbus_message!(RowReorderedEvent);
 impl_from_dbus_message!(RowReorderedEvent);
 impl_event_properties!(RowReorderedEvent);
+impl_from_object_ref!(RowReorderedEvent);
 impl From<RowReorderedEvent> for EventBodyOwned {
 	fn from(_event: RowReorderedEvent) -> Self {
 		EventBodyOwned {
@@ -1520,6 +1318,7 @@ event_test_cases!(RowDeletedEvent);
 impl_to_dbus_message!(RowDeletedEvent);
 impl_from_dbus_message!(RowDeletedEvent);
 impl_event_properties!(RowDeletedEvent);
+impl_from_object_ref!(RowDeletedEvent);
 impl From<RowDeletedEvent> for EventBodyOwned {
 	fn from(_event: RowDeletedEvent) -> Self {
 		EventBodyOwned {
@@ -1547,6 +1346,7 @@ event_test_cases!(ColumnInsertedEvent);
 impl_to_dbus_message!(ColumnInsertedEvent);
 impl_from_dbus_message!(ColumnInsertedEvent);
 impl_event_properties!(ColumnInsertedEvent);
+impl_from_object_ref!(ColumnInsertedEvent);
 impl From<ColumnInsertedEvent> for EventBodyOwned {
 	fn from(_event: ColumnInsertedEvent) -> Self {
 		EventBodyOwned {
@@ -1574,6 +1374,7 @@ event_test_cases!(ColumnReorderedEvent);
 impl_to_dbus_message!(ColumnReorderedEvent);
 impl_from_dbus_message!(ColumnReorderedEvent);
 impl_event_properties!(ColumnReorderedEvent);
+impl_from_object_ref!(ColumnReorderedEvent);
 impl From<ColumnReorderedEvent> for EventBodyOwned {
 	fn from(_event: ColumnReorderedEvent) -> Self {
 		EventBodyOwned {
@@ -1601,6 +1402,7 @@ event_test_cases!(ColumnDeletedEvent);
 impl_to_dbus_message!(ColumnDeletedEvent);
 impl_from_dbus_message!(ColumnDeletedEvent);
 impl_event_properties!(ColumnDeletedEvent);
+impl_from_object_ref!(ColumnDeletedEvent);
 impl From<ColumnDeletedEvent> for EventBodyOwned {
 	fn from(_event: ColumnDeletedEvent) -> Self {
 		EventBodyOwned {
@@ -1628,6 +1430,7 @@ event_test_cases!(TextBoundsChangedEvent);
 impl_to_dbus_message!(TextBoundsChangedEvent);
 impl_from_dbus_message!(TextBoundsChangedEvent);
 impl_event_properties!(TextBoundsChangedEvent);
+impl_from_object_ref!(TextBoundsChangedEvent);
 impl From<TextBoundsChangedEvent> for EventBodyOwned {
 	fn from(_event: TextBoundsChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1655,6 +1458,7 @@ event_test_cases!(TextSelectionChangedEvent);
 impl_to_dbus_message!(TextSelectionChangedEvent);
 impl_from_dbus_message!(TextSelectionChangedEvent);
 impl_event_properties!(TextSelectionChangedEvent);
+impl_from_object_ref!(TextSelectionChangedEvent);
 impl From<TextSelectionChangedEvent> for EventBodyOwned {
 	fn from(_event: TextSelectionChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1714,6 +1518,7 @@ event_test_cases!(TextAttributesChangedEvent);
 impl_to_dbus_message!(TextAttributesChangedEvent);
 impl_from_dbus_message!(TextAttributesChangedEvent);
 impl_event_properties!(TextAttributesChangedEvent);
+impl_from_object_ref!(TextAttributesChangedEvent);
 impl From<TextAttributesChangedEvent> for EventBodyOwned {
 	fn from(_event: TextAttributesChangedEvent) -> Self {
 		EventBodyOwned {

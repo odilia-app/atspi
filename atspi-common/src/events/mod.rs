@@ -429,6 +429,21 @@ impl MessageConversion for LegacyAddAccessibleEvent {
 	}
 }
 
+#[cfg(feature = "zbus")]
+impl<T> MessageConversion for T
+where
+	T: From<ObjectRef>,
+{
+	type Body = EventBodyOwned;
+	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item: ObjectRef = msg.try_into()?;
+		Ok(item.into())
+	}
+	fn body(&self) -> Self::Body {
+		EventBodyOwned::default()
+	}
+}
+
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]

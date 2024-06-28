@@ -206,7 +206,7 @@ impl HasMatchRule for WindowEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub property: String,
 }
@@ -357,40 +357,12 @@ impl BusProperties for MinimizeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for MinimizeEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for MaximizeEvent {
 	const DBUS_MEMBER: &'static str = "Maximize";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for MaximizeEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RestoreEvent {
@@ -401,40 +373,12 @@ impl BusProperties for RestoreEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for RestoreEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for CloseEvent {
 	const DBUS_MEMBER: &'static str = "Close";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for CloseEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for CreateEvent {
@@ -445,40 +389,12 @@ impl BusProperties for CreateEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for CreateEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ReparentEvent {
 	const DBUS_MEMBER: &'static str = "Reparent";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ReparentEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for DesktopCreateEvent {
@@ -489,40 +405,12 @@ impl BusProperties for DesktopCreateEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for DesktopCreateEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for DesktopDestroyEvent {
 	const DBUS_MEMBER: &'static str = "DesktopDestroy";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for DesktopDestroyEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for DestroyEvent {
@@ -533,40 +421,12 @@ impl BusProperties for DestroyEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for DestroyEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ActivateEvent {
 	const DBUS_MEMBER: &'static str = "Activate";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ActivateEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for DeactivateEvent {
@@ -577,40 +437,12 @@ impl BusProperties for DeactivateEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for DeactivateEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for RaiseEvent {
 	const DBUS_MEMBER: &'static str = "Raise";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for RaiseEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for LowerEvent {
@@ -621,40 +453,12 @@ impl BusProperties for LowerEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for LowerEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for MoveEvent {
 	const DBUS_MEMBER: &'static str = "Move";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for MoveEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ResizeEvent {
@@ -665,40 +469,12 @@ impl BusProperties for ResizeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for ResizeEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for ShadeEvent {
 	const DBUS_MEMBER: &'static str = "Shade";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for ShadeEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for UUshadeEvent {
@@ -709,40 +485,12 @@ impl BusProperties for UUshadeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-#[cfg(feature = "zbus")]
-impl MessageConversion for UUshadeEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
-}
-
 impl BusProperties for RestyleEvent {
 	const DBUS_MEMBER: &'static str = "Restyle";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion for RestyleEvent {
-	type Body = EventBodyOwned;
-
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 #[cfg(feature = "zbus")]
@@ -816,6 +564,7 @@ event_test_cases!(MinimizeEvent);
 impl_to_dbus_message!(MinimizeEvent);
 impl_from_dbus_message!(MinimizeEvent);
 impl_event_properties!(MinimizeEvent);
+impl_from_object_ref!(MinimizeEvent);
 impl From<MinimizeEvent> for EventBodyOwned {
 	fn from(_event: MinimizeEvent) -> Self {
 		EventBodyOwned {
@@ -839,6 +588,7 @@ event_test_cases!(MaximizeEvent);
 impl_to_dbus_message!(MaximizeEvent);
 impl_from_dbus_message!(MaximizeEvent);
 impl_event_properties!(MaximizeEvent);
+impl_from_object_ref!(MaximizeEvent);
 impl From<MaximizeEvent> for EventBodyOwned {
 	fn from(_event: MaximizeEvent) -> Self {
 		EventBodyOwned {
@@ -862,6 +612,7 @@ event_test_cases!(RestoreEvent);
 impl_to_dbus_message!(RestoreEvent);
 impl_from_dbus_message!(RestoreEvent);
 impl_event_properties!(RestoreEvent);
+impl_from_object_ref!(RestoreEvent);
 impl From<RestoreEvent> for EventBodyOwned {
 	fn from(_event: RestoreEvent) -> Self {
 		EventBodyOwned {
@@ -885,6 +636,7 @@ event_test_cases!(CloseEvent);
 impl_to_dbus_message!(CloseEvent);
 impl_from_dbus_message!(CloseEvent);
 impl_event_properties!(CloseEvent);
+impl_from_object_ref!(CloseEvent);
 impl From<CloseEvent> for EventBodyOwned {
 	fn from(_event: CloseEvent) -> Self {
 		EventBodyOwned {
@@ -908,6 +660,7 @@ event_test_cases!(CreateEvent);
 impl_to_dbus_message!(CreateEvent);
 impl_from_dbus_message!(CreateEvent);
 impl_event_properties!(CreateEvent);
+impl_from_object_ref!(CreateEvent);
 impl From<CreateEvent> for EventBodyOwned {
 	fn from(_event: CreateEvent) -> Self {
 		EventBodyOwned {
@@ -931,6 +684,7 @@ event_test_cases!(ReparentEvent);
 impl_to_dbus_message!(ReparentEvent);
 impl_from_dbus_message!(ReparentEvent);
 impl_event_properties!(ReparentEvent);
+impl_from_object_ref!(ReparentEvent);
 impl From<ReparentEvent> for EventBodyOwned {
 	fn from(_event: ReparentEvent) -> Self {
 		EventBodyOwned {
@@ -958,6 +712,7 @@ event_test_cases!(DesktopCreateEvent);
 impl_to_dbus_message!(DesktopCreateEvent);
 impl_from_dbus_message!(DesktopCreateEvent);
 impl_event_properties!(DesktopCreateEvent);
+impl_from_object_ref!(DesktopCreateEvent);
 impl From<DesktopCreateEvent> for EventBodyOwned {
 	fn from(_event: DesktopCreateEvent) -> Self {
 		EventBodyOwned {
@@ -985,6 +740,7 @@ event_test_cases!(DesktopDestroyEvent);
 impl_to_dbus_message!(DesktopDestroyEvent);
 impl_from_dbus_message!(DesktopDestroyEvent);
 impl_event_properties!(DesktopDestroyEvent);
+impl_from_object_ref!(DesktopDestroyEvent);
 impl From<DesktopDestroyEvent> for EventBodyOwned {
 	fn from(_event: DesktopDestroyEvent) -> Self {
 		EventBodyOwned {
@@ -1008,6 +764,7 @@ event_test_cases!(DestroyEvent);
 impl_to_dbus_message!(DestroyEvent);
 impl_from_dbus_message!(DestroyEvent);
 impl_event_properties!(DestroyEvent);
+impl_from_object_ref!(DestroyEvent);
 impl From<DestroyEvent> for EventBodyOwned {
 	fn from(_event: DestroyEvent) -> Self {
 		EventBodyOwned {
@@ -1031,6 +788,7 @@ event_test_cases!(ActivateEvent);
 impl_to_dbus_message!(ActivateEvent);
 impl_from_dbus_message!(ActivateEvent);
 impl_event_properties!(ActivateEvent);
+impl_from_object_ref!(ActivateEvent);
 impl From<ActivateEvent> for EventBodyOwned {
 	fn from(_event: ActivateEvent) -> Self {
 		EventBodyOwned {
@@ -1054,6 +812,7 @@ event_test_cases!(DeactivateEvent);
 impl_to_dbus_message!(DeactivateEvent);
 impl_from_dbus_message!(DeactivateEvent);
 impl_event_properties!(DeactivateEvent);
+impl_from_object_ref!(DeactivateEvent);
 impl From<DeactivateEvent> for EventBodyOwned {
 	fn from(_event: DeactivateEvent) -> Self {
 		EventBodyOwned {
@@ -1077,6 +836,7 @@ event_test_cases!(RaiseEvent);
 impl_to_dbus_message!(RaiseEvent);
 impl_from_dbus_message!(RaiseEvent);
 impl_event_properties!(RaiseEvent);
+impl_from_object_ref!(RaiseEvent);
 impl From<RaiseEvent> for EventBodyOwned {
 	fn from(_event: RaiseEvent) -> Self {
 		EventBodyOwned {
@@ -1100,6 +860,7 @@ event_test_cases!(LowerEvent);
 impl_to_dbus_message!(LowerEvent);
 impl_from_dbus_message!(LowerEvent);
 impl_event_properties!(LowerEvent);
+impl_from_object_ref!(LowerEvent);
 impl From<LowerEvent> for EventBodyOwned {
 	fn from(_event: LowerEvent) -> Self {
 		EventBodyOwned {
@@ -1119,6 +880,7 @@ event_test_cases!(MoveEvent);
 impl_to_dbus_message!(MoveEvent);
 impl_from_dbus_message!(MoveEvent);
 impl_event_properties!(MoveEvent);
+impl_from_object_ref!(MoveEvent);
 impl From<MoveEvent> for EventBodyOwned {
 	fn from(_event: MoveEvent) -> Self {
 		EventBodyOwned {
@@ -1142,6 +904,7 @@ event_test_cases!(ResizeEvent);
 impl_to_dbus_message!(ResizeEvent);
 impl_from_dbus_message!(ResizeEvent);
 impl_event_properties!(ResizeEvent);
+impl_from_object_ref!(ResizeEvent);
 impl From<ResizeEvent> for EventBodyOwned {
 	fn from(_event: ResizeEvent) -> Self {
 		EventBodyOwned {
@@ -1165,6 +928,7 @@ event_test_cases!(ShadeEvent);
 impl_to_dbus_message!(ShadeEvent);
 impl_from_dbus_message!(ShadeEvent);
 impl_event_properties!(ShadeEvent);
+impl_from_object_ref!(ShadeEvent);
 impl From<ShadeEvent> for EventBodyOwned {
 	fn from(_event: ShadeEvent) -> Self {
 		EventBodyOwned {
@@ -1188,6 +952,7 @@ event_test_cases!(UUshadeEvent);
 impl_to_dbus_message!(UUshadeEvent);
 impl_from_dbus_message!(UUshadeEvent);
 impl_event_properties!(UUshadeEvent);
+impl_from_object_ref!(UUshadeEvent);
 impl From<UUshadeEvent> for EventBodyOwned {
 	fn from(_event: UUshadeEvent) -> Self {
 		EventBodyOwned {
@@ -1211,6 +976,7 @@ event_test_cases!(RestyleEvent);
 impl_to_dbus_message!(RestyleEvent);
 impl_from_dbus_message!(RestyleEvent);
 impl_event_properties!(RestyleEvent);
+impl_from_object_ref!(RestyleEvent);
 impl From<RestyleEvent> for EventBodyOwned {
 	fn from(_event: RestyleEvent) -> Self {
 		EventBodyOwned {
