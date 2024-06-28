@@ -1,11 +1,10 @@
 use std::hash::Hash;
 
+#[cfg(feature = "zbus")]
+use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, EventProperties, EventTypeProperties, State,
 };
 use zbus_names::UniqueName;
@@ -601,6 +600,7 @@ impl BusProperties for PropertyChangeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
@@ -623,6 +623,7 @@ impl BusProperties for BoundsChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for BoundsChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -646,6 +647,7 @@ impl BusProperties for LinkSelectedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for LinkSelectedEvent {
 	type Body = EventBodyOwned;
 
@@ -669,6 +671,7 @@ impl BusProperties for StateChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -689,6 +692,7 @@ impl BusProperties for ChildrenChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -714,6 +718,7 @@ impl BusProperties for VisibleDataChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for VisibleDataChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -737,6 +742,7 @@ impl BusProperties for SelectionChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for SelectionChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -760,6 +766,7 @@ impl BusProperties for ModelChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ModelChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -783,6 +790,7 @@ impl BusProperties for ActiveDescendantChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -803,6 +811,7 @@ impl BusProperties for AnnouncementEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
@@ -827,6 +836,7 @@ impl BusProperties for AttributesChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for AttributesChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -850,6 +860,7 @@ impl BusProperties for RowInsertedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RowInsertedEvent {
 	type Body = EventBodyOwned;
 
@@ -873,6 +884,7 @@ impl BusProperties for RowReorderedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RowReorderedEvent {
 	type Body = EventBodyOwned;
 
@@ -896,6 +908,7 @@ impl BusProperties for RowDeletedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RowDeletedEvent {
 	type Body = EventBodyOwned;
 
@@ -919,6 +932,7 @@ impl BusProperties for ColumnInsertedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ColumnInsertedEvent {
 	type Body = EventBodyOwned;
 
@@ -942,6 +956,7 @@ impl BusProperties for ColumnReorderedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ColumnReorderedEvent {
 	type Body = EventBodyOwned;
 
@@ -965,6 +980,7 @@ impl BusProperties for ColumnDeletedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ColumnDeletedEvent {
 	type Body = EventBodyOwned;
 
@@ -988,6 +1004,7 @@ impl BusProperties for TextBoundsChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for TextBoundsChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -1011,6 +1028,7 @@ impl BusProperties for TextSelectionChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for TextSelectionChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -1034,6 +1052,7 @@ impl BusProperties for TextChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -1060,6 +1079,7 @@ impl BusProperties for TextAttributesChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for TextAttributesChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -1083,6 +1103,7 @@ impl BusProperties for TextCaretMovedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 

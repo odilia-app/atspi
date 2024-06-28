@@ -1,9 +1,8 @@
+#[cfg(feature = "zbus")]
+use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -335,6 +334,7 @@ impl BusProperties for PropertyChangeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
@@ -355,6 +355,7 @@ impl BusProperties for MinimizeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for MinimizeEvent {
 	type Body = EventBodyOwned;
 
@@ -378,6 +379,7 @@ impl BusProperties for MaximizeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for MaximizeEvent {
 	type Body = EventBodyOwned;
 
@@ -401,6 +403,7 @@ impl BusProperties for RestoreEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RestoreEvent {
 	type Body = EventBodyOwned;
 
@@ -424,6 +427,7 @@ impl BusProperties for CloseEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for CloseEvent {
 	type Body = EventBodyOwned;
 
@@ -447,6 +451,7 @@ impl BusProperties for CreateEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for CreateEvent {
 	type Body = EventBodyOwned;
 
@@ -470,6 +475,7 @@ impl BusProperties for ReparentEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ReparentEvent {
 	type Body = EventBodyOwned;
 
@@ -493,6 +499,7 @@ impl BusProperties for DesktopCreateEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for DesktopCreateEvent {
 	type Body = EventBodyOwned;
 
@@ -516,6 +523,7 @@ impl BusProperties for DesktopDestroyEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for DesktopDestroyEvent {
 	type Body = EventBodyOwned;
 
@@ -539,6 +547,7 @@ impl BusProperties for DestroyEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for DestroyEvent {
 	type Body = EventBodyOwned;
 
@@ -562,6 +571,7 @@ impl BusProperties for ActivateEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ActivateEvent {
 	type Body = EventBodyOwned;
 
@@ -585,6 +595,7 @@ impl BusProperties for DeactivateEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for DeactivateEvent {
 	type Body = EventBodyOwned;
 
@@ -608,6 +619,7 @@ impl BusProperties for RaiseEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RaiseEvent {
 	type Body = EventBodyOwned;
 
@@ -631,6 +643,7 @@ impl BusProperties for LowerEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for LowerEvent {
 	type Body = EventBodyOwned;
 
@@ -654,6 +667,7 @@ impl BusProperties for MoveEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for MoveEvent {
 	type Body = EventBodyOwned;
 
@@ -677,6 +691,7 @@ impl BusProperties for ResizeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ResizeEvent {
 	type Body = EventBodyOwned;
 
@@ -700,6 +715,7 @@ impl BusProperties for ShadeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ShadeEvent {
 	type Body = EventBodyOwned;
 
@@ -723,6 +739,7 @@ impl BusProperties for UUshadeEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for UUshadeEvent {
 	type Body = EventBodyOwned;
 
@@ -746,6 +763,7 @@ impl BusProperties for RestyleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RestyleEvent {
 	type Body = EventBodyOwned;
 

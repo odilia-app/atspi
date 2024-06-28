@@ -1,9 +1,8 @@
+#[cfg(feature = "zbus")]
+use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -158,6 +157,7 @@ impl BusProperties for LoadCompleteEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for LoadCompleteEvent {
 	type Body = EventBodyOwned;
 
@@ -181,6 +181,7 @@ impl BusProperties for ReloadEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ReloadEvent {
 	type Body = EventBodyOwned;
 
@@ -204,6 +205,7 @@ impl BusProperties for LoadStoppedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for LoadStoppedEvent {
 	type Body = EventBodyOwned;
 
@@ -227,6 +229,7 @@ impl BusProperties for ContentChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ContentChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -250,6 +253,7 @@ impl BusProperties for AttributesChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for AttributesChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -273,6 +277,7 @@ impl BusProperties for PageChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for PageChangedEvent {
 	type Body = EventBodyOwned;
 

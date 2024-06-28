@@ -1,9 +1,8 @@
+#[cfg(feature = "zbus")]
+use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -77,6 +76,7 @@ impl BusProperties for ModifiersEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 

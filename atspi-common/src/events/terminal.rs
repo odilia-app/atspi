@@ -1,9 +1,8 @@
+#[cfg(feature = "zbus")]
+use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -139,6 +138,7 @@ impl BusProperties for LineChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for LineChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -162,6 +162,7 @@ impl BusProperties for ColumnCountChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ColumnCountChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -185,6 +186,7 @@ impl BusProperties for LineCountChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for LineCountChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -208,6 +210,7 @@ impl BusProperties for ApplicationChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ApplicationChangedEvent {
 	type Body = EventBodyOwned;
 
@@ -231,6 +234,7 @@ impl BusProperties for CharWidthChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for CharWidthChangedEvent {
 	type Body = EventBodyOwned;
 

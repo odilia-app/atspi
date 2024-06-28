@@ -414,6 +414,7 @@ impl BusProperties for LegacyAddAccessibleEvent {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
@@ -453,6 +454,7 @@ impl BusProperties for AddAccessibleEvent {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for AddAccessibleEvent {
 	type Body = CacheItem;
 
@@ -500,6 +502,7 @@ impl BusProperties for RemoveAccessibleEvent {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
@@ -698,6 +701,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
@@ -742,6 +746,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
@@ -787,6 +792,7 @@ impl BusProperties for AvailableEvent {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for AvailableEvent {
 	type Body = ObjectRef;
 
@@ -950,6 +956,7 @@ pub trait BusProperties {
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
+#[cfg(feature = "zbus")]
 pub trait MessageConversion {
 	/// What is the body type of this event.
 	type Body: Type + Serialize + for<'a> Deserialize<'a>;

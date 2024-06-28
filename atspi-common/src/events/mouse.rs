@@ -1,9 +1,8 @@
+#[cfg(feature = "zbus")]
+use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -109,6 +108,7 @@ impl BusProperties for AbsEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for AbsEvent {
 	type Body = EventBodyOwned;
 
@@ -129,6 +129,7 @@ impl BusProperties for RelEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for RelEvent {
 	type Body = EventBodyOwned;
 
@@ -149,6 +150,7 @@ impl BusProperties for ButtonEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for ButtonEvent {
 	type Body = EventBodyOwned;
 

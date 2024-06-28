@@ -1,9 +1,8 @@
+#[cfg(feature = "zbus")]
+use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, MessageConversion,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -74,6 +73,7 @@ impl BusProperties for FocusEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 }
 
+#[cfg(feature = "zbus")]
 impl MessageConversion for FocusEvent {
 	type Body = EventBodyOwned;
 
