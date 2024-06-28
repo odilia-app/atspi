@@ -418,7 +418,7 @@ impl BusProperties for LegacyAddAccessibleEvent {
 impl MessageConversion for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -461,7 +461,7 @@ impl BusProperties for AddAccessibleEvent {
 impl MessageConversion for AddAccessibleEvent {
 	type Body = CacheItem;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -512,7 +512,7 @@ impl BusProperties for RemoveAccessibleEvent {
 impl MessageConversion for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -714,7 +714,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 impl MessageConversion for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -762,7 +762,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 impl MessageConversion for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -811,7 +811,7 @@ impl BusProperties for AvailableEvent {
 impl MessageConversion for AvailableEvent {
 	type Body = ObjectRef;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -988,7 +988,7 @@ pub trait MessageConversion {
 	/// Technically, it may also panic if you are accepting file descriptors over the
 	/// [`enum@zvariant::Value`] variant, and you are out of file descriptors for the process.
 	/// This is considered exceptionally rare and should never happen.
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError>

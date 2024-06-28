@@ -80,7 +80,7 @@ impl BusProperties for ModifiersEvent {
 impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {

@@ -338,7 +338,7 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -362,7 +362,7 @@ impl BusProperties for MinimizeEvent {
 impl MessageConversion for MinimizeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -386,7 +386,7 @@ impl BusProperties for MaximizeEvent {
 impl MessageConversion for MaximizeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -410,7 +410,7 @@ impl BusProperties for RestoreEvent {
 impl MessageConversion for RestoreEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -434,7 +434,7 @@ impl BusProperties for CloseEvent {
 impl MessageConversion for CloseEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -458,7 +458,7 @@ impl BusProperties for CreateEvent {
 impl MessageConversion for CreateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -482,7 +482,7 @@ impl BusProperties for ReparentEvent {
 impl MessageConversion for ReparentEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -506,7 +506,7 @@ impl BusProperties for DesktopCreateEvent {
 impl MessageConversion for DesktopCreateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -530,7 +530,7 @@ impl BusProperties for DesktopDestroyEvent {
 impl MessageConversion for DesktopDestroyEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -554,7 +554,7 @@ impl BusProperties for DestroyEvent {
 impl MessageConversion for DestroyEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -578,7 +578,7 @@ impl BusProperties for ActivateEvent {
 impl MessageConversion for ActivateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -602,7 +602,7 @@ impl BusProperties for DeactivateEvent {
 impl MessageConversion for DeactivateEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -626,7 +626,7 @@ impl BusProperties for RaiseEvent {
 impl MessageConversion for RaiseEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -650,7 +650,7 @@ impl BusProperties for LowerEvent {
 impl MessageConversion for LowerEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -674,7 +674,7 @@ impl BusProperties for MoveEvent {
 impl MessageConversion for MoveEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -698,7 +698,7 @@ impl BusProperties for ResizeEvent {
 impl MessageConversion for ResizeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -722,7 +722,7 @@ impl BusProperties for ShadeEvent {
 impl MessageConversion for ShadeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -746,7 +746,7 @@ impl BusProperties for UUshadeEvent {
 impl MessageConversion for UUshadeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
@@ -770,7 +770,7 @@ impl BusProperties for RestyleEvent {
 impl MessageConversion for RestyleEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {

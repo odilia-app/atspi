@@ -77,7 +77,7 @@ impl BusProperties for FocusEvent {
 impl MessageConversion for FocusEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(
+	fn try_from_message_unchecked(
 		item: ObjectRef,
 		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
