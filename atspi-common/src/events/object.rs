@@ -232,7 +232,7 @@ impl HasMatchRule for ObjectEvents {
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	// TODO: this is not necessary since the string is encoded in the `Property` type.
 	pub property: String,
@@ -257,7 +257,7 @@ impl Default for PropertyChangeEvent {
 	}
 }
 
-/// Any accessibility related property on an [`ObjectRef`].
+/// Any accessibility related property on an [`crate::ObjectRef`].
 /// This is used only in the [`PropertyChangeEvent`]; this event gets triggered if a role or accessible
 /// description of an item changes.
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -404,21 +404,21 @@ impl From<Property> for OwnedValue {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 /// A state of an object has been modified.
-/// A [`State`] can be added or removed from any [`ObjectRef`].
+/// A [`State`] can be added or removed from any [`crate::ObjectRef`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// The state to be enabled/disabled.
 	pub state: State,
@@ -451,10 +451,10 @@ mod i32_bool_conversion {
 	}
 }
 
-/// A child of an [`ObjectRef`] has been added or removed.
+/// A child of an [`crate::ObjectRef`] has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
@@ -466,32 +466,32 @@ pub struct ChildrenChangedEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub child: ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// Text of the announcement.
 	pub text: String,
@@ -501,7 +501,7 @@ pub struct AnnouncementEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -549,20 +549,20 @@ pub struct ColumnDeletedEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
-/// Text has changed within an [`ObjectRef`].
+/// Text has changed within an [`crate::ObjectRef`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
@@ -579,7 +579,7 @@ pub struct TextChangedEvent {
 /// changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -1046,7 +1046,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 			kind: event.operation.to_string(),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
-			// `OwnedValue` is constructed from the `ObjectRef`
+			// `OwnedValue` is constructed from the `crate::ObjectRef`
 			// Only path to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
@@ -1129,7 +1129,7 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			// `OwnedValue` is constructed from the `ObjectRef`
+			// `OwnedValue` is constructed from the `crate::ObjectRef`
 			// Only path to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
