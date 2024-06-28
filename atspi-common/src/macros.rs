@@ -315,6 +315,7 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+        use zvariant::Type;
 				let header = msg.header();
 				if header.interface().ok_or(AtspiError::MissingInterface)?
 					!= <$type as BusProperties>::DBUS_INTERFACE
@@ -333,10 +334,14 @@ macro_rules! impl_from_dbus_message {
 						<$type as BusProperties>::DBUS_MEMBER
 					)));
 				}
-				<$type>::try_from_message_unchecked(
-					msg, //msg.try_into()?,
-					    //msg.body(), //.deserialize::<<$type as MessageConversion>::Body>()?,
-				)
+        if msg.body().signature() != Some(<$type as MessageConversion>::Body::signature()) {
+            return Err(AtspiError::UnknownBusSignature(format!(
+                "The message signature {:?} does not match the signal's body signature: {:?}",
+                msg.body().signature(),
+                Some(<$type as MessageConversion>::Body::signature().as_str()),
+            )));
+        }
+				<$type>::try_from_message_unchecked(msg)
 			}
 		}
 	};
