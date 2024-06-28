@@ -1,5 +1,5 @@
 /// Expands to implement the required methods for the [`crate::EventProperties`] trait.
-/// This depends on the struct to have an `item` field of type `ObjectRef`.
+/// This depends on the struct to have an `item` field of type [`crate::ObjectRef`].
 ///
 /// ```ignore
 /// impl_from_interface_event_enum_for_event!(TextCaretMovedEvent);
