@@ -2,11 +2,11 @@
 use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
+	events::{BusProperties, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue};
+use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum FocusEvents {
@@ -97,17 +97,6 @@ impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);
 impl_event_properties!(FocusEvent);
 impl_from_object_ref!(FocusEvent);
-impl From<FocusEvent> for EventBodyOwned {
-	fn from(_event: FocusEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
 
 impl HasRegistryEventString for FocusEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";

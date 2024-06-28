@@ -565,17 +565,6 @@ impl_to_dbus_message!(MinimizeEvent);
 impl_from_dbus_message!(MinimizeEvent);
 impl_event_properties!(MinimizeEvent);
 impl_from_object_ref!(MinimizeEvent);
-impl From<MinimizeEvent> for EventBodyOwned {
-	fn from(_event: MinimizeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	MaximizeEvent,
@@ -589,17 +578,6 @@ impl_to_dbus_message!(MaximizeEvent);
 impl_from_dbus_message!(MaximizeEvent);
 impl_event_properties!(MaximizeEvent);
 impl_from_object_ref!(MaximizeEvent);
-impl From<MaximizeEvent> for EventBodyOwned {
-	fn from(_event: MaximizeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RestoreEvent,
@@ -613,17 +591,6 @@ impl_to_dbus_message!(RestoreEvent);
 impl_from_dbus_message!(RestoreEvent);
 impl_event_properties!(RestoreEvent);
 impl_from_object_ref!(RestoreEvent);
-impl From<RestoreEvent> for EventBodyOwned {
-	fn from(_event: RestoreEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	CloseEvent,
@@ -637,17 +604,6 @@ impl_to_dbus_message!(CloseEvent);
 impl_from_dbus_message!(CloseEvent);
 impl_event_properties!(CloseEvent);
 impl_from_object_ref!(CloseEvent);
-impl From<CloseEvent> for EventBodyOwned {
-	fn from(_event: CloseEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	CreateEvent,
@@ -661,17 +617,6 @@ impl_to_dbus_message!(CreateEvent);
 impl_from_dbus_message!(CreateEvent);
 impl_event_properties!(CreateEvent);
 impl_from_object_ref!(CreateEvent);
-impl From<CreateEvent> for EventBodyOwned {
-	fn from(_event: CreateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ReparentEvent,
@@ -685,17 +630,6 @@ impl_to_dbus_message!(ReparentEvent);
 impl_from_dbus_message!(ReparentEvent);
 impl_event_properties!(ReparentEvent);
 impl_from_object_ref!(ReparentEvent);
-impl From<ReparentEvent> for EventBodyOwned {
-	fn from(_event: ReparentEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DesktopCreateEvent,
@@ -713,17 +647,6 @@ impl_to_dbus_message!(DesktopCreateEvent);
 impl_from_dbus_message!(DesktopCreateEvent);
 impl_event_properties!(DesktopCreateEvent);
 impl_from_object_ref!(DesktopCreateEvent);
-impl From<DesktopCreateEvent> for EventBodyOwned {
-	fn from(_event: DesktopCreateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DesktopDestroyEvent,
@@ -741,17 +664,6 @@ impl_to_dbus_message!(DesktopDestroyEvent);
 impl_from_dbus_message!(DesktopDestroyEvent);
 impl_event_properties!(DesktopDestroyEvent);
 impl_from_object_ref!(DesktopDestroyEvent);
-impl From<DesktopDestroyEvent> for EventBodyOwned {
-	fn from(_event: DesktopDestroyEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DestroyEvent,
@@ -765,17 +677,6 @@ impl_to_dbus_message!(DestroyEvent);
 impl_from_dbus_message!(DestroyEvent);
 impl_event_properties!(DestroyEvent);
 impl_from_object_ref!(DestroyEvent);
-impl From<DestroyEvent> for EventBodyOwned {
-	fn from(_event: DestroyEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ActivateEvent,
@@ -789,17 +690,6 @@ impl_to_dbus_message!(ActivateEvent);
 impl_from_dbus_message!(ActivateEvent);
 impl_event_properties!(ActivateEvent);
 impl_from_object_ref!(ActivateEvent);
-impl From<ActivateEvent> for EventBodyOwned {
-	fn from(_event: ActivateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DeactivateEvent,
@@ -813,17 +703,6 @@ impl_to_dbus_message!(DeactivateEvent);
 impl_from_dbus_message!(DeactivateEvent);
 impl_event_properties!(DeactivateEvent);
 impl_from_object_ref!(DeactivateEvent);
-impl From<DeactivateEvent> for EventBodyOwned {
-	fn from(_event: DeactivateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RaiseEvent,
@@ -837,17 +716,6 @@ impl_to_dbus_message!(RaiseEvent);
 impl_from_dbus_message!(RaiseEvent);
 impl_event_properties!(RaiseEvent);
 impl_from_object_ref!(RaiseEvent);
-impl From<RaiseEvent> for EventBodyOwned {
-	fn from(_event: RaiseEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LowerEvent,
@@ -861,17 +729,6 @@ impl_to_dbus_message!(LowerEvent);
 impl_from_dbus_message!(LowerEvent);
 impl_event_properties!(LowerEvent);
 impl_from_object_ref!(LowerEvent);
-impl From<LowerEvent> for EventBodyOwned {
-	fn from(_event: LowerEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(MoveEvent, WindowEvents, WindowEvents::Move);
 impl_from_user_facing_type_for_event_enum!(MoveEvent, Event::Window);
@@ -881,17 +738,6 @@ impl_to_dbus_message!(MoveEvent);
 impl_from_dbus_message!(MoveEvent);
 impl_event_properties!(MoveEvent);
 impl_from_object_ref!(MoveEvent);
-impl From<MoveEvent> for EventBodyOwned {
-	fn from(_event: MoveEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ResizeEvent,
@@ -905,17 +751,6 @@ impl_to_dbus_message!(ResizeEvent);
 impl_from_dbus_message!(ResizeEvent);
 impl_event_properties!(ResizeEvent);
 impl_from_object_ref!(ResizeEvent);
-impl From<ResizeEvent> for EventBodyOwned {
-	fn from(_event: ResizeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ShadeEvent,
@@ -929,17 +764,6 @@ impl_to_dbus_message!(ShadeEvent);
 impl_from_dbus_message!(ShadeEvent);
 impl_event_properties!(ShadeEvent);
 impl_from_object_ref!(ShadeEvent);
-impl From<ShadeEvent> for EventBodyOwned {
-	fn from(_event: ShadeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).try_into().unwrap(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	UUshadeEvent,
@@ -953,17 +777,6 @@ impl_to_dbus_message!(UUshadeEvent);
 impl_from_dbus_message!(UUshadeEvent);
 impl_event_properties!(UUshadeEvent);
 impl_from_object_ref!(UUshadeEvent);
-impl From<UUshadeEvent> for EventBodyOwned {
-	fn from(_event: UUshadeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).try_into().unwrap(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RestyleEvent,
@@ -977,17 +790,6 @@ impl_to_dbus_message!(RestyleEvent);
 impl_from_dbus_message!(RestyleEvent);
 impl_event_properties!(RestyleEvent);
 impl_from_object_ref!(RestyleEvent);
-impl From<RestyleEvent> for EventBodyOwned {
-	fn from(_event: RestyleEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl HasRegistryEventString for WindowEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";

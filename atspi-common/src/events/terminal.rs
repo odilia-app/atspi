@@ -2,7 +2,7 @@
 use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
+	events::{BusProperties, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -205,17 +205,6 @@ impl_to_dbus_message!(LineChangedEvent);
 impl_from_dbus_message!(LineChangedEvent);
 impl_event_properties!(LineChangedEvent);
 impl_from_object_ref!(LineChangedEvent);
-impl From<LineChangedEvent> for EventBodyOwned {
-	fn from(_event: LineChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnCountChangedEvent,
@@ -233,17 +222,6 @@ impl_to_dbus_message!(ColumnCountChangedEvent);
 impl_from_dbus_message!(ColumnCountChangedEvent);
 impl_event_properties!(ColumnCountChangedEvent);
 impl_from_object_ref!(ColumnCountChangedEvent);
-impl From<ColumnCountChangedEvent> for EventBodyOwned {
-	fn from(_event: ColumnCountChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LineCountChangedEvent,
@@ -261,17 +239,6 @@ impl_to_dbus_message!(LineCountChangedEvent);
 impl_from_dbus_message!(LineCountChangedEvent);
 impl_event_properties!(LineCountChangedEvent);
 impl_from_object_ref!(LineCountChangedEvent);
-impl From<LineCountChangedEvent> for EventBodyOwned {
-	fn from(_event: LineCountChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ApplicationChangedEvent,
@@ -289,17 +256,6 @@ impl_to_dbus_message!(ApplicationChangedEvent);
 impl_from_dbus_message!(ApplicationChangedEvent);
 impl_event_properties!(ApplicationChangedEvent);
 impl_from_object_ref!(ApplicationChangedEvent);
-impl From<ApplicationChangedEvent> for EventBodyOwned {
-	fn from(_event: ApplicationChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	CharWidthChangedEvent,
@@ -317,17 +273,6 @@ impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
 impl_event_properties!(CharWidthChangedEvent);
 impl_from_object_ref!(CharWidthChangedEvent);
-impl From<CharWidthChangedEvent> for EventBodyOwned {
-	fn from(_event: CharWidthChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl HasRegistryEventString for TerminalEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";

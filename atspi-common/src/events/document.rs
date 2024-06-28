@@ -2,11 +2,11 @@
 use crate::events::{MessageConversion, ObjectRef};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
+	events::{BusProperties, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue};
+use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentEvents {
@@ -234,17 +234,6 @@ impl_to_dbus_message!(LoadCompleteEvent);
 impl_from_dbus_message!(LoadCompleteEvent);
 impl_event_properties!(LoadCompleteEvent);
 impl_from_object_ref!(LoadCompleteEvent);
-impl From<LoadCompleteEvent> for EventBodyOwned {
-	fn from(_event: LoadCompleteEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ReloadEvent,
@@ -259,17 +248,6 @@ impl_to_dbus_message!(ReloadEvent);
 impl_from_dbus_message!(ReloadEvent);
 impl_event_properties!(ReloadEvent);
 impl_from_object_ref!(ReloadEvent);
-impl From<ReloadEvent> for EventBodyOwned {
-	fn from(_event: ReloadEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LoadStoppedEvent,
@@ -288,17 +266,6 @@ impl_to_dbus_message!(LoadStoppedEvent);
 impl_from_dbus_message!(LoadStoppedEvent);
 impl_event_properties!(LoadStoppedEvent);
 impl_from_object_ref!(LoadStoppedEvent);
-impl From<LoadStoppedEvent> for EventBodyOwned {
-	fn from(_event: LoadStoppedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ContentChangedEvent,
@@ -317,17 +284,6 @@ impl_to_dbus_message!(ContentChangedEvent);
 impl_from_dbus_message!(ContentChangedEvent);
 impl_event_properties!(ContentChangedEvent);
 impl_from_object_ref!(ContentChangedEvent);
-impl From<ContentChangedEvent> for EventBodyOwned {
-	fn from(_event: ContentChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	AttributesChangedEvent,
@@ -346,17 +302,6 @@ impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
 impl_from_object_ref!(AttributesChangedEvent);
-impl From<AttributesChangedEvent> for EventBodyOwned {
-	fn from(_event: AttributesChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	PageChangedEvent,
@@ -375,17 +320,6 @@ impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);
 impl_event_properties!(PageChangedEvent);
 impl_from_object_ref!(PageChangedEvent);
-impl From<PageChangedEvent> for EventBodyOwned {
-	fn from(_event: PageChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
 
 impl HasRegistryEventString for DocumentEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";

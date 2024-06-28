@@ -979,17 +979,6 @@ impl_to_dbus_message!(BoundsChangedEvent);
 impl_from_dbus_message!(BoundsChangedEvent);
 impl_event_properties!(BoundsChangedEvent);
 impl_from_object_ref!(BoundsChangedEvent);
-impl From<BoundsChangedEvent> for EventBodyOwned {
-	fn from(_event: BoundsChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LinkSelectedEvent,
@@ -1007,17 +996,6 @@ impl_to_dbus_message!(LinkSelectedEvent);
 impl_from_dbus_message!(LinkSelectedEvent);
 impl_event_properties!(LinkSelectedEvent);
 impl_from_object_ref!(LinkSelectedEvent);
-impl From<LinkSelectedEvent> for EventBodyOwned {
-	fn from(_event: LinkSelectedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	StateChangedEvent,
@@ -1094,17 +1072,6 @@ impl_to_dbus_message!(VisibleDataChangedEvent);
 impl_from_dbus_message!(VisibleDataChangedEvent);
 impl_event_properties!(VisibleDataChangedEvent);
 impl_from_object_ref!(VisibleDataChangedEvent);
-impl From<VisibleDataChangedEvent> for EventBodyOwned {
-	fn from(_event: VisibleDataChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	SelectionChangedEvent,
@@ -1122,17 +1089,6 @@ impl_to_dbus_message!(SelectionChangedEvent);
 impl_from_dbus_message!(SelectionChangedEvent);
 impl_event_properties!(SelectionChangedEvent);
 impl_from_object_ref!(SelectionChangedEvent);
-impl From<SelectionChangedEvent> for EventBodyOwned {
-	fn from(_event: SelectionChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ModelChangedEvent,
@@ -1150,17 +1106,6 @@ impl_to_dbus_message!(ModelChangedEvent);
 impl_from_dbus_message!(ModelChangedEvent);
 impl_event_properties!(ModelChangedEvent);
 impl_from_object_ref!(ModelChangedEvent);
-impl From<ModelChangedEvent> for EventBodyOwned {
-	fn from(_event: ModelChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ActiveDescendantChangedEvent,
@@ -1239,17 +1184,6 @@ impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
 impl_from_object_ref!(AttributesChangedEvent);
-impl From<AttributesChangedEvent> for EventBodyOwned {
-	fn from(_event: AttributesChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RowInsertedEvent,
@@ -1267,17 +1201,6 @@ impl_to_dbus_message!(RowInsertedEvent);
 impl_from_dbus_message!(RowInsertedEvent);
 impl_event_properties!(RowInsertedEvent);
 impl_from_object_ref!(RowInsertedEvent);
-impl From<RowInsertedEvent> for EventBodyOwned {
-	fn from(_event: RowInsertedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RowReorderedEvent,
@@ -1295,17 +1218,6 @@ impl_to_dbus_message!(RowReorderedEvent);
 impl_from_dbus_message!(RowReorderedEvent);
 impl_event_properties!(RowReorderedEvent);
 impl_from_object_ref!(RowReorderedEvent);
-impl From<RowReorderedEvent> for EventBodyOwned {
-	fn from(_event: RowReorderedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RowDeletedEvent,
@@ -1319,17 +1231,6 @@ impl_to_dbus_message!(RowDeletedEvent);
 impl_from_dbus_message!(RowDeletedEvent);
 impl_event_properties!(RowDeletedEvent);
 impl_from_object_ref!(RowDeletedEvent);
-impl From<RowDeletedEvent> for EventBodyOwned {
-	fn from(_event: RowDeletedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnInsertedEvent,
@@ -1347,17 +1248,6 @@ impl_to_dbus_message!(ColumnInsertedEvent);
 impl_from_dbus_message!(ColumnInsertedEvent);
 impl_event_properties!(ColumnInsertedEvent);
 impl_from_object_ref!(ColumnInsertedEvent);
-impl From<ColumnInsertedEvent> for EventBodyOwned {
-	fn from(_event: ColumnInsertedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnReorderedEvent,
@@ -1375,17 +1265,6 @@ impl_to_dbus_message!(ColumnReorderedEvent);
 impl_from_dbus_message!(ColumnReorderedEvent);
 impl_event_properties!(ColumnReorderedEvent);
 impl_from_object_ref!(ColumnReorderedEvent);
-impl From<ColumnReorderedEvent> for EventBodyOwned {
-	fn from(_event: ColumnReorderedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnDeletedEvent,
@@ -1403,17 +1282,6 @@ impl_to_dbus_message!(ColumnDeletedEvent);
 impl_from_dbus_message!(ColumnDeletedEvent);
 impl_event_properties!(ColumnDeletedEvent);
 impl_from_object_ref!(ColumnDeletedEvent);
-impl From<ColumnDeletedEvent> for EventBodyOwned {
-	fn from(_event: ColumnDeletedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextBoundsChangedEvent,
@@ -1431,17 +1299,6 @@ impl_to_dbus_message!(TextBoundsChangedEvent);
 impl_from_dbus_message!(TextBoundsChangedEvent);
 impl_event_properties!(TextBoundsChangedEvent);
 impl_from_object_ref!(TextBoundsChangedEvent);
-impl From<TextBoundsChangedEvent> for EventBodyOwned {
-	fn from(_event: TextBoundsChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextSelectionChangedEvent,
@@ -1459,17 +1316,6 @@ impl_to_dbus_message!(TextSelectionChangedEvent);
 impl_from_dbus_message!(TextSelectionChangedEvent);
 impl_event_properties!(TextSelectionChangedEvent);
 impl_from_object_ref!(TextSelectionChangedEvent);
-impl From<TextSelectionChangedEvent> for EventBodyOwned {
-	fn from(_event: TextSelectionChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextChangedEvent,
@@ -1519,17 +1365,6 @@ impl_to_dbus_message!(TextAttributesChangedEvent);
 impl_from_dbus_message!(TextAttributesChangedEvent);
 impl_event_properties!(TextAttributesChangedEvent);
 impl_from_object_ref!(TextAttributesChangedEvent);
-impl From<TextAttributesChangedEvent> for EventBodyOwned {
-	fn from(_event: TextAttributesChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextCaretMovedEvent,
