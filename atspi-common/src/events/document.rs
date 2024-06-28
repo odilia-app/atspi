@@ -1,5 +1,5 @@
 #[cfg(feature = "zbus")]
-use crate::events::{MessageConversion, ObjectRef};
+use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{BusProperties, HasMatchRule, HasRegistryEventString},
