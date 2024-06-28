@@ -362,10 +362,15 @@ macro_rules! generic_event_test_case {
 			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let body = struct_event.body();
-			let body2 = Message::method("/my/fake/path", "my.fake.interface")
-				.expect("A message must be able to be built to run this test.")
-				.build(&(body,))
-				.expect("A message must be able to be built to run this test.");
+			let body2 = Message::method(
+				struct_event.path().as_str(),
+				<$type as BusProperties>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(struct_event.sender().as_str())
+			.unwrap()
+			.build(&(body,))
+			.unwrap();
 			let build_struct = <$type>::try_from_message_unchecked(&body2)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
