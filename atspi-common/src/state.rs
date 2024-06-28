@@ -647,7 +647,7 @@ mod tests {
 		for state in
 			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
-			let state_str: String = state.into();
+			let state_str: String = state.to_string();
 			let state_two: State = state_str.clone().into();
 			assert_eq!(
 				state, state_two,
@@ -661,7 +661,7 @@ mod tests {
 			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
 			let serde_state_str: String = serde_plain::to_string(&state).unwrap();
-			let state_str: String = state.into();
+			let state_str: String = state.to_string();
 			assert_eq!(serde_state_str, state_str);
 			let state_two: State = serde_plain::from_str(&state_str).unwrap();
 			assert_eq!(state, state_two, "The {state:?} was serialized as {state_str}, which deserializes to {state_two:?} (serde)");
