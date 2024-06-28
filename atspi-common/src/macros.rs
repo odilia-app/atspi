@@ -48,8 +48,8 @@ macro_rules! impl_event_properties {
 /// ```
 macro_rules! impl_from_object_ref {
 	($type:ty) => {
-		impl From<ObjectRef> for $type {
-			fn from(obj_ref: ObjectRef) -> Self {
+		impl From<crate::ObjectRef> for $type {
+			fn from(obj_ref: crate::ObjectRef) -> Self {
 				Self { item: obj_ref }
 			}
 		}
