@@ -30,6 +30,32 @@ macro_rules! impl_event_properties {
 	};
 }
 
+/// Expands to implement From for [`crate::ObjectRef`].
+/// This depends on the struct to have an `item` field of type [`crate::ObjectRef`].
+///
+/// ```ignore
+/// impl_from_object_ref!(TextCaretMovedEvent);
+/// ```
+///
+/// Exapnds to:
+///
+/// ```ignore
+/// impl From<ObjectRef> for TextCaretMovedItem {
+///     fn from(obj_ref: ObjectRef) -> Self {
+///         Self { item: obj_ref }
+///     }
+/// }
+/// ```
+macro_rules! impl_from_object_ref {
+	($type:ty) => {
+		impl From<ObjectRef> for $type {
+			fn from(obj_ref: ObjectRef) -> Self {
+				Self { item: obj_ref }
+			}
+		}
+	};
+}
+
 /// Expands to a conversion given the enclosed event type and outer `Event` variant.
 ///
 /// eg
