@@ -4,7 +4,7 @@ use serde::{
 	ser::{SerializeSeq, Serializer},
 	Deserialize, Serialize,
 };
-use std::fmt;
+use std::{convert::Infallible, fmt, str::FromStr};
 use zvariant::{Signature, Type};
 
 /// Used by various interfaces indicating every possible state
@@ -221,9 +221,9 @@ pub enum State {
 	ReadOnly,
 }
 
-impl From<State> for String {
-	fn from(state: State) -> String {
-		match state {
+impl fmt::Display for State {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		let state_str = match self {
 			State::Invalid => "invalid",
 			State::Active => "active",
 			State::Armed => "armed",
@@ -268,14 +268,21 @@ impl From<State> for String {
 			State::Checkable => "checkable",
 			State::HasPopup => "has-popup",
 			State::ReadOnly => "read-only",
-		}
-		.to_string()
+		};
+		f.write_str(state_str)
 	}
 }
 
 impl From<String> for State {
 	fn from(string: String) -> State {
 		(&*string).into()
+	}
+}
+
+impl FromStr for State {
+	type Err = Infallible;
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(s.into())
 	}
 }
 
@@ -338,20 +345,21 @@ pub struct StateSet(BitFlags<State>);
 impl StateSet {
 	/// Create a new `StateSet`.
 	///
-	///## Example
-	///```Rust
-	///     let states = State::Focusable | State::Sensitive | State::Active;
-	///     let set = StateSet::new(states);
+	/// ## Example
+	/// ```rust
+	/// # use atspi_common::{State, StateSet};
+	/// let states = State::Focusable | State::Sensitive | State::Active;
+	/// let set = StateSet::new(states);
 	///
-	///     assert!(set.contains(State::Active));
-	///     assert!(!set.contains(State::Busy));
+	/// assert!(set.contains(State::Active));
+	/// assert!(!set.contains(State::Busy));
 	/// ```
 	pub fn new<B: Into<BitFlags<State>>>(value: B) -> Self {
 		Self(value.into())
 	}
 
 	/// Returns the `StateSet` that corresponds to the provided `u64`s bit pattern.
-	///# Errors
+	/// # Errors
 	/// When the argument encodes an undefined [`State`].
 	pub fn from_bits(bits: u64) -> Result<StateSet, FromBitsError<State>> {
 		Ok(StateSet(BitFlags::from_bits(bits)?))
@@ -640,7 +648,7 @@ mod tests {
 		for state in
 			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
-			let state_str: String = state.into();
+			let state_str: String = state.to_string();
 			let state_two: State = state_str.clone().into();
 			assert_eq!(
 				state, state_two,
@@ -654,7 +662,7 @@ mod tests {
 			StateSet::from_bits(0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111).unwrap()
 		{
 			let serde_state_str: String = serde_plain::to_string(&state).unwrap();
-			let state_str: String = state.into();
+			let state_str: String = state.to_string();
 			assert_eq!(serde_state_str, state_str);
 			let state_two: State = serde_plain::from_str(&state_str).unwrap();
 			assert_eq!(state, state_two, "The {state:?} was serialized as {state_str}, which deserializes to {state_two:?} (serde)");
