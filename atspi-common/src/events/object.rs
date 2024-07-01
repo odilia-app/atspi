@@ -454,16 +454,8 @@ mod i32_bool_conversion {
 pub struct ChildrenChangedEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// Operation, which may be one of:
-	///
-	/// * "insert/system"
-	/// * "insert"
-	/// * "delete/system"
-	/// * "delete"
-	///
-	/// The operation is the same whether it contains the "/system" suffix or not.
-	/// TODO: This should be an enum.
-	pub operation: String,
+	/// The [`crate::Operation`] being performed.
+	pub operation: crate::Operation,
 	/// Index to remove from/add to.
 	pub index_in_parent: i32,
 	/// A reference to the new child.
@@ -570,16 +562,8 @@ pub struct TextSelectionChangedEvent {
 pub struct TextChangedEvent {
 	/// The [`ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// Operation, which may be one of:
-	///
-	/// * "insert/system"
-	/// * "insert"
-	/// * "delete/system"
-	/// * "delete"
-	///
-	/// The operation is the same whether it contains the "/system" suffix or not.
-	/// TODO: This should be an enum.
-	pub operation: String,
+	/// The [`crate::Operation`] being performed.
+	pub operation: crate::Operation,
 	/// starting index of the insertion/deletion
 	pub start_pos: i32,
 	/// length of the insertion/deletion
@@ -692,7 +676,7 @@ impl BusProperties for ChildrenChangedEvent {
 	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			operation: body.kind,
+			operation: body.kind.as_str().parse()?,
 			index_in_parent: body.detail1,
 			child: body.any_data.try_into()?,
 		})
@@ -971,7 +955,7 @@ impl BusProperties for TextChangedEvent {
 	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			operation: body.kind,
+			operation: body.kind.as_str().parse()?,
 			start_pos: body.detail1,
 			length: body.detail2,
 			text: body.any_data.try_into()?,
@@ -1184,7 +1168,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.operation,
+			kind: event.operation.to_string(),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `ObjectRef`
@@ -1597,7 +1581,7 @@ impl From<TextChangedEvent> for EventBodyOwned {
 	fn from(event: TextChangedEvent) -> Self {
 		EventBodyOwned {
 			properties: std::collections::HashMap::new(),
-			kind: event.operation,
+			kind: event.operation.to_string(),
 			detail1: event.start_pos,
 			detail2: event.length,
 

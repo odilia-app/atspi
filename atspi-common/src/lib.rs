@@ -20,6 +20,8 @@ pub mod object_match;
 pub use object_match::{MatchType, ObjectMatchRule, SortOrder, TreeTraversalType};
 pub mod object_ref;
 pub use object_ref::ObjectRef;
+pub mod operation;
+pub use operation::Operation;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
 pub mod state;
