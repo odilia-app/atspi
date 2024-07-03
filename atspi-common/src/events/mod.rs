@@ -432,7 +432,10 @@ impl MessageConversion for LegacyAddAccessibleEvent {
 #[cfg(feature = "zbus")]
 impl<T> MessageConversion for T
 where
-	T: From<ObjectRef>,
+	ObjectRef: Into<T>,
+	// this bound is not actually used for anything, but I do not want to implement this trait for
+	// just any type that has an infallible conversion from an ObjectRef
+	T: BusProperties,
 {
 	type Body = EventBodyOwned;
 	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
