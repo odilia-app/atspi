@@ -80,8 +80,12 @@ impl BusProperties for ModifiersEvent {
 impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
+		Ok(Self { item, previous_modifiers: ev_body.detail1, current_modifiers: ev_body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();

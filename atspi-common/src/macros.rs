@@ -309,7 +309,7 @@ macro_rules! impl_from_dbus_message {
 				}
 				<$type>::from_message_parts_unchecked(
 					msg.try_into()?,
-					msg.body().deserialize::<<$type as MessageConversion>::Body>()?,
+					msg.body(), //.deserialize::<<$type as MessageConversion>::Body>()?,
 				)
 			}
 		}
@@ -337,7 +337,12 @@ macro_rules! generic_event_test_case {
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let item = struct_event.item.clone();
 			let body = struct_event.body();
-			let build_struct = <$type>::from_message_parts_unchecked(item, body)
+			let body2 = Message::method("/my/fake/path", "my.fake.interface")
+				.expect("A message must be able to be built to run this test.")
+				.build(&(body,))
+				.expect("A message must be able to be built to run this test.")
+				.body();
+			let build_struct = <$type>::from_message_parts_unchecked(item, body2)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}
@@ -592,7 +597,7 @@ macro_rules! event_wrapper_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "events_tests_", case = "snake")]
 		mod foo {
-			use super::{$any_subtype, $type, Event, BusProperties};
+			use super::{$any_subtype, $type, Event, BusProperties, MessageConversion};
 			#[test]
 			fn into_and_try_from_event() {
 				// Create a default event struct from its type's `Default::default()` impl.
@@ -702,7 +707,8 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$type, Event, BusProperties, EventProperties, EventTypeProperties};
+			use super::{$type, Event, BusProperties, MessageConversion, EventProperties, EventTypeProperties};
+      use zbus::Message;
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);

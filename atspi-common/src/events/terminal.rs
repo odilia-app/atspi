@@ -144,7 +144,7 @@ impl MessageConversion for LineChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -168,7 +168,7 @@ impl MessageConversion for ColumnCountChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -192,7 +192,7 @@ impl MessageConversion for LineCountChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -216,7 +216,7 @@ impl MessageConversion for ApplicationChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -240,7 +240,7 @@ impl MessageConversion for CharWidthChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}

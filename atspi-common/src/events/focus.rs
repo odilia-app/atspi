@@ -79,7 +79,7 @@ impl MessageConversion for FocusEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}

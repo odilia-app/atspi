@@ -604,9 +604,13 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		let property = body.kind.clone();
-		let value: Property = body.try_into()?;
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
+		let property = ev_body.kind.to_string();
+		let value: Property = ev_body.try_into()?;
 		Ok(Self { item, property, value })
 	}
 	fn body(&self) -> Self::Body {
@@ -629,7 +633,7 @@ impl MessageConversion for BoundsChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -653,7 +657,7 @@ impl MessageConversion for LinkSelectedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -675,8 +679,12 @@ impl BusProperties for StateChangedEvent {
 impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 > 0 })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
+		Ok(Self { item, state: ev_body.kind.into(), enabled: ev_body.detail1 > 0 })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -696,12 +704,16 @@ impl BusProperties for ChildrenChangedEvent {
 impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self {
 			item,
-			operation: body.kind.as_str().parse()?,
-			index_in_parent: body.detail1,
-			child: body.any_data.try_into()?,
+			operation: ev_body.kind.as_str().parse()?,
+			index_in_parent: ev_body.detail1,
+			child: ev_body.any_data.try_into()?,
 		})
 	}
 	fn body(&self) -> Self::Body {
@@ -724,7 +736,7 @@ impl MessageConversion for VisibleDataChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -748,7 +760,7 @@ impl MessageConversion for SelectionChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -772,7 +784,7 @@ impl MessageConversion for ModelChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -794,8 +806,11 @@ impl BusProperties for ActiveDescendantChangedEvent {
 impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, child: body.any_data.try_into()? })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, child: body.deserialize_unchecked::<Self::Body>()?.any_data.try_into()? })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -815,11 +830,18 @@ impl BusProperties for AnnouncementEvent {
 impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self {
 			item,
-			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
-			live: body.detail1.try_into()?,
+			text: ev_body
+				.any_data
+				.try_into()
+				.map_err(|_| AtspiError::Conversion("text"))?,
+			live: ev_body.detail1.try_into()?,
 		})
 	}
 	fn body(&self) -> Self::Body {
@@ -842,7 +864,7 @@ impl MessageConversion for AttributesChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -866,7 +888,7 @@ impl MessageConversion for RowInsertedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -890,7 +912,7 @@ impl MessageConversion for RowReorderedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -914,7 +936,7 @@ impl MessageConversion for RowDeletedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -938,7 +960,7 @@ impl MessageConversion for ColumnInsertedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -962,7 +984,7 @@ impl MessageConversion for ColumnReorderedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -986,7 +1008,7 @@ impl MessageConversion for ColumnDeletedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -1010,7 +1032,7 @@ impl MessageConversion for TextBoundsChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -1034,7 +1056,7 @@ impl MessageConversion for TextSelectionChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -1056,13 +1078,17 @@ impl BusProperties for TextChangedEvent {
 impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
 		Ok(Self {
 			item,
-			operation: body.kind.as_str().parse()?,
-			start_pos: body.detail1,
-			length: body.detail2,
-			text: body.any_data.try_into()?,
+			operation: ev_body.kind.as_str().parse()?,
+			start_pos: ev_body.detail1,
+			length: ev_body.detail2,
+			text: ev_body.any_data.try_into()?,
 		})
 	}
 	fn body(&self) -> Self::Body {
@@ -1085,7 +1111,7 @@ impl MessageConversion for TextAttributesChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -1107,8 +1133,11 @@ impl BusProperties for TextCaretMovedEvent {
 impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, position: body.detail1 })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, position: body.deserialize_unchecked::<Self::Body>()?.detail1 })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();

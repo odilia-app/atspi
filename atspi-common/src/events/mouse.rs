@@ -112,8 +112,12 @@ impl BusProperties for AbsEvent {
 impl MessageConversion for AbsEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, x: body.detail1, y: body.detail2 })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
+		Ok(Self { item, x: ev_body.detail1, y: ev_body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -133,8 +137,12 @@ impl BusProperties for RelEvent {
 impl MessageConversion for RelEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, x: body.detail1, y: body.detail2 })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
+		Ok(Self { item, x: ev_body.detail1, y: ev_body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -154,8 +162,12 @@ impl BusProperties for ButtonEvent {
 impl MessageConversion for ButtonEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		let ev_body: Self::Body = body.deserialize_unchecked()?;
+		Ok(Self { item, detail: ev_body.kind, mouse_x: ev_body.detail1, mouse_y: ev_body.detail2 })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();

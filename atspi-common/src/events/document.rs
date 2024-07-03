@@ -163,7 +163,7 @@ impl MessageConversion for LoadCompleteEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -187,7 +187,7 @@ impl MessageConversion for ReloadEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -211,7 +211,7 @@ impl MessageConversion for LoadStoppedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -235,7 +235,7 @@ impl MessageConversion for ContentChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -259,7 +259,7 @@ impl MessageConversion for AttributesChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -283,7 +283,7 @@ impl MessageConversion for PageChangedEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}

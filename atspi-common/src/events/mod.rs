@@ -418,8 +418,11 @@ impl BusProperties for LegacyAddAccessibleEvent {
 impl MessageConversion for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body.deserialize_unchecked()? })
 	}
 
 	fn body(&self) -> Self::Body {
@@ -458,8 +461,11 @@ impl BusProperties for AddAccessibleEvent {
 impl MessageConversion for AddAccessibleEvent {
 	type Body = CacheItem;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body.deserialize_unchecked()? })
 	}
 
 	fn body(&self) -> Self::Body {
@@ -506,8 +512,11 @@ impl BusProperties for RemoveAccessibleEvent {
 impl MessageConversion for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_removed: body })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_removed: body.deserialize_unchecked()? })
 	}
 	fn body(&self) -> Self::Body {
 		self.node_removed.clone()
@@ -705,8 +714,11 @@ impl BusProperties for EventListenerDeregisteredEvent {
 impl MessageConversion for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, deregistered_event: body })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, deregistered_event: body.deserialize_unchecked()? })
 	}
 	fn body(&self) -> Self::Body {
 		self.deregistered_event.clone()
@@ -750,8 +762,11 @@ impl BusProperties for EventListenerRegisteredEvent {
 impl MessageConversion for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, registered_event: body })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, registered_event: body.deserialize_unchecked()? })
 	}
 	fn body(&self) -> Self::Body {
 		self.registered_event.clone()
@@ -796,8 +811,11 @@ impl BusProperties for AvailableEvent {
 impl MessageConversion for AvailableEvent {
 	type Body = ObjectRef;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, socket: body })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, socket: body.deserialize_unchecked()? })
 	}
 	fn body(&self) -> Self::Body {
 		self.socket.clone()
@@ -969,8 +987,11 @@ pub trait MessageConversion {
 	/// When the body type does not match the [`Self::Body`] type defined in this trait.
 	/// Technically, it may also panic if you are accepting file descriptors over the
 	/// [`enum@zvariant::Value`] variant, and you are out of file descriptors for the process.
-	/// THis is considered exceptionally rare and should never happen.
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
+	/// This is considered exceptionally rare and should never happen.
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 

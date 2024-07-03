@@ -338,8 +338,11 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts_unchecked(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, property: body.kind })
+	fn from_message_parts_unchecked(
+		item: ObjectRef,
+		body: zbus::message::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, property: body.deserialize_unchecked::<Self::Body>()?.kind })
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -361,7 +364,7 @@ impl MessageConversion for MinimizeEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -385,7 +388,7 @@ impl MessageConversion for MaximizeEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -409,7 +412,7 @@ impl MessageConversion for RestoreEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -433,7 +436,7 @@ impl MessageConversion for CloseEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -457,7 +460,7 @@ impl MessageConversion for CreateEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -481,7 +484,7 @@ impl MessageConversion for ReparentEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -505,7 +508,7 @@ impl MessageConversion for DesktopCreateEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -529,7 +532,7 @@ impl MessageConversion for DesktopDestroyEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -553,7 +556,7 @@ impl MessageConversion for DestroyEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -577,7 +580,7 @@ impl MessageConversion for ActivateEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -601,7 +604,7 @@ impl MessageConversion for DeactivateEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -625,7 +628,7 @@ impl MessageConversion for RaiseEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -649,7 +652,7 @@ impl MessageConversion for LowerEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -673,7 +676,7 @@ impl MessageConversion for MoveEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -697,7 +700,7 @@ impl MessageConversion for ResizeEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -721,7 +724,7 @@ impl MessageConversion for ShadeEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -745,7 +748,7 @@ impl MessageConversion for UUshadeEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
@@ -769,7 +772,7 @@ impl MessageConversion for RestyleEvent {
 
 	fn from_message_parts_unchecked(
 		item: ObjectRef,
-		_body: Self::Body,
+		_body: zbus::message::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item })
 	}
