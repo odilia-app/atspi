@@ -428,8 +428,8 @@ impl_try_from_event_for_user_facing_type!(
 	CacheEvents::LegacyAdd,
 	Event::Cache
 );
-event_test_cases!(LegacyAddAccessibleEvent, false);
-impl_from_dbus_message!(LegacyAddAccessibleEvent, false);
+event_test_cases!(LegacyAddAccessibleEvent, Explicit);
+impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
 
@@ -468,7 +468,7 @@ impl_from_user_facing_event_for_interface_event_enum!(
 );
 impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
-event_test_cases!(AddAccessibleEvent, false);
+event_test_cases!(AddAccessibleEvent, Explicit);
 
 impl BusProperties for AddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
@@ -493,7 +493,7 @@ impl<T: BusProperties> HasMatchRule for T {
 impl<T: BusProperties> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as BusProperties>::REGISTRY_EVENT_STRING;
 }
-impl_from_dbus_message!(AddAccessibleEvent, false);
+impl_from_dbus_message!(AddAccessibleEvent, Explicit);
 impl_event_properties!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
@@ -514,7 +514,7 @@ impl_from_user_facing_event_for_interface_event_enum!(
 );
 impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
-event_test_cases!(RemoveAccessibleEvent, false);
+event_test_cases!(RemoveAccessibleEvent, Explicit);
 impl BusProperties for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
 	const MATCH_RULE_STRING: &'static str =
@@ -532,7 +532,7 @@ impl BusProperties for RemoveAccessibleEvent {
 	}
 }
 
-impl_from_dbus_message!(RemoveAccessibleEvent, false);
+impl_from_dbus_message!(RemoveAccessibleEvent, Explicit);
 impl_event_properties!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);
 
@@ -710,7 +710,7 @@ impl_try_from_event_for_user_facing_type!(
 	EventListenerEvents::Deregistered,
 	Event::Listener
 );
-event_test_cases!(EventListenerDeregisteredEvent, false);
+event_test_cases!(EventListenerDeregisteredEvent, Explicit);
 impl BusProperties for EventListenerDeregisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
 	const MATCH_RULE_STRING: &'static str =
@@ -727,7 +727,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 		self.deregistered_event.clone()
 	}
 }
-impl_from_dbus_message!(EventListenerDeregisteredEvent, false);
+impl_from_dbus_message!(EventListenerDeregisteredEvent, Explicit);
 impl_event_properties!(EventListenerDeregisteredEvent);
 impl_to_dbus_message!(EventListenerDeregisteredEvent);
 
@@ -752,7 +752,7 @@ impl_try_from_event_for_user_facing_type!(
 	EventListenerEvents::Registered,
 	Event::Listener
 );
-event_test_cases!(EventListenerRegisteredEvent, false);
+event_test_cases!(EventListenerRegisteredEvent, Explicit);
 impl BusProperties for EventListenerRegisteredEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
 	const MATCH_RULE_STRING: &'static str =
@@ -769,7 +769,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 		self.registered_event.clone()
 	}
 }
-impl_from_dbus_message!(EventListenerRegisteredEvent, false);
+impl_from_dbus_message!(EventListenerRegisteredEvent, Explicit);
 impl_event_properties!(EventListenerRegisteredEvent);
 impl_to_dbus_message!(EventListenerRegisteredEvent);
 
@@ -795,7 +795,7 @@ impl TryFrom<Event> for AvailableEvent {
 		}
 	}
 }
-event_test_cases!(AvailableEvent, false);
+event_test_cases!(AvailableEvent, Explicit);
 impl BusProperties for AvailableEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
 	const MATCH_RULE_STRING: &'static str =
@@ -812,7 +812,7 @@ impl BusProperties for AvailableEvent {
 		self.socket.clone()
 	}
 }
-impl_from_dbus_message!(AvailableEvent, false);
+impl_from_dbus_message!(AvailableEvent, Explicit);
 impl_event_properties!(AvailableEvent);
 impl_to_dbus_message!(AvailableEvent);
 

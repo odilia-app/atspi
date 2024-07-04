@@ -252,12 +252,12 @@ macro_rules! impl_to_dbus_message {
 /// ```
 ///
 /// There is also a variant that can be used for events whose [`crate::events::BusProperties::Body`] is not
-/// [`crate::events::EventBodyOwned`]. You can call this by setting the second parameter to `false`.
+/// [`crate::events::EventBodyOwned`]. You can call this by setting the second parameter to `Explicit`.
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
-		impl_from_dbus_message!($type, true);
+		impl_from_dbus_message!($type, Auto);
 	};
-	($type:ty, true) => {
+	($type:ty, Auto) => {
 		#[cfg(feature = "zbus")]
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
@@ -284,7 +284,7 @@ macro_rules! impl_from_dbus_message {
 			}
 		}
 	};
-	($type:ty, false) => {
+	($type:ty, Explicit) => {
 		#[cfg(feature = "zbus")]
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
