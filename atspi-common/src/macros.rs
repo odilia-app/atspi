@@ -418,7 +418,7 @@ macro_rules! event_enum_transparency_test_case {
 
 #[cfg(test)]
 macro_rules! zbus_message_qtspi_test_case {
-    ($type:ty, true) => {
+    ($type:ty, Auto) => {
       #[cfg(feature = "zbus")]
      #[test]
     fn zbus_message_conversion_qtspi() {
@@ -439,7 +439,7 @@ macro_rules! zbus_message_qtspi_test_case {
           <$type>::try_from(&msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
         }
     };
-    ($type:ty, false) => {};
+    ($type:ty, Explicit) => {};
 }
 
 // We decorate the macro with a `#[cfg(test)]` attribute.
@@ -450,10 +450,10 @@ macro_rules! zbus_message_qtspi_test_case {
 #[cfg(test)]
 macro_rules! zbus_message_test_case {
   ($type:ty) => {
-      zbus_message_test_case!($type, true);
+      zbus_message_test_case!($type, Auto);
     };
-	($type:ty, $val:tt) => {
-    zbus_message_qtspi_test_case!($type, $val);
+	($type:ty, $extra:tt) => {
+    zbus_message_qtspi_test_case!($type, $extra);
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_to_specific_event_type() {
@@ -696,7 +696,7 @@ macro_rules! event_wrapper_test_cases {
 
 macro_rules! event_test_cases {
   ($type:ty) => {
-      event_test_cases!($type, true);
+      event_test_cases!($type, Auto);
   };
 	($type:ty, $qt:tt) => {
 		#[cfg(test)]
