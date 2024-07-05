@@ -839,10 +839,8 @@ pub trait MessageConversion: BusProperties {
 	///
 	/// # Errors
 	///
-	/// - When the body type does not match the [`Self::Body`] type defined in this trait.
-	/// - Technically, it may even panic if you are accepting file descriptors over the
-	///   [`enum@zvariant::Value`] variant, and you are out of file descriptors for the process.
-	///   This is considered exceptionally rare and should never happen.
+	/// It is possible to get a [`enum@AtspiError::Zvariant`] error if you do not check the proper
+	/// conditions before calling this.
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
@@ -856,6 +854,11 @@ pub trait MessageConversion: BusProperties {
 	/// - That the message member matches the one for the event: [`enum@AtspiError::MemberMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
+	///
+	/// # Errors
+	///
+	/// Some [`Self::Body`] types may fallibly convert data fields contained in the body.
+	/// If this happens, then the function will return an error.
 	fn try_from_validated_message_parts(
 		obj_ref: ObjectRef,
 		body: Self::Body,
@@ -863,6 +866,12 @@ pub trait MessageConversion: BusProperties {
 	where
 		Self: Sized;
 
+	/// Validate the interface string via [`zbus::Header::interface`] against [`Self::DBUS_INTERFACE`]
+	///
+	/// # Errors
+	///
+	/// - [`enum@AtspiError::MissingInterface`] if there is no interface
+	/// - [`enum@AtspiError::InterfaceMatch`] if the interfaces do not match
 	fn validate_interface(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let header = msg.header();
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
@@ -875,6 +884,12 @@ pub trait MessageConversion: BusProperties {
 		}
 		Ok(())
 	}
+	/// Validate the member string via [`zbus::Header::member`] against [`Self::DBUS_MEMBER`]
+	///
+	/// # Errors
+	///
+	/// - [`enum@AtspiError::MissingMember`] if there is no member
+	/// - [`enum@AtspiError::MemberMatch`] if the members do not match
 	fn validate_member(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
@@ -888,6 +903,12 @@ pub trait MessageConversion: BusProperties {
 		}
 		Ok(())
 	}
+	/// Validate the body signature against the [`zbus::Signature`] of [`Self::Body`]
+	///
+	/// # Errors
+	///
+	/// - [`enum@AtspiError::MissingSignature`] if there is no signature
+	/// - [`enum@AtspiError::SignatureMatch`] if the signatures do not match
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();
 		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
