@@ -445,6 +445,25 @@ macro_rules! zbus_message_qtspi_test_case {
           .unwrap();
           <$type>::try_from(&msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
         }
+      #[cfg(feature = "zbus")]
+     #[test]
+    fn zbus_message_conversion_qtspi_event_enum() {
+      // in the case that the body type is EventBodyOwned, we need to also check successful
+      // conversion from a QSPI-style body.
+        let ev = <$type>::default();
+          let qt: crate::events::EventBodyQT = ev.body().into();
+          let msg = zbus::Message::signal(
+            ev.path(),
+            ev.interface(),
+            ev.member(),
+          )
+          .unwrap()
+          .sender(":0.0")
+          .unwrap()
+          .build(&(qt,))
+          .unwrap();
+          assert_matches!(Event::try_from(&msg), Ok(_));
+        }
     };
     ($type:ty, Explicit) => {};
 }
