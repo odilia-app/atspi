@@ -265,9 +265,6 @@ macro_rules! impl_to_dbus_message {
 ///     use zvariant::Type;
 ///     let header = msg.header();
 ///     let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-///     let member = header.member().ok_or(AtspiError::MissingMember)?;
-///     let body = msg.body();
-///     let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
 ///
 ///     if interface != <StateChangedEvent as BusProperties>::DBUS_INTERFACE {
 ///       return Err(AtspiError::InterfaceMatch(format!(
@@ -276,6 +273,7 @@ macro_rules! impl_to_dbus_message {
 ///         <StateChangedEvent as BusProperties>::DBUS_INTERFACE,
 ///       )));
 ///     }
+///     let member = header.member().ok_or(AtspiError::MissingMember)?;
 ///     if member != <StateChangedEvent>::DBUS_MEMBER {
 ///       return Err(AtspiError::MemberMatch(format!(
 ///         "The member {} does not match the signal's member: {}",
@@ -284,6 +282,8 @@ macro_rules! impl_to_dbus_message {
 ///         <StateChangedEvent as BusProperties>::DBUS_MEMBER,
 ///       )));
 ///     }
+///     let body = msg.body();
+///     let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
 ///     if body_signature != <StateChangedEvent as MessageConversion>::Body::signature() {
 ///       return Err(AtspiError::SignatureMatch(format!(
 ///         "The message signature {} does not match the signal's body signature: {}",
@@ -337,9 +337,6 @@ macro_rules! impl_from_dbus_message {
 				use zvariant::Type;
 				let header = msg.header();
 				let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-				let member = header.member().ok_or(AtspiError::MissingMember)?;
-				let body = msg.body();
-				let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
 
 				if interface != <$type as BusProperties>::DBUS_INTERFACE {
 					return Err(AtspiError::InterfaceMatch(format!(
@@ -348,6 +345,7 @@ macro_rules! impl_from_dbus_message {
 						<$type as BusProperties>::DBUS_INTERFACE,
 					)));
 				}
+				let member = header.member().ok_or(AtspiError::MissingMember)?;
 				if member != <$type>::DBUS_MEMBER {
 					return Err(AtspiError::MemberMatch(format!(
 						"The member {} does not match the signal's member: {}",
@@ -356,6 +354,8 @@ macro_rules! impl_from_dbus_message {
 						<$type as BusProperties>::DBUS_MEMBER,
 					)));
 				}
+				let body = msg.body();
+				let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
 				if body_signature != <$type as MessageConversion>::Body::signature() {
 					return Err(AtspiError::SignatureMatch(format!(
 						"The message signature {} does not match the signal's body signature: {}",
