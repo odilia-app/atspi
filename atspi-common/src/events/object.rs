@@ -4,7 +4,10 @@ use std::hash::Hash;
 use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties, State,
 };
 use zbus_names::UniqueName;
@@ -898,14 +901,24 @@ impl MessageConversion for TextCaretMovedEvent {
 	}
 }
 
+impl HasInterfaceName for ObjectEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
+}
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for ObjectEvents {
 	type Error = AtspiError;
 	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
 		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != ObjectEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				ObjectEvents::DBUS_INTERFACE
+			)));
+		}
 		match member.as_str() {
 			"PropertyChange" => Ok(ObjectEvents::PropertyChange(ev.try_into()?)),
 			"BoundsChanged" => Ok(ObjectEvents::BoundsChanged(ev.try_into()?)),
