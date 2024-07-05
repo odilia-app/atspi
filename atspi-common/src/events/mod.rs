@@ -517,16 +517,7 @@ impl EventWrapperMessageConversion for EventListenerEvents {
 impl TryFrom<&zbus::Message> for EventListenerEvents {
 	type Error = AtspiError;
 	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = msg.header();
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		if interface != EventListenerEvents::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"Interface {} does not match require interface for event: {}",
-				interface,
-				EventListenerEvents::DBUS_INTERFACE
-			)));
-		}
-		EventListenerEvents::try_from_message_interface_checked(msg)
+		Self::try_from_message(msg)
 	}
 }
 
@@ -847,6 +838,28 @@ pub(crate) trait EventWrapperMessageConversion {
 	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
+}
+
+#[cfg(feature = "zbus")]
+pub(crate) trait TryFromMessage {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+}
+#[cfg(feature = "zbus")]
+impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
+	fn try_from_message(msg: &zbus::Message) -> Result<T, AtspiError> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != <T as HasInterfaceName>::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				<T as HasInterfaceName>::DBUS_INTERFACE
+			)));
+		}
+		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg)
+	}
 }
 
 #[cfg(test)]

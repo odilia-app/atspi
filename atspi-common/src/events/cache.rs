@@ -5,7 +5,7 @@ use crate::{
 	error::AtspiError,
 	events::{
 		BusProperties, EventWrapperMessageConversion, HasInterfaceName, HasMatchRule,
-		HasRegistryEventString, ObjectRef,
+		HasRegistryEventString, ObjectRef, TryFromMessage,
 	},
 	Event, EventProperties, EventTypeProperties,
 };
@@ -126,16 +126,7 @@ impl EventWrapperMessageConversion for CacheEvents {
 impl TryFrom<&zbus::Message> for CacheEvents {
 	type Error = AtspiError;
 	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = msg.header();
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		if interface != CacheEvents::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"Interface {} does not match require interface for event: {}",
-				interface,
-				CacheEvents::DBUS_INTERFACE
-			)));
-		}
-		CacheEvents::try_from_message_interface_checked(msg)
+		Self::try_from_message(msg)
 	}
 }
 
