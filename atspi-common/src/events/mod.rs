@@ -823,12 +823,12 @@ pub trait MessageConversion: BusProperties {
 	/// Build an event from a [`zbus::Message`] reference.
 	/// This function will not check for any of the following error conditions:
 	///
-	/// - That the message has an interface: [`enum@AtspiError::MissingInterface`]
-	/// - That the message interface matches the one for the event: [`enum@AtspiError::InterfaceMatch`]
-	/// - That the message has an member: [`enum@AtspiError::MissingMember`]
-	/// - That the message member matches the one for the event: [`enum@AtspiError::MemberMatch`]
-	/// - That the message has an signature: [`enum@AtspiError::MissingSignature`]
-	/// - That the message signature matches the one for the event: [`enum@AtspiError::SignatureMatch`]
+	/// - That the message has an interface: [`type@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`type@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - That the message has an signature: [`type@AtspiError::MissingSignature`]
+	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
 	/// These can be checked manually, or you can use the convience function provided by this trait:
@@ -839,7 +839,7 @@ pub trait MessageConversion: BusProperties {
 	///
 	/// # Errors
 	///
-	/// It is possible to get a [`enum@AtspiError::Zvariant`] error if you do not check the proper
+	/// It is possible to get a [`type@AtspiError::Zvariant`] error if you do not check the proper
 	/// conditions before calling this.
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
@@ -848,10 +848,10 @@ pub trait MessageConversion: BusProperties {
 	/// Build an event from an [`ObjectRef`] and [`Self::Body`].
 	/// This function will not check for any of the following error conditions:
 	///
-	/// - That the message has an interface: [`enum@AtspiError::MissingInterface`]
-	/// - That the message interface matches the one for the event: [`enum@AtspiError::InterfaceMatch`]
-	/// - That the message has an member: [`enum@AtspiError::MissingMember`]
-	/// - That the message member matches the one for the event: [`enum@AtspiError::MemberMatch`]
+	/// - That the message has an interface: [`type@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`type@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
 	///
@@ -866,12 +866,12 @@ pub trait MessageConversion: BusProperties {
 	where
 		Self: Sized;
 
-	/// Validate the interface string via [`zbus::Header::interface`] against [`Self::DBUS_INTERFACE`]
+	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
 	///
 	/// # Errors
 	///
-	/// - [`enum@AtspiError::MissingInterface`] if there is no interface
-	/// - [`enum@AtspiError::InterfaceMatch`] if the interfaces do not match
+	/// - [`type@AtspiError::MissingInterface`] if there is no interface
+	/// - [`type@AtspiError::InterfaceMatch`] if the interfaces do not match
 	fn validate_interface(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let header = msg.header();
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
@@ -884,12 +884,12 @@ pub trait MessageConversion: BusProperties {
 		}
 		Ok(())
 	}
-	/// Validate the member string via [`zbus::Header::member`] against [`Self::DBUS_MEMBER`]
+	/// Validate the member string via [`zbus::message::Header::member`] against `Self`'s assignment of [`BusProperties::DBUS_MEMBER`]
 	///
 	/// # Errors
 	///
-	/// - [`enum@AtspiError::MissingMember`] if there is no member
-	/// - [`enum@AtspiError::MemberMatch`] if the members do not match
+	/// - [`type@AtspiError::MissingMember`] if there is no member
+	/// - [`type@AtspiError::MemberMatch`] if the members do not match
 	fn validate_member(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
@@ -903,12 +903,12 @@ pub trait MessageConversion: BusProperties {
 		}
 		Ok(())
 	}
-	/// Validate the body signature against the [`zbus::Signature`] of [`Self::Body`]
+	/// Validate the body signature against the [`zvariant::Signature`] of [`Self::Body`]
 	///
 	/// # Errors
 	///
-	/// - [`enum@AtspiError::MissingSignature`] if there is no signature
-	/// - [`enum@AtspiError::SignatureMatch`] if the signatures do not match
+	/// - [`type@AtspiError::MissingSignature`] if there is no signature
+	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();
 		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
@@ -927,12 +927,12 @@ pub trait MessageConversion: BusProperties {
 	///
 	/// # Errors
 	///
-	/// - The message does not have an interface: [`enum@AtspiError::MissingInterface`]
-	/// - The message interface does not match the one for the event: [`enum@AtspiError::InterfaceMatch`]
-	/// - The message does not have an member: [`enum@AtspiError::MissingMember`]
-	/// - The message member does not match the one for the event: [`enum@AtspiError::MemberMatch`]
-	/// - The message does not have an signature: [`enum@AtspiError::MissingSignature`]
-	/// - The message signature does not match the one for the event: [`enum@AtspiError::SignatureMatch`]
+	/// - The message does not have an interface: [`type@AtspiError::MissingInterface`]
+	/// - The message interface does not match the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - The message does not have an member: [`type@AtspiError::MissingMember`]
+	/// - The message member does not match the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - The message does not have an signature: [`type@AtspiError::MissingSignature`]
+	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// See [`Self::try_from_validated_message`] for info on panic condition that should never
 	/// happen.
