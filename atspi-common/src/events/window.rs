@@ -1,10 +1,9 @@
 #[cfg(feature = "zbus")]
-use crate::events::MessageConversion;
+use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, EventWrapperMessageConversion, HasInterfaceName,
-		HasMatchRule, HasRegistryEventString, TryFromMessage,
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
 	},
 	Event, EventProperties, EventTypeProperties,
 };

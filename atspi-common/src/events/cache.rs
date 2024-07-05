@@ -1,12 +1,9 @@
 #[cfg(feature = "zbus")]
-use crate::events::MessageConversion;
+use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
 	error::AtspiError,
-	events::{
-		BusProperties, EventWrapperMessageConversion, HasInterfaceName, HasMatchRule,
-		HasRegistryEventString, ObjectRef, TryFromMessage,
-	},
+	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString, ObjectRef},
 	Event, EventProperties, EventTypeProperties,
 };
 use serde::{Deserialize, Serialize};

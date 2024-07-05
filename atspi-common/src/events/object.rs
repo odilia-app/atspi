@@ -1,12 +1,12 @@
 use std::hash::Hash;
 
 #[cfg(feature = "zbus")]
-use crate::events::MessageConversion;
+use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, EventWrapperMessageConversion, HasInterfaceName,
-		HasMatchRule, HasRegistryEventString, ObjectRef, TryFromMessage,
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		ObjectRef,
 	},
 	Event, EventProperties, EventTypeProperties, State,
 };
