@@ -586,6 +586,25 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
+      assert_matches!(event, Err(AtspiError::MissingSignature), "Wrong kind of error");
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_interface_and_member_invalid_body() -> () {
+      // known invalid body for AT-SPI events
+      let invalid_body: (i32, u64, String, String) = (0, 0, String::new(), String::new());
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				<$type as BusProperties>::DBUS_INTERFACE,
+				<$type as BusProperties>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&invalid_body)
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
       assert_matches!(event, Err(AtspiError::SignatureMatch(_)), "Wrong kind of error");
 		}
 
@@ -621,6 +640,22 @@ macro_rules! zbus_message_test_case {
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
       assert_matches!(event, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
+		}
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_body_and_interface() -> () {
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				<$type as BusProperties>::DBUS_INTERFACE,
+        "MadeUpMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&<$type>::default().body())
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
+      assert_matches!(event, Err(AtspiError::MemberMatch(_)), "Wrong kind of error");
 		}
 	};
 }
