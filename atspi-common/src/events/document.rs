@@ -2,7 +2,7 @@
 use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasMatchRule, HasRegistryEventString},
+	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -197,21 +197,41 @@ impl BusProperties for PageChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
+impl HasInterfaceName for DocumentEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
+}
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for DocumentEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != DocumentEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match interface {}",
+				interface,
+				DocumentEvents::DBUS_INTERFACE
+			)));
+		}
 		match member.as_str() {
-			"LoadComplete" => Ok(DocumentEvents::LoadComplete(ev.try_into()?)),
-			"Reload" => Ok(DocumentEvents::Reload(ev.try_into()?)),
-			"LoadStopped" => Ok(DocumentEvents::LoadStopped(ev.try_into()?)),
-			"ContentChanged" => Ok(DocumentEvents::ContentChanged(ev.try_into()?)),
-			"AttributesChanged" => Ok(DocumentEvents::AttributesChanged(ev.try_into()?)),
-			"PageChanged" => Ok(DocumentEvents::PageChanged(ev.try_into()?)),
+			"LoadComplete" => Ok(DocumentEvents::LoadComplete(
+				LoadCompleteEvent::try_from_message_unchecked(msg)?,
+			)),
+			"Reload" => Ok(DocumentEvents::Reload(ReloadEvent::try_from_message_unchecked(msg)?)),
+			"LoadStopped" => {
+				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::try_from_message_unchecked(msg)?))
+			}
+			"ContentChanged" => Ok(DocumentEvents::ContentChanged(
+				ContentChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"AttributesChanged" => Ok(DocumentEvents::AttributesChanged(
+				AttributesChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"PageChanged" => {
+				Ok(DocumentEvents::PageChanged(PageChangedEvent::try_from_message_unchecked(msg)?))
+			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 		}
 	}

@@ -903,7 +903,7 @@ impl TryFrom<&zbus::Message> for Event {
 				Ok(RemoveAccessibleEvent::try_from(msg)?.into())
 			}
 			(_iface, _method, sig) => {
-				Err(AtspiError::SignatureMatch(format!("No events found with signature {}", sig)))
+				Err(AtspiError::SignatureMatch(format!("No events found with signature {sig}")))
 			}
 		}
 	}

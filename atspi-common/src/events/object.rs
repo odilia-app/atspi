@@ -908,8 +908,8 @@ impl HasInterfaceName for ObjectEvents {
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for ObjectEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		if interface != ObjectEvents::DBUS_INTERFACE {
@@ -920,29 +920,75 @@ impl TryFrom<&zbus::Message> for ObjectEvents {
 			)));
 		}
 		match member.as_str() {
-			"PropertyChange" => Ok(ObjectEvents::PropertyChange(ev.try_into()?)),
-			"BoundsChanged" => Ok(ObjectEvents::BoundsChanged(ev.try_into()?)),
-			"LinkSelected" => Ok(ObjectEvents::LinkSelected(ev.try_into()?)),
-			"StateChanged" => Ok(ObjectEvents::StateChanged(ev.try_into()?)),
-			"ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ev.try_into()?)),
-			"VisibleDataChanged" => Ok(ObjectEvents::VisibleDataChanged(ev.try_into()?)),
-			"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(ev.try_into()?)),
-			"ModelChanged" => Ok(ObjectEvents::ModelChanged(ev.try_into()?)),
-			"ActiveDescendantChanged" => Ok(ObjectEvents::ActiveDescendantChanged(ev.try_into()?)),
-			"Announcement" => Ok(ObjectEvents::Announcement(ev.try_into()?)),
-			"AttributesChanged" => Ok(ObjectEvents::AttributesChanged(ev.try_into()?)),
-			"RowInserted" => Ok(ObjectEvents::RowInserted(ev.try_into()?)),
-			"RowReordered" => Ok(ObjectEvents::RowReordered(ev.try_into()?)),
-			"RowDeleted" => Ok(ObjectEvents::RowDeleted(ev.try_into()?)),
-			"ColumnInserted" => Ok(ObjectEvents::ColumnInserted(ev.try_into()?)),
-			"ColumnReordered" => Ok(ObjectEvents::ColumnReordered(ev.try_into()?)),
-			"ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ev.try_into()?)),
-			"TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(ev.try_into()?)),
-			"TextSelectionChanged" => Ok(ObjectEvents::TextSelectionChanged(ev.try_into()?)),
-			"TextChanged" => Ok(ObjectEvents::TextChanged(ev.try_into()?)),
-			"TextAttributesChanged" => Ok(ObjectEvents::TextAttributesChanged(ev.try_into()?)),
-			"TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
+			"PropertyChange" => Ok(ObjectEvents::PropertyChange(
+				PropertyChangeEvent::try_from_message_unchecked(msg)?,
+			)),
+			"BoundsChanged" => Ok(ObjectEvents::BoundsChanged(
+				BoundsChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"LinkSelected" => {
+				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::try_from_message_unchecked(msg)?))
+			}
+			"StateChanged" => {
+				Ok(ObjectEvents::StateChanged(StateChangedEvent::try_from_message_unchecked(msg)?))
+			}
+			"ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(
+				ChildrenChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"VisibleDataChanged" => Ok(ObjectEvents::VisibleDataChanged(
+				VisibleDataChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(
+				SelectionChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"ModelChanged" => {
+				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::try_from_message_unchecked(msg)?))
+			}
+			"ActiveDescendantChanged" => Ok(ObjectEvents::ActiveDescendantChanged(
+				ActiveDescendantChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"Announcement" => {
+				Ok(ObjectEvents::Announcement(AnnouncementEvent::try_from_message_unchecked(msg)?))
+			}
+			"AttributesChanged" => Ok(ObjectEvents::AttributesChanged(
+				AttributesChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"RowInserted" => {
+				Ok(ObjectEvents::RowInserted(RowInsertedEvent::try_from_message_unchecked(msg)?))
+			}
+			"RowReordered" => {
+				Ok(ObjectEvents::RowReordered(RowReorderedEvent::try_from_message_unchecked(msg)?))
+			}
+			"RowDeleted" => {
+				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::try_from_message_unchecked(msg)?))
+			}
+			"ColumnInserted" => Ok(ObjectEvents::ColumnInserted(
+				ColumnInsertedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"ColumnReordered" => Ok(ObjectEvents::ColumnReordered(
+				ColumnReorderedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(
+				ColumnDeletedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(
+				TextBoundsChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"TextSelectionChanged" => Ok(ObjectEvents::TextSelectionChanged(
+				TextSelectionChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"TextChanged" => {
+				Ok(ObjectEvents::TextChanged(TextChangedEvent::try_from_message_unchecked(msg)?))
+			}
+			"TextAttributesChanged" => Ok(ObjectEvents::TextAttributesChanged(
+				TextAttributesChangedEvent::try_from_message_unchecked(msg)?,
+			)),
+			"TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(
+				TextCaretMovedEvent::try_from_message_unchecked(msg)?,
+			)),
+			_ => Err(AtspiError::MemberMatch(format!(
+				"No matching member {member} for interface {interface}",
+			))),
 		}
 	}
 }

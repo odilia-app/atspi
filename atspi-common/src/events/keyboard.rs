@@ -2,7 +2,9 @@
 use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString},
+	events::{
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -92,16 +94,30 @@ impl MessageConversion for ModifiersEvent {
 	}
 }
 
+impl HasInterfaceName for KeyboardEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
+}
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for KeyboardEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
 		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != KeyboardEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				KeyboardEvents::DBUS_INTERFACE
+			)));
+		}
 		match member.as_str() {
-			"Modifiers" => Ok(KeyboardEvents::Modifiers(ev.try_into()?)),
+			"Modifiers" => {
+				Ok(KeyboardEvents::Modifiers(ModifiersEvent::try_from_message_unchecked(msg)?))
+			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
 		}
 	}

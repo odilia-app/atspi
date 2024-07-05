@@ -2,7 +2,7 @@
 use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasMatchRule, HasRegistryEventString},
+	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -73,16 +73,28 @@ impl BusProperties for FocusEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 }
 
+impl HasInterfaceName for FocusEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
+}
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for FocusEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
 		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != FocusEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				FocusEvents::DBUS_INTERFACE
+			)));
+		}
 		match member.as_str() {
-			"Focus" => Ok(FocusEvents::Focus(ev.try_into()?)),
+			"Focus" => Ok(FocusEvents::Focus(FocusEvent::try_from_message_unchecked(msg)?)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Focus".into())),
 		}
 	}
