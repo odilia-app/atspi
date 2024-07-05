@@ -280,27 +280,29 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-				let header = msg.header();
-				if header.interface().ok_or(AtspiError::MissingInterface)?
-					!= <$type as BusProperties>::DBUS_INTERFACE
-				{
-					return Err(AtspiError::InterfaceMatch(format!(
-						"The interface {} does not match the signal's interface: {}",
-						header.interface().unwrap(),
-						<$type as BusProperties>::DBUS_INTERFACE
-					)));
-				}
-				if header.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
-					return Err(AtspiError::MemberMatch(format!(
-						"The member {} does not match the signal's member: {}",
-						// unwrap is safe here because of guard above
-						header.member().unwrap(),
-						<$type as BusProperties>::DBUS_MEMBER
-					)));
-				}
-				<$type>::from_message_parts(msg.try_into()?, msg.try_into()?)
-			}
-		}
+        use zvariant::Type;
+
+        Self::validate_interface(msg)?;
+        Self::validate_member(msg)?;
+
+        let body = msg.body();
+        let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
+            let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
+            qtbody.into()
+        } else if body_signature == crate::events::ATSPI_EVENT_SIGNATURE {
+            body.deserialize_unchecked()?
+        } else {
+          return Err(AtspiError::SignatureMatch(format!(
+            "The message signature {} does not match the signal's body signature: {}",
+            body_signature,
+            <Self as MessageConversion>::Body::signature().as_str(),
+          )));
+        };
+        let item = msg.try_into()?;
+        Self::try_from_validated_message_parts(item, deser_body)
+      }
+    }
 	};
 	($type:ty, Explicit) => {
 		#[cfg(feature = "zbus")]
