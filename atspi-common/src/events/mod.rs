@@ -792,22 +792,85 @@ pub trait BusProperties {
 }
 
 #[cfg(feature = "zbus")]
-pub trait MessageConversion {
+pub trait MessageConversion: BusProperties {
 	/// What is the body type of this event.
 	type Body: Type + Serialize + for<'a> Deserialize<'a>;
 
-	/// Build the event from the object pair ([`crate::ObjectRef`] and the body type
-	/// [`zbus::message::Body`]).
+	/// Build an event from a [`zbus::Message`] reference.
+	/// This function will not check for any of the following error conditions:
+	///
+	/// - That the message has an interface: [`enum@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`enum@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`enum@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`enum@AtspiError::MemberMatch`]
+	/// - That the message has an signature: [`enum@AtspiError::MissingSignature`]
+	/// - That the message signature matches the one for the event: [`enum@AtspiError::SignatureMatch`]
+	///
+	/// Therefore, this should only be used when one has checked the above conditions.
+	/// These can be checked manually, or you can use the convience function provided by this trait:
+	/// [`Self::try_from_message`] which does these checks for you.
+	///
+	/// This type also implements `TryFrom<&zbus::Message>`; consider using this if you are not an
+	/// internal developer.
 	///
 	/// # Errors
 	///
-	/// When the body type does not match the [`Self::Body`] type defined in this trait.
-	/// Technically, it may also panic if you are accepting file descriptors over the
-	/// [`enum@zvariant::Value`] variant, and you are out of file descriptors for the process.
-	/// This is considered exceptionally rare and should never happen.
+	/// - When the body type does not match the [`Self::Body`] type defined in this trait.
+	/// - Technically, it may even panic if you are accepting file descriptors over the
+	///   [`enum@zvariant::Value`] variant, and you are out of file descriptors for the process.
+	///   This is considered exceptionally rare and should never happen.
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
+
+	/// Convert a [`zbus::Message`] into this event type.
+	/// Does all the validation for you.
+	///
+	/// # Errors
+	///
+	/// - The message does not have an interface: [`enum@AtspiError::MissingInterface`]
+	/// - The message interface does not match the one for the event: [`enum@AtspiError::InterfaceMatch`]
+	/// - The message does not have an member: [`enum@AtspiError::MissingMember`]
+	/// - The message member does not match the one for the event: [`enum@AtspiError::MemberMatch`]
+	/// - The message does not have an signature: [`enum@AtspiError::MissingSignature`]
+	/// - The message signature does not match the one for the event: [`enum@AtspiError::SignatureMatch`]
+	///
+	/// See [`Self::try_from_validated_message`] for info on panic condition that should never
+	/// happen.
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized,
+	{
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+
+		if interface != Self::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"The interface {} does not match the signal's interface: {}",
+				interface,
+				Self::DBUS_INTERFACE,
+			)));
+		}
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		if member != Self::DBUS_MEMBER {
+			return Err(AtspiError::MemberMatch(format!(
+				"The member {} does not match the signal's member: {}",
+				// unwrap is safe here because of guard above
+				member,
+				Self::DBUS_MEMBER,
+			)));
+		}
+		let body = msg.body();
+		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+		if body_signature != Self::Body::signature() {
+			return Err(AtspiError::SignatureMatch(format!(
+				"The message signature {} does not match the signal's body signature: {}",
+				body_signature,
+				Self::Body::signature().as_str(),
+			)));
+		}
+		Self::try_from_validated_message(msg)
+	}
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body;
