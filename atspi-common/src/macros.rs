@@ -259,21 +259,40 @@ macro_rules! impl_to_dbus_message {
 /// expands to:
 ///
 /// ```ignore
-/// impl TryFrom<&zbus::Message> for StateChangedEvent {
+/// impl TryFrom<&zbus::Message> for StateChangedEvents {
 ///   type Error = AtspiError;
 ///   fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-///    if msg.header().interface().ok_or(AtspiError::MissingInterface)? != StateChangedEvent::DBUS_INTERFACE {
-///       return Err(AtspiError::InterfaceMatch(format!("The interface {} does not match the signal's interface: {}",
-///         msg.header().interface().unwrap(),
-///         StateChangedEvent::DBUS_INTERFACE)));
+///     use zvariant::Type;
+///     let header = msg.header();
+///     let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+///     let member = header.member().ok_or(AtspiError::MissingMember)?;
+///     let body = msg.body();
+///     let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+///
+///     if interface != <StateChangedEvent as BusProperties>::DBUS_INTERFACE {
+///       return Err(AtspiError::InterfaceMatch(format!(
+///         "The interface {} does not match the signal's interface: {}",
+///         interface,
+///         <StateChangedEvent as BusProperties>::DBUS_INTERFACE,
+///       )));
 ///     }
-///     if msg.header().member().ok_or(AtspiError::MissingMember)? != StateChangedEvent::DBUS_MEMBER {
-///       return Err(AtspiError::MemberMatch(format!("The member {} does not match the signal's member: {}",
-///         msg.header().member().unwrap(),
-///         StateChangedEvent::DBUS_MEMBER)));
+///     if member != <StateChangedEvent>::DBUS_MEMBER {
+///       return Err(AtspiError::MemberMatch(format!(
+///         "The member {} does not match the signal's member: {}",
+///         // unwrap is safe here because of guard above
+///         member,
+///         <StateChangedEvent as BusProperties>::DBUS_MEMBER,
+///       )));
 ///     }
-///     StateChangedEvent::try_from_message_unchecked(msg.try_into()?, msg.body().deserialize::<StateChangedEvent::Body>()?)
-///  }
+///     if body_signature != <StateChangedEvent as MessageConversion>::Body::signature() {
+///       return Err(AtspiError::SignatureMatch(format!(
+///         "The message signature {} does not match the signal's body signature: {}",
+///         body_signature,
+///         <StateChangedEvent as MessageConversion>::Body::signature().as_str(),
+///       )));
+///     }
+///     <StateChangedEvent>::try_from_message_unchecked(msg)
+///   }
 /// }
 /// ```
 ///
@@ -315,32 +334,35 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-        use zvariant::Type;
+				use zvariant::Type;
 				let header = msg.header();
-				if header.interface().ok_or(AtspiError::MissingInterface)?
-					!= <$type as BusProperties>::DBUS_INTERFACE
-				{
+				let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+				let member = header.member().ok_or(AtspiError::MissingMember)?;
+				let body = msg.body();
+				let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+
+				if interface != <$type as BusProperties>::DBUS_INTERFACE {
 					return Err(AtspiError::InterfaceMatch(format!(
 						"The interface {} does not match the signal's interface: {}",
-						header.interface(),
-						Some(<$type as BusProperties>::DBUS_INTERFACE)
+						interface,
+						<$type as BusProperties>::DBUS_INTERFACE,
 					)));
 				}
-				if header.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
+				if member != <$type>::DBUS_MEMBER {
 					return Err(AtspiError::MemberMatch(format!(
 						"The member {} does not match the signal's member: {}",
 						// unwrap is safe here because of guard above
-						header.member(),
-						Some(<$type as BusProperties>::DBUS_MEMBER)
+						member,
+						<$type as BusProperties>::DBUS_MEMBER,
 					)));
 				}
-        if msg.body().signature() != Some(<$type as MessageConversion>::Body::signature()) {
-            return Err(AtspiError::UnknownBusSignature(format!(
-                "The message signature {:?} does not match the signal's body signature: {:?}",
-                msg.body().signature(),
-                Some(<$type as MessageConversion>::Body::signature().as_str()),
-            )));
-        }
+				if body_signature != <$type as MessageConversion>::Body::signature() {
+					return Err(AtspiError::SignatureMatch(format!(
+						"The message signature {} does not match the signal's body signature: {}",
+						body_signature,
+						<$type as MessageConversion>::Body::signature().as_str(),
+					)));
+				}
 				<$type>::try_from_message_unchecked(msg)
 			}
 		}

@@ -902,7 +902,9 @@ impl TryFrom<&zbus::Message> for Event {
 			("org.a11y.atspi.Cache", "RemoveAccessible", "so" | "(so)") => {
 				Ok(RemoveAccessibleEvent::try_from(msg)?.into())
 			}
-			(_iface, _method, sig) => Err(AtspiError::UnknownBusSignature(sig.to_string())),
+			(_iface, _method, sig) => {
+				Err(AtspiError::SignatureMatch(format!("No events found with signature {}", sig)))
+			}
 		}
 	}
 }
