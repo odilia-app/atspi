@@ -1010,6 +1010,18 @@ pub trait MessageConversion {
 	fn body(&self) -> Self::Body;
 }
 
+/// A specific trait *only* to define an interface name.
+/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
+/// information required to implement the [`BusProperties`] trait, you can indeed attach in
+/// interface name for all sub events of [`ObjectEvents`].
+///
+/// This trait *is not* object-safe.
+pub trait HasInterfaceName {
+	/// A static interface string for `DBus`.
+	/// This should usually be a string that looks like this: `"org.a11y.atspi.Event.*"`;
+	const DBUS_INTERFACE: &'static str;
+}
+
 /// A specific trait *only* to define match rules.
 /// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
 /// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
