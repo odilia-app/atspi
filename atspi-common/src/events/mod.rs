@@ -494,7 +494,10 @@ impl<T: BusProperties> HasMatchRule for T {
 impl<T: BusProperties> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as BusProperties>::REGISTRY_EVENT_STRING;
 }
-impl_from_dbus_message!(AddAccessibleEvent, Explicit);
+impl<T: BusProperties> HasInterfaceName for T {
+	const DBUS_INTERFACE: &'static str = <T as BusProperties>::DBUS_INTERFACE;
+}
+impl_from_dbus_message!(AddAccessibleEvent);
 impl_event_properties!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
