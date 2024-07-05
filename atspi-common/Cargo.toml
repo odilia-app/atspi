@@ -38,3 +38,4 @@ tokio-stream = { version = "0.1", default-features = false, features = ["time"] 
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-test = "0.4.2"
 zbus = { workspace = true }
+assert_matches = "1.5.0"

@@ -1,7 +1,14 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+	},
 	Event, EventProperties, EventTypeProperties,
+};
+#[cfg(feature = "zbus")]
+use crate::{
+	events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage},
+	ObjectRef,
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
@@ -204,7 +211,7 @@ impl HasMatchRule for WindowEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub property: String,
 }
@@ -225,7 +232,7 @@ pub struct MaximizeEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestoreEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -245,7 +252,7 @@ pub struct CreateEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReparentEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -265,37 +272,37 @@ pub struct DesktopDestroyEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DestroyEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActivateEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DeactivateEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RaiseEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LowerEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MoveEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -308,19 +315,19 @@ pub struct ResizeEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ShadeEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct UUshadeEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestyleEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -330,11 +337,22 @@ impl BusProperties for PropertyChangeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item, property: body.kind })
+	}
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -348,16 +366,6 @@ impl BusProperties for MinimizeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for MaximizeEvent {
@@ -366,16 +374,6 @@ impl BusProperties for MaximizeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RestoreEvent {
@@ -384,16 +382,6 @@ impl BusProperties for RestoreEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for CloseEvent {
@@ -402,16 +390,6 @@ impl BusProperties for CloseEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for CreateEvent {
@@ -420,16 +398,6 @@ impl BusProperties for CreateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ReparentEvent {
@@ -438,16 +406,6 @@ impl BusProperties for ReparentEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for DesktopCreateEvent {
@@ -456,16 +414,6 @@ impl BusProperties for DesktopCreateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for DesktopDestroyEvent {
@@ -474,16 +422,6 @@ impl BusProperties for DesktopDestroyEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for DestroyEvent {
@@ -492,16 +430,6 @@ impl BusProperties for DestroyEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ActivateEvent {
@@ -510,16 +438,6 @@ impl BusProperties for ActivateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for DeactivateEvent {
@@ -528,16 +446,6 @@ impl BusProperties for DeactivateEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RaiseEvent {
@@ -546,16 +454,6 @@ impl BusProperties for RaiseEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for LowerEvent {
@@ -564,16 +462,6 @@ impl BusProperties for LowerEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for MoveEvent {
@@ -582,16 +470,6 @@ impl BusProperties for MoveEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ResizeEvent {
@@ -600,16 +478,6 @@ impl BusProperties for ResizeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ShadeEvent {
@@ -618,16 +486,6 @@ impl BusProperties for ShadeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for UUshadeEvent {
@@ -636,16 +494,6 @@ impl BusProperties for UUshadeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RestyleEvent {
@@ -654,48 +502,67 @@ impl BusProperties for RestyleEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}
 
-	type Body = EventBodyOwned;
+impl HasInterfaceName for WindowEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
+}
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for WindowEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			PropertyChangeEvent::DBUS_MEMBER => Ok(WindowEvents::PropertyChange(
+				PropertyChangeEvent::try_from_validated_message(msg)?,
+			)),
+			MinimizeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Minimize(MinimizeEvent::try_from_validated_message(msg)?))
+			}
+			MaximizeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Maximize(MaximizeEvent::try_from_validated_message(msg)?))
+			}
+			RestoreEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Restore(RestoreEvent::try_from_validated_message(msg)?))
+			}
+			"Close" => Ok(WindowEvents::Close(CloseEvent::try_from_validated_message(msg)?)),
+			CreateEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Create(CreateEvent::try_from_validated_message(msg)?))
+			}
+			ReparentEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Reparent(ReparentEvent::try_from_validated_message(msg)?))
+			}
+			"DesktopCreate" => Ok(WindowEvents::DesktopCreate(
+				DesktopCreateEvent::try_from_validated_message(msg)?,
+			)),
+			"DesktopDestroy" => Ok(WindowEvents::DesktopDestroy(
+				DesktopDestroyEvent::try_from_validated_message(msg)?,
+			)),
+			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::try_from_validated_message(msg)?)),
+			"Activate" => {
+				Ok(WindowEvents::Activate(ActivateEvent::try_from_validated_message(msg)?))
+			}
+			"Deactivate" => {
+				Ok(WindowEvents::Deactivate(DeactivateEvent::try_from_validated_message(msg)?))
+			}
+			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::try_from_validated_message(msg)?)),
+			"Lower" => Ok(WindowEvents::Lower(LowerEvent::try_from_validated_message(msg)?)),
+			"Move" => Ok(WindowEvents::Move(MoveEvent::try_from_validated_message(msg)?)),
+			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::try_from_validated_message(msg)?)),
+			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::try_from_validated_message(msg)?)),
+			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::try_from_validated_message(msg)?)),
+			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::try_from_validated_message(msg)?)),
+			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
+		}
 	}
 }
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for WindowEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		match member.as_str() {
-			"PropertyChange" => Ok(WindowEvents::PropertyChange(ev.try_into()?)),
-			"Minimize" => Ok(WindowEvents::Minimize(ev.try_into()?)),
-			"Maximize" => Ok(WindowEvents::Maximize(ev.try_into()?)),
-			"Restore" => Ok(WindowEvents::Restore(ev.try_into()?)),
-			"Close" => Ok(WindowEvents::Close(ev.try_into()?)),
-			"Create" => Ok(WindowEvents::Create(ev.try_into()?)),
-			"Reparent" => Ok(WindowEvents::Reparent(ev.try_into()?)),
-			"DesktopCreate" => Ok(WindowEvents::DesktopCreate(ev.try_into()?)),
-			"DesktopDestroy" => Ok(WindowEvents::DesktopDestroy(ev.try_into()?)),
-			"Destroy" => Ok(WindowEvents::Destroy(ev.try_into()?)),
-			"Activate" => Ok(WindowEvents::Activate(ev.try_into()?)),
-			"Deactivate" => Ok(WindowEvents::Deactivate(ev.try_into()?)),
-			"Raise" => Ok(WindowEvents::Raise(ev.try_into()?)),
-			"Lower" => Ok(WindowEvents::Lower(ev.try_into()?)),
-			"Move" => Ok(WindowEvents::Move(ev.try_into()?)),
-			"Resize" => Ok(WindowEvents::Resize(ev.try_into()?)),
-			"Shade" => Ok(WindowEvents::Shade(ev.try_into()?)),
-			"uUshade" => Ok(WindowEvents::UUshade(ev.try_into()?)),
-			"Restyle" => Ok(WindowEvents::Restyle(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
-		}
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
 	}
 }
 
@@ -737,17 +604,7 @@ event_test_cases!(MinimizeEvent);
 impl_to_dbus_message!(MinimizeEvent);
 impl_from_dbus_message!(MinimizeEvent);
 impl_event_properties!(MinimizeEvent);
-impl From<MinimizeEvent> for EventBodyOwned {
-	fn from(_event: MinimizeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(MinimizeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	MaximizeEvent,
@@ -760,17 +617,7 @@ event_test_cases!(MaximizeEvent);
 impl_to_dbus_message!(MaximizeEvent);
 impl_from_dbus_message!(MaximizeEvent);
 impl_event_properties!(MaximizeEvent);
-impl From<MaximizeEvent> for EventBodyOwned {
-	fn from(_event: MaximizeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(MaximizeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RestoreEvent,
@@ -783,17 +630,7 @@ event_test_cases!(RestoreEvent);
 impl_to_dbus_message!(RestoreEvent);
 impl_from_dbus_message!(RestoreEvent);
 impl_event_properties!(RestoreEvent);
-impl From<RestoreEvent> for EventBodyOwned {
-	fn from(_event: RestoreEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(RestoreEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	CloseEvent,
@@ -806,17 +643,7 @@ event_test_cases!(CloseEvent);
 impl_to_dbus_message!(CloseEvent);
 impl_from_dbus_message!(CloseEvent);
 impl_event_properties!(CloseEvent);
-impl From<CloseEvent> for EventBodyOwned {
-	fn from(_event: CloseEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(CloseEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	CreateEvent,
@@ -829,17 +656,7 @@ event_test_cases!(CreateEvent);
 impl_to_dbus_message!(CreateEvent);
 impl_from_dbus_message!(CreateEvent);
 impl_event_properties!(CreateEvent);
-impl From<CreateEvent> for EventBodyOwned {
-	fn from(_event: CreateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(CreateEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ReparentEvent,
@@ -852,17 +669,7 @@ event_test_cases!(ReparentEvent);
 impl_to_dbus_message!(ReparentEvent);
 impl_from_dbus_message!(ReparentEvent);
 impl_event_properties!(ReparentEvent);
-impl From<ReparentEvent> for EventBodyOwned {
-	fn from(_event: ReparentEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ReparentEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DesktopCreateEvent,
@@ -879,17 +686,7 @@ event_test_cases!(DesktopCreateEvent);
 impl_to_dbus_message!(DesktopCreateEvent);
 impl_from_dbus_message!(DesktopCreateEvent);
 impl_event_properties!(DesktopCreateEvent);
-impl From<DesktopCreateEvent> for EventBodyOwned {
-	fn from(_event: DesktopCreateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(DesktopCreateEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DesktopDestroyEvent,
@@ -906,17 +703,7 @@ event_test_cases!(DesktopDestroyEvent);
 impl_to_dbus_message!(DesktopDestroyEvent);
 impl_from_dbus_message!(DesktopDestroyEvent);
 impl_event_properties!(DesktopDestroyEvent);
-impl From<DesktopDestroyEvent> for EventBodyOwned {
-	fn from(_event: DesktopDestroyEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(DesktopDestroyEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DestroyEvent,
@@ -929,17 +716,7 @@ event_test_cases!(DestroyEvent);
 impl_to_dbus_message!(DestroyEvent);
 impl_from_dbus_message!(DestroyEvent);
 impl_event_properties!(DestroyEvent);
-impl From<DestroyEvent> for EventBodyOwned {
-	fn from(_event: DestroyEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(DestroyEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ActivateEvent,
@@ -952,17 +729,7 @@ event_test_cases!(ActivateEvent);
 impl_to_dbus_message!(ActivateEvent);
 impl_from_dbus_message!(ActivateEvent);
 impl_event_properties!(ActivateEvent);
-impl From<ActivateEvent> for EventBodyOwned {
-	fn from(_event: ActivateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ActivateEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	DeactivateEvent,
@@ -975,17 +742,7 @@ event_test_cases!(DeactivateEvent);
 impl_to_dbus_message!(DeactivateEvent);
 impl_from_dbus_message!(DeactivateEvent);
 impl_event_properties!(DeactivateEvent);
-impl From<DeactivateEvent> for EventBodyOwned {
-	fn from(_event: DeactivateEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(DeactivateEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RaiseEvent,
@@ -998,17 +755,7 @@ event_test_cases!(RaiseEvent);
 impl_to_dbus_message!(RaiseEvent);
 impl_from_dbus_message!(RaiseEvent);
 impl_event_properties!(RaiseEvent);
-impl From<RaiseEvent> for EventBodyOwned {
-	fn from(_event: RaiseEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(RaiseEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LowerEvent,
@@ -1021,17 +768,7 @@ event_test_cases!(LowerEvent);
 impl_to_dbus_message!(LowerEvent);
 impl_from_dbus_message!(LowerEvent);
 impl_event_properties!(LowerEvent);
-impl From<LowerEvent> for EventBodyOwned {
-	fn from(_event: LowerEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(LowerEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(MoveEvent, WindowEvents, WindowEvents::Move);
 impl_from_user_facing_type_for_event_enum!(MoveEvent, Event::Window);
@@ -1040,17 +777,7 @@ event_test_cases!(MoveEvent);
 impl_to_dbus_message!(MoveEvent);
 impl_from_dbus_message!(MoveEvent);
 impl_event_properties!(MoveEvent);
-impl From<MoveEvent> for EventBodyOwned {
-	fn from(_event: MoveEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(MoveEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ResizeEvent,
@@ -1063,17 +790,7 @@ event_test_cases!(ResizeEvent);
 impl_to_dbus_message!(ResizeEvent);
 impl_from_dbus_message!(ResizeEvent);
 impl_event_properties!(ResizeEvent);
-impl From<ResizeEvent> for EventBodyOwned {
-	fn from(_event: ResizeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ResizeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ShadeEvent,
@@ -1086,17 +803,7 @@ event_test_cases!(ShadeEvent);
 impl_to_dbus_message!(ShadeEvent);
 impl_from_dbus_message!(ShadeEvent);
 impl_event_properties!(ShadeEvent);
-impl From<ShadeEvent> for EventBodyOwned {
-	fn from(_event: ShadeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).try_into().unwrap(),
-		}
-	}
-}
+impl_from_object_ref!(ShadeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	UUshadeEvent,
@@ -1109,17 +816,7 @@ event_test_cases!(UUshadeEvent);
 impl_to_dbus_message!(UUshadeEvent);
 impl_from_dbus_message!(UUshadeEvent);
 impl_event_properties!(UUshadeEvent);
-impl From<UUshadeEvent> for EventBodyOwned {
-	fn from(_event: UUshadeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: zvariant::Value::U8(0).try_into().unwrap(),
-		}
-	}
-}
+impl_from_object_ref!(UUshadeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RestyleEvent,
@@ -1132,17 +829,7 @@ event_test_cases!(RestyleEvent);
 impl_to_dbus_message!(RestyleEvent);
 impl_from_dbus_message!(RestyleEvent);
 impl_event_properties!(RestyleEvent);
-impl From<RestyleEvent> for EventBodyOwned {
-	fn from(_event: RestyleEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(RestyleEvent);
 
 impl HasRegistryEventString for WindowEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
