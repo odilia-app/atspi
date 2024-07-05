@@ -540,7 +540,6 @@ macro_rules! zbus_message_test_case {
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_fake_msg() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -553,12 +552,11 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("Should panic");
+      assert_matches!(event, Err(_), "This conversion should fail");
 		}
 
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -571,12 +569,11 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("Should panic");
+      assert_matches!(event, Err(AtspiError::MemberMatch(_)), "Wrong kind of error");
 		}
 
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -589,12 +586,11 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("Should panic");
+      assert_matches!(event, Err(AtspiError::SignatureMatch(_)), "Wrong kind of error");
 		}
 
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -607,12 +603,11 @@ macro_rules! zbus_message_test_case {
 			.build(&<$type>::default().body())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("Should panic");
+      assert_matches!(event, Err(_));
 		}
 
 		#[cfg(feature = "zbus")]
 		#[test]
-		#[should_panic(expected = "Should panic")]
 		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
@@ -625,7 +620,7 @@ macro_rules! zbus_message_test_case {
 			.build(&<$type>::default().body())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-			event.expect("Should panic");
+      assert_matches!(event, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
 		}
 	};
 }
@@ -653,7 +648,9 @@ macro_rules! event_wrapper_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "events_tests_", case = "snake")]
 		mod foo {
-			use super::{$any_subtype, $type, Event, BusProperties, MessageConversion};
+			use super::{$any_subtype, $type, AtspiError, Event, BusProperties, MessageConversion};
+      // TODO: replace with [`std::assert_matches::assert_matches`] when stabailized
+      use assert_matches::assert_matches;
 			#[test]
 			fn into_and_try_from_event() {
 				// Create a default event struct from its type's `Default::default()` impl.
@@ -672,7 +669,6 @@ macro_rules! event_wrapper_test_cases {
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
-			#[should_panic(expected = "Should panic")]
 			fn zbus_msg_invalid_interface() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
@@ -694,11 +690,10 @@ macro_rules! event_wrapper_test_cases {
 				// In `MouseEvents::Abs(msg.try_into()?)`, it is the `msg.try_into()?` that should fail.
 				// The `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect("Should panic");
+        assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
-			#[should_panic(expected = "Should panic")]
 			fn zbus_msg_invalid_member() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
@@ -712,11 +707,10 @@ macro_rules! event_wrapper_test_cases {
 				.unwrap();
 				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
 				let mod_type = <$type>::try_from(&fake_msg);
-				mod_type.expect("Should panic");
+        assert_matches!(mod_type, Err(AtspiError::MemberMatch(_)), "Wrong kind of error");
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
-			#[should_panic(expected = "Should panic")]
 			fn zbus_msg_invalid_member_and_interface() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
@@ -732,7 +726,7 @@ macro_rules! event_wrapper_test_cases {
 				let mod_type = <$type>::try_from(&fake_msg);
 
 				// Note that the non-matching interface is the first error, so the member match error is not reached.
-				mod_type.expect("Should panic");
+        assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
@@ -763,8 +757,10 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$type, Event, BusProperties, MessageConversion, EventProperties, EventTypeProperties};
+			use super::{$type, AtspiError, Event, BusProperties, MessageConversion, EventProperties, EventTypeProperties};
       use zbus::Message;
+      // TODO: use [`std::assert_matches::assert_matches`] when stabalized
+      use assert_matches::assert_matches;
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);
