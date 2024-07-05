@@ -114,7 +114,7 @@ impl BusProperties for AbsEvent {
 impl MessageConversion for AbsEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -138,7 +138,7 @@ impl BusProperties for RelEvent {
 impl MessageConversion for RelEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -162,7 +162,7 @@ impl BusProperties for ButtonEvent {
 impl MessageConversion for ButtonEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -184,13 +184,13 @@ impl EventWrapperMessageConversion for MouseEvents {
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			AbsEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Abs(AbsEvent::try_from_message_unchecked(msg)?))
+				Ok(MouseEvents::Abs(AbsEvent::try_from_validated_message(msg)?))
 			}
 			RelEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Rel(RelEvent::try_from_message_unchecked(msg)?))
+				Ok(MouseEvents::Rel(RelEvent::try_from_validated_message(msg)?))
 			}
 			ButtonEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Button(ButtonEvent::try_from_message_unchecked(msg)?))
+				Ok(MouseEvents::Button(ButtonEvent::try_from_validated_message(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
 		}

@@ -607,7 +607,7 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -649,7 +649,7 @@ impl BusProperties for StateChangedEvent {
 impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -673,7 +673,7 @@ impl BusProperties for ChildrenChangedEvent {
 impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -726,7 +726,7 @@ impl BusProperties for ActiveDescendantChangedEvent {
 impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		Ok(Self { item, child: body.deserialize_unchecked::<Self::Body>()?.any_data.try_into()? })
@@ -749,7 +749,7 @@ impl BusProperties for AnnouncementEvent {
 impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -852,7 +852,7 @@ impl BusProperties for TextChangedEvent {
 impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -890,7 +890,7 @@ impl BusProperties for TextCaretMovedEvent {
 impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		Ok(Self { item, position: body.deserialize_unchecked::<Self::Body>()?.detail1 })
@@ -912,70 +912,70 @@ impl EventWrapperMessageConversion for ObjectEvents {
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			PropertyChangeEvent::DBUS_MEMBER => Ok(ObjectEvents::PropertyChange(
-				PropertyChangeEvent::try_from_message_unchecked(msg)?,
+				PropertyChangeEvent::try_from_validated_message(msg)?,
 			)),
 			BoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::BoundsChanged(
-				BoundsChangedEvent::try_from_message_unchecked(msg)?,
+				BoundsChangedEvent::try_from_validated_message(msg)?,
 			)),
 			LinkSelectedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::try_from_validated_message(msg)?))
 			}
 			StateChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::StateChanged(StateChangedEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::StateChanged(StateChangedEvent::try_from_validated_message(msg)?))
 			}
 			ChildrenChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ChildrenChanged(
-				ChildrenChangedEvent::try_from_message_unchecked(msg)?,
+				ChildrenChangedEvent::try_from_validated_message(msg)?,
 			)),
 			VisibleDataChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::VisibleDataChanged(
-				VisibleDataChangedEvent::try_from_message_unchecked(msg)?,
+				VisibleDataChangedEvent::try_from_validated_message(msg)?,
 			)),
 			SelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::SelectionChanged(
-				SelectionChangedEvent::try_from_message_unchecked(msg)?,
+				SelectionChangedEvent::try_from_validated_message(msg)?,
 			)),
 			ModelChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::try_from_validated_message(msg)?))
 			}
 			ActiveDescendantChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ActiveDescendantChanged(
-				ActiveDescendantChangedEvent::try_from_message_unchecked(msg)?,
+				ActiveDescendantChangedEvent::try_from_validated_message(msg)?,
 			)),
 			AnnouncementEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::Announcement(AnnouncementEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::Announcement(AnnouncementEvent::try_from_validated_message(msg)?))
 			}
 			AttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::AttributesChanged(
-				AttributesChangedEvent::try_from_message_unchecked(msg)?,
+				AttributesChangedEvent::try_from_validated_message(msg)?,
 			)),
 			RowInsertedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowInserted(RowInsertedEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowInserted(RowInsertedEvent::try_from_validated_message(msg)?))
 			}
 			RowReorderedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowReordered(RowReorderedEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowReordered(RowReorderedEvent::try_from_validated_message(msg)?))
 			}
 			RowDeletedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::try_from_validated_message(msg)?))
 			}
 			ColumnInsertedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnInserted(
-				ColumnInsertedEvent::try_from_message_unchecked(msg)?,
+				ColumnInsertedEvent::try_from_validated_message(msg)?,
 			)),
 			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
-				ColumnReorderedEvent::try_from_message_unchecked(msg)?,
+				ColumnReorderedEvent::try_from_validated_message(msg)?,
 			)),
 			ColumnDeletedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnDeleted(
-				ColumnDeletedEvent::try_from_message_unchecked(msg)?,
+				ColumnDeletedEvent::try_from_validated_message(msg)?,
 			)),
 			TextBoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextBoundsChanged(
-				TextBoundsChangedEvent::try_from_message_unchecked(msg)?,
+				TextBoundsChangedEvent::try_from_validated_message(msg)?,
 			)),
 			TextSelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextSelectionChanged(
-				TextSelectionChangedEvent::try_from_message_unchecked(msg)?,
+				TextSelectionChangedEvent::try_from_validated_message(msg)?,
 			)),
 			TextChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::TextChanged(TextChangedEvent::try_from_message_unchecked(msg)?))
+				Ok(ObjectEvents::TextChanged(TextChangedEvent::try_from_validated_message(msg)?))
 			}
 			TextAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextAttributesChanged(
-				TextAttributesChangedEvent::try_from_message_unchecked(msg)?,
+				TextAttributesChangedEvent::try_from_validated_message(msg)?,
 			)),
 			TextCaretMovedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextCaretMoved(
-				TextCaretMovedEvent::try_from_message_unchecked(msg)?,
+				TextCaretMovedEvent::try_from_validated_message(msg)?,
 			)),
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",

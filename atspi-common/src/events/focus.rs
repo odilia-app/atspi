@@ -84,7 +84,7 @@ impl EventWrapperMessageConversion for FocusEvents {
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			FocusEvent::DBUS_MEMBER => {
-				Ok(FocusEvents::Focus(FocusEvent::try_from_message_unchecked(msg)?))
+				Ok(FocusEvents::Focus(FocusEvent::try_from_validated_message(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",

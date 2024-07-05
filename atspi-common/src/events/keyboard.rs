@@ -82,7 +82,7 @@ impl BusProperties for ModifiersEvent {
 impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let ev_body: Self::Body = body.deserialize_unchecked()?;
@@ -107,7 +107,7 @@ impl EventWrapperMessageConversion for KeyboardEvents {
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
 			ModifiersEvent::DBUS_MEMBER => {
-				Ok(KeyboardEvents::Modifiers(ModifiersEvent::try_from_message_unchecked(msg)?))
+				Ok(KeyboardEvents::Modifiers(ModifiersEvent::try_from_validated_message(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
 		}

@@ -321,7 +321,7 @@ where
 	T: BusProperties,
 {
 	type Body = EventBodyOwned;
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item: ObjectRef = msg.try_into()?;
 		Ok(item.into())
 	}
@@ -499,10 +499,10 @@ impl EventWrapperMessageConversion for EventListenerEvents {
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			EventListenerRegisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Registered(
-				EventListenerRegisteredEvent::try_from_message_unchecked(msg)?,
+				EventListenerRegisteredEvent::try_from_validated_message(msg)?,
 			)),
 			EventListenerDeregisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Deregistered(
-				EventListenerDeregisteredEvent::try_from_message_unchecked(msg)?,
+				EventListenerDeregisteredEvent::try_from_validated_message(msg)?,
 			)),
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No member {} in {}",
@@ -556,7 +556,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 impl MessageConversion for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		Ok(Self { item, deregistered_event: body.deserialize_unchecked()? })
@@ -603,7 +603,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 impl MessageConversion for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		Ok(Self { item, registered_event: body.deserialize_unchecked()? })
@@ -651,7 +651,7 @@ impl BusProperties for AvailableEvent {
 impl MessageConversion for AvailableEvent {
 	type Body = ObjectRef;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		Ok(Self { item, socket: body.deserialize_unchecked()? })
@@ -805,7 +805,7 @@ pub trait MessageConversion {
 	/// Technically, it may also panic if you are accepting file descriptors over the
 	/// [`enum@zvariant::Value`] variant, and you are out of file descriptors for the process.
 	/// This is considered exceptionally rare and should never happen.
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError>
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 

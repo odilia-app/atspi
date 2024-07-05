@@ -340,7 +340,7 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		Ok(Self { item, property: body.deserialize_unchecked::<Self::Body>()?.kind })
@@ -506,44 +506,44 @@ impl EventWrapperMessageConversion for WindowEvents {
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			PropertyChangeEvent::DBUS_MEMBER => Ok(WindowEvents::PropertyChange(
-				PropertyChangeEvent::try_from_message_unchecked(msg)?,
+				PropertyChangeEvent::try_from_validated_message(msg)?,
 			)),
 			MinimizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Minimize(MinimizeEvent::try_from_message_unchecked(msg)?))
+				Ok(WindowEvents::Minimize(MinimizeEvent::try_from_validated_message(msg)?))
 			}
 			MaximizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Maximize(MaximizeEvent::try_from_message_unchecked(msg)?))
+				Ok(WindowEvents::Maximize(MaximizeEvent::try_from_validated_message(msg)?))
 			}
 			RestoreEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Restore(RestoreEvent::try_from_message_unchecked(msg)?))
+				Ok(WindowEvents::Restore(RestoreEvent::try_from_validated_message(msg)?))
 			}
-			"Close" => Ok(WindowEvents::Close(CloseEvent::try_from_message_unchecked(msg)?)),
+			"Close" => Ok(WindowEvents::Close(CloseEvent::try_from_validated_message(msg)?)),
 			CreateEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Create(CreateEvent::try_from_message_unchecked(msg)?))
+				Ok(WindowEvents::Create(CreateEvent::try_from_validated_message(msg)?))
 			}
 			ReparentEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Reparent(ReparentEvent::try_from_message_unchecked(msg)?))
+				Ok(WindowEvents::Reparent(ReparentEvent::try_from_validated_message(msg)?))
 			}
 			"DesktopCreate" => Ok(WindowEvents::DesktopCreate(
-				DesktopCreateEvent::try_from_message_unchecked(msg)?,
+				DesktopCreateEvent::try_from_validated_message(msg)?,
 			)),
 			"DesktopDestroy" => Ok(WindowEvents::DesktopDestroy(
-				DesktopDestroyEvent::try_from_message_unchecked(msg)?,
+				DesktopDestroyEvent::try_from_validated_message(msg)?,
 			)),
-			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::try_from_message_unchecked(msg)?)),
+			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::try_from_validated_message(msg)?)),
 			"Activate" => {
-				Ok(WindowEvents::Activate(ActivateEvent::try_from_message_unchecked(msg)?))
+				Ok(WindowEvents::Activate(ActivateEvent::try_from_validated_message(msg)?))
 			}
 			"Deactivate" => {
-				Ok(WindowEvents::Deactivate(DeactivateEvent::try_from_message_unchecked(msg)?))
+				Ok(WindowEvents::Deactivate(DeactivateEvent::try_from_validated_message(msg)?))
 			}
-			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::try_from_message_unchecked(msg)?)),
-			"Lower" => Ok(WindowEvents::Lower(LowerEvent::try_from_message_unchecked(msg)?)),
-			"Move" => Ok(WindowEvents::Move(MoveEvent::try_from_message_unchecked(msg)?)),
-			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::try_from_message_unchecked(msg)?)),
-			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::try_from_message_unchecked(msg)?)),
-			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::try_from_message_unchecked(msg)?)),
-			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::try_from_message_unchecked(msg)?)),
+			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::try_from_validated_message(msg)?)),
+			"Lower" => Ok(WindowEvents::Lower(LowerEvent::try_from_validated_message(msg)?)),
+			"Move" => Ok(WindowEvents::Move(MoveEvent::try_from_validated_message(msg)?)),
+			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::try_from_validated_message(msg)?)),
+			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::try_from_validated_message(msg)?)),
+			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::try_from_validated_message(msg)?)),
+			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::try_from_validated_message(msg)?)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 		}
 	}

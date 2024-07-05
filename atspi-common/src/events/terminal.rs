@@ -183,19 +183,19 @@ impl EventWrapperMessageConversion for TerminalEvents {
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
 			LineChangedEvent::DBUS_MEMBER => {
-				Ok(TerminalEvents::LineChanged(LineChangedEvent::try_from_message_unchecked(msg)?))
+				Ok(TerminalEvents::LineChanged(LineChangedEvent::try_from_validated_message(msg)?))
 			}
 			ColumnCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ColumnCountChanged(
-				ColumnCountChangedEvent::try_from_message_unchecked(msg)?,
+				ColumnCountChangedEvent::try_from_validated_message(msg)?,
 			)),
 			LineCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::LineCountChanged(
-				LineCountChangedEvent::try_from_message_unchecked(msg)?,
+				LineCountChangedEvent::try_from_validated_message(msg)?,
 			)),
 			ApplicationChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ApplicationChanged(
-				ApplicationChangedEvent::try_from_message_unchecked(msg)?,
+				ApplicationChangedEvent::try_from_validated_message(msg)?,
 			)),
 			CharWidthChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::CharWidthChanged(
-				CharWidthChangedEvent::try_from_message_unchecked(msg)?,
+				CharWidthChangedEvent::try_from_validated_message(msg)?,
 			)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
 		}
