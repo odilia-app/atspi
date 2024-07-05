@@ -3,7 +3,8 @@ use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		BusProperties, EventBodyOwned, EventWrapperMessageConversion, HasInterfaceName,
+		HasMatchRule, HasRegistryEventString,
 	},
 	Event, EventProperties, EventTypeProperties,
 };
@@ -178,11 +179,24 @@ impl HasInterfaceName for MouseEvents {
 }
 
 #[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for MouseEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			"Abs" => Ok(MouseEvents::Abs(AbsEvent::try_from_message_unchecked(msg)?)),
+			"Rel" => Ok(MouseEvents::Rel(RelEvent::try_from_message_unchecked(msg)?)),
+			"Button" => Ok(MouseEvents::Button(ButtonEvent::try_from_message_unchecked(msg)?)),
+			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for MouseEvents {
 	type Error = AtspiError;
 	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
 		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		if interface != MouseEvents::DBUS_INTERFACE {
 			return Err(AtspiError::InterfaceMatch(format!(
@@ -191,12 +205,7 @@ impl TryFrom<&zbus::Message> for MouseEvents {
 				MouseEvents::DBUS_INTERFACE
 			)));
 		}
-		match member.as_str() {
-			"Abs" => Ok(MouseEvents::Abs(AbsEvent::try_from_message_unchecked(msg)?)),
-			"Rel" => Ok(MouseEvents::Rel(RelEvent::try_from_message_unchecked(msg)?)),
-			"Button" => Ok(MouseEvents::Button(ButtonEvent::try_from_message_unchecked(msg)?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
-		}
+		Self::try_from_message_interface_checked(msg)
 	}
 }
 

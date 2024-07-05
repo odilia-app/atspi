@@ -2,7 +2,10 @@
 use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
+	events::{
+		BusProperties, EventWrapperMessageConversion, HasInterfaceName, HasMatchRule,
+		HasRegistryEventString,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -202,19 +205,10 @@ impl HasInterfaceName for DocumentEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for DocumentEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+impl EventWrapperMessageConversion for DocumentEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		if interface != DocumentEvents::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"Interface {} does not match interface {}",
-				interface,
-				DocumentEvents::DBUS_INTERFACE
-			)));
-		}
 		match member.as_str() {
 			"LoadComplete" => Ok(DocumentEvents::LoadComplete(
 				LoadCompleteEvent::try_from_message_unchecked(msg)?,
@@ -234,6 +228,23 @@ impl TryFrom<&zbus::Message> for DocumentEvents {
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for DocumentEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != DocumentEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match interface {}",
+				interface,
+				DocumentEvents::DBUS_INTERFACE
+			)));
+		}
+		Self::try_from_message_interface_checked(msg)
 	}
 }
 

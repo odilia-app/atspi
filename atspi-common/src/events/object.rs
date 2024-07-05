@@ -5,8 +5,8 @@ use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
-		ObjectRef,
+		BusProperties, EventBodyOwned, EventWrapperMessageConversion, HasInterfaceName,
+		HasMatchRule, HasRegistryEventString, ObjectRef,
 	},
 	Event, EventProperties, EventTypeProperties, State,
 };
@@ -906,19 +906,10 @@ impl HasInterfaceName for ObjectEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for ObjectEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+impl EventWrapperMessageConversion for ObjectEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		if interface != ObjectEvents::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"Interface {} does not match require interface for event: {}",
-				interface,
-				ObjectEvents::DBUS_INTERFACE
-			)));
-		}
 		match member.as_str() {
 			"PropertyChange" => Ok(ObjectEvents::PropertyChange(
 				PropertyChangeEvent::try_from_message_unchecked(msg)?,
@@ -987,9 +978,27 @@ impl TryFrom<&zbus::Message> for ObjectEvents {
 				TextCaretMovedEvent::try_from_message_unchecked(msg)?,
 			)),
 			_ => Err(AtspiError::MemberMatch(format!(
-				"No matching member {member} for interface {interface}",
+				"No matching member {member} for interface {}",
+				Self::DBUS_INTERFACE,
 			))),
 		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for ObjectEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != ObjectEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				ObjectEvents::DBUS_INTERFACE
+			)));
+		}
+		ObjectEvents::try_from_message_interface_checked(msg)
 	}
 }
 

@@ -2,7 +2,10 @@
 use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
+	events::{
+		BusProperties, EventWrapperMessageConversion, HasInterfaceName, HasMatchRule,
+		HasRegistryEventString,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -175,21 +178,12 @@ impl HasInterfaceName for TerminalEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for TerminalEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+impl EventWrapperMessageConversion for TerminalEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let header = msg.header();
 		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		if interface != TerminalEvents::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"Interface {} does not match require interface for event: {}",
-				interface,
-				TerminalEvents::DBUS_INTERFACE
-			)));
-		}
 		match member.as_str() {
 			"LineChanged" => {
 				Ok(TerminalEvents::LineChanged(LineChangedEvent::try_from_message_unchecked(msg)?))
@@ -208,6 +202,23 @@ impl TryFrom<&zbus::Message> for TerminalEvents {
 			)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
 		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for TerminalEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != TerminalEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				TerminalEvents::DBUS_INTERFACE
+			)));
+		}
+		Self::try_from_message_interface_checked(msg)
 	}
 }
 

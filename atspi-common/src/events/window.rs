@@ -3,7 +3,8 @@ use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		BusProperties, EventBodyOwned, EventWrapperMessageConversion, HasInterfaceName,
+		HasMatchRule, HasRegistryEventString,
 	},
 	Event, EventProperties, EventTypeProperties,
 };
@@ -500,19 +501,10 @@ impl HasInterfaceName for WindowEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for WindowEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+impl EventWrapperMessageConversion for WindowEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		if interface != WindowEvents::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"Interface {} does not match require interface for event: {}",
-				interface,
-				WindowEvents::DBUS_INTERFACE
-			)));
-		}
 		match member.as_str() {
 			"PropertyChange" => Ok(WindowEvents::PropertyChange(
 				PropertyChangeEvent::try_from_message_unchecked(msg)?,
@@ -551,6 +543,23 @@ impl TryFrom<&zbus::Message> for WindowEvents {
 			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::try_from_message_unchecked(msg)?)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for WindowEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != WindowEvents::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				WindowEvents::DBUS_INTERFACE
+			)));
+		}
+		Self::try_from_message_interface_checked(msg)
 	}
 }
 
