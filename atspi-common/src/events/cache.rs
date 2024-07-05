@@ -148,7 +148,7 @@ impl_try_from_event_for_user_facing_type!(
 	CacheEvents::LegacyAdd,
 	Event::Cache
 );
-event_test_cases!(LegacyAddAccessibleEvent);
+event_test_cases!(LegacyAddAccessibleEvent, Explicit);
 impl_from_dbus_message!(LegacyAddAccessibleEvent);
 impl_event_properties!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
@@ -193,7 +193,7 @@ impl_from_user_facing_event_for_interface_event_enum!(
 );
 impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
-event_test_cases!(AddAccessibleEvent);
+event_test_cases!(AddAccessibleEvent, Explicit);
 
 impl BusProperties for AddAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
@@ -239,7 +239,7 @@ impl_from_user_facing_event_for_interface_event_enum!(
 );
 impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
-event_test_cases!(RemoveAccessibleEvent);
+event_test_cases!(RemoveAccessibleEvent, Explicit);
 
 impl BusProperties for RemoveAccessibleEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
