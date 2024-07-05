@@ -322,16 +322,16 @@ macro_rules! impl_from_dbus_message {
 				{
 					return Err(AtspiError::InterfaceMatch(format!(
 						"The interface {} does not match the signal's interface: {}",
-						header.interface().unwrap(),
-						<$type as BusProperties>::DBUS_INTERFACE
+						header.interface(),
+						Some(<$type as BusProperties>::DBUS_INTERFACE)
 					)));
 				}
 				if header.member().ok_or(AtspiError::MissingMember)? != <$type>::DBUS_MEMBER {
 					return Err(AtspiError::MemberMatch(format!(
 						"The member {} does not match the signal's member: {}",
 						// unwrap is safe here because of guard above
-						header.member().unwrap(),
-						<$type as BusProperties>::DBUS_MEMBER
+						header.member(),
+						Some(<$type as BusProperties>::DBUS_MEMBER)
 					)));
 				}
         if msg.body().signature() != Some(<$type as MessageConversion>::Body::signature()) {
