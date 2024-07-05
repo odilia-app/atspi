@@ -505,19 +505,23 @@ impl EventWrapperMessageConversion for WindowEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			"PropertyChange" => Ok(WindowEvents::PropertyChange(
+			PropertyChangeEvent::DBUS_MEMBER => Ok(WindowEvents::PropertyChange(
 				PropertyChangeEvent::try_from_message_unchecked(msg)?,
 			)),
-			"Minimize" => {
+			MinimizeEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Minimize(MinimizeEvent::try_from_message_unchecked(msg)?))
 			}
-			"Maximize" => {
+			MaximizeEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Maximize(MaximizeEvent::try_from_message_unchecked(msg)?))
 			}
-			"Restore" => Ok(WindowEvents::Restore(RestoreEvent::try_from_message_unchecked(msg)?)),
+			RestoreEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Restore(RestoreEvent::try_from_message_unchecked(msg)?))
+			}
 			"Close" => Ok(WindowEvents::Close(CloseEvent::try_from_message_unchecked(msg)?)),
-			"Create" => Ok(WindowEvents::Create(CreateEvent::try_from_message_unchecked(msg)?)),
-			"Reparent" => {
+			CreateEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Create(CreateEvent::try_from_message_unchecked(msg)?))
+			}
+			ReparentEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Reparent(ReparentEvent::try_from_message_unchecked(msg)?))
 			}
 			"DesktopCreate" => Ok(WindowEvents::DesktopCreate(

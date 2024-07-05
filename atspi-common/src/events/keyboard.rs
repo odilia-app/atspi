@@ -106,7 +106,7 @@ impl EventWrapperMessageConversion for KeyboardEvents {
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
-			"Modifiers" => {
+			ModifiersEvent::DBUS_MEMBER => {
 				Ok(KeyboardEvents::Modifiers(ModifiersEvent::try_from_message_unchecked(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),

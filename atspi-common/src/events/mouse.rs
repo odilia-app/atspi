@@ -183,9 +183,15 @@ impl EventWrapperMessageConversion for MouseEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			"Abs" => Ok(MouseEvents::Abs(AbsEvent::try_from_message_unchecked(msg)?)),
-			"Rel" => Ok(MouseEvents::Rel(RelEvent::try_from_message_unchecked(msg)?)),
-			"Button" => Ok(MouseEvents::Button(ButtonEvent::try_from_message_unchecked(msg)?)),
+			AbsEvent::DBUS_MEMBER => {
+				Ok(MouseEvents::Abs(AbsEvent::try_from_message_unchecked(msg)?))
+			}
+			RelEvent::DBUS_MEMBER => {
+				Ok(MouseEvents::Rel(RelEvent::try_from_message_unchecked(msg)?))
+			}
+			ButtonEvent::DBUS_MEMBER => {
+				Ok(MouseEvents::Button(ButtonEvent::try_from_message_unchecked(msg)?))
+			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
 		}
 	}

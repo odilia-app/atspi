@@ -90,7 +90,7 @@ impl EventWrapperMessageConversion for CacheEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			"AddAccessible" => {
+			AddAccessibleEvent::DBUS_MEMBER => {
 				let body = msg.body();
 				let sig = body.signature().ok_or(AtspiError::MissingSignature)?;
 				match sig.as_str() {
@@ -107,7 +107,7 @@ impl EventWrapperMessageConversion for CacheEvents {
 					))),
 				}
 			}
-			"RemoveAccessible" => {
+			RemoveAccessibleEvent::DBUS_MEMBER => {
 				Ok(CacheEvents::Remove(RemoveAccessibleEvent::try_from_message_unchecked(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch(format!(

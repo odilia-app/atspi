@@ -911,70 +911,70 @@ impl EventWrapperMessageConversion for ObjectEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			"PropertyChange" => Ok(ObjectEvents::PropertyChange(
+			PropertyChangeEvent::DBUS_MEMBER => Ok(ObjectEvents::PropertyChange(
 				PropertyChangeEvent::try_from_message_unchecked(msg)?,
 			)),
-			"BoundsChanged" => Ok(ObjectEvents::BoundsChanged(
+			BoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::BoundsChanged(
 				BoundsChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"LinkSelected" => {
+			LinkSelectedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::try_from_message_unchecked(msg)?))
 			}
-			"StateChanged" => {
+			StateChangedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::StateChanged(StateChangedEvent::try_from_message_unchecked(msg)?))
 			}
-			"ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(
+			ChildrenChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ChildrenChanged(
 				ChildrenChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"VisibleDataChanged" => Ok(ObjectEvents::VisibleDataChanged(
+			VisibleDataChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::VisibleDataChanged(
 				VisibleDataChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(
+			SelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::SelectionChanged(
 				SelectionChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"ModelChanged" => {
+			ModelChangedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::try_from_message_unchecked(msg)?))
 			}
-			"ActiveDescendantChanged" => Ok(ObjectEvents::ActiveDescendantChanged(
+			ActiveDescendantChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ActiveDescendantChanged(
 				ActiveDescendantChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"Announcement" => {
+			AnnouncementEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::Announcement(AnnouncementEvent::try_from_message_unchecked(msg)?))
 			}
-			"AttributesChanged" => Ok(ObjectEvents::AttributesChanged(
+			AttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::AttributesChanged(
 				AttributesChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"RowInserted" => {
+			RowInsertedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::RowInserted(RowInsertedEvent::try_from_message_unchecked(msg)?))
 			}
-			"RowReordered" => {
+			RowReorderedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::RowReordered(RowReorderedEvent::try_from_message_unchecked(msg)?))
 			}
-			"RowDeleted" => {
+			RowDeletedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::try_from_message_unchecked(msg)?))
 			}
-			"ColumnInserted" => Ok(ObjectEvents::ColumnInserted(
+			ColumnInsertedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnInserted(
 				ColumnInsertedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"ColumnReordered" => Ok(ObjectEvents::ColumnReordered(
+			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
 				ColumnReorderedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(
+			ColumnDeletedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnDeleted(
 				ColumnDeletedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(
+			TextBoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextBoundsChanged(
 				TextBoundsChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"TextSelectionChanged" => Ok(ObjectEvents::TextSelectionChanged(
+			TextSelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextSelectionChanged(
 				TextSelectionChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"TextChanged" => {
+			TextChangedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::TextChanged(TextChangedEvent::try_from_message_unchecked(msg)?))
 			}
-			"TextAttributesChanged" => Ok(ObjectEvents::TextAttributesChanged(
+			TextAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextAttributesChanged(
 				TextAttributesChangedEvent::try_from_message_unchecked(msg)?,
 			)),
-			"TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(
+			TextCaretMovedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextCaretMoved(
 				TextCaretMovedEvent::try_from_message_unchecked(msg)?,
 			)),
 			_ => Err(AtspiError::MemberMatch(format!(

@@ -498,10 +498,10 @@ impl EventWrapperMessageConversion for EventListenerEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			"EventListenerRegistered" => Ok(EventListenerEvents::Registered(
+			EventListenerRegisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Registered(
 				EventListenerRegisteredEvent::try_from_message_unchecked(msg)?,
 			)),
-			"EventListenerDeregistered" => Ok(EventListenerEvents::Deregistered(
+			EventListenerDeregisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Deregistered(
 				EventListenerDeregisteredEvent::try_from_message_unchecked(msg)?,
 			)),
 			_ => Err(AtspiError::MemberMatch(format!(
@@ -675,16 +675,36 @@ impl TryFrom<&zbus::Message> for Event {
 		let interface_str = interface.as_str();
 
 		match interface_str {
-			"org.a11y.atspi.Socket" => Ok(AvailableEvent::try_from(msg)?.into()),
-			"org.a11y.atspi.Event.Object" => Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Event.Document" => Ok(Event::Document(DocumentEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Event.Window" => Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Event.Terminal" => Ok(Event::Terminal(TerminalEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Event.Mouse" => Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Event.Focus" => Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Event.Keyboard" => Ok(Event::Keyboard(KeyboardEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Cache" => Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg)?)),
-			"org.a11y.atspi.Registry" => Ok(Event::Listener(EventListenerEvents::try_from_message_interface_checked(msg)?)),
+			<AvailableEvent as BusProperties>::DBUS_INTERFACE => {
+				Ok(AvailableEvent::try_from(msg)?.into())
+			}
+			ObjectEvents::DBUS_INTERFACE => {
+				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg)?))
+			}
+			DocumentEvents::DBUS_INTERFACE => {
+				Ok(Event::Document(DocumentEvents::try_from_message_interface_checked(msg)?))
+			}
+			WindowEvents::DBUS_INTERFACE => {
+				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg)?))
+			}
+			TerminalEvents::DBUS_INTERFACE => {
+				Ok(Event::Terminal(TerminalEvents::try_from_message_interface_checked(msg)?))
+			}
+			MouseEvents::DBUS_INTERFACE => {
+				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg)?))
+			}
+			FocusEvents::DBUS_INTERFACE => {
+				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg)?))
+			}
+			KeyboardEvents::DBUS_INTERFACE => {
+				Ok(Event::Keyboard(KeyboardEvents::try_from_message_interface_checked(msg)?))
+			}
+			CacheEvents::DBUS_INTERFACE => {
+				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg)?))
+			}
+			EventListenerEvents::DBUS_INTERFACE => {
+				Ok(Event::Listener(EventListenerEvents::try_from_message_interface_checked(msg)?))
+			}
 			_ => Err(AtspiError::InterfaceMatch(format!(
 				"No events found with interface {interface_str}"
 			))),
