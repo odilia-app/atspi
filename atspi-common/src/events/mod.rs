@@ -321,6 +321,12 @@ where
 	T: BusProperties,
 {
 	type Body = EventBodyOwned;
+	fn try_from_validated_message_parts(
+		obj_ref: ObjectRef,
+		_: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(obj_ref.into())
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item: ObjectRef = msg.try_into()?;
 		Ok(item.into())
@@ -556,10 +562,16 @@ impl BusProperties for EventListenerDeregisteredEvent {
 impl MessageConversion for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		deregistered_event: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, deregistered_event })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, deregistered_event: body.deserialize_unchecked()? })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.deregistered_event.clone()
@@ -603,10 +615,16 @@ impl BusProperties for EventListenerRegisteredEvent {
 impl MessageConversion for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		registered_event: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, registered_event })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, registered_event: body.deserialize_unchecked()? })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.registered_event.clone()
@@ -651,10 +669,16 @@ impl BusProperties for AvailableEvent {
 impl MessageConversion for AvailableEvent {
 	type Body = ObjectRef;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		socket: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, socket })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, socket: body.deserialize_unchecked()? })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.socket.clone()
@@ -823,6 +847,60 @@ pub trait MessageConversion: BusProperties {
 	where
 		Self: Sized;
 
+	/// Build an event from an [`ObjectRef`] and [`Self::Body`].
+	/// This function will not check for any of the following error conditions:
+	///
+	/// - That the message has an interface: [`enum@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`enum@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`enum@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`enum@AtspiError::MemberMatch`]
+	///
+	/// Therefore, this should only be used when one has checked the above conditions.
+	fn try_from_validated_message_parts(
+		obj_ref: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+
+	fn validate_interface(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != Self::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"The interface {} does not match the signal's interface: {}",
+				interface,
+				Self::DBUS_INTERFACE,
+			)));
+		}
+		Ok(())
+	}
+	fn validate_member(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		if member != Self::DBUS_MEMBER {
+			return Err(AtspiError::MemberMatch(format!(
+				"The member {} does not match the signal's member: {}",
+				// unwrap is safe here because of guard above
+				member,
+				Self::DBUS_MEMBER,
+			)));
+		}
+		Ok(())
+	}
+	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let body = msg.body();
+		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+		if body_signature != Self::Body::signature() {
+			return Err(AtspiError::SignatureMatch(format!(
+				"The message signature {} does not match the signal's body signature: {}",
+				body_signature,
+				Self::Body::signature().as_str(),
+			)));
+		}
+		Ok(())
+	}
+
 	/// Convert a [`zbus::Message`] into this event type.
 	/// Does all the validation for you.
 	///
@@ -841,34 +919,9 @@ pub trait MessageConversion: BusProperties {
 	where
 		Self: Sized,
 	{
-		let header = msg.header();
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-
-		if interface != Self::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"The interface {} does not match the signal's interface: {}",
-				interface,
-				Self::DBUS_INTERFACE,
-			)));
-		}
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		if member != Self::DBUS_MEMBER {
-			return Err(AtspiError::MemberMatch(format!(
-				"The member {} does not match the signal's member: {}",
-				// unwrap is safe here because of guard above
-				member,
-				Self::DBUS_MEMBER,
-			)));
-		}
-		let body = msg.body();
-		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
-		if body_signature != Self::Body::signature() {
-			return Err(AtspiError::SignatureMatch(format!(
-				"The message signature {} does not match the signal's body signature: {}",
-				body_signature,
-				Self::Body::signature().as_str(),
-			)));
-		}
+		Self::validate_interface(msg)?;
+		Self::validate_member(msg)?;
+		Self::validate_body(msg)?;
 		Self::try_from_validated_message(msg)
 	}
 
