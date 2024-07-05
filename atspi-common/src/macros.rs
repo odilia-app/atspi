@@ -501,6 +501,23 @@ macro_rules! zbus_message_test_case {
 
 		#[cfg(feature = "zbus")]
 		#[test]
+		fn zbus_msg_conversion_validated_message_with_body() -> () {
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				"org.a11y.atspi.technically.valid",
+				"MadeUpMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&<$type>::default().body())
+			.unwrap();
+			let event = <$type>::try_from_validated_message(&fake_msg);
+      event.expect("The try_from_validated_message function should work, despite mismatching interface and member");
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
