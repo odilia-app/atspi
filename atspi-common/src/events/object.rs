@@ -607,13 +607,18 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		let property = body.kind.to_string();
+		let value: Property = body.try_into()?;
+		Ok(Self { item, property, value })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		let ev_body: Self::Body = body.deserialize_unchecked()?;
-		let property = ev_body.kind.to_string();
-		let value: Property = ev_body.try_into()?;
-		Ok(Self { item, property, value })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -649,11 +654,16 @@ impl BusProperties for StateChangedEvent {
 impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 > 0 })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		let ev_body: Self::Body = body.deserialize_unchecked()?;
-		Ok(Self { item, state: ev_body.kind.into(), enabled: ev_body.detail1 > 0 })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -673,16 +683,21 @@ impl BusProperties for ChildrenChangedEvent {
 impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		let body = msg.body();
-		let ev_body: Self::Body = body.deserialize_unchecked()?;
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			operation: ev_body.kind.as_str().parse()?,
-			index_in_parent: ev_body.detail1,
-			child: ev_body.any_data.try_into()?,
+			operation: body.kind.as_str().parse()?,
+			index_in_parent: body.detail1,
+			child: body.any_data.try_into()?,
 		})
+	}
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -726,10 +741,16 @@ impl BusProperties for ActiveDescendantChangedEvent {
 impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, child: body.any_data.try_into()? })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, child: body.deserialize_unchecked::<Self::Body>()?.any_data.try_into()? })
+		let body = msg.body().deserialize_unchecked()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -749,18 +770,20 @@ impl BusProperties for AnnouncementEvent {
 impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		let body = msg.body();
-		let ev_body: Self::Body = body.deserialize_unchecked()?;
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			text: ev_body
-				.any_data
-				.try_into()
-				.map_err(|_| AtspiError::Conversion("text"))?,
-			live: ev_body.detail1.try_into()?,
+			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
+			live: body.detail1.try_into()?,
 		})
+	}
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body().deserialize_unchecked()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -852,17 +875,22 @@ impl BusProperties for TextChangedEvent {
 impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		let body = msg.body();
-		let ev_body: Self::Body = body.deserialize_unchecked()?;
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
-			operation: ev_body.kind.as_str().parse()?,
-			start_pos: ev_body.detail1,
-			length: ev_body.detail2,
-			text: ev_body.any_data.try_into()?,
+			operation: body.kind.as_str().parse()?,
+			start_pos: body.detail1,
+			length: body.detail2,
+			text: body.any_data.try_into()?,
 		})
+	}
+	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body().deserialize_unchecked()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -890,10 +918,16 @@ impl BusProperties for TextCaretMovedEvent {
 impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, position: body.detail1 })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, position: body.deserialize_unchecked::<Self::Body>()?.detail1 })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();

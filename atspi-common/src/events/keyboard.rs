@@ -1,11 +1,14 @@
-#[cfg(feature = "zbus")]
-use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
 	error::AtspiError,
 	events::{
 		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
 	},
 	Event, EventProperties, EventTypeProperties,
+};
+#[cfg(feature = "zbus")]
+use crate::{
+	events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage},
+	ObjectRef,
 };
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -82,11 +85,17 @@ impl BusProperties for ModifiersEvent {
 impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
-		let ev_body: Self::Body = body.deserialize_unchecked()?;
-		Ok(Self { item, previous_modifiers: ev_body.detail1, current_modifiers: ev_body.detail2 })
+		let body: Self::Body = body.deserialize_unchecked()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();

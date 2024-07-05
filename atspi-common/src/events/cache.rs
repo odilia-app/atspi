@@ -149,7 +149,7 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Cache
 );
 event_test_cases!(LegacyAddAccessibleEvent, Explicit);
-impl_from_dbus_message!(LegacyAddAccessibleEvent);
+impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
 
@@ -165,10 +165,16 @@ impl BusProperties for LegacyAddAccessibleEvent {
 impl MessageConversion for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, node_added: body.deserialize_unchecked()? })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 
 	fn body(&self) -> Self::Body {
@@ -207,10 +213,16 @@ impl BusProperties for AddAccessibleEvent {
 impl MessageConversion for AddAccessibleEvent {
 	type Body = CacheItem;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, node_added: body.deserialize_unchecked()? })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 
 	fn body(&self) -> Self::Body {
@@ -218,7 +230,7 @@ impl MessageConversion for AddAccessibleEvent {
 	}
 }
 
-impl_from_dbus_message!(AddAccessibleEvent);
+impl_from_dbus_message!(AddAccessibleEvent, Explicit);
 impl_event_properties!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
 
@@ -253,16 +265,22 @@ impl BusProperties for RemoveAccessibleEvent {
 impl MessageConversion for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_removed: body })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, node_removed: body.deserialize_unchecked()? })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.node_removed.clone()
 	}
 }
 
-impl_from_dbus_message!(RemoveAccessibleEvent);
+impl_from_dbus_message!(RemoveAccessibleEvent, Explicit);
 impl_event_properties!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);

@@ -1,11 +1,14 @@
-#[cfg(feature = "zbus")]
-use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
 	error::AtspiError,
 	events::{
 		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
 	},
 	Event, EventProperties, EventTypeProperties,
+};
+#[cfg(feature = "zbus")]
+use crate::{
+	events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage},
+	ObjectRef,
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
@@ -340,10 +343,16 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
+	fn try_from_validated_message_parts(
+		item: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, property: body.kind })
+	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body();
-		Ok(Self { item, property: body.deserialize_unchecked::<Self::Body>()?.kind })
+		let body = msg.body().deserialize()?;
+		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
