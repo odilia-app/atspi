@@ -676,15 +676,15 @@ impl TryFrom<&zbus::Message> for Event {
 
 		match interface_str {
 			"org.a11y.atspi.Socket" => Ok(AvailableEvent::try_from(msg)?.into()),
-			"org.a11y.atspi.Event.Object" => Ok(Event::Object(ObjectEvents::try_from(msg)?)),
-			"org.a11y.atspi.Event.Document" => Ok(Event::Document(DocumentEvents::try_from(msg)?)),
-			"org.a11y.atspi.Event.Window" => Ok(Event::Window(WindowEvents::try_from(msg)?)),
-			"org.a11y.atspi.Event.Terminal" => Ok(Event::Terminal(TerminalEvents::try_from(msg)?)),
-			"org.a11y.atspi.Event.Mouse" => Ok(Event::Mouse(MouseEvents::try_from(msg)?)),
-			"org.a11y.atspi.Event.Focus" => Ok(Event::Focus(FocusEvents::try_from(msg)?)),
-			"org.a11y.atspi.Event.Keyboard" => Ok(Event::Keyboard(KeyboardEvents::try_from(msg)?)),
-			"org.a11y.atspi.Cache" => Ok(Event::Cache(CacheEvents::try_from(msg)?)),
-			"org.a11y.atspi.Registry" => Ok(Event::Listener(EventListenerEvents::try_from(msg)?)),
+			"org.a11y.atspi.Event.Object" => Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Event.Document" => Ok(Event::Document(DocumentEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Event.Window" => Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Event.Terminal" => Ok(Event::Terminal(TerminalEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Event.Mouse" => Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Event.Focus" => Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Event.Keyboard" => Ok(Event::Keyboard(KeyboardEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Cache" => Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg)?)),
+			"org.a11y.atspi.Registry" => Ok(Event::Listener(EventListenerEvents::try_from_message_interface_checked(msg)?)),
 			_ => Err(AtspiError::InterfaceMatch(format!(
 				"No events found with interface {interface_str}"
 			))),
