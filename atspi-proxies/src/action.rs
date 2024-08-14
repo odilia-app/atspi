@@ -17,7 +17,7 @@
 //! [TextProxy]: crate::text::TextProxy
 //! [ValueProxy]: crate::value::ValueProxy
 
-use atspi_common::Action;
+use atspi_common::action::Action;
 
 /// A handle for a remote object implementing the `org.a11y.atspi.Action`
 /// interface.
