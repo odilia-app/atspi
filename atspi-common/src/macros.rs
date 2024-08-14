@@ -309,7 +309,7 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-				<$type as MessageConversion>::try_from_message(msg)
+				<$type as MessageConversionExt<<$type as MessageConversion>::Body>>::try_from_message(msg)
 			}
 		}
 	};

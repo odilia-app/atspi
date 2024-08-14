@@ -866,6 +866,94 @@ pub trait MessageConversion: BusProperties {
 	where
 		Self: Sized;
 
+	/// The body of the object.
+	fn body(&self) -> Self::Body;
+}
+
+impl<T> MessageConversionExt<crate::LegacyCacheItem> for T
+where T: MessageConversion<Body = crate::LegacyCacheItem> {
+    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+        <T as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(msg)?;
+        <T as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(msg)?;
+        <T as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(msg)?;
+        <T as MessageConversion>::try_from_validated_message(msg)
+    }
+}
+
+impl<T> MessageConversionExt<EventListeners> for T
+where T: MessageConversion<Body = EventListeners> {
+    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+        <T as MessageConversionExt<EventListeners>>::validate_interface(msg)?;
+        <T as MessageConversionExt<EventListeners>>::validate_member(msg)?;
+        <T as MessageConversionExt<EventListeners>>::validate_body(msg)?;
+        <T as MessageConversion>::try_from_validated_message(msg)
+    }
+}
+
+impl<T> MessageConversionExt<crate::CacheItem> for T
+where T: MessageConversion<Body = crate::CacheItem> {
+    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+        <T as MessageConversionExt<crate::CacheItem>>::validate_interface(msg)?;
+        <T as MessageConversionExt<crate::CacheItem>>::validate_member(msg)?;
+        <T as MessageConversionExt<crate::CacheItem>>::validate_body(msg)?;
+        <T as MessageConversion>::try_from_validated_message(msg)
+    }
+}
+
+impl<T> MessageConversionExt<ObjectRef> for T
+where T: MessageConversion<Body = ObjectRef> {
+    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+        <T as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
+        <T as MessageConversionExt<ObjectRef>>::validate_member(msg)?;
+        <T as MessageConversionExt<ObjectRef>>::validate_body(msg)?;
+        <T as MessageConversion>::try_from_validated_message(msg)
+    }
+}
+
+impl<T> MessageConversionExt<EventBodyOwned> for T
+where T: MessageConversion<Body = EventBodyOwned> {
+    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+        <T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
+        <T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
+        let body = msg.body();
+        let body_sig = body.signature().ok_or(AtspiError::MissingSignature)?;
+        let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
+            body.deserialize_unchecked()?
+        } else if body_sig == QSPI_EVENT_SIGNATURE {
+            let qtbody: EventBodyQT = body.deserialize_unchecked()?;
+            qtbody.into()
+        } else {
+          return Err(AtspiError::SignatureMatch(format!(
+            "The message signature {} does not match the signal's body signature: {} or {}",
+            body_sig,
+            EventBodyOwned::signature(),
+            EventBodyQT::signature(),
+          )));
+        };
+        let item = msg.try_into()?;
+        Self::try_from_validated_message_parts(item, data_body)
+    }
+}
+
+pub trait MessageConversionExt<B>: MessageConversion<Body = B> 
+where B: Type + Serialize + for<'a> Deserialize<'a> {
+	/// Convert a [`zbus::Message`] into this event type.
+	/// Does all the validation for you.
+	///
+	/// # Errors
+	///
+	/// - The message does not have an interface: [`type@AtspiError::MissingInterface`]
+	/// - The message interface does not match the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - The message does not have an member: [`type@AtspiError::MissingMember`]
+	/// - The message member does not match the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - The message does not have an signature: [`type@AtspiError::MissingSignature`]
+	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
+	///
+	/// See [`Self::try_from_validated_message`] for info on panic condition that should never
+	/// happen.
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
 	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
 	///
 	/// # Errors
@@ -921,33 +1009,6 @@ pub trait MessageConversion: BusProperties {
 		}
 		Ok(())
 	}
-
-	/// Convert a [`zbus::Message`] into this event type.
-	/// Does all the validation for you.
-	///
-	/// # Errors
-	///
-	/// - The message does not have an interface: [`type@AtspiError::MissingInterface`]
-	/// - The message interface does not match the one for the event: [`type@AtspiError::InterfaceMatch`]
-	/// - The message does not have an member: [`type@AtspiError::MissingMember`]
-	/// - The message member does not match the one for the event: [`type@AtspiError::MemberMatch`]
-	/// - The message does not have an signature: [`type@AtspiError::MissingSignature`]
-	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
-	///
-	/// See [`Self::try_from_validated_message`] for info on panic condition that should never
-	/// happen.
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
-	where
-		Self: Sized,
-	{
-		Self::validate_interface(msg)?;
-		Self::validate_member(msg)?;
-		Self::validate_body(msg)?;
-		Self::try_from_validated_message(msg)
-	}
-
-	/// The body of the object.
-	fn body(&self) -> Self::Body;
 }
 
 /// A specific trait *only* to define an interface name.
