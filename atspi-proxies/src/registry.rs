@@ -17,7 +17,7 @@ use zbus::names::OwnedBusName;
 	default_service = "org.a11y.atspi.Registry",
 	default_path = "/org/a11y/atspi/registry"
 )]
-trait Registry {
+pub trait Registry {
 	/// DeregisterEvent method
 	fn deregister_event(&self, event: &str) -> zbus::Result<()>;
 
