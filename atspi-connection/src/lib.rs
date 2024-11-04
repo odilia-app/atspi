@@ -100,7 +100,7 @@ impl AccessibilityConnection {
 	/// use atspi_connection::AccessibilityConnection;
 	/// use enumflags2::BitFlag;
 	/// use atspi_connection::common::events::object::{ObjectEvents, StateChangedEvent};
-	/// use zbus::{fdo::DBusProxy, MatchRule, MessageType};
+	/// use zbus::{fdo::DBusProxy, MatchRule, message::Type as MessageType};
 	/// use atspi_connection::common::events::Event;
 	/// # use futures_lite::StreamExt;
 	/// # use std::error::Error;
