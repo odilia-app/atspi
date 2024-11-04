@@ -238,6 +238,7 @@ pub enum SortOrder {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use std::str::FromStr;
 	use crate::{SortOrder, State};
 	use zbus_lockstep::method_args_signature;
 
@@ -251,7 +252,8 @@ mod tests {
 	fn validate_match_type_signature() {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
 		// The match type signature is the fourth element in the signature
-		let match_type_signature = rule_signature.slice(3..4);
+		let match_type_signature_str = rule_signature.to_string();
+		let match_type_signature = Signature::from_str(&match_type_signature_str.as_str()[3..4]).expect("Valid signature pattern");
 		assert_eq!(*<MatchType as Type>::SIGNATURE, match_type_signature);
 	}
 
