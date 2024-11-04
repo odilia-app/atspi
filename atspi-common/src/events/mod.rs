@@ -1119,7 +1119,7 @@ mod tests {
 
 	#[test]
 	fn check_event_body_qt_signature() {
-		assert_eq!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
+		assert_eq!(<EventBodyQT as Type>::SIGNATURE, &QSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]

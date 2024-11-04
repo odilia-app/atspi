@@ -244,7 +244,7 @@ mod tests {
 	#[test]
 	fn validate_match_rule_signature() {
 		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
-		assert_eq!(ObjectMatchRule::signature(), signature);
+		assert_eq!(*<ObjectMatchRule as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
@@ -252,19 +252,19 @@ mod tests {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
 		// The match type signature is the fourth element in the signature
 		let match_type_signature = rule_signature.slice(3..4);
-		assert_eq!(MatchType::signature(), match_type_signature);
+		assert_eq!(*<MatchType as Type>::SIGNATURE, match_type_signature);
 	}
 
 	#[test]
 	fn validate_tree_traversal_type_signature() {
 		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "tree");
-		assert_eq!(TreeTraversalType::signature(), signature);
+		assert_eq!(*<TreeTraversalType as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_sort_order_signature() {
 		let signature = method_args_signature!(member: "GetMatches", interface: "org.a11y.atspi.Collection", argument: "sortby");
-		assert_eq!(SortOrder::signature(), signature);
+		assert_eq!(*<SortOrder as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
