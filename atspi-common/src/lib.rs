@@ -198,9 +198,11 @@ impl TryFrom<i32> for Politeness {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use std::str::FromStr;
 	use zbus_lockstep::{
 		method_args_signature, method_return_signature, signal_body_type_signature,
 	};
+	use zvariant::Signature;
 
 	#[test]
 	fn convert_i32_to_live() {
@@ -214,52 +216,58 @@ mod tests {
 	#[test]
 	fn validate_live_signature() {
 		let signature = signal_body_type_signature!("Announcement");
-		let politeness_signature = signature.slice(1..2);
-		assert_eq!(Politeness::signature(), politeness_signature);
+		let politeness_signature_str = &signature.to_string();
+		let politeness_signature = Signature::from_str(&politeness_signature_str.as_str()[1..2])
+			.expect("Valid signature pattern");
+		assert_eq!(*<Politeness as Type>::SIGNATURE, politeness_signature);
 	}
 
 	#[test]
 	fn validate_scroll_type_signature() {
 		let signature = method_args_signature!(member: "ScrollTo", interface: "org.a11y.atspi.Component", argument: "type");
-		assert_eq!(ScrollType::signature(), signature);
+		assert_eq!(*<ScrollType as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_layer_signature() {
 		let signature = method_return_signature!("GetLayer");
-		assert_eq!(Layer::signature(), signature);
+		assert_eq!(*<Layer as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_granularity_signature() {
 		let signature = method_args_signature!(member: "GetStringAtOffset", interface: "org.a11y.atspi.Text", argument: "granularity");
-		assert_eq!(Granularity::signature(), signature);
+		assert_eq!(*<Granularity as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_clip_type_signature() {
 		let signature = method_args_signature!(member: "GetTextAtOffset", interface: "org.a11y.atspi.Text", argument: "type");
-		assert_eq!(ClipType::signature(), signature);
+		assert_eq!(*<ClipType as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_coord_type_signature() {
 		let signature = method_args_signature!(member: "GetImagePosition", interface: "org.a11y.atspi.Image", argument: "coordType");
-		assert_eq!(CoordType::signature(), signature);
+		assert_eq!(*<CoordType as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_match_type_signature() {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
-		let match_type_signature = rule_signature.slice(3..4);
-		assert_eq!(MatchType::signature(), match_type_signature);
+		let match_type_signature_str = rule_signature.to_string();
+		let match_type_signature = Signature::from_str(&match_type_signature_str.as_str()[3..4])
+			.expect("Valid signature pattern");
+		assert_eq!(*<MatchType as Type>::SIGNATURE, match_type_signature);
 	}
 
 	#[test]
 	fn validate_text_selection_signature() {
-		let selection_signature = method_args_signature!(member: "GetTextSelections", interface: "org.a11y.atspi.Document", argument: "selections")
-        .slice(1..);
+		let selection_signature = method_args_signature!(member: "GetTextSelections", interface: "org.a11y.atspi.Document", argument: "selections");
+		let selection_signature_str = selection_signature.to_string();
+		let selection_signature = Signature::from_str(&selection_signature_str.as_str()[1..])
+			.expect("Valid signature pattern");
 		// this signature is written: `a(...)`, where `(...)` is the signature we want to compare against
-		assert_eq!(TextSelection::signature(), selection_signature);
+		assert_eq!(*<TextSelection as Type>::SIGNATURE, selection_signature);
 	}
 }

@@ -38,8 +38,8 @@ async fn test_recv_remove_accessible() {
 	// Retrieve the signature of the body of 'RemoveAccessible' signal from XML
 	// and compare it to the signature of the body of the message
 	assert_eq!(
-		msg.body().signature().unwrap(),
-		zbus_lockstep::signal_body_type_signature!("RemoveAccessible")
+		msg.body().signature(),
+		&zbus_lockstep::signal_body_type_signature!("RemoveAccessible")
 	);
 
 	atspi.connection().send(&msg).await.unwrap();
@@ -92,8 +92,8 @@ async fn test_recv_add_accessible() {
 	};
 
 	assert_eq!(
-		msg.body().signature().unwrap(),
-		zbus_lockstep::signal_body_type_signature!("AddAccessible")
+		msg.body().signature(),
+		&zbus_lockstep::signal_body_type_signature!("AddAccessible")
 	);
 
 	atspi
@@ -152,8 +152,8 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 	};
 
 	assert_eq!(
-		msg.body().signature().unwrap(),
-		zbus_lockstep::signal_body_type_signature!("AddAccessible")
+		msg.body().signature(),
+		&zbus_lockstep::signal_body_type_signature!("AddAccessible")
 	);
 
 	atspi

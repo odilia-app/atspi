@@ -19,7 +19,7 @@ use common::events::{
 };
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, message::Type as MessageType};
+use zbus::{fdo::DBusProxy, message::Type as MessageType, Address, MatchRule, MessageStream};
 
 /// A wrapper for results whose error type is [`AtspiError`].
 pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
