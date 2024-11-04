@@ -61,7 +61,7 @@ impl Type for ObjectMatchRule {
 	const SIGNATURE: &'static Signature = &Signature::static_structure(&[
 		&Signature::Array(Child::Static { child: &Signature::I32 }),
 		&Signature::I32,
-		&Signature::Dict{
+		&Signature::Dict {
 			key: Child::Static { child: &Signature::Str },
 			value: Child::Static { child: &Signature::Str },
 		},
