@@ -198,11 +198,11 @@ impl TryFrom<i32> for Politeness {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use zvariant::Signature;
 	use std::str::FromStr;
 	use zbus_lockstep::{
 		method_args_signature, method_return_signature, signal_body_type_signature,
 	};
+	use zvariant::Signature;
 
 	#[test]
 	fn convert_i32_to_live() {
@@ -217,7 +217,8 @@ mod tests {
 	fn validate_live_signature() {
 		let signature = signal_body_type_signature!("Announcement");
 		let politeness_signature_str = &signature.to_string();
-		let politeness_signature = Signature::from_str(&politeness_signature_str.as_str()[1..2]).expect("Valid signature pattern");
+		let politeness_signature = Signature::from_str(&politeness_signature_str.as_str()[1..2])
+			.expect("Valid signature pattern");
 		assert_eq!(*<Politeness as Type>::SIGNATURE, politeness_signature);
 	}
 
@@ -255,7 +256,8 @@ mod tests {
 	fn validate_match_type_signature() {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
 		let match_type_signature_str = rule_signature.to_string();
-		let match_type_signature = Signature::from_str(&match_type_signature_str.as_str()[3..4]).expect("Valid signature pattern");
+		let match_type_signature = Signature::from_str(&match_type_signature_str.as_str()[3..4])
+			.expect("Valid signature pattern");
 		assert_eq!(*<MatchType as Type>::SIGNATURE, match_type_signature);
 	}
 
@@ -263,7 +265,8 @@ mod tests {
 	fn validate_text_selection_signature() {
 		let selection_signature = method_args_signature!(member: "GetTextSelections", interface: "org.a11y.atspi.Document", argument: "selections");
 		let selection_signature_str = selection_signature.to_string();
-		let selection_signature = Signature::from_str(&selection_signature_str.as_str()[1..]).expect("Valid signature pattern");
+		let selection_signature = Signature::from_str(&selection_signature_str.as_str()[1..])
+			.expect("Valid signature pattern");
 		// this signature is written: `a(...)`, where `(...)` is the signature we want to compare against
 		assert_eq!(*<TextSelection as Type>::SIGNATURE, selection_signature);
 	}
