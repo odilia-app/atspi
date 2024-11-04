@@ -1,7 +1,11 @@
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
-use zvariant::{ObjectPath, OwnedObjectPath, Type};
+use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
+
+// Equiv to "(so)"
+pub const OBJECT_REF_SIGNATURE: Signature =
+	Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
 
 /// `ObjectRef` type
 ///
@@ -75,8 +79,8 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
 			zvariant::Value::Structure(s) => {
-				if s.signature() != ObjectRef::SIGNATURE {
-					return Err(zvariant::Error::SignatureMismatch(s.signature().clone(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {:?}", ObjectRef::SIGNATURE)));
+				if *s.signature() != OBJECT_REF_SIGNATURE {
+					return Err(zvariant::Error::SignatureMismatch(s.signature().clone(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {OBJECT_REF_SIGNATURE}")));
 				}
 				let fields = s.fields();
 				let name: String =

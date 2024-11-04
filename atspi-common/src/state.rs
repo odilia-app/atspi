@@ -141,7 +141,7 @@ pub enum State {
 	/// in very large containers, like tables. The presence of
 	/// `ManagesDescendants` is an indication to the client that the
 	/// children should not, and need not, be enumerated by the client.
-	/// Objects implementing this state are expected to provide relevant state      
+	/// Objects implementing this state are expected to provide relevant state
 	/// notifications to listening clients, for instance notifications of
 	/// visibility changes and activation of their contained child objects, without
 	/// the client having previously requested references to those children.
@@ -150,7 +150,7 @@ pub enum State {
 	/// indicator is in a state other than checked or not checked.
 	///
 	/// This usually means that the boolean value reflected or controlled by the
-	/// object does not apply consistently to the entire current context.      
+	/// object does not apply consistently to the entire current context.
 	/// For example, a checkbox for the "Bold" attribute of text may have
 	/// `Indeterminate` if the currently selected text contains a mixture
 	/// of weight attributes. In many cases interacting with a
@@ -172,7 +172,7 @@ pub enum State {
 	/// representation becomes static. Some applications, notably content viewers,
 	/// may not be able to detect all kinds of animated content.  Therefore the
 	/// absence of this state should not be taken as
-	/// definitive evidence that the object's visual representation is      
+	/// definitive evidence that the object's visual representation is
 	/// static; this state is advisory.
 	Animated,
 	/// This object has indicated an error condition
@@ -180,7 +180,7 @@ pub enum State {
 	/// acquire this state in response to invalid or malformed user input.
 	InvalidEntry,
 	/// This state indicates that the object
-	/// in question implements some form of typeahead or       
+	/// in question implements some form of typeahead or
 	/// pre-selection behavior whereby entering the first character of one or more
 	/// sub-elements causes those elements to scroll into view or become
 	/// selected. Subsequent character input may narrow the selection further as
@@ -509,7 +509,7 @@ impl Serialize for StateSet {
 }
 
 impl Type for StateSet {
-	const SIGNATURE: &'static Signature = <Vec<u32> as Type>::SIGNATURE;
+	const SIGNATURE: &Signature = <Vec<u32> as Type>::SIGNATURE;
 }
 
 impl From<State> for StateSet {
