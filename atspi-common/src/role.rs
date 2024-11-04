@@ -5,6 +5,7 @@ use crate::AtspiError;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Hash)]
 /// An accessible object role.
+///
 /// To think of it in terms of HTML, any semantic element likely has a corollary in this enum.
 /// For example: `<button>`, `<input>`, `<form>` or `<h4>`.
 /// Non-semantic elements like `<span>`, `<div>` and `<b>` will not be represented here, and this information is not passed through via the atspi library.
