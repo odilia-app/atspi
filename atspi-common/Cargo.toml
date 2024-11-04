@@ -25,7 +25,7 @@
   static_assertions    = "1.1.0"
   zbus                 = { workspace = true, optional = true, default-features = false }
   zbus-lockstep        = { version = "0.5.0" }
-  zbus-lockstep-macros = { version = "0.5.0" }
+  zbus-lockstep-macros = { version = "0.5" }
   zbus_names           = "4.0"
   zvariant             = { version = "5.1", default-features = false }
 

@@ -26,6 +26,7 @@ pub enum TreeTraversalType {
 ///
 /// # Examples
 /// ```rust
+/// # use zbus::MatchRule;
 /// let builder = MatchRule::builder();
 /// ```
 ///
@@ -62,12 +63,10 @@ impl Type for ObjectMatchRule {
 	const SIGNATURE: &'static Signature = &Signature::static_structure(&[
 		&Signature::Array(Child::Static { child: &Signature::I32 }),
 		&Signature::I32,
-		&Signature::Array(Child::Static {
-			child: &Signature::Dict {
-				key: Child::Static { child: &Signature::Str },
-				value: Child::Static { child: &Signature::Str },
-			},
-		}),
+		&Signature::Dict {
+			key: Child::Static { child: &Signature::Str },
+			value: Child::Static { child: &Signature::Str },
+		},
 		&Signature::I32,
 		&Signature::Array(Child::Static { child: &Signature::I32 }),
 		&Signature::I32,
@@ -247,7 +246,7 @@ mod tests {
 	#[test]
 	fn validate_match_rule_signature() {
 		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
-		assert_eq!(*<ObjectMatchRule as Type>::SIGNATURE, signature);
+		assert_eq!(*<ObjectMatchRule as Type>::SIGNATURE.to_string(), signature.to_string());
 	}
 
 	#[test]

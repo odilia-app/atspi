@@ -218,7 +218,7 @@ mod tests {
 	#[test]
 	fn validate_live_signature() {
 		let signature = signal_body_type_signature!("Announcement");
-		let politeness_signature_str = &signature.to_string();
+		let politeness_signature_str = &signature.to_string_no_parens();
 		let politeness_signature = Signature::from_str(&politeness_signature_str.as_str()[1..2])
 			.expect("Valid signature pattern");
 		assert_eq!(*<Politeness as Type>::SIGNATURE, politeness_signature);
