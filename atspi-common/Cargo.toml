@@ -22,8 +22,8 @@ tokio = ["zbus/tokio"]
 enumflags2 = "0.7.7"
 serde = "1.0"
 static_assertions = "1.1.0"
-zbus-lockstep = { version = "0.4.4", path = "../../zbus-lockstep/zbus-lockstep" }
-zbus-lockstep-macros = { version = "0.4.4", path = "../../zbus-lockstep/zbus-lockstep-macros" }
+zbus-lockstep = { git = "https://github.com/luukvanderduim/zbus-lockstep", branch = "0.5.0-rc1" }
+zbus-lockstep-macros = { git = "https://github.com/luukvanderduim/zbus-lockstep", branch = "0.5.0-rc1" }
 zbus_names = "4.0"
 zvariant = { version = "5.1", default-features = false }
 zbus = { workspace = true, optional = true, default-features = false }
