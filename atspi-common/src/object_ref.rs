@@ -4,7 +4,7 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
 // Equiv to "(so)"
-pub const OBJECT_REF_SIGNATURE: Signature =
+pub static OBJECT_REF_SIGNATURE: Signature =
 	Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
 
 /// `ObjectRef` type
