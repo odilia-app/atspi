@@ -13,7 +13,7 @@
 use crate::common::ObjectRef;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
-trait Selection {
+pub trait Selection {
 	/// ClearSelection method
 	fn clear_selection(&self) -> zbus::Result<bool>;
 
