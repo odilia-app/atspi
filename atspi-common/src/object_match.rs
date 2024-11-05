@@ -246,7 +246,7 @@ mod tests {
 	#[test]
 	fn validate_match_rule_signature() {
 		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
-		assert_eq!(*<ObjectMatchRule as Type>::SIGNATURE.to_string(), signature.to_string());
+		assert_eq!(*<ObjectMatchRule as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
