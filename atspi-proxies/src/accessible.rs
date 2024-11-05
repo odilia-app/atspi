@@ -17,7 +17,7 @@ use crate::AtspiError;
 /// Accessible is the interface which is implemented by all accessible objects.
 ///
 #[zbus::proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
-trait Accessible {
+pub trait Accessible {
 	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.
 	///
