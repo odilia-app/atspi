@@ -19,7 +19,7 @@ pub mod window;
 //  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
 //  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
 // Same as "(siiva{sv})"
-pub const ATSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
+pub static ATSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
 	&Signature::Str,
 	&Signature::I32,
 	&Signature::I32,
@@ -32,7 +32,7 @@ pub const ATSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
 	}),
 ]);
 // Same as "(siiv(so))"
-pub const QSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
+pub static QSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
 	&Signature::Str,
 	&Signature::I32,
 	&Signature::I32,
@@ -40,10 +40,10 @@ pub const QSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
 ]);
 // Same as "(so)"
-pub const EVENT_LISTENER_SIGNATURE: Signature =
+pub static EVENT_LISTENER_SIGNATURE: Signature =
 	Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
 // Same as "((so)(so)(so)iiassusau)"
-pub const CACHE_ADD_SIGNATURE: Signature = Signature::static_structure(&[
+pub static CACHE_ADD_SIGNATURE: Signature = Signature::static_structure(&[
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
