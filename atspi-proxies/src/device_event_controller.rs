@@ -73,7 +73,7 @@ pub struct KeyDefinition<'a> {
 	default_path = "/org/a11y/atspi/registry/deviceeventcontroller",
 	default_service = "org.a11y.atspi.Registry"
 )]
-trait DeviceEventController {
+pub trait DeviceEventController {
 	/// DeregisterDeviceEventListener method
 	fn deregister_device_event_listener(
 		&self,
