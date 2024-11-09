@@ -21,12 +21,17 @@ use atspi::events::window::{
 	PropertyChangeEvent as WindowPropertyChangeEvent, RaiseEvent, ReparentEvent, ResizeEvent,
 	RestoreEvent, RestyleEvent, ShadeEvent, UUshadeEvent,
 };
-use std::fs::File;
-use std::io::{BufReader, BufWriter, Read, Write};
-use std::path;
-use zbus::zvariant::serialized::{Context, Data, Format};
-use zbus::zvariant::Endian;
-use zbus::Message;
+use std::{
+	fs::File,
+	io::{BufReader, BufWriter, Read, Write},
+};
+use zbus::{
+	zvariant::{
+		serialized::{Context, Data, Format},
+		Endian,
+	},
+	Message,
+};
 
 pub fn vec_of_all_atspi_messages() -> Vec<Message> {
 	vec![
@@ -104,15 +109,8 @@ pub fn generate_n_messages_rnd(n: usize) -> Vec<Message> {
 	messages
 }
 
-pub fn write_messages_to_file(messages: Vec<Message>, file_path: &str) {
-	// Check if the directory exists,  if not, create it
-	let dir = path::PathBuf::from(file_path);
-	let dir = dir.parent().unwrap();
-	if !dir.exists() {
-		std::fs::create_dir(dir).unwrap();
-	}
-
-	let file = File::create(file_path).unwrap();
+pub fn write_messages_to_file(messages: Vec<Message>, file: &str) {
+	let file = File::create(file).unwrap();
 	let mut writer = BufWriter::new(file);
 
 	for msg in messages {

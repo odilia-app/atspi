@@ -4,7 +4,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 mod bench_utils;
 use bench_utils::{generate_n_messages_rnd, read_messages_from_file, write_messages_to_file};
 
-const FILE_PATH: &str = "atspi/benches/resources/100_000_messages.bin";
+const FILE_PATH: &str = "100_000_messages.bin";
 const N: usize = 100_000;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
