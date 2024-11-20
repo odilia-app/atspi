@@ -1,11 +1,11 @@
 [package]
 name = "atspi-connection"
-version = "0.6.0"
+version = "0.8.0"
 edition = "2021"
 description = "A method of connecting, querying, sending and receiving over AT-SPI."
 license = "Apache-2.0 OR MIT" 
 keywords = ["screen-reader", "accessibility", "a11y", "linux"]
-categories = ["accessibility", "API bindings"]
+categories = ["accessibility"]
 rust-version.workspace = true
 repository = "https://github.com/odilia-app/atspi/"
 readme = "README.md"
@@ -20,8 +20,8 @@ async-std = ["zbus/async-io", "atspi-proxies/async-std", "atspi-common/async-std
 tokio = ["zbus/tokio", "atspi-proxies/tokio", "atspi-common/tokio"]
 
 [dependencies]
-atspi-common = { path = "../atspi-common/", version = "0.6.0", default-features = false }
-atspi-proxies = { path = "../atspi-proxies/", version = "0.6.0", default-features = false }
+atspi-common = { path = "../atspi-common/", version = "0.8.0", default-features = false }
+atspi-proxies = { path = "../atspi-proxies/", version = "0.8.0", default-features = false }
 futures-lite = { version = "2", default-features = false }
 tracing = { optional = true, workspace = true }
 zbus.workspace = true
