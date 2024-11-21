@@ -568,7 +568,7 @@ impl TryFrom<&zbus::Message> for EventBodyOwned {
 
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		let body = message.body();
-		let signature = body.signature().ok_or_else(|| AtspiError::MissingSignature)?;
+		let signature = body.signature().ok_or(AtspiError::MissingSignature)?;
 
 		if signature == QSPI_EVENT_SIGNATURE {
 			let qt_body = body.deserialize::<EventBodyQT>()?;
