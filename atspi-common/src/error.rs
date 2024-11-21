@@ -77,34 +77,61 @@ impl std::fmt::Display for AtspiError {
 		match self {
 			Self::Conversion(e) => f.write_str(&format!("atspi: conversion failure: {e}")),
 			Self::MemberMatch(e) => {
-				f.write_str(format!("atspi: member mismatch in conversion: {e}").as_str())
+				f.write_str("atspi: member mismatch in conversion: ")?;
+				e.fmt(f)
 			}
 			Self::InterfaceMatch(e) => {
-				f.write_str(format!("atspi: interface mismatch in conversion: {e}").as_str())
+				f.write_str("atspi: interface mismatch in conversion: ")?;
+				e.fmt(f)
 			}
 			Self::KindMatch(e) => {
 				f.write_str(format!("atspi: kind mismatch in conversion: {e}").as_str())
 			}
 			Self::SignatureMatch(e) => {
 				f.write_str(format!("atspi: body signature mismatch in conversion: {e:?}").as_str())
+			Self::UnknownBusSignature(e) => {
+				f.write_str("atspi: Unknown bus body signature: ")?;
+				e.fmt(f)
 			}
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),
 			Self::MissingMember => f.write_str("Missing member."),
 			Self::MissingSignature => f.write_str("Missing signature."),
-			Self::UnknownRole(e) => f.write_str(&format!("atspi: Unknown role: {e}")),
+			Self::UnknownRole(e) => {
+				f.write_str("atspi: Unknown role: ")?;
+				e.fmt(f)
+			}
 			Self::UnknownSignal => f.write_str("atspi: Unknown signal"),
 			Self::CacheVariantMismatch => f.write_str("atspi: Cache variant mismatch"),
-			Self::Owned(e) => f.write_str(&format!("atspi: other error: {e}")),
-			Self::Zbus(e) => f.write_str(&format!("ZBus Error: {e}")),
-			Self::Zvariant(e) => f.write_str(&format!("Zvariant error: {e}")),
-			Self::ZBusNames(e) => f.write_str(&format!("ZBus_names Error: {e}")),
+			Self::Owned(e) => {
+				f.write_str("atspi: other error: ")?;
+				e.fmt(f)
+			}
+			Self::Zbus(e) => {
+				f.write_str("ZBus Error: ")?;
+				e.fmt(f)
+			}
+			Self::Zvariant(e) => {
+				f.write_str("Zvariant error: ")?;
+				e.fmt(f)
+			}
+			Self::ZBusNames(e) => {
+				f.write_str("ZBus_names Error: ")?;
+				e.fmt(f)
+			}
 			Self::ParseError(e) => f.write_str(e),
 			Self::PathConversionError(e) => {
-				f.write_str(&format!("ID cannot be extracted from the path: {e}"))
+				f.write_str("ID cannot be extracted from the path: ")?;
+				e.fmt(f)
 			}
-			Self::IO(e) => f.write_str(&format!("std IO Error: {e}")),
-			Self::IntConversionError(e) => f.write_str(&format!("Integer conversion error: {e}")),
+			Self::IO(e) => {
+				f.write_str("std IO Error: ")?;
+				e.fmt(f)
+			}
+			Self::IntConversionError(e) => {
+				f.write_str("Integer conversion error: ")?;
+				e.fmt(f)
+			}
 			Self::MissingName => f.write_str("Missing name for a bus."),
 			Self::Infallible => {
 				f.write_str("Infallible; only to trick the compiler. This should never happen.")
@@ -172,7 +199,10 @@ impl std::fmt::Display for ObjectPathConversionError {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::NoIdAvailable => f.write_str("No ID available in the path."),
-			Self::ParseError(e) => f.write_str(&format!("Failure to parse: {e}")),
+			Self::ParseError(e) => {
+				f.write_str("Failure to parse: {e}")?;
+				e.fmt(f)
+			}
 		}
 	}
 }
