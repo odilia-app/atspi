@@ -706,8 +706,12 @@ macro_rules! event_wrapper_test_cases {
 				// This conversion in turn leans on the `impl_from_dbus_message` macro.
 				// In `MouseEvents::Abs(msg.try_into()?)`, it is the `msg.try_into()?` that should fail.
 				// The `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
+        // Additioanlly, we check against the same method in `Event`; the overarchive enum that
+        // contains all other events as variants.
 				let mod_type = <$type>::try_from(&fake_msg);
+				let event_type = Event::try_from(&fake_msg);
         assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
+        assert_matches!(event_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
 			}
 			#[cfg(feature = "zbus")]
 			#[test]
