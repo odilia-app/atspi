@@ -868,6 +868,7 @@ pub trait MessageConversion: BusProperties {
 	fn body(&self) -> Self::Body;
 }
 
+#[cfg(feature = "zbus")]
 impl<T> MessageConversionExt<crate::LegacyCacheItem> for T
 where
 	T: MessageConversion<Body = crate::LegacyCacheItem>,
@@ -880,6 +881,7 @@ where
 	}
 }
 
+#[cfg(feature = "zbus")]
 impl<T> MessageConversionExt<EventListeners> for T
 where
 	T: MessageConversion<Body = EventListeners>,
@@ -892,6 +894,7 @@ where
 	}
 }
 
+#[cfg(feature = "zbus")]
 impl<T> MessageConversionExt<crate::CacheItem> for T
 where
 	T: MessageConversion<Body = crate::CacheItem>,
@@ -904,6 +907,7 @@ where
 	}
 }
 
+#[cfg(feature = "zbus")]
 impl<T> MessageConversionExt<ObjectRef> for T
 where
 	T: MessageConversion<Body = ObjectRef>,
@@ -916,6 +920,7 @@ where
 	}
 }
 
+#[cfg(feature = "zbus")]
 impl<T> MessageConversionExt<EventBodyOwned> for T
 where
 	T: MessageConversion<Body = EventBodyOwned>,
@@ -943,6 +948,7 @@ where
 	}
 }
 
+#[cfg(feature = "zbus")]
 pub trait MessageConversionExt<B>: MessageConversion<Body = B>
 where
 	B: Type + Serialize + for<'a> Deserialize<'a>,
