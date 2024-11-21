@@ -321,10 +321,7 @@ where
 	T: BusProperties,
 {
 	type Body = EventBodyOwned;
-	fn from_message_unchecked_parts(
-		obj_ref: ObjectRef,
-		_: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(obj_ref: ObjectRef, _: Self::Body) -> Result<Self, AtspiError> {
 		Ok(obj_ref.into())
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -405,7 +402,7 @@ impl TryFrom<&zbus::Message> for EventBodyOwned {
 
 	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
 		let body = message.body();
-		let signature = body.signature().ok_or_else(|| AtspiError::MissingSignature)?;
+		let signature = body.signature().ok_or(AtspiError::MissingSignature)?;
 
 		if signature == QSPI_EVENT_SIGNATURE {
 			let qt_body = body.deserialize::<EventBodyQT>()?;

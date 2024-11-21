@@ -209,9 +209,9 @@ impl EventWrapperMessageConversion for DocumentEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			LoadCompleteEvent::DBUS_MEMBER => Ok(DocumentEvents::LoadComplete(
-				LoadCompleteEvent::from_message_unchecked(msg)?,
-			)),
+			LoadCompleteEvent::DBUS_MEMBER => {
+				Ok(DocumentEvents::LoadComplete(LoadCompleteEvent::from_message_unchecked(msg)?))
+			}
 			ReloadEvent::DBUS_MEMBER => {
 				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg)?))
 			}

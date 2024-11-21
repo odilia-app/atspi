@@ -119,10 +119,7 @@ impl BusProperties for AbsEvent {
 impl MessageConversion for AbsEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -149,10 +146,7 @@ impl BusProperties for RelEvent {
 impl MessageConversion for RelEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -179,10 +173,7 @@ impl BusProperties for ButtonEvent {
 impl MessageConversion for ButtonEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -206,12 +197,8 @@ impl EventWrapperMessageConversion for MouseEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			AbsEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?))
-			}
-			RelEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?))
-			}
+			AbsEvent::DBUS_MEMBER => Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?)),
+			RelEvent::DBUS_MEMBER => Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?)),
 			ButtonEvent::DBUS_MEMBER => {
 				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg)?))
 			}

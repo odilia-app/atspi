@@ -609,10 +609,7 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		let property = body.kind.to_string();
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
@@ -662,10 +659,7 @@ impl BusProperties for StateChangedEvent {
 impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 > 0 })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -697,10 +691,7 @@ impl BusProperties for ChildrenChangedEvent {
 impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind.as_str().parse()?,
@@ -761,10 +752,7 @@ impl BusProperties for ActiveDescendantChangedEvent {
 impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -796,10 +784,7 @@ impl BusProperties for AnnouncementEvent {
 impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
@@ -907,10 +892,7 @@ impl BusProperties for TextChangedEvent {
 impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind.as_str().parse()?,
@@ -956,10 +938,7 @@ impl BusProperties for TextCaretMovedEvent {
 impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -989,12 +968,12 @@ impl EventWrapperMessageConversion for ObjectEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			PropertyChangeEvent::DBUS_MEMBER => Ok(ObjectEvents::PropertyChange(
-				PropertyChangeEvent::from_message_unchecked(msg)?,
-			)),
-			BoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::BoundsChanged(
-				BoundsChangedEvent::from_message_unchecked(msg)?,
-			)),
+			PropertyChangeEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
+			}
+			BoundsChangedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent::from_message_unchecked(msg)?))
+			}
 			LinkSelectedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::from_message_unchecked(msg)?))
 			}
@@ -1031,15 +1010,15 @@ impl EventWrapperMessageConversion for ObjectEvents {
 			RowDeletedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::from_message_unchecked(msg)?))
 			}
-			ColumnInsertedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnInserted(
-				ColumnInsertedEvent::from_message_unchecked(msg)?,
-			)),
+			ColumnInsertedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent::from_message_unchecked(msg)?))
+			}
 			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
 				ColumnReorderedEvent::from_message_unchecked(msg)?,
 			)),
-			ColumnDeletedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnDeleted(
-				ColumnDeletedEvent::from_message_unchecked(msg)?,
-			)),
+			ColumnDeletedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent::from_message_unchecked(msg)?))
+			}
 			TextBoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextBoundsChanged(
 				TextBoundsChangedEvent::from_message_unchecked(msg)?,
 			)),
@@ -1052,9 +1031,9 @@ impl EventWrapperMessageConversion for ObjectEvents {
 			TextAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextAttributesChanged(
 				TextAttributesChangedEvent::from_message_unchecked(msg)?,
 			)),
-			TextCaretMovedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextCaretMoved(
-				TextCaretMovedEvent::from_message_unchecked(msg)?,
-			)),
+			TextCaretMovedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent::from_message_unchecked(msg)?))
+			}
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",
 				Self::DBUS_INTERFACE,

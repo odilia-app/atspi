@@ -345,10 +345,7 @@ impl BusProperties for PropertyChangeEvent {
 impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, property: body.kind })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -522,9 +519,9 @@ impl EventWrapperMessageConversion for WindowEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			PropertyChangeEvent::DBUS_MEMBER => Ok(WindowEvents::PropertyChange(
-				PropertyChangeEvent::from_message_unchecked(msg)?,
-			)),
+			PropertyChangeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
+			}
 			MinimizeEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Minimize(MinimizeEvent::from_message_unchecked(msg)?))
 			}
@@ -541,16 +538,14 @@ impl EventWrapperMessageConversion for WindowEvents {
 			ReparentEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg)?))
 			}
-			"DesktopCreate" => Ok(WindowEvents::DesktopCreate(
-				DesktopCreateEvent::from_message_unchecked(msg)?,
-			)),
-			"DesktopDestroy" => Ok(WindowEvents::DesktopDestroy(
-				DesktopDestroyEvent::from_message_unchecked(msg)?,
-			)),
-			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg)?)),
-			"Activate" => {
-				Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg)?))
+			"DesktopCreate" => {
+				Ok(WindowEvents::DesktopCreate(DesktopCreateEvent::from_message_unchecked(msg)?))
 			}
+			"DesktopDestroy" => {
+				Ok(WindowEvents::DesktopDestroy(DesktopDestroyEvent::from_message_unchecked(msg)?))
+			}
+			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg)?)),
+			"Activate" => Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg)?)),
 			"Deactivate" => {
 				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg)?))
 			}

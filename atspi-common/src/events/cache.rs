@@ -167,10 +167,7 @@ impl BusProperties for LegacyAddAccessibleEvent {
 impl MessageConversion for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -215,10 +212,7 @@ impl BusProperties for AddAccessibleEvent {
 impl MessageConversion for AddAccessibleEvent {
 	type Body = CacheItem;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -267,10 +261,7 @@ impl BusProperties for RemoveAccessibleEvent {
 impl MessageConversion for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
