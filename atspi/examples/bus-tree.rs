@@ -15,8 +15,8 @@ use atspi::{
 	zbus::{proxy::CacheProperties, Connection},
 	AccessibilityConnection, Role,
 };
-use display_tree::{AsTree, DisplayTree, Style};
 use futures::future::try_join_all;
+use std::fmt::{self, Display, Formatter};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -30,9 +30,19 @@ struct A11yNode {
 	children: Vec<A11yNode>,
 }
 
-impl DisplayTree for A11yNode {
-	fn fmt(&self, f: &mut std::fmt::Formatter, style: Style) -> std::fmt::Result {
-		self.fmt_with(f, style, &mut vec![])
+#[derive(Clone, Copy)]
+pub struct CharSet {
+	pub horizontal: char,
+	pub vertical: char,
+	pub connector: char,
+	pub end_connector: char,
+}
+pub const SINGLE_LINE: CharSet =
+	CharSet { horizontal: '─', vertical: '│', connector: '├', end_connector: '└' };
+
+impl Display for A11yNode {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+		self.fmt_with(f, SINGLE_LINE, &mut Vec::new())
 	}
 }
 
@@ -40,24 +50,24 @@ impl A11yNode {
 	fn fmt_with(
 		&self,
 		f: &mut std::fmt::Formatter<'_>,
-		style: Style,
+		style: CharSet,
 		prefix: &mut Vec<bool>,
 	) -> std::fmt::Result {
 		for (i, is_last_at_i) in prefix.iter().enumerate() {
 			// if it is the last portion of the line
 			let is_last = i == prefix.len() - 1;
 			match (is_last, *is_last_at_i) {
-				(true, true) => write!(f, "{}", style.char_set.end_connector)?,
-				(true, false) => write!(f, "{}", style.char_set.connector)?,
+				(true, true) => write!(f, "{}", style.end_connector)?,
+				(true, false) => write!(f, "{}", style.connector)?,
 				// four spaces to emulate `tree`
 				(false, true) => write!(f, "    ")?,
 				// three spaces and vertical char
-				(false, false) => write!(f, "{}   ", style.char_set.vertical)?,
+				(false, false) => write!(f, "{}   ", style.vertical)?,
 			}
 		}
 
 		// two horizontal chars to mimic `tree`
-		writeln!(f, "{}{} {}", style.char_set.horizontal, style.char_set.horizontal, self.role)?;
+		writeln!(f, "{}{} {}", style.horizontal, style.horizontal, self.role)?;
 
 		for (i, child) in self.children.iter().enumerate() {
 			prefix.push(i == self.children.len() - 1);
@@ -156,7 +166,7 @@ async fn main() -> Result<()> {
 	println!("\nPress 'Enter' to print the tree...");
 	let _ = std::io::stdin().read_line(&mut String::new());
 
-	println!("{}", AsTree::new(&tree));
+	println!("{}", tree);
 
 	Ok(())
 }

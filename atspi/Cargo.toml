@@ -63,7 +63,6 @@ required-features = ["connection-async-std"]
 async-std = { version = "1.12", default-features = false }
 atspi = { path = "." }
 criterion = "0.5"
-display_tree = "1.1"
 fastrand = "2.0"
 futures = { version = "0.3", default-features = false }
 futures-lite = { version = "2", default-features = false }
