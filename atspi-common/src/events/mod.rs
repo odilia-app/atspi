@@ -831,8 +831,9 @@ pub trait MessageConversion: BusProperties {
 	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
-	/// These can be checked manually, or you can use the convience function provided by this trait:
-	/// [`Self::try_from_message`] which does these checks for you.
+	/// These must be checked manually.
+  /// Alternatively, there is the [`MessageConversionExt::try_from_message`] that will check these
+  /// conditions for you.
 	///
 	/// This type also implements `TryFrom<&zbus::Message>`; consider using this if you are not an
 	/// internal developer.
@@ -961,7 +962,7 @@ where
 	/// - The message does not have an signature: [`type@AtspiError::MissingSignature`]
 	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
-	/// See [`Self::try_from_validated_message`] for info on panic condition that should never
+	/// See [`MessageConversion::try_from_validated_message`] for info on panic condition that should never
 	/// happen.
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
@@ -1003,7 +1004,7 @@ where
 		}
 		Ok(())
 	}
-	/// Validate the body signature against the [`zvariant::Signature`] of [`Self::Body`]
+	/// Validate the body signature against the [`zvariant::Signature`] of [`MessageConversion::Body`]
 	///
 	/// # Errors
 	///
