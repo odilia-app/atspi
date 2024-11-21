@@ -871,72 +871,84 @@ pub trait MessageConversion: BusProperties {
 }
 
 impl<T> MessageConversionExt<crate::LegacyCacheItem> for T
-where T: MessageConversion<Body = crate::LegacyCacheItem> {
-    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-        <T as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(msg)?;
-        <T as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(msg)?;
-        <T as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(msg)?;
-        <T as MessageConversion>::try_from_validated_message(msg)
-    }
+where
+	T: MessageConversion<Body = crate::LegacyCacheItem>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(msg)?;
+		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(msg)?;
+		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(msg)?;
+		<T as MessageConversion>::try_from_validated_message(msg)
+	}
 }
 
 impl<T> MessageConversionExt<EventListeners> for T
-where T: MessageConversion<Body = EventListeners> {
-    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-        <T as MessageConversionExt<EventListeners>>::validate_interface(msg)?;
-        <T as MessageConversionExt<EventListeners>>::validate_member(msg)?;
-        <T as MessageConversionExt<EventListeners>>::validate_body(msg)?;
-        <T as MessageConversion>::try_from_validated_message(msg)
-    }
+where
+	T: MessageConversion<Body = EventListeners>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<EventListeners>>::validate_interface(msg)?;
+		<T as MessageConversionExt<EventListeners>>::validate_member(msg)?;
+		<T as MessageConversionExt<EventListeners>>::validate_body(msg)?;
+		<T as MessageConversion>::try_from_validated_message(msg)
+	}
 }
 
 impl<T> MessageConversionExt<crate::CacheItem> for T
-where T: MessageConversion<Body = crate::CacheItem> {
-    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-        <T as MessageConversionExt<crate::CacheItem>>::validate_interface(msg)?;
-        <T as MessageConversionExt<crate::CacheItem>>::validate_member(msg)?;
-        <T as MessageConversionExt<crate::CacheItem>>::validate_body(msg)?;
-        <T as MessageConversion>::try_from_validated_message(msg)
-    }
+where
+	T: MessageConversion<Body = crate::CacheItem>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<crate::CacheItem>>::validate_interface(msg)?;
+		<T as MessageConversionExt<crate::CacheItem>>::validate_member(msg)?;
+		<T as MessageConversionExt<crate::CacheItem>>::validate_body(msg)?;
+		<T as MessageConversion>::try_from_validated_message(msg)
+	}
 }
 
 impl<T> MessageConversionExt<ObjectRef> for T
-where T: MessageConversion<Body = ObjectRef> {
-    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-        <T as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
-        <T as MessageConversionExt<ObjectRef>>::validate_member(msg)?;
-        <T as MessageConversionExt<ObjectRef>>::validate_body(msg)?;
-        <T as MessageConversion>::try_from_validated_message(msg)
-    }
+where
+	T: MessageConversion<Body = ObjectRef>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
+		<T as MessageConversionExt<ObjectRef>>::validate_member(msg)?;
+		<T as MessageConversionExt<ObjectRef>>::validate_body(msg)?;
+		<T as MessageConversion>::try_from_validated_message(msg)
+	}
 }
 
 impl<T> MessageConversionExt<EventBodyOwned> for T
-where T: MessageConversion<Body = EventBodyOwned> {
-    fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-        <T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
-        <T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
-        let body = msg.body();
-        let body_sig = body.signature().ok_or(AtspiError::MissingSignature)?;
-        let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
-            body.deserialize_unchecked()?
-        } else if body_sig == QSPI_EVENT_SIGNATURE {
-            let qtbody: EventBodyQT = body.deserialize_unchecked()?;
-            qtbody.into()
-        } else {
-          return Err(AtspiError::SignatureMatch(format!(
-            "The message signature {} does not match the signal's body signature: {} or {}",
-            body_sig,
-            EventBodyOwned::signature(),
-            EventBodyQT::signature(),
-          )));
-        };
-        let item = msg.try_into()?;
-        Self::try_from_validated_message_parts(item, data_body)
-    }
+where
+	T: MessageConversion<Body = EventBodyOwned>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
+		<T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
+		let body = msg.body();
+		let body_sig = body.signature().ok_or(AtspiError::MissingSignature)?;
+		let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
+			body.deserialize_unchecked()?
+		} else if body_sig == QSPI_EVENT_SIGNATURE {
+			let qtbody: EventBodyQT = body.deserialize_unchecked()?;
+			qtbody.into()
+		} else {
+			return Err(AtspiError::SignatureMatch(format!(
+				"The message signature {} does not match the signal's body signature: {} or {}",
+				body_sig,
+				EventBodyOwned::signature(),
+				EventBodyQT::signature(),
+			)));
+		};
+		let item = msg.try_into()?;
+		Self::try_from_validated_message_parts(item, data_body)
+	}
 }
 
-pub trait MessageConversionExt<B>: MessageConversion<Body = B> 
-where B: Type + Serialize + for<'a> Deserialize<'a> {
+pub trait MessageConversionExt<B>: MessageConversion<Body = B>
+where
+	B: Type + Serialize + for<'a> Deserialize<'a>,
+{
 	/// Convert a [`zbus::Message`] into this event type.
 	/// Does all the validation for you.
 	///

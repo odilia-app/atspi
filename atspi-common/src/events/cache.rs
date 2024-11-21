@@ -1,5 +1,7 @@
 #[cfg(feature = "zbus")]
-use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage, MessageConversionExt};
+use crate::events::{
+	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+};
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
 	error::AtspiError,

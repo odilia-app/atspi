@@ -7,7 +7,9 @@ use crate::{
 };
 #[cfg(feature = "zbus")]
 use crate::{
-	events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage, MessageConversionExt},
+	events::{
+		EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+	},
 	ObjectRef,
 };
 use zbus_names::UniqueName;

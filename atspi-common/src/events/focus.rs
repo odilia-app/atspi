@@ -2,7 +2,9 @@
 use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString, MessageConversionExt},
+	events::{
+		BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString, MessageConversionExt,
+	},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;

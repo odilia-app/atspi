@@ -1,7 +1,9 @@
 use std::hash::Hash;
 
 #[cfg(feature = "zbus")]
-use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage, MessageConversionExt};
+use crate::events::{
+	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+};
 use crate::{
 	error::AtspiError,
 	events::{
