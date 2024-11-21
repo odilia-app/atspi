@@ -245,7 +245,7 @@ jobs:
         with:
           toolchain: stable
       - name: Install WASM target(s)
-        run: rustup target add  wasm32-wasip1 && rustup target add wasm32-unknown-unknown
+        run: rustup target add wasm32-wasip1 && rustup target add wasm32-unknown-unknown
       - name: Test Common Compilation (wasm32-unknown-unknown)
         run: cargo build -p atspi-common --no-default-features --target wasm32-unknown-unknown
       - name: Test Common Compilation (wasm32-wasip1)
