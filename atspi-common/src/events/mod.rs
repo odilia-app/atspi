@@ -832,8 +832,8 @@ pub trait MessageConversion: BusProperties {
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
 	/// These must be checked manually.
-  /// Alternatively, there is the [`MessageConversionExt::try_from_message`] that will check these
-  /// conditions for you.
+	/// Alternatively, there is the [`MessageConversionExt::try_from_message`] that will check these
+	/// conditions for you.
 	///
 	/// This type also implements `TryFrom<&zbus::Message>`; consider using this if you are not an
 	/// internal developer.
