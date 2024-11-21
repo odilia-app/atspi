@@ -396,27 +396,6 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 	}
 }
 
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for EventBodyOwned {
-	type Error = AtspiError;
-
-	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		let body = message.body();
-		let signature = body.signature().ok_or(AtspiError::MissingSignature)?;
-
-		if signature == QSPI_EVENT_SIGNATURE {
-			let qt_body = body.deserialize::<EventBodyQT>()?;
-			Ok(EventBodyOwned::from(qt_body))
-		} else if signature == ATSPI_EVENT_SIGNATURE {
-			Ok(body.deserialize::<EventBodyOwned>()?)
-		} else {
-			Err(AtspiError::Conversion(
-				"Unable to convert from zbus::Message to EventBodyQT or EventBodyOwned",
-			))
-		}
-	}
-}
-
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
 #[validate(signal: "EventListenerRegistered")]
