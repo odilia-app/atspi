@@ -619,7 +619,13 @@ impl MessageConversion for PropertyChangeEvent {
 	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
 		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -664,7 +670,13 @@ impl MessageConversion for StateChangedEvent {
 	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
 		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -698,7 +710,13 @@ impl MessageConversion for ChildrenChangedEvent {
 	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
 		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -751,7 +769,13 @@ impl MessageConversion for ActiveDescendantChangedEvent {
 	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize_unchecked()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
 		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -784,7 +808,13 @@ impl MessageConversion for AnnouncementEvent {
 	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize_unchecked()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
 		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -891,7 +921,13 @@ impl MessageConversion for TextChangedEvent {
 	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize_unchecked()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
 		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -928,7 +964,13 @@ impl MessageConversion for TextCaretMovedEvent {
 	}
 	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
 		Self::try_from_validated_message_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
