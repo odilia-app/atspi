@@ -210,22 +210,22 @@ impl EventWrapperMessageConversion for DocumentEvents {
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			LoadCompleteEvent::DBUS_MEMBER => Ok(DocumentEvents::LoadComplete(
-				LoadCompleteEvent::try_from_validated_message(msg)?,
+				LoadCompleteEvent::from_message_unchecked(msg)?,
 			)),
 			ReloadEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::Reload(ReloadEvent::try_from_validated_message(msg)?))
+				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg)?))
 			}
 			LoadStoppedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::try_from_validated_message(msg)?))
+				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from_message_unchecked(msg)?))
 			}
 			ContentChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::ContentChanged(
-				ContentChangedEvent::try_from_validated_message(msg)?,
+				ContentChangedEvent::from_message_unchecked(msg)?,
 			)),
 			AttributesChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::AttributesChanged(
-				AttributesChangedEvent::try_from_validated_message(msg)?,
+				AttributesChangedEvent::from_message_unchecked(msg)?,
 			)),
 			PageChangedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::PageChanged(PageChangedEvent::try_from_validated_message(msg)?))
+				Ok(DocumentEvents::PageChanged(PageChangedEvent::from_message_unchecked(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 		}

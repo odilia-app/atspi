@@ -119,17 +119,17 @@ impl BusProperties for AbsEvent {
 impl MessageConversion for AbsEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_validated_message_parts(
+	fn from_message_unchecked_parts(
 		item: ObjectRef,
 		body: Self::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let body: Self::Body = body.deserialize_unchecked()?;
-		Self::try_from_validated_message_parts(item, body)
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -149,17 +149,17 @@ impl BusProperties for RelEvent {
 impl MessageConversion for RelEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_validated_message_parts(
+	fn from_message_unchecked_parts(
 		item: ObjectRef,
 		body: Self::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let body: Self::Body = body.deserialize_unchecked()?;
-		Self::try_from_validated_message_parts(item, body)
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -179,17 +179,17 @@ impl BusProperties for ButtonEvent {
 impl MessageConversion for ButtonEvent {
 	type Body = EventBodyOwned;
 
-	fn try_from_validated_message_parts(
+	fn from_message_unchecked_parts(
 		item: ObjectRef,
 		body: Self::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
 		let body: Self::Body = body.deserialize_unchecked()?;
-		Self::try_from_validated_message_parts(item, body)
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -207,13 +207,13 @@ impl EventWrapperMessageConversion for MouseEvents {
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			AbsEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Abs(AbsEvent::try_from_validated_message(msg)?))
+				Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?))
 			}
 			RelEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Rel(RelEvent::try_from_validated_message(msg)?))
+				Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?))
 			}
 			ButtonEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Button(ButtonEvent::try_from_validated_message(msg)?))
+				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
 		}

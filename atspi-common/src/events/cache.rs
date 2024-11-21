@@ -97,10 +97,10 @@ impl EventWrapperMessageConversion for CacheEvents {
 				let sig = body.signature().ok_or(AtspiError::MissingSignature)?;
 				match sig.as_str() {
 					"(so)(so)(so)iiassusau" => {
-						Ok(CacheEvents::Add(AddAccessibleEvent::try_from_validated_message(msg)?))
+						Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
 					}
 					"(so)(so)(so)a(so)assusau" => Ok(CacheEvents::LegacyAdd(
-						LegacyAddAccessibleEvent::try_from_validated_message(msg)?,
+						LegacyAddAccessibleEvent::from_message_unchecked(msg)?,
 					)),
 					_ => Err(AtspiError::SignatureMatch(format!(
 						"No matching event for signature {} in interface {}",
@@ -110,7 +110,7 @@ impl EventWrapperMessageConversion for CacheEvents {
 				}
 			}
 			RemoveAccessibleEvent::DBUS_MEMBER => {
-				Ok(CacheEvents::Remove(RemoveAccessibleEvent::try_from_validated_message(msg)?))
+				Ok(CacheEvents::Remove(RemoveAccessibleEvent::from_message_unchecked(msg)?))
 			}
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No member {} in {}",
@@ -167,16 +167,16 @@ impl BusProperties for LegacyAddAccessibleEvent {
 impl MessageConversion for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
-	fn try_from_validated_message_parts(
+	fn from_message_unchecked_parts(
 		item: ObjectRef,
 		body: Self::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body().deserialize()?;
-		Self::try_from_validated_message_parts(item, body)
+		Self::from_message_unchecked_parts(item, body)
 	}
 
 	fn body(&self) -> Self::Body {
@@ -215,16 +215,16 @@ impl BusProperties for AddAccessibleEvent {
 impl MessageConversion for AddAccessibleEvent {
 	type Body = CacheItem;
 
-	fn try_from_validated_message_parts(
+	fn from_message_unchecked_parts(
 		item: ObjectRef,
 		body: Self::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body().deserialize()?;
-		Self::try_from_validated_message_parts(item, body)
+		Self::from_message_unchecked_parts(item, body)
 	}
 
 	fn body(&self) -> Self::Body {
@@ -267,16 +267,16 @@ impl BusProperties for RemoveAccessibleEvent {
 impl MessageConversion for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
-	fn try_from_validated_message_parts(
+	fn from_message_unchecked_parts(
 		item: ObjectRef,
 		body: Self::Body,
 	) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body })
 	}
-	fn try_from_validated_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body().deserialize()?;
-		Self::try_from_validated_message_parts(item, body)
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.node_removed.clone()

@@ -300,7 +300,7 @@ macro_rules! impl_from_dbus_message {
           )));
         };
         let item = msg.try_into()?;
-        Self::try_from_validated_message_parts(item, deser_body)
+        Self::from_message_unchecked_parts(item, deser_body)
       }
     }
 	};
@@ -319,13 +319,13 @@ macro_rules! impl_from_dbus_message {
 // This prevents Clippy from complaining about the macro not being used.
 // It is being used, but only in test mode.
 //
-/// Tests `Default` and `BusProperties::try_from_validated_message` for a given event struct.
+/// Tests `Default` and `BusProperties::from_message_unchecked` for a given event struct.
 ///
 /// Obtains a default for the given event struct.
 /// Asserts that the path and sender are the default.
 ///
 /// Breaks the struct down into item (the associated object) and body.
-/// Then tests `BusProperties::try_from_validated_message` with the item and body.
+/// Then tests `BusProperties::from_message_unchecked` with the item and body.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($type:ty) => {
@@ -344,7 +344,7 @@ macro_rules! generic_event_test_case {
 			.unwrap()
 			.build(&(body,))
 			.unwrap();
-			let build_struct = <$type>::try_from_validated_message(&body2)
+			let build_struct = <$type>::from_message_unchecked(&body2)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}
@@ -533,8 +533,8 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&<$type>::default().body())
 			.unwrap();
-			let event = <$type>::try_from_validated_message(&fake_msg);
-      event.expect("The try_from_validated_message function should work, despite mismatching interface and member");
+			let event = <$type>::from_message_unchecked(&fake_msg);
+      event.expect("The from_message_unchecked function should work, despite mismatching interface and member");
 		}
 
 		#[cfg(feature = "zbus")]
