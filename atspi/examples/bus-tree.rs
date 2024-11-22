@@ -12,11 +12,13 @@
 use atspi::{
 	connection::set_session_accessibility,
 	proxy::accessible::{AccessibleProxy, ObjectRefExt},
-	zbus::{proxy::CacheProperties, Connection},
+	zbus::{proxy::CacheProperties, Connection, zvariant::ObjectPath},
 	AccessibilityConnection, Role,
 };
-use display_tree::{AsTree, DisplayTree, Style};
+use serde::{Serialize, Deserialize};
 use futures::future::try_join_all;
+use std::fmt::{self, Display, Formatter};
+use std::io::Write;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -24,15 +26,25 @@ const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
 const REGISTRY_PATH: &str = "/org/a11y/atspi/accessible/root";
 const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 struct A11yNode {
 	role: Role,
 	children: Vec<A11yNode>,
 }
 
-impl DisplayTree for A11yNode {
-	fn fmt(&self, f: &mut std::fmt::Formatter, style: Style) -> std::fmt::Result {
-		self.fmt_with(f, style, &mut vec![])
+#[derive(Clone, Copy)]
+pub struct CharSet {
+	pub horizontal: char,
+	pub vertical: char,
+	pub connector: char,
+	pub end_connector: char,
+}
+pub const SINGLE_LINE: CharSet =
+	CharSet { horizontal: '─', vertical: '│', connector: '├', end_connector: '└' };
+
+impl Display for A11yNode {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+		self.fmt_with(f, SINGLE_LINE, &mut Vec::new())
 	}
 }
 
@@ -40,24 +52,24 @@ impl A11yNode {
 	fn fmt_with(
 		&self,
 		f: &mut std::fmt::Formatter<'_>,
-		style: Style,
+		style: CharSet,
 		prefix: &mut Vec<bool>,
 	) -> std::fmt::Result {
 		for (i, is_last_at_i) in prefix.iter().enumerate() {
 			// if it is the last portion of the line
 			let is_last = i == prefix.len() - 1;
 			match (is_last, *is_last_at_i) {
-				(true, true) => write!(f, "{}", style.char_set.end_connector)?,
-				(true, false) => write!(f, "{}", style.char_set.connector)?,
+				(true, true) => write!(f, "{}", style.end_connector)?,
+				(true, false) => write!(f, "{}", style.connector)?,
 				// four spaces to emulate `tree`
 				(false, true) => write!(f, "    ")?,
 				// three spaces and vertical char
-				(false, false) => write!(f, "{}   ", style.char_set.vertical)?,
+				(false, false) => write!(f, "{}   ", style.vertical)?,
 			}
 		}
 
 		// two horizontal chars to mimic `tree`
-		writeln!(f, "{}{} {}", style.char_set.horizontal, style.char_set.horizontal, self.role)?;
+		writeln!(f, "{}{} {}", style.horizontal, style.horizontal, self.role)?;
 
 		for (i, child) in self.children.iter().enumerate() {
 			prefix.push(i == self.children.len() - 1);
@@ -72,6 +84,8 @@ impl A11yNode {
 impl A11yNode {
 	async fn from_accessible_proxy(ap: AccessibleProxy<'_>) -> Result<Self> {
 		let connection = ap.inner().connection().clone();
+    let mut num_found = 0;
+    let mut out = std::io::stdout();
 		// Contains the processed `A11yNode`'s.
 		let mut nodes: Vec<A11yNode> = Vec::new();
 
@@ -80,20 +94,29 @@ impl A11yNode {
 
 		// If the stack has an `AccessibleProxy`, we take the last.
 		while let Some(ap) = stack.pop() {
+      num_found += 1;
+      if num_found % 10_000 == 0 {
+          println!("NF: {num_found}");
+            out.flush();
+      }
+      let oj = ap.get_application().await?;
+      let cc = ap.child_count().await?;
 			// Prevent obects with huge child counts from stalling the program.
-			if ap.child_count().await? > 65536 {
+			if cc > 65536 {
 				continue;
-			}
+			} else if cc == 0 {
+          continue;
+      }
 
 			let child_objects = ap.get_children().await?;
-			let mut children_proxies = try_join_all(
-				child_objects
-					.into_iter()
-					.map(|child| child.into_accessible_proxy(&connection)),
-			)
-			.await?;
+      let mut children_proxies = Vec::new();
+      let mut roles = Vec::new();
+      for child_object in child_objects {
+          let co = child_object.into_accessible_proxy(&connection).await?;
+          roles.push(co.get_role().await?);
+          children_proxies.push(co);
+      }
 
-			let roles = try_join_all(children_proxies.iter().map(|child| child.get_role())).await?;
 			stack.append(&mut children_proxies);
 
 			let children = roles
@@ -156,7 +179,8 @@ async fn main() -> Result<()> {
 	println!("\nPress 'Enter' to print the tree...");
 	let _ = std::io::stdin().read_line(&mut String::new());
 
-	println!("{}", AsTree::new(&tree));
+	println!("{}", serde_json::to_string(&tree).unwrap());
 
 	Ok(())
 }
+
