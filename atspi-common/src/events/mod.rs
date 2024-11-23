@@ -712,34 +712,34 @@ impl TryFrom<&zbus::Message> for Event {
 		let interface_str = interface.as_str();
 
 		match interface_str {
-			AvailableEvent::DBUS_INTERFACE => {
+			<AvailableEvent as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(AvailableEvent::try_from(msg)?.into())
 			}
-			ObjectEvents::DBUS_INTERFACE => {
+			<ObjectEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg)?))
 			}
-			DocumentEvents::DBUS_INTERFACE => {
+			<DocumentEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Document(DocumentEvents::try_from_message_interface_checked(msg)?))
 			}
-			WindowEvents::DBUS_INTERFACE => {
+			<WindowEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg)?))
 			}
-			TerminalEvents::DBUS_INTERFACE => {
+			<TerminalEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Terminal(TerminalEvents::try_from_message_interface_checked(msg)?))
 			}
-			MouseEvents::DBUS_INTERFACE => {
+			<MouseEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg)?))
 			}
-			FocusEvents::DBUS_INTERFACE => {
+			<FocusEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg)?))
 			}
-			KeyboardEvents::DBUS_INTERFACE => {
+			<KeyboardEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Keyboard(KeyboardEvents::try_from_message_interface_checked(msg)?))
 			}
-			CacheEvents::DBUS_INTERFACE => {
+			<CacheEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg)?))
 			}
-			EventListenerEvents::DBUS_INTERFACE => {
+			<EventListenerEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Listener(EventListenerEvents::try_from_message_interface_checked(msg)?))
 			}
 			_ => Err(AtspiError::InterfaceMatch(format!(
@@ -945,7 +945,7 @@ where
 		<T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
 		<T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
 		let body = msg.body();
-		let body_sig = body.signature().ok_or(AtspiError::MissingSignature)?;
+		let body_sig = body.signature();
 		let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
 			body.deserialize_unchecked()?
 		} else if body_sig == QSPI_EVENT_SIGNATURE {
@@ -955,8 +955,8 @@ where
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {} or {}",
 				body_sig,
-				EventBodyOwned::signature(),
-				EventBodyQT::signature(),
+				EventBodyOwned::SIGNATURE,
+				EventBodyQT::SIGNATURE,
 			)));
 		};
 		let item = msg.try_into()?;
@@ -1031,12 +1031,12 @@ where
 	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();
-		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
-		if body_signature != Self::Body::signature() {
+		let body_signature = body.signature();
+		if body_signature != Self::Body::SIGNATURE {
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {}",
 				body_signature,
-				Self::Body::signature().as_str(),
+				&Self::Body::SIGNATURE.to_string(),
 			)));
 		}
 		Ok(())
