@@ -705,6 +705,9 @@ impl TryFrom<&zbus::Message> for Event {
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
 		let header = msg.header();
 
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		let member_str = member.as_str();
+
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
 
