@@ -1,13 +1,15 @@
-#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::multiple_crate_versions)]
-
 //! # atspi-common
 //!
 //! Defines all common types, events, and data structures for `atspi-proxies` and `atspi-connection`.
 //! Since `atspi-proxies` and `atspi-connection` are downstream crates, the documentation can not link to it directly.
 //! Any type ending in `*Proxy` is in `atspi-proxies`.
 //!
+
+#![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::multiple_crate_versions)]
+#[cfg(all(feature = "async-std", feature = "tokio"))]
+compile_error!("You can not enable both the `async-io` and `tokio` features at the same time.");
 
 #[macro_use]
 extern crate static_assertions;
