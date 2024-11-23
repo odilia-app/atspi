@@ -18,6 +18,9 @@ pub enum AtspiError {
 	/// On specific types, if the kind (string variant) does not match the Event's kind.
 	KindMatch(String),
 
+	/// When an interface is not available.
+	InterfaceNotAvailable(&'static str),
+
 	/// To indicate a match or equality test on a signal body signature failed.
 	SignatureMatch(String),
 
@@ -84,11 +87,19 @@ impl std::fmt::Display for AtspiError {
 				f.write_str("atspi: interface mismatch in conversion: ")?;
 				e.fmt(f)
 			}
+<<<<<<< HEAD
 			Self::KindMatch(e) => {
 				f.write_str(format!("atspi: kind mismatch in conversion: {e}").as_str())
 			}
 			Self::SignatureMatch(e) => {
 				f.write_str(format!("atspi: body signature mismatch in conversion: {e:?}").as_str())
+=======
+			Self::InterfaceNotAvailable(e) => {
+				f.write_str(format!("atspi: interface not available: {e}").as_str())
+			}
+			Self::UnknownBusSignature(e) => {
+				f.write_str(format!("atspi: Unknown bus body signature: {e:?}").as_str())
+>>>>>>> efbff968 (Add lazy, cheaply guarded proxy-conversions.)
 			}
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),
