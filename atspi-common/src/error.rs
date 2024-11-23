@@ -19,7 +19,7 @@ pub enum AtspiError {
 	KindMatch(String),
 
 	/// To indicate a match or equality test on a signal body signature failed.
-	UnknownBusSignature(String),
+	SignatureMatch(String),
 
 	/// When matching on an unknown interface
 	UnknownInterface,
@@ -87,9 +87,8 @@ impl std::fmt::Display for AtspiError {
 			Self::KindMatch(e) => {
 				f.write_str(format!("atspi: kind mismatch in conversion: {e}").as_str())
 			}
-			Self::UnknownBusSignature(e) => {
-				f.write_str("atspi: Unknown bus body signature: ")?;
-				e.fmt(f)
+			Self::SignatureMatch(e) => {
+				f.write_str(format!("atspi: body signature mismatch in conversion: {e:?}").as_str())
 			}
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),

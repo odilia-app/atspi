@@ -1,6 +1,10 @@
+#[cfg(feature = "zbus")]
+use crate::events::{
+	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
@@ -94,7 +98,7 @@ impl HasMatchRule for TerminalEvents {
 /// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -102,7 +106,7 @@ pub struct LineChangedEvent {
 /// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnCountChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -110,13 +114,13 @@ pub struct ColumnCountChangedEvent {
 /// able to fit within the terminal has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineCountChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -124,7 +128,7 @@ pub struct ApplicationChangedEvent {
 /// able to fit on one *visual* line has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CharWidthChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -134,16 +138,6 @@ impl BusProperties for LineChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ColumnCountChangedEvent {
@@ -152,16 +146,6 @@ impl BusProperties for ColumnCountChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for LineCountChangedEvent {
@@ -170,16 +154,6 @@ impl BusProperties for LineCountChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ApplicationChangedEvent {
@@ -188,16 +162,6 @@ impl BusProperties for ApplicationChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for CharWidthChangedEvent {
@@ -206,34 +170,45 @@ impl BusProperties for CharWidthChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+}
 
-	type Body = EventBodyOwned;
+impl HasInterfaceName for TerminalEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
+}
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for TerminalEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header
+			.member()
+			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
+		match member.as_str() {
+			LineChangedEvent::DBUS_MEMBER => {
+				Ok(TerminalEvents::LineChanged(LineChangedEvent::from_message_unchecked(msg)?))
+			}
+			ColumnCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ColumnCountChanged(
+				ColumnCountChangedEvent::from_message_unchecked(msg)?,
+			)),
+			LineCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::LineCountChanged(
+				LineCountChangedEvent::from_message_unchecked(msg)?,
+			)),
+			ApplicationChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ApplicationChanged(
+				ApplicationChangedEvent::from_message_unchecked(msg)?,
+			)),
+			CharWidthChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::CharWidthChanged(
+				CharWidthChangedEvent::from_message_unchecked(msg)?,
+			)),
+			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
+		}
 	}
 }
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for TerminalEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		match member.as_str() {
-			"LineChanged" => Ok(TerminalEvents::LineChanged(ev.try_into()?)),
-			"ColumncountChanged" => Ok(TerminalEvents::ColumnCountChanged(ev.try_into()?)),
-			"LinecountChanged" => Ok(TerminalEvents::LineCountChanged(ev.try_into()?)),
-			"ApplicationChanged" => Ok(TerminalEvents::ApplicationChanged(ev.try_into()?)),
-			"CharwidthChanged" => Ok(TerminalEvents::CharWidthChanged(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
-		}
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
 	}
 }
 
@@ -252,17 +227,7 @@ event_test_cases!(LineChangedEvent);
 impl_to_dbus_message!(LineChangedEvent);
 impl_from_dbus_message!(LineChangedEvent);
 impl_event_properties!(LineChangedEvent);
-impl From<LineChangedEvent> for EventBodyOwned {
-	fn from(_event: LineChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(LineChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnCountChangedEvent,
@@ -279,17 +244,7 @@ event_test_cases!(ColumnCountChangedEvent);
 impl_to_dbus_message!(ColumnCountChangedEvent);
 impl_from_dbus_message!(ColumnCountChangedEvent);
 impl_event_properties!(ColumnCountChangedEvent);
-impl From<ColumnCountChangedEvent> for EventBodyOwned {
-	fn from(_event: ColumnCountChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ColumnCountChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LineCountChangedEvent,
@@ -306,17 +261,7 @@ event_test_cases!(LineCountChangedEvent);
 impl_to_dbus_message!(LineCountChangedEvent);
 impl_from_dbus_message!(LineCountChangedEvent);
 impl_event_properties!(LineCountChangedEvent);
-impl From<LineCountChangedEvent> for EventBodyOwned {
-	fn from(_event: LineCountChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(LineCountChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ApplicationChangedEvent,
@@ -333,17 +278,7 @@ event_test_cases!(ApplicationChangedEvent);
 impl_to_dbus_message!(ApplicationChangedEvent);
 impl_from_dbus_message!(ApplicationChangedEvent);
 impl_event_properties!(ApplicationChangedEvent);
-impl From<ApplicationChangedEvent> for EventBodyOwned {
-	fn from(_event: ApplicationChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ApplicationChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	CharWidthChangedEvent,
@@ -360,17 +295,7 @@ event_test_cases!(CharWidthChangedEvent);
 impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
 impl_event_properties!(CharWidthChangedEvent);
-impl From<CharWidthChangedEvent> for EventBodyOwned {
-	fn from(_event: CharWidthChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(CharWidthChangedEvent);
 
 impl HasRegistryEventString for TerminalEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";

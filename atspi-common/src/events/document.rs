@@ -1,10 +1,14 @@
+#[cfg(feature = "zbus")]
+use crate::events::{
+	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue};
+use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentEvents {
@@ -102,7 +106,7 @@ impl HasMatchRule for DocumentEvents {
 /// `LibreOffice` has loaded a document from disk.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -110,7 +114,7 @@ pub struct LoadCompleteEvent {
 /// For example: pressing F5, or `Control + r` will reload a page in a web browser.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReloadEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -118,19 +122,19 @@ pub struct ReloadEvent {
 /// For example: during the loading of a large web page, a user may press `Escape` to stop loading the page.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadStoppedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ContentChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -143,7 +147,7 @@ pub struct AttributesChangedEvent {
 /// page number.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -153,16 +157,6 @@ impl BusProperties for LoadCompleteEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ReloadEvent {
@@ -171,16 +165,6 @@ impl BusProperties for ReloadEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for LoadStoppedEvent {
@@ -189,16 +173,6 @@ impl BusProperties for LoadStoppedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ContentChangedEvent {
@@ -207,16 +181,6 @@ impl BusProperties for ContentChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for AttributesChangedEvent {
@@ -225,16 +189,6 @@ impl BusProperties for AttributesChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for PageChangedEvent {
@@ -243,35 +197,46 @@ impl BusProperties for PageChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
+}
 
-	type Body = EventBodyOwned;
+impl HasInterfaceName for DocumentEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
+}
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for DocumentEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			LoadCompleteEvent::DBUS_MEMBER => {
+				Ok(DocumentEvents::LoadComplete(LoadCompleteEvent::from_message_unchecked(msg)?))
+			}
+			ReloadEvent::DBUS_MEMBER => {
+				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg)?))
+			}
+			LoadStoppedEvent::DBUS_MEMBER => {
+				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from_message_unchecked(msg)?))
+			}
+			ContentChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::ContentChanged(
+				ContentChangedEvent::from_message_unchecked(msg)?,
+			)),
+			AttributesChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::AttributesChanged(
+				AttributesChangedEvent::from_message_unchecked(msg)?,
+			)),
+			PageChangedEvent::DBUS_MEMBER => {
+				Ok(DocumentEvents::PageChanged(PageChangedEvent::from_message_unchecked(msg)?))
+			}
+			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
+		}
 	}
 }
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for DocumentEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		match member.as_str() {
-			"LoadComplete" => Ok(DocumentEvents::LoadComplete(ev.try_into()?)),
-			"Reload" => Ok(DocumentEvents::Reload(ev.try_into()?)),
-			"LoadStopped" => Ok(DocumentEvents::LoadStopped(ev.try_into()?)),
-			"ContentChanged" => Ok(DocumentEvents::ContentChanged(ev.try_into()?)),
-			"AttributesChanged" => Ok(DocumentEvents::AttributesChanged(ev.try_into()?)),
-			"PageChanged" => Ok(DocumentEvents::PageChanged(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
-		}
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
 	}
 }
 
@@ -291,17 +256,7 @@ event_test_cases!(LoadCompleteEvent);
 impl_to_dbus_message!(LoadCompleteEvent);
 impl_from_dbus_message!(LoadCompleteEvent);
 impl_event_properties!(LoadCompleteEvent);
-impl From<LoadCompleteEvent> for EventBodyOwned {
-	fn from(_event: LoadCompleteEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
+impl_from_object_ref!(LoadCompleteEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ReloadEvent,
@@ -315,17 +270,7 @@ event_test_cases!(ReloadEvent);
 impl_to_dbus_message!(ReloadEvent);
 impl_from_dbus_message!(ReloadEvent);
 impl_event_properties!(ReloadEvent);
-impl From<ReloadEvent> for EventBodyOwned {
-	fn from(_event: ReloadEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
+impl_from_object_ref!(ReloadEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LoadStoppedEvent,
@@ -343,17 +288,7 @@ event_test_cases!(LoadStoppedEvent);
 impl_to_dbus_message!(LoadStoppedEvent);
 impl_from_dbus_message!(LoadStoppedEvent);
 impl_event_properties!(LoadStoppedEvent);
-impl From<LoadStoppedEvent> for EventBodyOwned {
-	fn from(_event: LoadStoppedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
+impl_from_object_ref!(LoadStoppedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ContentChangedEvent,
@@ -371,17 +306,7 @@ event_test_cases!(ContentChangedEvent);
 impl_to_dbus_message!(ContentChangedEvent);
 impl_from_dbus_message!(ContentChangedEvent);
 impl_event_properties!(ContentChangedEvent);
-impl From<ContentChangedEvent> for EventBodyOwned {
-	fn from(_event: ContentChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
+impl_from_object_ref!(ContentChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	AttributesChangedEvent,
@@ -399,17 +324,7 @@ event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
-impl From<AttributesChangedEvent> for EventBodyOwned {
-	fn from(_event: AttributesChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
+impl_from_object_ref!(AttributesChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	PageChangedEvent,
@@ -427,17 +342,7 @@ event_test_cases!(PageChangedEvent);
 impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);
 impl_event_properties!(PageChangedEvent);
-impl From<PageChangedEvent> for EventBodyOwned {
-	fn from(_event: PageChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
+impl_from_object_ref!(PageChangedEvent);
 
 impl HasRegistryEventString for DocumentEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";

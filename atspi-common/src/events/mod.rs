@@ -1,3 +1,4 @@
+pub mod cache;
 pub mod document;
 pub mod focus;
 pub mod keyboard;
@@ -33,14 +34,11 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::OwnedObjectPath;
 use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
 
-use crate::{
-	cache::{CacheItem, LegacyCacheItem},
-	events::{
-		document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
-		object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
-	},
-	AtspiError, ObjectRef,
+pub use crate::events::{
+	cache::CacheEvents, document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents,
+	mouse::MouseEvents, object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 };
+use crate::{AtspiError, ObjectRef};
 
 /// Qt event body, which is not the same as other GUI frameworks.
 /// Signature:  "siiv(so)"
@@ -301,12 +299,8 @@ impl EventProperties for Event {
 	}
 }
 
-impl HasMatchRule for CacheEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Cache'";
-}
-
-impl HasRegistryEventString for CacheEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache";
+impl HasInterfaceName for EventListenerEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 }
 
 impl HasMatchRule for EventListenerEvents {
@@ -318,196 +312,36 @@ impl HasRegistryEventString for EventListenerEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Event";
 }
 
-/// All events related to the `org.a11y.atspi.Cache` interface.
-/// Note that these are not telling the client that an item *has been added* to a cache.
-/// It is telling the client "here is a bunch of information to store it in your cache".
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
-#[allow(clippy::module_name_repetitions)]
-pub enum CacheEvents {
-	/// See: [`AddAccessibleEvent`].
-	Add(AddAccessibleEvent),
-	/// See: [`LegacyAddAccessibleEvent`].
-	LegacyAdd(LegacyAddAccessibleEvent),
-	/// See: [`RemoveAccessibleEvent`].
-	Remove(RemoveAccessibleEvent),
-}
-
-impl EventTypeProperties for CacheEvents {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.member(),
-			Self::LegacyAdd(inner) => inner.member(),
-			Self::Remove(inner) => inner.member(),
-		}
+#[cfg(feature = "zbus")]
+impl<T> MessageConversion for T
+where
+	ObjectRef: Into<T>,
+	// this bound is not actually used for anything, but I do not want to implement this trait for
+	// just any type that has an infallible conversion from an ObjectRef
+	T: BusProperties,
+{
+	type Body = EventBodyOwned;
+	fn from_message_unchecked_parts(obj_ref: ObjectRef, _: Self::Body) -> Result<Self, AtspiError> {
+		Ok(obj_ref.into())
 	}
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.interface(),
-			Self::LegacyAdd(inner) => inner.interface(),
-			Self::Remove(inner) => inner.interface(),
-		}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item: ObjectRef = msg.try_into()?;
+		Ok(item.into())
 	}
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.match_rule(),
-			Self::LegacyAdd(inner) => inner.match_rule(),
-			Self::Remove(inner) => inner.match_rule(),
-		}
-	}
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.registry_string(),
-			Self::LegacyAdd(inner) => inner.registry_string(),
-			Self::Remove(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for CacheEvents {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::Add(inner) => inner.path(),
-			Self::LegacyAdd(inner) => inner.path(),
-			Self::Remove(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::Add(inner) => inner.sender(),
-			Self::LegacyAdd(inner) => inner.sender(),
-			Self::Remove(inner) => inner.sender(),
-		}
-	}
-}
-
-/// Type that contains the `zbus::Message` for meta information and
-/// the [`crate::cache::LegacyCacheItem`]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct LegacyAddAccessibleEvent {
-	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
-	/// A cache item to add to the internal cache.
-	pub node_added: LegacyCacheItem,
-}
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	LegacyAddAccessibleEvent,
-	CacheEvents,
-	CacheEvents::LegacyAdd
-);
-impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(
-	LegacyAddAccessibleEvent,
-	CacheEvents::LegacyAdd,
-	Event::Cache
-);
-event_test_cases!(LegacyAddAccessibleEvent, Explicit);
-impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
-impl_event_properties!(LegacyAddAccessibleEvent);
-impl_to_dbus_message!(LegacyAddAccessibleEvent);
-
-impl BusProperties for LegacyAddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-
-	type Body = LegacyCacheItem;
-
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body })
-	}
-
 	fn body(&self) -> Self::Body {
-		self.node_added.clone()
+		EventBodyOwned::default()
 	}
 }
 
-/// Type that contains the `zbus::Message` for meta information and
-/// the [`crate::cache::CacheItem`]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct AddAccessibleEvent {
-	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
-	/// A cache item to add to the internal cache.
-	pub node_added: CacheItem,
-}
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	AddAccessibleEvent,
-	CacheEvents,
-	CacheEvents::Add
-);
-impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
-event_test_cases!(AddAccessibleEvent, Explicit);
-
-impl BusProperties for AddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-
-	type Body = CacheItem;
-
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body })
-	}
-
-	fn body(&self) -> Self::Body {
-		self.node_added.clone()
-	}
-}
 impl<T: BusProperties> HasMatchRule for T {
 	const MATCH_RULE_STRING: &'static str = <T as BusProperties>::MATCH_RULE_STRING;
 }
 impl<T: BusProperties> HasRegistryEventString for T {
 	const REGISTRY_EVENT_STRING: &'static str = <T as BusProperties>::REGISTRY_EVENT_STRING;
 }
-impl_from_dbus_message!(AddAccessibleEvent, Explicit);
-impl_event_properties!(AddAccessibleEvent);
-impl_to_dbus_message!(AddAccessibleEvent);
-
-/// `Cache::RemoveAccessible` signal event type.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct RemoveAccessibleEvent {
-	/// The application that emitted the signal TODO Check Me
-	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
-	/// The node that was removed from the application tree  TODO Check Me
-	pub node_removed: ObjectRef,
+impl<T: BusProperties> HasInterfaceName for T {
+	const DBUS_INTERFACE: &'static str = <T as BusProperties>::DBUS_INTERFACE;
 }
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	RemoveAccessibleEvent,
-	CacheEvents,
-	CacheEvents::Remove
-);
-impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
-event_test_cases!(RemoveAccessibleEvent, Explicit);
-impl BusProperties for RemoveAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
-	const DBUS_MEMBER: &'static str = "RemoveAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-
-	type Body = ObjectRef;
-
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_removed: body })
-	}
-	fn body(&self) -> Self::Body {
-		self.node_removed.clone()
-	}
-}
-
-impl_from_dbus_message!(RemoveAccessibleEvent, Explicit);
-impl_event_properties!(RemoveAccessibleEvent);
-impl_to_dbus_message!(RemoveAccessibleEvent);
 
 #[cfg(test)]
 mod accessible_deserialization_tests {
@@ -559,27 +393,6 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 		let name: OwnedUniqueName = sender.to_owned().into();
 
 		Ok(ObjectRef { name, path: owned_path })
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for EventBodyOwned {
-	type Error = AtspiError;
-
-	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		let body = message.body();
-		let signature = body.signature().ok_or_else(|| AtspiError::MissingSignature)?;
-
-		if signature == QSPI_EVENT_SIGNATURE {
-			let qt_body = body.deserialize::<EventBodyQT>()?;
-			Ok(EventBodyOwned::from(qt_body))
-		} else if signature == ATSPI_EVENT_SIGNATURE {
-			Ok(body.deserialize::<EventBodyOwned>()?)
-		} else {
-			Err(AtspiError::Conversion(
-				"Unable to convert from zbus::Message to EventBodyQT or EventBodyOwned",
-			))
-		}
 	}
 }
 
@@ -661,6 +474,35 @@ impl EventProperties for EventListenerEvents {
 	}
 }
 
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for EventListenerEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			EventListenerRegisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Registered(
+				EventListenerRegisteredEvent::from_message_unchecked(msg)?,
+			)),
+			EventListenerDeregisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Deregistered(
+				EventListenerDeregisteredEvent::from_message_unchecked(msg)?,
+			)),
+			_ => Err(AtspiError::MemberMatch(format!(
+				"No member {} in {}",
+				member.as_str(),
+				Self::DBUS_INTERFACE
+			))),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for EventListenerEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered
 /// to no longer listen for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
@@ -690,11 +532,22 @@ impl BusProperties for EventListenerDeregisteredEvent {
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
 	const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, deregistered_event: body })
+	fn from_message_unchecked_parts(
+		item: ObjectRef,
+		deregistered_event: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, deregistered_event })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body().deserialize()?;
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.deregistered_event.clone()
@@ -732,11 +585,22 @@ impl BusProperties for EventListenerRegisteredEvent {
 		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
 	const DBUS_MEMBER: &'static str = "EventListenerRegistered";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, registered_event: body })
+	fn from_message_unchecked_parts(
+		item: ObjectRef,
+		registered_event: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, registered_event })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body().deserialize()?;
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.registered_event.clone()
@@ -775,11 +639,22 @@ impl BusProperties for AvailableEvent {
 		"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
 	const DBUS_MEMBER: &'static str = "Available";
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for AvailableEvent {
 	type Body = ObjectRef;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, socket: body })
+	fn from_message_unchecked_parts(
+		item: ObjectRef,
+		socket: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, socket })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body().deserialize()?;
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		self.socket.clone()
@@ -794,67 +669,45 @@ impl TryFrom<&zbus::Message> for Event {
 	type Error = AtspiError;
 
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
-		let body = msg.body();
 		let header = msg.header();
-
-		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
-		let body_signature_str = body_signature.as_str();
-
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		let member_str = member.as_str();
 
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
 
-		// The `body_signature` is a marshalled D-Bus signatures, this means that outer STRUCT
-		// parentheses are not included in the signature.
-		// However, `Cache` signals are often emitted with outer parentheses, so we also need to
-		// match against the same signature, but with outer parentheses.
-		match (interface_str, member_str, body_signature_str) {
-			("org.a11y.atspi.Socket", "Available", "so") => {
+		match interface_str {
+			<AvailableEvent as BusProperties>::DBUS_INTERFACE => {
 				Ok(AvailableEvent::try_from(msg)?.into())
 			}
-			("org.a11y.atspi.Event.Object", _, "siiva{sv}" | "siiv(so)") => {
-				Ok(Event::Object(ObjectEvents::try_from(msg)?))
+			ObjectEvents::DBUS_INTERFACE => {
+				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Event.Document", _, "siiva{sv}" | "siiv(so)") => {
-				Ok(Event::Document(DocumentEvents::try_from(msg)?))
+			DocumentEvents::DBUS_INTERFACE => {
+				Ok(Event::Document(DocumentEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Event.Window", _, "siiva{sv}" | "siiv(so)") => {
-				Ok(Event::Window(WindowEvents::try_from(msg)?))
+			WindowEvents::DBUS_INTERFACE => {
+				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Event.Terminal", _, "siiva{sv}" | "siiv(so)") => {
-				Ok(Event::Terminal(TerminalEvents::try_from(msg)?))
+			TerminalEvents::DBUS_INTERFACE => {
+				Ok(Event::Terminal(TerminalEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Event.Mouse", _, "siiva{sv}" | "siiv(so)") => {
-				Ok(Event::Mouse(MouseEvents::try_from(msg)?))
+			MouseEvents::DBUS_INTERFACE => {
+				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Event.Focus", _, "siiva{sv}" | "siiv(so)") => {
-				Ok(Event::Focus(FocusEvents::try_from(msg)?))
+			FocusEvents::DBUS_INTERFACE => {
+				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Event.Keyboard", _, "siiva{sv}" | "siiv(so)") => {
-				Ok(Event::Keyboard(KeyboardEvents::try_from(msg)?))
+			KeyboardEvents::DBUS_INTERFACE => {
+				Ok(Event::Keyboard(KeyboardEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Registry", "EventListenerRegistered", "ss") => {
-				Ok(EventListenerRegisteredEvent::try_from(msg)?.into())
+			CacheEvents::DBUS_INTERFACE => {
+				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg)?))
 			}
-			("org.a11y.atspi.Registry", "EventListenerDeregistered", "ss") => {
-				Ok(EventListenerDeregisteredEvent::try_from(msg)?.into())
+			EventListenerEvents::DBUS_INTERFACE => {
+				Ok(Event::Listener(EventListenerEvents::try_from_message_interface_checked(msg)?))
 			}
-			(
-				"org.a11y.atspi.Cache",
-				"AddAccessible",
-				"(so)(so)(so)iiassusau" | "((so)(so)(so)iiassusau)",
-			) => Ok(AddAccessibleEvent::try_from(msg)?.into()),
-			(
-				"org.a11y.atspi.Cache",
-				"AddAccessible",
-				"(so)(so)(so)a(so)assusau" | "((so)(so)(so)a(so)assusau)",
-			) => Ok(LegacyAddAccessibleEvent::try_from(msg)?.into()),
-			("org.a11y.atspi.Cache", "RemoveAccessible", "so" | "(so)") => {
-				Ok(RemoveAccessibleEvent::try_from(msg)?.into())
-			}
-			(_iface, _method, sig) => Err(AtspiError::UnknownBusSignature(sig.to_string())),
+			_ => Err(AtspiError::InterfaceMatch(format!(
+				"No events found with interface {interface_str}"
+			))),
 		}
 	}
 }
@@ -936,22 +789,233 @@ pub trait BusProperties {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
 	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
+}
 
+#[cfg(feature = "zbus")]
+pub trait MessageConversion: BusProperties {
 	/// What is the body type of this event.
 	type Body: Type + Serialize + for<'a> Deserialize<'a>;
 
-	/// Build the event from the object pair (`ObjectRef` and the Body).
+	/// Build an event from a [`zbus::Message`] reference.
+	/// This function will not check for any of the following error conditions:
+	///
+	/// - That the message has an interface: [`type@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`type@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - That the message has an signature: [`type@AtspiError::MissingSignature`]
+	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
+	///
+	/// Therefore, this should only be used when one has checked the above conditions.
+	/// These must be checked manually.
+	/// Alternatively, there is the [`MessageConversionExt::try_from_message`] that will check these
+	/// conditions for you.
+	///
+	/// This type also implements `TryFrom<&zbus::Message>`; consider using this if you are not an
+	/// internal developer.
 	///
 	/// # Errors
 	///
-	/// When the body type, which is what the raw message looks like over `DBus`, does not match the type that is expected for the given event.
-	/// It is not possible for this to error on most events, but on events whose raw message [`Self::Body`] type contains a [`enum@zvariant::Value`], you may get errors when constructing the structure.
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError>
+	/// It is possible to get a [`type@AtspiError::Zvariant`] error if you do not check the proper
+	/// conditions before calling this.
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+
+	/// Build an event from an [`ObjectRef`] and [`Self::Body`].
+	/// This function will not check for any of the following error conditions:
+	///
+	/// - That the message has an interface: [`type@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`type@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
+	///
+	/// Therefore, this should only be used when one has checked the above conditions.
+	///
+	/// # Errors
+	///
+	/// Some [`Self::Body`] types may fallibly convert data fields contained in the body.
+	/// If this happens, then the function will return an error.
+	fn from_message_unchecked_parts(
+		obj_ref: ObjectRef,
+		body: Self::Body,
+	) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body;
+}
+
+#[cfg(feature = "zbus")]
+impl<T> MessageConversionExt<crate::LegacyCacheItem> for T
+where
+	T: MessageConversion<Body = crate::LegacyCacheItem>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(msg)?;
+		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(msg)?;
+		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(msg)?;
+		<T as MessageConversion>::from_message_unchecked(msg)
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<T> MessageConversionExt<EventListeners> for T
+where
+	T: MessageConversion<Body = EventListeners>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<EventListeners>>::validate_interface(msg)?;
+		<T as MessageConversionExt<EventListeners>>::validate_member(msg)?;
+		<T as MessageConversionExt<EventListeners>>::validate_body(msg)?;
+		<T as MessageConversion>::from_message_unchecked(msg)
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<T> MessageConversionExt<crate::CacheItem> for T
+where
+	T: MessageConversion<Body = crate::CacheItem>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<crate::CacheItem>>::validate_interface(msg)?;
+		<T as MessageConversionExt<crate::CacheItem>>::validate_member(msg)?;
+		<T as MessageConversionExt<crate::CacheItem>>::validate_body(msg)?;
+		<T as MessageConversion>::from_message_unchecked(msg)
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<T> MessageConversionExt<ObjectRef> for T
+where
+	T: MessageConversion<Body = ObjectRef>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
+		<T as MessageConversionExt<ObjectRef>>::validate_member(msg)?;
+		<T as MessageConversionExt<ObjectRef>>::validate_body(msg)?;
+		<T as MessageConversion>::from_message_unchecked(msg)
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<T> MessageConversionExt<EventBodyOwned> for T
+where
+	T: MessageConversion<Body = EventBodyOwned>,
+{
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
+		<T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
+		let body = msg.body();
+		let body_sig = body.signature().ok_or(AtspiError::MissingSignature)?;
+		let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
+			body.deserialize_unchecked()?
+		} else if body_sig == QSPI_EVENT_SIGNATURE {
+			let qtbody: EventBodyQT = body.deserialize_unchecked()?;
+			qtbody.into()
+		} else {
+			return Err(AtspiError::SignatureMatch(format!(
+				"The message signature {} does not match the signal's body signature: {} or {}",
+				body_sig,
+				EventBodyOwned::signature(),
+				EventBodyQT::signature(),
+			)));
+		};
+		let item = msg.try_into()?;
+		Self::from_message_unchecked_parts(item, data_body)
+	}
+}
+
+#[cfg(feature = "zbus")]
+pub trait MessageConversionExt<B>: MessageConversion<Body = B>
+where
+	B: Type + Serialize + for<'a> Deserialize<'a>,
+{
+	/// Convert a [`zbus::Message`] into this event type.
+	/// Does all the validation for you.
+	///
+	/// # Errors
+	///
+	/// - The message does not have an interface: [`type@AtspiError::MissingInterface`]
+	/// - The message interface does not match the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - The message does not have an member: [`type@AtspiError::MissingMember`]
+	/// - The message member does not match the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - The message does not have an signature: [`type@AtspiError::MissingSignature`]
+	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
+	///
+	/// See [`MessageConversion::from_message_unchecked`] for info on panic condition that should never
+	/// happen.
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
+	///
+	/// # Errors
+	///
+	/// - [`type@AtspiError::MissingInterface`] if there is no interface
+	/// - [`type@AtspiError::InterfaceMatch`] if the interfaces do not match
+	fn validate_interface(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != Self::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"The interface {} does not match the signal's interface: {}",
+				interface,
+				Self::DBUS_INTERFACE,
+			)));
+		}
+		Ok(())
+	}
+	/// Validate the member string via [`zbus::message::Header::member`] against `Self`'s assignment of [`BusProperties::DBUS_MEMBER`]
+	///
+	/// # Errors
+	///
+	/// - [`type@AtspiError::MissingMember`] if there is no member
+	/// - [`type@AtspiError::MemberMatch`] if the members do not match
+	fn validate_member(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		if member != Self::DBUS_MEMBER {
+			return Err(AtspiError::MemberMatch(format!(
+				"The member {} does not match the signal's member: {}",
+				// unwrap is safe here because of guard above
+				member,
+				Self::DBUS_MEMBER,
+			)));
+		}
+		Ok(())
+	}
+	/// Validate the body signature against the [`zvariant::Signature`] of [`MessageConversion::Body`]
+	///
+	/// # Errors
+	///
+	/// - [`type@AtspiError::MissingSignature`] if there is no signature
+	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
+	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let body = msg.body();
+		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+		if body_signature != Self::Body::signature() {
+			return Err(AtspiError::SignatureMatch(format!(
+				"The message signature {} does not match the signal's body signature: {}",
+				body_signature,
+				Self::Body::signature().as_str(),
+			)));
+		}
+		Ok(())
+	}
+}
+
+/// A specific trait *only* to define an interface name.
+/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
+/// information required to implement the [`BusProperties`] trait, you can indeed attach in
+/// interface name for all sub events of [`ObjectEvents`].
+///
+/// This trait *is not* object-safe.
+pub trait HasInterfaceName {
+	/// A static interface string for `DBus`.
+	/// This should usually be a string that looks like this: `"org.a11y.atspi.Event.*"`;
+	const DBUS_INTERFACE: &'static str;
 }
 
 /// A specific trait *only* to define match rules.
@@ -977,6 +1041,38 @@ pub trait HasRegistryEventString {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
 	/// This should be deprecated in favour of composing the string from [`BusProperties::DBUS_MEMBER`] and [`BusProperties::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
+}
+
+/// An way to convert a [`zbus::Message`] without checking its interface.
+#[cfg(feature = "zbus")]
+pub(crate) trait EventWrapperMessageConversion {
+	/// # Errors
+	/// Will fail if no matching member or body signature is found.
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+}
+
+#[cfg(feature = "zbus")]
+pub(crate) trait TryFromMessage {
+	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+}
+#[cfg(feature = "zbus")]
+impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
+	fn try_from_message(msg: &zbus::Message) -> Result<T, AtspiError> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != <T as HasInterfaceName>::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				<T as HasInterfaceName>::DBUS_INTERFACE
+			)));
+		}
+		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg)
+	}
 }
 
 #[cfg(test)]

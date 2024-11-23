@@ -1,8 +1,15 @@
 use std::hash::Hash;
 
+#[cfg(feature = "zbus")]
+use crate::events::{
+	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		ObjectRef,
+	},
 	Event, EventProperties, EventTypeProperties, State,
 };
 use zbus_names::UniqueName;
@@ -230,7 +237,7 @@ impl HasMatchRule for ObjectEvents {
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	// TODO: this is not necessary since the string is encoded in the `Property` type.
 	pub property: String,
@@ -255,7 +262,7 @@ impl Default for PropertyChangeEvent {
 	}
 }
 
-/// Any accessibility related property on an [`ObjectRef`].
+/// Any accessibility related property on an [`crate::ObjectRef`].
 /// This is used only in the [`PropertyChangeEvent`]; this event gets triggered if a role or accessible
 /// description of an item changes.
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -402,21 +409,21 @@ impl From<Property> for OwnedValue {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 /// A state of an object has been modified.
-/// A [`State`] can be added or removed from any [`ObjectRef`].
+/// A [`State`] can be added or removed from any [`crate::ObjectRef`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// The state to be enabled/disabled.
 	pub state: State,
@@ -449,10 +456,10 @@ mod i32_bool_conversion {
 	}
 }
 
-/// A child of an [`ObjectRef`] has been added or removed.
+/// A child of an [`crate::ObjectRef`] has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
@@ -464,32 +471,32 @@ pub struct ChildrenChangedEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub child: ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// Text of the announcement.
 	pub text: String,
@@ -499,7 +506,7 @@ pub struct AnnouncementEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -547,20 +554,20 @@ pub struct ColumnDeletedEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
-/// Text has changed within an [`ObjectRef`].
+/// Text has changed within an [`crate::ObjectRef`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
@@ -577,7 +584,7 @@ pub struct TextChangedEvent {
 /// changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -596,13 +603,27 @@ impl BusProperties for PropertyChangeEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		let property = body.kind.clone();
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+		let property = body.kind.to_string();
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -616,16 +637,6 @@ impl BusProperties for BoundsChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for LinkSelectedEvent {
@@ -634,16 +645,6 @@ impl BusProperties for LinkSelectedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for StateChangedEvent {
@@ -652,11 +653,25 @@ impl BusProperties for StateChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for StateChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 > 0 })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -670,16 +685,30 @@ impl BusProperties for ChildrenChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind.as_str().parse()?,
 			index_in_parent: body.detail1,
 			child: body.any_data.try_into()?,
 		})
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -693,16 +722,6 @@ impl BusProperties for VisibleDataChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for SelectionChangedEvent {
@@ -711,16 +730,6 @@ impl BusProperties for SelectionChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ModelChangedEvent {
@@ -729,16 +738,6 @@ impl BusProperties for ModelChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ActiveDescendantChangedEvent {
@@ -747,11 +746,25 @@ impl BusProperties for ActiveDescendantChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, child: body.any_data.try_into()? })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -765,15 +778,29 @@ impl BusProperties for AnnouncementEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
 			live: body.detail1.try_into()?,
 		})
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -787,16 +814,6 @@ impl BusProperties for AttributesChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RowInsertedEvent {
@@ -805,16 +822,6 @@ impl BusProperties for RowInsertedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RowReorderedEvent {
@@ -823,16 +830,6 @@ impl BusProperties for RowReorderedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for RowDeletedEvent {
@@ -841,16 +838,6 @@ impl BusProperties for RowDeletedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ColumnInsertedEvent {
@@ -859,16 +846,6 @@ impl BusProperties for ColumnInsertedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ColumnReorderedEvent {
@@ -877,16 +854,6 @@ impl BusProperties for ColumnReorderedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for ColumnDeletedEvent {
@@ -895,16 +862,6 @@ impl BusProperties for ColumnDeletedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for TextBoundsChangedEvent {
@@ -913,16 +870,6 @@ impl BusProperties for TextBoundsChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for TextSelectionChangedEvent {
@@ -931,16 +878,6 @@ impl BusProperties for TextSelectionChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for TextChangedEvent {
@@ -949,10 +886,13 @@ impl BusProperties for TextChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for TextChangedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self {
 			item,
 			operation: body.kind.as_str().parse()?,
@@ -960,6 +900,17 @@ impl BusProperties for TextChangedEvent {
 			length: body.detail2,
 			text: body.any_data.try_into()?,
 		})
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -973,16 +924,6 @@ impl BusProperties for TextAttributesChangedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-
-	type Body = EventBodyOwned;
-
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
-	}
 }
 
 impl BusProperties for TextCaretMovedEvent {
@@ -991,11 +932,25 @@ impl BusProperties for TextCaretMovedEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'";
 	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, position: body.detail1 })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
+			== crate::events::QSPI_EVENT_SIGNATURE
+		{
+			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		} else {
+			msg.body().deserialize()?
+		};
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -1003,39 +958,95 @@ impl BusProperties for TextCaretMovedEvent {
 	}
 }
 
+impl HasInterfaceName for ObjectEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
+}
+
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for ObjectEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			PropertyChangeEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
+			}
+			BoundsChangedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent::from_message_unchecked(msg)?))
+			}
+			LinkSelectedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::from_message_unchecked(msg)?))
+			}
+			StateChangedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::StateChanged(StateChangedEvent::from_message_unchecked(msg)?))
+			}
+			ChildrenChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ChildrenChanged(
+				ChildrenChangedEvent::from_message_unchecked(msg)?,
+			)),
+			VisibleDataChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::VisibleDataChanged(
+				VisibleDataChangedEvent::from_message_unchecked(msg)?,
+			)),
+			SelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::SelectionChanged(
+				SelectionChangedEvent::from_message_unchecked(msg)?,
+			)),
+			ModelChangedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::from_message_unchecked(msg)?))
+			}
+			ActiveDescendantChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ActiveDescendantChanged(
+				ActiveDescendantChangedEvent::from_message_unchecked(msg)?,
+			)),
+			AnnouncementEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::Announcement(AnnouncementEvent::from_message_unchecked(msg)?))
+			}
+			AttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::AttributesChanged(
+				AttributesChangedEvent::from_message_unchecked(msg)?,
+			)),
+			RowInsertedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::RowInserted(RowInsertedEvent::from_message_unchecked(msg)?))
+			}
+			RowReorderedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::RowReordered(RowReorderedEvent::from_message_unchecked(msg)?))
+			}
+			RowDeletedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::from_message_unchecked(msg)?))
+			}
+			ColumnInsertedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent::from_message_unchecked(msg)?))
+			}
+			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
+				ColumnReorderedEvent::from_message_unchecked(msg)?,
+			)),
+			ColumnDeletedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent::from_message_unchecked(msg)?))
+			}
+			TextBoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextBoundsChanged(
+				TextBoundsChangedEvent::from_message_unchecked(msg)?,
+			)),
+			TextSelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextSelectionChanged(
+				TextSelectionChangedEvent::from_message_unchecked(msg)?,
+			)),
+			TextChangedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::TextChanged(TextChangedEvent::from_message_unchecked(msg)?))
+			}
+			TextAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextAttributesChanged(
+				TextAttributesChangedEvent::from_message_unchecked(msg)?,
+			)),
+			TextCaretMovedEvent::DBUS_MEMBER => {
+				Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent::from_message_unchecked(msg)?))
+			}
+			_ => Err(AtspiError::MemberMatch(format!(
+				"No matching member {member} for interface {}",
+				Self::DBUS_INTERFACE,
+			))),
+		}
+	}
+}
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for ObjectEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		match member.as_str() {
-			"PropertyChange" => Ok(ObjectEvents::PropertyChange(ev.try_into()?)),
-			"BoundsChanged" => Ok(ObjectEvents::BoundsChanged(ev.try_into()?)),
-			"LinkSelected" => Ok(ObjectEvents::LinkSelected(ev.try_into()?)),
-			"StateChanged" => Ok(ObjectEvents::StateChanged(ev.try_into()?)),
-			"ChildrenChanged" => Ok(ObjectEvents::ChildrenChanged(ev.try_into()?)),
-			"VisibleDataChanged" => Ok(ObjectEvents::VisibleDataChanged(ev.try_into()?)),
-			"SelectionChanged" => Ok(ObjectEvents::SelectionChanged(ev.try_into()?)),
-			"ModelChanged" => Ok(ObjectEvents::ModelChanged(ev.try_into()?)),
-			"ActiveDescendantChanged" => Ok(ObjectEvents::ActiveDescendantChanged(ev.try_into()?)),
-			"Announcement" => Ok(ObjectEvents::Announcement(ev.try_into()?)),
-			"AttributesChanged" => Ok(ObjectEvents::AttributesChanged(ev.try_into()?)),
-			"RowInserted" => Ok(ObjectEvents::RowInserted(ev.try_into()?)),
-			"RowReordered" => Ok(ObjectEvents::RowReordered(ev.try_into()?)),
-			"RowDeleted" => Ok(ObjectEvents::RowDeleted(ev.try_into()?)),
-			"ColumnInserted" => Ok(ObjectEvents::ColumnInserted(ev.try_into()?)),
-			"ColumnReordered" => Ok(ObjectEvents::ColumnReordered(ev.try_into()?)),
-			"ColumnDeleted" => Ok(ObjectEvents::ColumnDeleted(ev.try_into()?)),
-			"TextBoundsChanged" => Ok(ObjectEvents::TextBoundsChanged(ev.try_into()?)),
-			"TextSelectionChanged" => Ok(ObjectEvents::TextSelectionChanged(ev.try_into()?)),
-			"TextChanged" => Ok(ObjectEvents::TextChanged(ev.try_into()?)),
-			"TextAttributesChanged" => Ok(ObjectEvents::TextAttributesChanged(ev.try_into()?)),
-			"TextCaretMoved" => Ok(ObjectEvents::TextCaretMoved(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Object".into())),
-		}
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
 	}
 }
 
@@ -1083,17 +1094,7 @@ event_test_cases!(BoundsChangedEvent);
 impl_to_dbus_message!(BoundsChangedEvent);
 impl_from_dbus_message!(BoundsChangedEvent);
 impl_event_properties!(BoundsChangedEvent);
-impl From<BoundsChangedEvent> for EventBodyOwned {
-	fn from(_event: BoundsChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(BoundsChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	LinkSelectedEvent,
@@ -1110,17 +1111,7 @@ event_test_cases!(LinkSelectedEvent);
 impl_to_dbus_message!(LinkSelectedEvent);
 impl_from_dbus_message!(LinkSelectedEvent);
 impl_event_properties!(LinkSelectedEvent);
-impl From<LinkSelectedEvent> for EventBodyOwned {
-	fn from(_event: LinkSelectedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(LinkSelectedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	StateChangedEvent,
@@ -1171,7 +1162,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 			kind: event.operation.to_string(),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
-			// `OwnedValue` is constructed from the `ObjectRef`
+			// `OwnedValue` is constructed from the `crate::ObjectRef`
 			// Only path to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
@@ -1196,17 +1187,7 @@ event_test_cases!(VisibleDataChangedEvent);
 impl_to_dbus_message!(VisibleDataChangedEvent);
 impl_from_dbus_message!(VisibleDataChangedEvent);
 impl_event_properties!(VisibleDataChangedEvent);
-impl From<VisibleDataChangedEvent> for EventBodyOwned {
-	fn from(_event: VisibleDataChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(VisibleDataChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	SelectionChangedEvent,
@@ -1223,17 +1204,7 @@ event_test_cases!(SelectionChangedEvent);
 impl_to_dbus_message!(SelectionChangedEvent);
 impl_from_dbus_message!(SelectionChangedEvent);
 impl_event_properties!(SelectionChangedEvent);
-impl From<SelectionChangedEvent> for EventBodyOwned {
-	fn from(_event: SelectionChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(SelectionChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ModelChangedEvent,
@@ -1250,17 +1221,7 @@ event_test_cases!(ModelChangedEvent);
 impl_to_dbus_message!(ModelChangedEvent);
 impl_from_dbus_message!(ModelChangedEvent);
 impl_event_properties!(ModelChangedEvent);
-impl From<ModelChangedEvent> for EventBodyOwned {
-	fn from(_event: ModelChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ModelChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ActiveDescendantChangedEvent,
@@ -1284,7 +1245,7 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
-			// `OwnedValue` is constructed from the `ObjectRef`
+			// `OwnedValue` is constructed from the `crate::ObjectRef`
 			// Only path to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
@@ -1338,17 +1299,7 @@ event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
-impl From<AttributesChangedEvent> for EventBodyOwned {
-	fn from(_event: AttributesChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(AttributesChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RowInsertedEvent,
@@ -1365,17 +1316,7 @@ event_test_cases!(RowInsertedEvent);
 impl_to_dbus_message!(RowInsertedEvent);
 impl_from_dbus_message!(RowInsertedEvent);
 impl_event_properties!(RowInsertedEvent);
-impl From<RowInsertedEvent> for EventBodyOwned {
-	fn from(_event: RowInsertedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(RowInsertedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RowReorderedEvent,
@@ -1392,17 +1333,7 @@ event_test_cases!(RowReorderedEvent);
 impl_to_dbus_message!(RowReorderedEvent);
 impl_from_dbus_message!(RowReorderedEvent);
 impl_event_properties!(RowReorderedEvent);
-impl From<RowReorderedEvent> for EventBodyOwned {
-	fn from(_event: RowReorderedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(RowReorderedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	RowDeletedEvent,
@@ -1415,17 +1346,7 @@ event_test_cases!(RowDeletedEvent);
 impl_to_dbus_message!(RowDeletedEvent);
 impl_from_dbus_message!(RowDeletedEvent);
 impl_event_properties!(RowDeletedEvent);
-impl From<RowDeletedEvent> for EventBodyOwned {
-	fn from(_event: RowDeletedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(RowDeletedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnInsertedEvent,
@@ -1442,17 +1363,7 @@ event_test_cases!(ColumnInsertedEvent);
 impl_to_dbus_message!(ColumnInsertedEvent);
 impl_from_dbus_message!(ColumnInsertedEvent);
 impl_event_properties!(ColumnInsertedEvent);
-impl From<ColumnInsertedEvent> for EventBodyOwned {
-	fn from(_event: ColumnInsertedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ColumnInsertedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnReorderedEvent,
@@ -1469,17 +1380,7 @@ event_test_cases!(ColumnReorderedEvent);
 impl_to_dbus_message!(ColumnReorderedEvent);
 impl_from_dbus_message!(ColumnReorderedEvent);
 impl_event_properties!(ColumnReorderedEvent);
-impl From<ColumnReorderedEvent> for EventBodyOwned {
-	fn from(_event: ColumnReorderedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ColumnReorderedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ColumnDeletedEvent,
@@ -1496,17 +1397,7 @@ event_test_cases!(ColumnDeletedEvent);
 impl_to_dbus_message!(ColumnDeletedEvent);
 impl_from_dbus_message!(ColumnDeletedEvent);
 impl_event_properties!(ColumnDeletedEvent);
-impl From<ColumnDeletedEvent> for EventBodyOwned {
-	fn from(_event: ColumnDeletedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(ColumnDeletedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextBoundsChangedEvent,
@@ -1523,17 +1414,7 @@ event_test_cases!(TextBoundsChangedEvent);
 impl_to_dbus_message!(TextBoundsChangedEvent);
 impl_from_dbus_message!(TextBoundsChangedEvent);
 impl_event_properties!(TextBoundsChangedEvent);
-impl From<TextBoundsChangedEvent> for EventBodyOwned {
-	fn from(_event: TextBoundsChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(TextBoundsChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextSelectionChangedEvent,
@@ -1550,17 +1431,7 @@ event_test_cases!(TextSelectionChangedEvent);
 impl_to_dbus_message!(TextSelectionChangedEvent);
 impl_from_dbus_message!(TextSelectionChangedEvent);
 impl_event_properties!(TextSelectionChangedEvent);
-impl From<TextSelectionChangedEvent> for EventBodyOwned {
-	fn from(_event: TextSelectionChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(TextSelectionChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextChangedEvent,
@@ -1609,17 +1480,7 @@ event_test_cases!(TextAttributesChangedEvent);
 impl_to_dbus_message!(TextAttributesChangedEvent);
 impl_from_dbus_message!(TextAttributesChangedEvent);
 impl_event_properties!(TextAttributesChangedEvent);
-impl From<TextAttributesChangedEvent> for EventBodyOwned {
-	fn from(_event: TextAttributesChangedEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
-	}
-}
+impl_from_object_ref!(TextAttributesChangedEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextCaretMovedEvent,

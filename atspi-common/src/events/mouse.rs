@@ -1,7 +1,16 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+	},
 	Event, EventProperties, EventTypeProperties,
+};
+#[cfg(feature = "zbus")]
+use crate::{
+	events::{
+		EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+	},
+	ObjectRef,
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
@@ -75,7 +84,7 @@ impl HasMatchRule for MouseEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub x: i32,
 	pub y: i32,
@@ -83,7 +92,7 @@ pub struct AbsEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RelEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub x: i32,
 	pub y: i32,
@@ -91,7 +100,7 @@ pub struct RelEvent {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ButtonEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub detail: String,
 	pub mouse_x: i32,
@@ -104,11 +113,20 @@ impl BusProperties for AbsEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for AbsEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
+		let body: Self::Body = body.deserialize_unchecked()?;
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -122,11 +140,20 @@ impl BusProperties for RelEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for RelEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
+		let body: Self::Body = body.deserialize_unchecked()?;
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -140,32 +167,51 @@ impl BusProperties for ButtonEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for ButtonEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
+		let body: Self::Body = body.deserialize_unchecked()?;
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
 		copy.into()
 	}
 }
+impl HasInterfaceName for MouseEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
+}
+
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for MouseEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			AbsEvent::DBUS_MEMBER => Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?)),
+			RelEvent::DBUS_MEMBER => Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?)),
+			ButtonEvent::DBUS_MEMBER => {
+				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg)?))
+			}
+			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
+		}
+	}
+}
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for MouseEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		match member.as_str() {
-			"Abs" => Ok(MouseEvents::Abs(ev.try_into()?)),
-			"Rel" => Ok(MouseEvents::Rel(ev.try_into()?)),
-			"Button" => Ok(MouseEvents::Button(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
-		}
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
 	}
 }
 

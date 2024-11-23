@@ -1,7 +1,16 @@
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{
+		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+	},
 	Event, EventProperties, EventTypeProperties,
+};
+#[cfg(feature = "zbus")]
+use crate::{
+	events::{
+		EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+	},
+	ObjectRef,
 };
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -60,7 +69,7 @@ impl HasMatchRule for KeyboardEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,
@@ -72,11 +81,20 @@ impl BusProperties for ModifiersEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
 	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
+}
 
+#[cfg(feature = "zbus")]
+impl MessageConversion for ModifiersEvent {
 	type Body = EventBodyOwned;
 
-	fn from_message_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
+	}
+	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let item = msg.try_into()?;
+		let body = msg.body();
+		let body: Self::Body = body.deserialize_unchecked()?;
+		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
 		let copy = self.clone();
@@ -84,18 +102,31 @@ impl BusProperties for ModifiersEvent {
 	}
 }
 
+impl HasInterfaceName for KeyboardEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
+}
+
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for KeyboardEvents {
-	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
+impl EventWrapperMessageConversion for KeyboardEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
 		let member = header
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
-			"Modifiers" => Ok(KeyboardEvents::Modifiers(ev.try_into()?)),
+			ModifiersEvent::DBUS_MEMBER => {
+				Ok(KeyboardEvents::Modifiers(ModifiersEvent::from_message_unchecked(msg)?))
+			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
 		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for KeyboardEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
 	}
 }
 

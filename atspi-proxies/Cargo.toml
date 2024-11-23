@@ -19,14 +19,12 @@ publish = true
 [features]
 default = ["async-std"]
 async-std = ["zbus/async-io", "atspi-common/async-std"]
-gvariant = ["zvariant/gvariant"]
 tokio = ["zbus/tokio", "atspi-common/tokio"]
 
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.8.0", default-features = false }
 serde = { version = "^1.0", default-features = false, features = ["derive"] }
 zbus = { workspace = true }
-zvariant = { version = "4.1", default-features = false }
 
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes"] }

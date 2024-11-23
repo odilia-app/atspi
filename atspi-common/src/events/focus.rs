@@ -1,10 +1,14 @@
+#[cfg(feature = "zbus")]
+use crate::events::{
+	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+};
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, EventBodyOwned, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue};
+use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum FocusEvents {
@@ -59,7 +63,7 @@ impl HasMatchRule for FocusEvents {
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct FocusEvent {
-	/// The [`ObjectRef`] which the event applies to.
+	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
@@ -69,30 +73,34 @@ impl BusProperties for FocusEvent {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
+}
 
-	type Body = EventBodyOwned;
+impl HasInterfaceName for FocusEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
+}
 
-	fn from_message_parts(item: ObjectRef, _body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item })
-	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for FocusEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			FocusEvent::DBUS_MEMBER => {
+				Ok(FocusEvents::Focus(FocusEvent::from_message_unchecked(msg)?))
+			}
+			_ => Err(AtspiError::MemberMatch(format!(
+				"No matching member {member} for interface {}",
+				Self::DBUS_INTERFACE,
+			))),
+		}
 	}
 }
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for FocusEvents {
 	type Error = AtspiError;
-	fn try_from(ev: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = ev.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		match member.as_str() {
-			"Focus" => Ok(FocusEvents::Focus(ev.try_into()?)),
-			_ => Err(AtspiError::MemberMatch("No matching member for Focus".into())),
-		}
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
 	}
 }
 
@@ -104,17 +112,7 @@ event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);
 impl_event_properties!(FocusEvent);
-impl From<FocusEvent> for EventBodyOwned {
-	fn from(_event: FocusEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: OwnedValue::from(0u8),
-		}
-	}
-}
+impl_from_object_ref!(FocusEvent);
 
 impl HasRegistryEventString for FocusEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
