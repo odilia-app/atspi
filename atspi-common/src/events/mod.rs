@@ -19,20 +19,20 @@ pub mod window;
 //  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
 //  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
 // Same as "(siiva{sv})"
-pub static ATSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
+pub const ATSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
 	&Signature::Str,
 	&Signature::I32,
 	&Signature::I32,
 	&Signature::Variant,
-	&Signature::Array(Child::Static {
-		child: &Signature::Dict {
-			key: Child::Static { child: &Signature::Str },
-			value: Child::Static { child: &Signature::Variant },
-		},
-	}),
+	&Signature::Dict {
+		key: Child::Static { child: &Signature::Str },
+		value: Child::Static { child: &Signature::Variant },
+	},
 ]);
+pub const EVENT_NAME_SIGNATURE: &Signature =
+	&Signature::static_structure(&[&Signature::Str, &Signature::Str]);
 // Same as "(siiv(so))"
-pub static QSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
+pub const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
 	&Signature::Str,
 	&Signature::I32,
 	&Signature::I32,
@@ -40,10 +40,10 @@ pub static QSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
 ]);
 // Same as "(so)"
-pub static EVENT_LISTENER_SIGNATURE: Signature =
-	Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
+pub const EVENT_LISTENER_SIGNATURE: &Signature =
+	&Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
 // Same as "((so)(so)(so)iiassusau)"
-pub static CACHE_ADD_SIGNATURE: Signature = Signature::static_structure(&[
+pub const CACHE_ADD_SIGNATURE: &Signature = &Signature::static_structure(&[
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
@@ -705,12 +705,18 @@ impl TryFrom<&zbus::Message> for Event {
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
 		let header = msg.header();
 
+<<<<<<< HEAD
+=======
+		let body_signature = body.signature();
+
+>>>>>>> cf3315de (Use const Signature for matching)
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		let member_str = member.as_str();
 
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
 
+<<<<<<< HEAD
 		match interface_str {
 			AvailableEvent::DBUS_INTERFACE => {
 				Ok(AvailableEvent::try_from(msg)?.into())
@@ -745,6 +751,79 @@ impl TryFrom<&zbus::Message> for Event {
 			_ => Err(AtspiError::InterfaceMatch(format!(
 				"No events found with interface {interface_str}"
 			))),
+=======
+		// The `body_signature` is a marshalled D-Bus signatures, this means that outer STRUCT
+		// parentheses are not included in the signature.
+		// However, `Cache` signals are often emitted with outer parentheses, so we also need to
+		// match against the same signature, but with outer parentheses.
+		match (interface_str, member_str, body_signature) {
+			("org.a11y.atspi.Socket", "Available", sig)
+				if sig == crate::object_ref::OBJECT_REF_SIGNATURE =>
+			{
+				Ok(AvailableEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Event.Object", _, sig)
+				if sig == ATSPI_EVENT_SIGNATURE || sig == QSPI_EVENT_SIGNATURE =>
+			{
+				Ok(Event::Object(ObjectEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Document", _, sig)
+				if sig == ATSPI_EVENT_SIGNATURE || sig == QSPI_EVENT_SIGNATURE =>
+			{
+				Ok(Event::Document(DocumentEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Window", _, sig)
+				if sig == ATSPI_EVENT_SIGNATURE || sig == QSPI_EVENT_SIGNATURE =>
+			{
+				Ok(Event::Window(WindowEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Terminal", _, sig)
+				if sig == ATSPI_EVENT_SIGNATURE || sig == QSPI_EVENT_SIGNATURE =>
+			{
+				Ok(Event::Terminal(TerminalEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Mouse", _, sig)
+				if sig == ATSPI_EVENT_SIGNATURE || sig == QSPI_EVENT_SIGNATURE =>
+			{
+				Ok(Event::Mouse(MouseEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Focus", _, sig)
+				if sig == ATSPI_EVENT_SIGNATURE || sig == QSPI_EVENT_SIGNATURE =>
+			{
+				Ok(Event::Focus(FocusEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Event.Keyboard", _, sig)
+				if sig == ATSPI_EVENT_SIGNATURE || sig == QSPI_EVENT_SIGNATURE =>
+			{
+				Ok(Event::Keyboard(KeyboardEvents::try_from(msg)?))
+			}
+			("org.a11y.atspi.Registry", "EventListenerRegistered", sig)
+				if sig == EVENT_NAME_SIGNATURE =>
+			{
+				Ok(EventListenerRegisteredEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Registry", "EventListenerDeregistered", sig)
+				if sig == EVENT_NAME_SIGNATURE =>
+			{
+				Ok(EventListenerDeregisteredEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Cache", "AddAccessible", sig)
+				if sig == crate::cache::CACHE_ITEM_SIGNATURE =>
+			{
+				Ok(AddAccessibleEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Cache", "AddAccessible", sig)
+				if sig == crate::cache::LEGACY_CACHE_ITEM_SIGNATURE =>
+			{
+				Ok(LegacyAddAccessibleEvent::try_from(msg)?.into())
+			}
+			("org.a11y.atspi.Cache", "RemoveAccessible", sig)
+				if sig == crate::object_ref::OBJECT_REF_SIGNATURE =>
+			{
+				Ok(RemoveAccessibleEvent::try_from(msg)?.into())
+			}
+			(_iface, _method, sig) => Err(AtspiError::UnknownBusSignature(sig.to_string())),
+>>>>>>> cf3315de (Use const Signature for matching)
 		}
 	}
 }
@@ -1122,7 +1201,7 @@ mod tests {
 
 	#[test]
 	fn check_event_body_qt_signature() {
-		assert_eq!(<EventBodyQT as Type>::SIGNATURE, &QSPI_EVENT_SIGNATURE);
+		assert_eq!(<EventBodyQT as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]
