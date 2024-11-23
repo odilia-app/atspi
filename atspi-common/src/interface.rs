@@ -181,9 +181,7 @@ impl ser::Serialize for InterfaceSet {
 }
 
 impl Type for InterfaceSet {
-	fn signature() -> Signature<'static> {
-		<Vec<String> as Type>::signature()
-	}
+	const SIGNATURE: &'static Signature = <Vec<String> as Type>::SIGNATURE;
 }
 
 impl FromIterator<Interface> for InterfaceSet {

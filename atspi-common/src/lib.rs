@@ -43,6 +43,7 @@ use zvariant::Type;
 pub type Result<T> = std::result::Result<T, AtspiError>;
 
 /// Describes a selection of text, including selections across object boundaries.
+///
 /// For example, selecting from the beginning of a paragraph to half way through a link would cause
 /// the start and end object references to be different.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -163,7 +164,9 @@ pub enum ScrollType {
 }
 
 /// Enumeration used to indicate a type of live region and how assertive it
-/// should be in terms of speaking notifications. Currently, this is only used
+/// should be in terms of speaking notifications.
+///
+/// Currently, this is only used
 /// for `Announcement` events, but it may be used for additional purposes
 /// in the future.
 /// The argument in the `Announcement` event is named `politeness`.

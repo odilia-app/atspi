@@ -18,12 +18,43 @@ pub mod window;
 // specific signal types with TryFrom implementations. See crate::[`identify`]
 //  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
 //  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
-pub const ATSPI_EVENT_SIGNATURE: Signature<'_> =
-	Signature::from_static_str_unchecked("(siiva{sv})");
-pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiv(so))");
-pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-pub const CACHE_ADD_SIGNATURE: Signature<'_> =
-	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+// Same as "(siiva{sv})"
+pub const ATSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
+	&Signature::Str,
+	&Signature::I32,
+	&Signature::I32,
+	&Signature::Variant,
+	&Signature::Array(Child::Static {
+		child: &Signature::Dict {
+			key: Child::Static { child: &Signature::Str },
+			value: Child::Static { child: &Signature::Variant },
+		},
+	}),
+]);
+// Same as "(siiv(so))"
+pub const QSPI_EVENT_SIGNATURE: Signature = Signature::static_structure(&[
+	&Signature::Str,
+	&Signature::I32,
+	&Signature::I32,
+	&Signature::Variant,
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+]);
+// Same as "(so)"
+pub const EVENT_LISTENER_SIGNATURE: Signature =
+	Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
+// Same as "((so)(so)(so)iiassusau)"
+pub const CACHE_ADD_SIGNATURE: Signature = Signature::static_structure(&[
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+	&Signature::I32,
+	&Signature::I32,
+	&Signature::Array(Child::Static { child: &Signature::Str }),
+	&Signature::Str,
+	&Signature::U32,
+	&Signature::Str,
+	&Signature::Array(Child::Static { child: &Signature::U32 }),
+]);
 
 use std::collections::HashMap;
 
@@ -32,7 +63,10 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
 use zvariant::OwnedObjectPath;
-use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
+use zvariant::{
+	signature::{Child, Fields},
+	ObjectPath, OwnedValue, Signature, Type, Value,
+};
 
 pub use crate::events::{
 	cache::CacheEvents, document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents,
@@ -675,7 +709,7 @@ impl TryFrom<&zbus::Message> for Event {
 		let interface_str = interface.as_str();
 
 		match interface_str {
-			<AvailableEvent as BusProperties>::DBUS_INTERFACE => {
+			AvailableEvent::DBUS_INTERFACE => {
 				Ok(AvailableEvent::try_from(msg)?.into())
 			}
 			ObjectEvents::DBUS_INTERFACE => {
@@ -1019,6 +1053,7 @@ pub trait HasInterfaceName {
 }
 
 /// A specific trait *only* to define match rules.
+///
 /// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
 /// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
 /// to the `DBus` connection to capture all sub events of [`ObjectEvents`].
@@ -1032,6 +1067,7 @@ pub trait HasMatchRule {
 }
 
 /// A specific trait *only* to define registry event matches.
+///
 /// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
 /// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
 /// to the AT-SPI connection to subscribe to all sub events of [`ObjectEvents`].

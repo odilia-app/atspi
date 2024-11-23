@@ -3,7 +3,9 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
-pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+// Equiv to "(so)"
+pub const OBJECT_REF_SIGNATURE: Signature =
+	Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
 
 /// `ObjectRef` type
 ///
@@ -77,8 +79,8 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
 		match &*value {
 			zvariant::Value::Structure(s) => {
-				if s.signature() != OBJECT_REF_SIGNATURE {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {}", OBJECT_REF_SIGNATURE.as_str())));
+				if *s.signature() != OBJECT_REF_SIGNATURE {
+					return Err(zvariant::Error::SignatureMismatch(s.signature().clone(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {OBJECT_REF_SIGNATURE}")));
 				}
 				let fields = s.fields();
 				let name: String =
