@@ -413,10 +413,6 @@ impl TryFrom<&zbus::Message> for Event {
 
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
 		let header = msg.header();
-
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		let member_str = member.as_str();
-
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
 
@@ -539,9 +535,9 @@ where
 		<T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
 		let body = msg.body();
 		let body_sig = body.signature();
-		let data_body: EventBodyOwned = if body_sig == EventBodyOwned::SIGNATURE {
+		let data_body: EventBodyOwned = if *body_sig == EventBodyOwned::SIGNATURE {
 			body.deserialize_unchecked()?
-		} else if body_sig == QSPI_EVENT_SIGNATURE {
+		} else if *body_sig == QSPI_EVENT_SIGNATURE {
 			let qtbody: EventBodyQtOwned = body.deserialize_unchecked()?;
 			qtbody.into()
 		} else {

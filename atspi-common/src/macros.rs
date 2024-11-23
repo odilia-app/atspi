@@ -283,28 +283,28 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-        use zvariant::Type;
+	        use zvariant::Type;
 
-        Self::validate_interface(msg)?;
-        Self::validate_member(msg)?;
+	        Self::validate_interface(msg)?;
+	        Self::validate_member(msg)?;
 
-        let body = msg.body();
-        let body_signature = body.signature();
-        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::EventBodyOwned::SIGNATURE {
-            body.deserialize_unchecked()?
-        } else if body_signature == crate::events::EventBodyQtOwned::SIGNATURE {
+	        let body = msg.body();
+	        let body_signature = body.signature();
+	        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::EventBodyOwned::SIGNATURE {
+	            body.deserialize_unchecked()?
+	        } else if body_signature == crate::events::EventBodyQtOwned::SIGNATURE {
 			let qtbody: crate::events::EventBodyQtOwned = body.deserialize_unchecked()?;
-            qtbody.into()
-        } else {
-          return Err(AtspiError::SignatureMatch(format!(
-            "The message signature {} does not match the signal's body signature: {}",
-            body_signature,
-            <Self as MessageConversion>::Body::SIGNATURE,
-          )));
-        };
-        let item = msg.try_into()?;
-        Self::from_message_unchecked_parts(item, deser_body)
-      }
+	            qtbody.into()
+	        } else {
+	          return Err(AtspiError::SignatureMatch(format!(
+	            "The message signature {} does not match the signal's body signature: {}",
+	            body_signature,
+	            <Self as MessageConversion>::Body::SIGNATURE,
+	          )));
+	        };
+	        let item = msg.try_into()?;
+	        Self::from_message_unchecked_parts(item, deser_body)
+	      }
     }
 	};
 	($type:ty, Explicit) => {
@@ -658,7 +658,7 @@ macro_rules! zbus_message_test_case {
 /// ```ignore
 /// event_wrapper_test_cases!(MouseEvents, AbsEvent);
 /// ```
-/// In the macro, its first argument `$type` is the event enum type.  
+/// In the macro, its first argument `$type` is the event enum type.
 /// The second argument `$any_subtype` is the event struct type.
 ///
 /// For each of the types, the macro will create a module with the name `events_tests_{foo}`

@@ -153,7 +153,7 @@ impl MessageConversion for PropertyChangeEvent {
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		// TODO: Check the likely path first. also, deserialize already checks the signature
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
+		let body = if *msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
 			msg.body().deserialize::<EventBodyQtOwned>()?.into()
 		} else {
 			msg.body().deserialize()?
