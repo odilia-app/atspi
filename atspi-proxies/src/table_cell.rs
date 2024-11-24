@@ -13,7 +13,7 @@
 use crate::common::ObjectRef;
 
 #[zbus::proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
-trait TableCell {
+pub trait TableCell {
 	/// GetColumnHeaderCells method
 	fn get_column_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
 
