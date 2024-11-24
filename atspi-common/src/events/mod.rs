@@ -704,10 +704,6 @@ impl TryFrom<&zbus::Message> for Event {
 
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
 		let header = msg.header();
-
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		let member_str = member.as_str();
-
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
 
@@ -745,7 +741,7 @@ impl TryFrom<&zbus::Message> for Event {
 			_ => Err(AtspiError::InterfaceMatch(format!(
 				"No events found with interface {interface_str}"
 			))),
-    }
+		}
 	}
 }
 
@@ -840,7 +836,6 @@ pub trait MessageConversion: BusProperties {
 	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
 	/// - That the message has an member: [`type@AtspiError::MissingMember`]
 	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
-	/// - That the message has an signature: [`type@AtspiError::MissingSignature`]
 	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
@@ -978,7 +973,6 @@ where
 	/// - The message interface does not match the one for the event: [`type@AtspiError::InterfaceMatch`]
 	/// - The message does not have an member: [`type@AtspiError::MissingMember`]
 	/// - The message member does not match the one for the event: [`type@AtspiError::MemberMatch`]
-	/// - The message does not have an signature: [`type@AtspiError::MissingSignature`]
 	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// See [`MessageConversion::from_message_unchecked`] for info on panic condition that should never
@@ -1027,7 +1021,6 @@ where
 	///
 	/// # Errors
 	///
-	/// - [`type@AtspiError::MissingSignature`] if there is no signature
 	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();

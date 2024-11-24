@@ -568,7 +568,7 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-      assert_matches!(event, Err(AtspiError::MissingSignature), "Wrong kind of error");
+      assert_matches!(event, Err(AtspiError::SignatureMatch(_)), "Wrong kind of error");
 		}
 
 		#[cfg(feature = "zbus")]
