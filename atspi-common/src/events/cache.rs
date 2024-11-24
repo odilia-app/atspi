@@ -95,19 +95,19 @@ impl EventWrapperMessageConversion for CacheEvents {
 			AddAccessibleEvent::DBUS_MEMBER => {
 				let body = msg.body();
 				let sig = body.signature();
-        if sig == CacheItem::SIGNATURE {
-            Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
-        } else if sig == LegacyCacheItem::SIGNATURE {
-					Ok(CacheEvents::LegacyAdd(
-						LegacyAddAccessibleEvent::from_message_unchecked(msg)?,
-					))
-        } else {
+				if sig == CacheItem::SIGNATURE {
+					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
+				} else if sig == LegacyCacheItem::SIGNATURE {
+					Ok(CacheEvents::LegacyAdd(LegacyAddAccessibleEvent::from_message_unchecked(
+						msg,
+					)?))
+				} else {
 					Err(AtspiError::SignatureMatch(format!(
 						"No matching event for signature {} in interface {}",
 						&sig.to_string(),
 						Self::DBUS_INTERFACE
 					)))
-        }
+				}
 			}
 			RemoveAccessibleEvent::DBUS_MEMBER => {
 				Ok(CacheEvents::Remove(RemoveAccessibleEvent::from_message_unchecked(msg)?))
