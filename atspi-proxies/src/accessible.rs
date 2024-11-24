@@ -259,7 +259,7 @@ pub trait ObjectRefExt {
 	/// # Errors  
 	///
 	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
-	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::ProxyBuilder::build`].
+	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::proxy::Builder::build`].
 	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
 	fn as_accessible_proxy(
 		&self,
@@ -271,7 +271,7 @@ pub trait ObjectRefExt {
 	/// # Errors  
 	///
 	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
-	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::ProxyBuilder::build`].
+	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::proxy::Builder::build`].
 	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
 	fn into_accessible_proxy(
 		self,
