@@ -17,12 +17,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
 	c.bench_function("1000 Messages into Events", |b| {
 		b.iter(|| {
-			random_messages
-        .iter()
-        .map(Clone::clone)
-				.into_iter()
-				.map(black_box)
-				.map(|m| Event::try_from(m).unwrap())
+			random_messages.clone().into_iter().for_each(|m| {
+				Event::try_from(black_box(m)).unwrap();
+			})
 		})
 	});
 }
