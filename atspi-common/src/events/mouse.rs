@@ -122,8 +122,8 @@ impl MessageConversion for AbsEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let item = (&msg).try_into()?;
 		let body = msg.body();
 		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
@@ -149,8 +149,8 @@ impl MessageConversion for RelEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, x: body.detail1, y: body.detail2 })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let item = (&msg).try_into()?;
 		let body = msg.body();
 		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
@@ -176,8 +176,8 @@ impl MessageConversion for ButtonEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, detail: body.kind, mouse_x: body.detail1, mouse_y: body.detail2 })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let item = (&msg).try_into()?;
 		let body = msg.body();
 		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
@@ -193,9 +193,8 @@ impl HasInterfaceName for MouseEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for MouseEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let member = msg.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			AbsEvent::DBUS_MEMBER => Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?)),
 			RelEvent::DBUS_MEMBER => Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?)),
@@ -208,9 +207,9 @@ impl EventWrapperMessageConversion for MouseEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for MouseEvents {
+impl TryFrom<zbus::Message> for MouseEvents {
 	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 		Self::try_from_message(msg)
 	}
 }

@@ -348,8 +348,8 @@ impl MessageConversion for PropertyChangeEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, property: body.kind })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let item = (&msg).try_into()?;
 		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
 			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
 		} else {
@@ -513,56 +513,47 @@ impl HasInterfaceName for WindowEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for WindowEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let member = msg.member().ok_or(AtspiError::MissingMember)?;
+		// TODO: MissingName/MissingPath
+		let name = msg.sender().ok_or(AtspiError::MissingMember)?;
+		let path = msg.path().ok_or(AtspiError::MissingMember)?;
+		let op = crate::ObjectRef::new(name, path);
 		match member.as_str() {
 			PropertyChangeEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
 			}
-			MinimizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Minimize(MinimizeEvent::from_message_unchecked(msg)?))
+			MinimizeEvent::DBUS_MEMBER => Ok(WindowEvents::Minimize(MinimizeEvent::from(op))),
+			MaximizeEvent::DBUS_MEMBER => Ok(WindowEvents::Maximize(MaximizeEvent::from(op))),
+			RestoreEvent::DBUS_MEMBER => Ok(WindowEvents::Restore(RestoreEvent::from(op))),
+			CloseEvent::DBUS_MEMBER => Ok(WindowEvents::Close(CloseEvent::from(op))),
+			CreateEvent::DBUS_MEMBER => Ok(WindowEvents::Create(CreateEvent::from(op))),
+			ReparentEvent::DBUS_MEMBER => Ok(WindowEvents::Reparent(ReparentEvent::from(op))),
+			DesktopCreateEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::DesktopCreate(DesktopCreateEvent::from(op)))
 			}
-			MaximizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Maximize(MaximizeEvent::from_message_unchecked(msg)?))
+			DesktopDestroyEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::DesktopDestroy(DesktopDestroyEvent::from(op)))
 			}
-			RestoreEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Restore(RestoreEvent::from_message_unchecked(msg)?))
-			}
-			"Close" => Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg)?)),
-			CreateEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Create(CreateEvent::from_message_unchecked(msg)?))
-			}
-			ReparentEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg)?))
-			}
-			"DesktopCreate" => {
-				Ok(WindowEvents::DesktopCreate(DesktopCreateEvent::from_message_unchecked(msg)?))
-			}
-			"DesktopDestroy" => {
-				Ok(WindowEvents::DesktopDestroy(DesktopDestroyEvent::from_message_unchecked(msg)?))
-			}
-			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg)?)),
-			"Activate" => Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg)?)),
-			"Deactivate" => {
-				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg)?))
-			}
-			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg)?)),
-			"Lower" => Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg)?)),
-			"Move" => Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg)?)),
-			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg)?)),
-			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg)?)),
-			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg)?)),
-			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg)?)),
+			DestroyEvent::DBUS_MEMBER => Ok(WindowEvents::Destroy(DestroyEvent::from(op))),
+			ActivateEvent::DBUS_MEMBER => Ok(WindowEvents::Activate(ActivateEvent::from(op))),
+			DeactivateEvent::DBUS_MEMBER => Ok(WindowEvents::Deactivate(DeactivateEvent::from(op))),
+			RaiseEvent::DBUS_MEMBER => Ok(WindowEvents::Raise(RaiseEvent::from(op))),
+			LowerEvent::DBUS_MEMBER => Ok(WindowEvents::Lower(LowerEvent::from(op))),
+			MoveEvent::DBUS_MEMBER => Ok(WindowEvents::Move(MoveEvent::from(op))),
+			ResizeEvent::DBUS_MEMBER => Ok(WindowEvents::Resize(ResizeEvent::from(op))),
+			ShadeEvent::DBUS_MEMBER => Ok(WindowEvents::Shade(ShadeEvent::from(op))),
+			UUshadeEvent::DBUS_MEMBER => Ok(WindowEvents::UUshade(UUshadeEvent::from(op))),
+			RestyleEvent::DBUS_MEMBER => Ok(WindowEvents::Restyle(RestyleEvent::from(op))),
 			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 		}
 	}
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for WindowEvents {
+impl TryFrom<zbus::Message> for WindowEvents {
 	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 		Self::try_from_message(msg)
 	}
 }

@@ -207,27 +207,28 @@ impl HasInterfaceName for DocumentEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for DocumentEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let member = msg.member().ok_or(AtspiError::MissingMember)?;
+		// TODO: MissingName/MissingPath
+		let name = msg.sender().ok_or(AtspiError::MissingMember)?;
+		let path = msg.path().ok_or(AtspiError::MissingMember)?;
+		let op = crate::ObjectRef::new(name, path);
 		match member.as_str() {
 			LoadCompleteEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::LoadComplete(LoadCompleteEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::LoadComplete(LoadCompleteEvent::from(op)))
 			}
-			ReloadEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg)?))
-			}
+			ReloadEvent::DBUS_MEMBER => Ok(DocumentEvents::Reload(ReloadEvent::from(op))),
 			LoadStoppedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from(op)))
 			}
-			ContentChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::ContentChanged(
-				ContentChangedEvent::from_message_unchecked(msg)?,
-			)),
-			AttributesChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::AttributesChanged(
-				AttributesChangedEvent::from_message_unchecked(msg)?,
-			)),
+			ContentChangedEvent::DBUS_MEMBER => {
+				Ok(DocumentEvents::ContentChanged(ContentChangedEvent::from(op)))
+			}
+			AttributesChangedEvent::DBUS_MEMBER => {
+				Ok(DocumentEvents::AttributesChanged(AttributesChangedEvent::from(op)))
+			}
 			PageChangedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::PageChanged(PageChangedEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::PageChanged(PageChangedEvent::from(op)))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 		}
@@ -235,9 +236,9 @@ impl EventWrapperMessageConversion for DocumentEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for DocumentEvents {
+impl TryFrom<zbus::Message> for DocumentEvents {
 	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 		Self::try_from_message(msg)
 	}
 }

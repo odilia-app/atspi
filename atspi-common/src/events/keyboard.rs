@@ -90,8 +90,8 @@ impl MessageConversion for ModifiersEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
 		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let item = (&msg).try_into()?;
 		let body = msg.body();
 		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
@@ -108,9 +108,8 @@ impl HasInterfaceName for KeyboardEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for KeyboardEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header
+	fn try_from_message_interface_checked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let member = msg
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
@@ -123,9 +122,9 @@ impl EventWrapperMessageConversion for KeyboardEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for KeyboardEvents {
+impl TryFrom<zbus::Message> for KeyboardEvents {
 	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 		Self::try_from_message(msg)
 	}
 }

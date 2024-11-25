@@ -22,6 +22,13 @@ pub struct ObjectRef {
 	pub path: OwnedObjectPath,
 }
 
+impl ObjectRef {
+	#[must_use]
+	pub fn new<'a>(sender: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
+		Self { name: sender.into(), path: path.into() }
+	}
+}
+
 impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {

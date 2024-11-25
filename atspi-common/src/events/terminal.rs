@@ -178,36 +178,39 @@ impl HasInterfaceName for TerminalEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for TerminalEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header
+	fn try_from_message_interface_checked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let name = msg.sender().ok_or(AtspiError::MissingName)?;
+		// TODO: missingPath
+		let path = msg.path().ok_or(AtspiError::MissingName)?;
+		let op = crate::ObjectRef::new(name, path);
+		let member = msg
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
 			LineChangedEvent::DBUS_MEMBER => {
-				Ok(TerminalEvents::LineChanged(LineChangedEvent::from_message_unchecked(msg)?))
+				Ok(TerminalEvents::LineChanged(LineChangedEvent::from(op)))
 			}
-			ColumnCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ColumnCountChanged(
-				ColumnCountChangedEvent::from_message_unchecked(msg)?,
-			)),
-			LineCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::LineCountChanged(
-				LineCountChangedEvent::from_message_unchecked(msg)?,
-			)),
-			ApplicationChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ApplicationChanged(
-				ApplicationChangedEvent::from_message_unchecked(msg)?,
-			)),
-			CharWidthChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::CharWidthChanged(
-				CharWidthChangedEvent::from_message_unchecked(msg)?,
-			)),
+			ColumnCountChangedEvent::DBUS_MEMBER => {
+				Ok(TerminalEvents::ColumnCountChanged(ColumnCountChangedEvent::from(op)))
+			}
+			LineCountChangedEvent::DBUS_MEMBER => {
+				Ok(TerminalEvents::LineCountChanged(LineCountChangedEvent::from(op)))
+			}
+			ApplicationChangedEvent::DBUS_MEMBER => {
+				Ok(TerminalEvents::ApplicationChanged(ApplicationChangedEvent::from(op)))
+			}
+			CharWidthChangedEvent::DBUS_MEMBER => {
+				Ok(TerminalEvents::CharWidthChanged(CharWidthChangedEvent::from(op)))
+			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
 		}
 	}
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for TerminalEvents {
+impl TryFrom<zbus::Message> for TerminalEvents {
 	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 		Self::try_from_message(msg)
 	}
 }

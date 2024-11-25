@@ -81,13 +81,14 @@ impl HasInterfaceName for FocusEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for FocusEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let name = msg.sender().ok_or(AtspiError::MissingName)?;
+		// TODO: missingPath
+		let path = msg.path().ok_or(AtspiError::MissingName)?;
+		let member = msg.member().ok_or(AtspiError::MissingMember)?;
+		let op = crate::ObjectRef::new(name, path);
 		match member.as_str() {
-			FocusEvent::DBUS_MEMBER => {
-				Ok(FocusEvents::Focus(FocusEvent::from_message_unchecked(msg)?))
-			}
+			FocusEvent::DBUS_MEMBER => Ok(FocusEvents::Focus(FocusEvent::from(op))),
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",
 				Self::DBUS_INTERFACE,
@@ -97,9 +98,9 @@ impl EventWrapperMessageConversion for FocusEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for FocusEvents {
+impl TryFrom<zbus::Message> for FocusEvents {
 	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 		Self::try_from_message(msg)
 	}
 }
