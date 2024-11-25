@@ -195,7 +195,6 @@ pub struct AddAccessibleEvent<'a> {
 	pub item: ObjectRefBorrow<'a>,
 	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
-	_marker: core::marker::PhantomData<&'a u8>,
 }
 
 impl_from_user_facing_event_for_interface_event_enum_borrow!(
@@ -227,7 +226,7 @@ impl<'a> MessageConversionBorrow<'a> for AddAccessibleEvent<'a> {
 		item: ObjectRefBorrow<'a>,
 		body: Self::Body,
 	) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body, _marker: core::marker::PhantomData })
+		Ok(Self { item, node_added: body })
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body().deserialize()?;
