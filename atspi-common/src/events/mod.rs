@@ -238,10 +238,9 @@ pub enum Event<'a> {
 	/// See: [`AvailableEvent`].
 	Available(AvailableEvent),
 	/// See: [`CacheEvents`].
-	Cache(CacheEvents),
+	Cache(CacheEvents<'a>),
 	/// See: [`EventListenerEvents`].
 	Listener(EventListenerEvents),
-	Fuck(&'a str),
 }
 
 impl EventTypeProperties for Event<'_> {
@@ -257,7 +256,6 @@ impl EventTypeProperties for Event<'_> {
 			Self::Available(inner) => inner.member(),
 			Self::Cache(inner) => inner.member(),
 			Self::Listener(inner) => inner.member(),
-			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn interface(&self) -> &'static str {
@@ -272,7 +270,6 @@ impl EventTypeProperties for Event<'_> {
 			Self::Available(inner) => inner.interface(),
 			Self::Cache(inner) => inner.interface(),
 			Self::Listener(inner) => inner.interface(),
-			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn match_rule(&self) -> &'static str {
@@ -287,7 +284,6 @@ impl EventTypeProperties for Event<'_> {
 			Self::Available(inner) => inner.match_rule(),
 			Self::Cache(inner) => inner.match_rule(),
 			Self::Listener(inner) => inner.match_rule(),
-			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn registry_string(&self) -> &'static str {
@@ -302,7 +298,6 @@ impl EventTypeProperties for Event<'_> {
 			Self::Available(inner) => inner.registry_string(),
 			Self::Cache(inner) => inner.registry_string(),
 			Self::Listener(inner) => inner.registry_string(),
-			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 }
@@ -320,7 +315,6 @@ impl EventProperties for Event<'_> {
 			Self::Available(inner) => inner.path(),
 			Self::Cache(inner) => inner.path(),
 			Self::Listener(inner) => inner.path(),
-			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn sender(&self) -> UniqueName<'_> {
@@ -335,7 +329,6 @@ impl EventProperties for Event<'_> {
 			Self::Available(inner) => inner.sender(),
 			Self::Cache(inner) => inner.sender(),
 			Self::Listener(inner) => inner.sender(),
-			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 }

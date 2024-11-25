@@ -142,6 +142,16 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 	};
 }
 
+macro_rules! impl_from_user_facing_event_for_interface_event_enum_borrow {
+	($inner_type:ty, $outer_type:ty, $inner_variant:path) => {
+		impl<'a> From<$inner_type> for $outer_type {
+			fn from(specific_event: $inner_type) -> $outer_type {
+				$inner_variant(specific_event)
+			}
+		}
+	};
+}
+
 /// Expands to a conversion given two arguments,
 /// 1. the user facing event type `(inner_type)`
 ///    which relies on a conversion to its interface variant enum type variant.
@@ -198,6 +208,20 @@ macro_rules! impl_try_from_event_for_user_facing_type {
 		impl TryFrom<Event<'_>> for $inner_type {
 			type Error = AtspiError;
 			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {
+				if let $outer_variant($inner_variant(specific_event)) = generic_event {
+					Ok(specific_event)
+				} else {
+					Err(AtspiError::Conversion("Invalid type"))
+				}
+			}
+		}
+	};
+}
+macro_rules! impl_try_from_event_for_user_facing_type_borrow {
+	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
+		impl<'a> TryFrom<Event<'a>> for $inner_type {
+			type Error = AtspiError;
+			fn try_from(generic_event: Event<'a>) -> Result<$inner_type, Self::Error> {
 				if let $outer_variant($inner_variant(specific_event)) = generic_event {
 					Ok(specific_event)
 				} else {
@@ -806,5 +830,41 @@ macro_rules! event_test_cases {
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
+	};
+}
+
+macro_rules! event_test_cases_borrow {
+  ($path:path, $type:ty) => {
+      event_test_cases!($type, Auto);
+  };
+	($path:path, $type:ty, $qt:tt) => {
+		#[cfg(test)]
+		#[rename_item::rename(name($path), prefix = "event_tests_", case = "snake")]
+		mod foo {
+			use super::{$path, AtspiError, Event, BusProperties, MessageConversion, EventProperties, EventTypeProperties};
+      use zbus::Message;
+      // TODO: use [`std::assert_matches::assert_matches`] when stabalized
+      use assert_matches::assert_matches;
+
+			generic_event_test_case!($path);
+			event_enum_test_case!($path);
+			zbus_message_test_case!($path, $qt);
+			event_enum_transparency_test_case!($path);
+		}
+		assert_impl_all!(
+			$path: Clone,
+			std::fmt::Debug,
+			serde::Serialize,
+			serde::Deserialize<'static>,
+			Default,
+			PartialEq,
+			Eq,
+			std::hash::Hash,
+			crate::EventProperties,
+			crate::EventTypeProperties,
+			crate::BusProperties,
+		);
+		//#[cfg(feature = "zbus")]
+		//assert_impl_all!(zbus::Message: TryFrom<$type>);
 	};
 }
