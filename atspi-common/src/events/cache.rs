@@ -1,11 +1,13 @@
 #[cfg(feature = "zbus")]
 use crate::events::{
-	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+	EventWrapperMessageConversion, MessageConversion, MessageConversionBorrow,
+	MessageConversionExt, TryFromMessage,
 };
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
 	error::AtspiError,
 	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString, ObjectRef},
+	object_ref::ObjectRefBorrow,
 	Event, EventProperties, EventTypeProperties,
 };
 use serde::{Deserialize, Serialize};
@@ -21,6 +23,7 @@ pub enum CacheEvents<'a> {
 	/// See: [`AddAccessibleEvent`].
 	Add(AddAccessibleEvent<'a>),
 	/// See: [`LegacyAddAccessibleEvent`].
+	#[serde(borrow)]
 	LegacyAdd(LegacyAddAccessibleEvent<'a>),
 	/// See: [`RemoveAccessibleEvent`].
 	Remove(RemoveAccessibleEvent<'a>),
@@ -132,10 +135,10 @@ impl TryFrom<zbus::Message> for CacheEvents<'_> {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct LegacyAddAccessibleEvent<'a> {
 	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
+	#[serde(borrow)]
+	pub item: ObjectRefBorrow<'a>,
 	/// A cache item to add to the internal cache.
 	pub node_added: LegacyCacheItem,
-	_marker: core::marker::PhantomData<&'a u8>,
 }
 
 impl_from_user_facing_event_for_interface_event_enum_borrow!(
@@ -150,7 +153,7 @@ impl_try_from_event_for_user_facing_type_borrow!(
 	Event::Cache
 );
 event_test_cases_borrow!(LegacyAddAccessibleEvent, LegacyAddAccessibleEvent<'a>, Explicit);
-impl_from_dbus_message!(LegacyAddAccessibleEvent<'_>, Explicit);
+impl_from_dbus_message_borrow!(LegacyAddAccessibleEvent<'a>, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent<'_>);
 impl_to_dbus_message!(LegacyAddAccessibleEvent<'_>);
 
@@ -163,15 +166,18 @@ impl BusProperties for LegacyAddAccessibleEvent<'_> {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for LegacyAddAccessibleEvent<'_> {
+impl<'a> MessageConversionBorrow<'a> for LegacyAddAccessibleEvent<'a> {
 	type Body = LegacyCacheItem;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body, _marker: core::marker::PhantomData })
+	fn from_message_unchecked_parts(
+		item: ObjectRefBorrow<'a>,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body })
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
-		let item = (&msg).try_into()?;
 		let body = msg.body().deserialize()?;
+		let item = msg.try_into()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 
@@ -185,7 +191,8 @@ impl MessageConversion for LegacyAddAccessibleEvent<'_> {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct AddAccessibleEvent<'a> {
 	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
+	#[serde(borrow)]
+	pub item: ObjectRefBorrow<'a>,
 	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
 	_marker: core::marker::PhantomData<&'a u8>,
@@ -213,15 +220,18 @@ impl BusProperties for AddAccessibleEvent<'_> {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for AddAccessibleEvent<'_> {
+impl<'a> MessageConversionBorrow<'a> for AddAccessibleEvent<'a> {
 	type Body = CacheItem;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: ObjectRefBorrow<'a>,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body, _marker: core::marker::PhantomData })
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
-		let item = (&msg).try_into()?;
 		let body = msg.body().deserialize()?;
+		let item = msg.try_into()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 
@@ -230,7 +240,7 @@ impl MessageConversion for AddAccessibleEvent<'_> {
 	}
 }
 
-impl_from_dbus_message!(AddAccessibleEvent<'_>, Explicit);
+impl_from_dbus_message_borrow!(AddAccessibleEvent<'a>, Explicit);
 impl_event_properties!(AddAccessibleEvent<'_>);
 impl_to_dbus_message!(AddAccessibleEvent<'_>);
 

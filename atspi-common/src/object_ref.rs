@@ -22,10 +22,25 @@ pub struct ObjectRef {
 	pub path: OwnedObjectPath,
 }
 
+#[validate(signal: "Available")]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+pub struct ObjectRefBorrow<'a> {
+	#[serde(borrow)]
+	pub name: UniqueName<'a>,
+	#[serde(borrow)]
+	pub path: ObjectPath<'a>,
+}
+
 impl ObjectRef {
 	#[must_use]
 	pub fn new<'a>(sender: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
 		Self { name: sender.into(), path: path.into() }
+	}
+}
+impl<'a> ObjectRefBorrow<'a> {
+	#[must_use]
+	pub fn new(name: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
+		Self { name, path }
 	}
 }
 
@@ -36,6 +51,14 @@ impl Default for ObjectRef {
 			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
 				.unwrap()
 				.into(),
+		}
+	}
+}
+impl Default for ObjectRefBorrow<'_> {
+	fn default() -> Self {
+		ObjectRefBorrow {
+			name: UniqueName::from_static_str(":0.0").unwrap(),
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap(),
 		}
 	}
 }

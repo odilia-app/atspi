@@ -72,7 +72,7 @@ pub use crate::events::{
 	cache::CacheEvents, document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents,
 	mouse::MouseEvents, object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 };
-use crate::{AtspiError, ObjectRef};
+use crate::{object_ref::ObjectRefBorrow, AtspiError, ObjectRef};
 
 /// Qt event body, which is not the same as other GUI frameworks.
 /// Signature:  "siiv(so)"
@@ -238,6 +238,7 @@ pub enum Event<'a> {
 	/// See: [`AvailableEvent`].
 	Available(AvailableEvent),
 	/// See: [`CacheEvents`].
+	#[serde(borrow)]
 	Cache(CacheEvents<'a>),
 	/// See: [`EventListenerEvents`].
 	Listener(EventListenerEvents),
@@ -347,6 +348,28 @@ impl HasRegistryEventString for EventListenerEvents {
 }
 
 #[cfg(feature = "zbus")]
+impl<'a, T> MessageConversionBorrow<'a> for T
+where
+	ObjectRefBorrow<'a>: Into<T>,
+	// this bound is not actually used for anything, but I do not want to implement this trait for
+	// just any type that has an infallible conversion from an ObjectRef
+	T: BusProperties + TryFrom<zbus::Message, Error = AtspiError>,
+{
+	type Body = EventBodyOwned;
+	fn from_message_unchecked_parts(
+		obj_ref: ObjectRefBorrow<'a>,
+		_: Self::Body,
+	) -> Result<Self, AtspiError> {
+		Ok(obj_ref.into())
+	}
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		msg.try_into()
+	}
+	fn body(&self) -> Self::Body {
+		EventBodyOwned::default()
+	}
+}
+#[cfg(feature = "zbus")]
 impl<T> MessageConversion for T
 where
 	ObjectRef: Into<T>,
@@ -426,6 +449,33 @@ impl TryFrom<&zbus::Message> for ObjectRef {
 		let name: OwnedUniqueName = sender.to_owned().into();
 
 		Ok(ObjectRef { name, path: owned_path })
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<'a, 'b> TryFrom<&'b zbus::Message> for ObjectRefBorrow<'a>
+where
+	'b: 'a,
+{
+	type Error = AtspiError;
+	fn try_from(msg: &'b zbus::Message) -> Result<Self, Self::Error> {
+		let path = msg.path().expect("returned path is either `Some` or panics");
+		let name = msg.sender().expect("No sender in header");
+		Ok(ObjectRefBorrow { name, path })
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<zbus::Message> for ObjectRefBorrow<'_> {
+	type Error = AtspiError;
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
+		// no allocations should occur, since `msg` is owned as a parameter
+		let path = msg
+			.path()
+			.expect("returned path is either `Some` or panics")
+			.into_owned();
+		let name = msg.sender().expect("No sender in header").into_owned();
+		Ok(ObjectRefBorrow { name, path })
 	}
 }
 
@@ -877,6 +927,61 @@ pub trait MessageConversion: BusProperties {
 }
 
 #[cfg(feature = "zbus")]
+pub trait MessageConversionBorrow<'a>: BusProperties {
+	/// What is the body type of this event.
+	type Body: Type + Serialize + Deserialize<'a>;
+
+	/// Build an event from a [`zbus::Message`] reference.
+	/// This function will not check for any of the following error conditions:
+	///
+	/// - That the message has an interface: [`type@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`type@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
+	///
+	/// Therefore, this should only be used when one has checked the above conditions.
+	/// These must be checked manually.
+	/// Alternatively, there is the [`MessageConversionExt::try_from_message`] that will check these
+	/// conditions for you.
+	///
+	/// This type also implements `TryFrom<&zbus::Message>`; consider using this if you are not an
+	/// internal developer.
+	///
+	/// # Errors
+	///
+	/// It is possible to get a [`type@AtspiError::Zvariant`] error if you do not check the proper
+	/// conditions before calling this.
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+
+	/// Build an event from an [`ObjectRef`] and [`Self::Body`].
+	/// This function will not check for any of the following error conditions:
+	///
+	/// - That the message has an interface: [`type@AtspiError::MissingInterface`]
+	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - That the message has an member: [`type@AtspiError::MissingMember`]
+	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
+	///
+	/// Therefore, this should only be used when one has checked the above conditions.
+	///
+	/// # Errors
+	///
+	/// Some [`Self::Body`] types may fallibly convert data fields contained in the body.
+	/// If this happens, then the function will return an error.
+	fn from_message_unchecked_parts(
+		obj_ref: ObjectRefBorrow<'a>,
+		body: Self::Body,
+	) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+
+	/// The body of the object.
+	fn body(&self) -> Self::Body;
+}
+
+#[cfg(feature = "zbus")]
 impl<T> MessageConversionExt<crate::LegacyCacheItem> for T
 where
 	T: MessageConversion<Body = crate::LegacyCacheItem>,
@@ -886,6 +991,19 @@ where
 		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(&msg)?;
 		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(&msg)?;
 		<T as MessageConversion>::from_message_unchecked(msg)
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<'a, T> MessageConversionExtBorrow<'a, crate::LegacyCacheItem> for T
+where
+	T: MessageConversionBorrow<'a, Body = crate::LegacyCacheItem>,
+{
+	fn try_from_message(msg: zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExtBorrow<'a, crate::LegacyCacheItem>>::validate_interface(&msg)?;
+		<T as MessageConversionExtBorrow<'a, crate::LegacyCacheItem>>::validate_member(&msg)?;
+		<T as MessageConversionExtBorrow<'a, crate::LegacyCacheItem>>::validate_body(&msg)?;
+		<T as MessageConversionBorrow<'a>>::from_message_unchecked(msg)
 	}
 }
 
@@ -916,6 +1034,19 @@ where
 }
 
 #[cfg(feature = "zbus")]
+impl<'a, T> MessageConversionExtBorrow<'a, crate::CacheItem> for T
+where
+	T: MessageConversionBorrow<'a, Body = crate::CacheItem>,
+{
+	fn try_from_message(msg: zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExtBorrow<'a, crate::CacheItem>>::validate_interface(&msg)?;
+		<T as MessageConversionExtBorrow<'a, crate::CacheItem>>::validate_member(&msg)?;
+		<T as MessageConversionExtBorrow<'a, crate::CacheItem>>::validate_body(&msg)?;
+		<T as MessageConversionBorrow<'a>>::from_message_unchecked(msg)
+	}
+}
+
+#[cfg(feature = "zbus")]
 impl<T> MessageConversionExt<ObjectRef> for T
 where
 	T: MessageConversion<Body = ObjectRef>,
@@ -925,6 +1056,19 @@ where
 		<T as MessageConversionExt<ObjectRef>>::validate_member(&msg)?;
 		<T as MessageConversionExt<ObjectRef>>::validate_body(&msg)?;
 		<T as MessageConversion>::from_message_unchecked(msg)
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<'a, T> MessageConversionExtBorrow<'a, ObjectRefBorrow<'a>> for T
+where
+	T: MessageConversionBorrow<'a, Body = ObjectRefBorrow<'a>>,
+{
+	fn try_from_message(msg: zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExtBorrow<'a, ObjectRefBorrow<'a>>>::validate_interface(&msg)?;
+		<T as MessageConversionExtBorrow<'a, ObjectRefBorrow<'a>>>::validate_member(&msg)?;
+		<T as MessageConversionExtBorrow<'a, ObjectRefBorrow<'a>>>::validate_body(&msg)?;
+		<T as MessageConversionBorrow>::from_message_unchecked(msg)
 	}
 }
 
@@ -960,6 +1104,81 @@ where
 pub trait MessageConversionExt<B>: MessageConversion<Body = B>
 where
 	B: Type + Serialize + for<'a> Deserialize<'a>,
+{
+	/// Convert a [`zbus::Message`] into this event type.
+	/// Does all the validation for you.
+	///
+	/// # Errors
+	///
+	/// - The message does not have an interface: [`type@AtspiError::MissingInterface`]
+	/// - The message interface does not match the one for the event: [`type@AtspiError::InterfaceMatch`]
+	/// - The message does not have an member: [`type@AtspiError::MissingMember`]
+	/// - The message member does not match the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
+	///
+	/// See [`MessageConversion::from_message_unchecked`] for info on panic condition that should never
+	/// happen.
+	fn try_from_message(msg: zbus::Message) -> Result<Self, AtspiError>
+	where
+		Self: Sized;
+	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
+	///
+	/// # Errors
+	///
+	/// - [`type@AtspiError::MissingInterface`] if there is no interface
+	/// - [`type@AtspiError::InterfaceMatch`] if the interfaces do not match
+	fn validate_interface(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let interface = msg.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != Self::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"The interface {} does not match the signal's interface: {}",
+				interface,
+				Self::DBUS_INTERFACE,
+			)));
+		}
+		Ok(())
+	}
+	/// Validate the member string via [`zbus::message::Header::member`] against `Self`'s assignment of [`BusProperties::DBUS_MEMBER`]
+	///
+	/// # Errors
+	///
+	/// - [`type@AtspiError::MissingMember`] if there is no member
+	/// - [`type@AtspiError::MemberMatch`] if the members do not match
+	fn validate_member(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let member = msg.member().ok_or(AtspiError::MissingMember)?;
+		if member != Self::DBUS_MEMBER {
+			return Err(AtspiError::MemberMatch(format!(
+				"The member {} does not match the signal's member: {}",
+				// unwrap is safe here because of guard above
+				member,
+				Self::DBUS_MEMBER,
+			)));
+		}
+		Ok(())
+	}
+	/// Validate the body signature against the [`zvariant::Signature`] of [`MessageConversion::Body`]
+	///
+	/// # Errors
+	///
+	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
+	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
+		let body = msg.body();
+		let body_signature = body.signature();
+		if body_signature != Self::Body::SIGNATURE {
+			return Err(AtspiError::SignatureMatch(format!(
+				"The message signature {} does not match the signal's body signature: {}",
+				body_signature,
+				&Self::Body::SIGNATURE.to_string(),
+			)));
+		}
+		Ok(())
+	}
+}
+
+#[cfg(feature = "zbus")]
+pub trait MessageConversionExtBorrow<'a, B>: MessageConversionBorrow<'a, Body = B>
+where
+	B: Type + Serialize + Deserialize<'a>,
 {
 	/// Convert a [`zbus::Message`] into this event type.
 	/// Does all the validation for you.

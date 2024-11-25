@@ -341,6 +341,52 @@ macro_rules! impl_from_dbus_message {
 		}
 	};
 }
+macro_rules! impl_from_dbus_message_borrow {
+	($type:ty) => {
+		impl_from_dbus_message!($type, Auto);
+	};
+	($type:ty, Auto) => {
+		#[cfg(feature = "zbus")]
+		impl<'a> TryFrom<zbus::Message> for $type {
+			type Error = AtspiError;
+			fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
+        use zvariant::Type;
+
+        Self::validate_interface(&msg)?;
+        Self::validate_member(&msg)?;
+
+        let body = msg.body();
+        let body_signature = body.signature();
+        let deser_body: <Self as MessageConversionBorrow>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
+            let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
+            qtbody.into()
+        } else if body_signature == crate::events::ATSPI_EVENT_SIGNATURE {
+            body.deserialize_unchecked()?
+        } else {
+          return Err(AtspiError::SignatureMatch(format!(
+            "The message signature {} does not match the signal's body signature: {}",
+            body_signature,
+            <Self as MessageConversionBorrow>::Body::SIGNATURE,
+          )));
+        };
+        let name = msg.sender().ok_or(AtspiError::MissingName)?;
+        // TODO: MissingName
+        let path = msg.path().ok_or(AtspiError::MissingName)?;
+        let item = crate::ObjectRefBorrow::new(name, path);
+        Self::from_message_unchecked_parts(item, deser_body)
+      }
+    }
+	};
+	($type:ty, Explicit) => {
+		#[cfg(feature = "zbus")]
+		impl<'a> TryFrom<zbus::Message> for $type {
+			type Error = AtspiError;
+			fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
+				<$type as crate::events::MessageConversionExtBorrow<'a, <$type as MessageConversionBorrow>::Body>>::try_from_message(msg)
+			}
+		}
+	};
+}
 
 // We decorate the macro with a `#[cfg(test)]` attribute.
 // This prevents Clippy from complaining about the macro not being used.
