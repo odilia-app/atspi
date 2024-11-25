@@ -628,7 +628,7 @@ impl MessageConversion for EventListenerDeregisteredEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = msg.into_body().deserialize()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -681,7 +681,7 @@ impl MessageConversion for EventListenerRegisteredEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = msg.into_body().deserialize()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -735,7 +735,7 @@ impl MessageConversion for AvailableEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = msg.into_body().deserialize()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -1080,7 +1080,8 @@ where
 	fn try_from_message(msg: zbus::Message) -> Result<Self, AtspiError> {
 		<T as MessageConversionExt<EventBodyOwned>>::validate_interface(&msg)?;
 		<T as MessageConversionExt<EventBodyOwned>>::validate_member(&msg)?;
-		let body = msg.body();
+		let item = (&msg).try_into()?;
+		let body = msg.into_body();
 		let body_sig = body.signature();
 		let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
 			body.deserialize_unchecked()?
@@ -1095,7 +1096,6 @@ where
 				EventBodyQT::SIGNATURE,
 			)));
 		};
-		let item = (&msg).try_into()?;
 		Self::from_message_unchecked_parts(item, data_body)
 	}
 }
@@ -1162,8 +1162,7 @@ where
 	///
 	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
-		let body = msg.body();
-		let body_signature = body.signature();
+		let body_signature = msg.signature();
 		if body_signature != Self::Body::SIGNATURE {
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {}",
@@ -1237,8 +1236,7 @@ where
 	///
 	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
-		let body = msg.body();
-		let body_signature = body.signature();
+		let body_signature = msg.signature();
 		if body_signature != Self::Body::SIGNATURE {
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {}",

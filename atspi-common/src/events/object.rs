@@ -616,10 +616,13 @@ impl MessageConversion for PropertyChangeEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		let sig = msg.signature();
+		let body = if sig == crate::events::QSPI_EVENT_SIGNATURE {
+			msg.into_body()
+				.deserialize_unchecked::<crate::events::EventBodyQT>()?
+				.into()
 		} else {
-			msg.body().deserialize()?
+			msg.into_body().deserialize_unchecked()?
 		};
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -662,10 +665,13 @@ impl MessageConversion for StateChangedEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		let sig = msg.signature();
+		let body = if sig == crate::events::QSPI_EVENT_SIGNATURE {
+			msg.into_body()
+				.deserialize_unchecked::<crate::events::EventBodyQT>()?
+				.into()
 		} else {
-			msg.body().deserialize()?
+			msg.into_body().deserialize_unchecked()?
 		};
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -697,10 +703,13 @@ impl MessageConversion for ChildrenChangedEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		let sig = msg.signature();
+		let body = if sig == crate::events::QSPI_EVENT_SIGNATURE {
+			msg.into_body()
+				.deserialize_unchecked::<crate::events::EventBodyQT>()?
+				.into()
 		} else {
-			msg.body().deserialize()?
+			msg.into_body().deserialize_unchecked()?
 		};
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -751,10 +760,13 @@ impl MessageConversion for ActiveDescendantChangedEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		let sig = msg.signature();
+		let body = if sig == crate::events::QSPI_EVENT_SIGNATURE {
+			msg.into_body()
+				.deserialize_unchecked::<crate::events::EventBodyQT>()?
+				.into()
 		} else {
-			msg.body().deserialize()?
+			msg.into_body().deserialize_unchecked()?
 		};
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -785,10 +797,13 @@ impl MessageConversion for AnnouncementEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		let sig = msg.signature();
+		let body = if sig == crate::events::QSPI_EVENT_SIGNATURE {
+			msg.into_body()
+				.deserialize_unchecked::<crate::events::EventBodyQT>()?
+				.into()
 		} else {
-			msg.body().deserialize()?
+			msg.into_body().deserialize_unchecked()?
 		};
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -893,10 +908,13 @@ impl MessageConversion for TextChangedEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		let sig = msg.signature();
+		let body = if sig == crate::events::QSPI_EVENT_SIGNATURE {
+			msg.into_body()
+				.deserialize_unchecked::<crate::events::EventBodyQT>()?
+				.into()
 		} else {
-			msg.body().deserialize()?
+			msg.into_body().deserialize_unchecked()?
 		};
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -931,10 +949,13 @@ impl MessageConversion for TextCaretMovedEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+		let sig = msg.signature();
+		let body = if sig == crate::events::QSPI_EVENT_SIGNATURE {
+			msg.into_body()
+				.deserialize_unchecked::<crate::events::EventBodyQT>()?
+				.into()
 		} else {
-			msg.body().deserialize()?
+			msg.into_body().deserialize_unchecked()?
 		};
 		Self::from_message_unchecked_parts(item, body)
 	}

@@ -124,7 +124,7 @@ impl MessageConversion for AbsEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = msg.body();
+		let body = msg.into_body();
 		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -151,7 +151,7 @@ impl MessageConversion for RelEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = msg.body();
+		let body = msg.into_body();
 		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -178,7 +178,7 @@ impl MessageConversion for ButtonEvent {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = msg.body();
+		let body = msg.into_body();
 		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
 	}

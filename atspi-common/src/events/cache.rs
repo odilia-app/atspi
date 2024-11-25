@@ -284,7 +284,7 @@ impl MessageConversion for RemoveAccessibleEvent<'_> {
 	}
 	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let item = (&msg).try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = msg.into_body().deserialize()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
