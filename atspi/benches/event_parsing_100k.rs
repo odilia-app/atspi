@@ -22,6 +22,15 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 			})
 		})
 	});
+	c.bench_function("100_000 Messages into Events (with header call)", |b| {
+		b.iter(|| {
+			random_messages.iter().map(Clone::clone).for_each(|m| {
+        let header = m.header();
+        drop(black_box(header));
+				Event::try_from(black_box(m)).unwrap();
+			})
+		})
+	});
 }
 
 criterion_group!(benches, criterion_benchmark);
