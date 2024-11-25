@@ -220,7 +220,7 @@ impl Clone for EventBodyOwned {
 /// Assumes being non exhaustive to allow for future- or custom signals.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[non_exhaustive]
-pub enum Event {
+pub enum Event<'a> {
 	/// See: [`DocumentEvents`].
 	Document(DocumentEvents),
 	/// See: [`FocusEvents`].
@@ -241,9 +241,10 @@ pub enum Event {
 	Cache(CacheEvents),
 	/// See: [`EventListenerEvents`].
 	Listener(EventListenerEvents),
+	Fuck(&'a str),
 }
 
-impl EventTypeProperties for Event {
+impl EventTypeProperties for Event<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Document(inner) => inner.member(),
@@ -256,6 +257,7 @@ impl EventTypeProperties for Event {
 			Self::Available(inner) => inner.member(),
 			Self::Cache(inner) => inner.member(),
 			Self::Listener(inner) => inner.member(),
+			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn interface(&self) -> &'static str {
@@ -270,6 +272,7 @@ impl EventTypeProperties for Event {
 			Self::Available(inner) => inner.interface(),
 			Self::Cache(inner) => inner.interface(),
 			Self::Listener(inner) => inner.interface(),
+			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn match_rule(&self) -> &'static str {
@@ -284,6 +287,7 @@ impl EventTypeProperties for Event {
 			Self::Available(inner) => inner.match_rule(),
 			Self::Cache(inner) => inner.match_rule(),
 			Self::Listener(inner) => inner.match_rule(),
+			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn registry_string(&self) -> &'static str {
@@ -298,11 +302,12 @@ impl EventTypeProperties for Event {
 			Self::Available(inner) => inner.registry_string(),
 			Self::Cache(inner) => inner.registry_string(),
 			Self::Listener(inner) => inner.registry_string(),
+			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 }
 
-impl EventProperties for Event {
+impl EventProperties for Event<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Document(inner) => inner.path(),
@@ -315,6 +320,7 @@ impl EventProperties for Event {
 			Self::Available(inner) => inner.path(),
 			Self::Cache(inner) => inner.path(),
 			Self::Listener(inner) => inner.path(),
+			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 	fn sender(&self) -> UniqueName<'_> {
@@ -329,6 +335,7 @@ impl EventProperties for Event {
 			Self::Available(inner) => inner.sender(),
 			Self::Cache(inner) => inner.sender(),
 			Self::Listener(inner) => inner.sender(),
+			Self::Fuck(_) => panic!("FUCK!"),
 		}
 	}
 }
@@ -649,14 +656,14 @@ pub struct AvailableEvent {
 	pub item: ObjectRef,
 	pub socket: ObjectRef,
 }
-impl From<AvailableEvent> for Event {
-	fn from(ev: AvailableEvent) -> Event {
+impl<'a> From<AvailableEvent> for Event<'a> {
+	fn from(ev: AvailableEvent) -> Event<'a> {
 		Event::Available(ev)
 	}
 }
-impl TryFrom<Event> for AvailableEvent {
+impl<'a> TryFrom<Event<'a>> for AvailableEvent {
 	type Error = AtspiError;
-	fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {
+	fn try_from(generic_event: Event<'a>) -> Result<AvailableEvent, Self::Error> {
 		if let Event::Available(specific_event) = generic_event {
 			Ok(specific_event)
 		} else {
@@ -697,10 +704,10 @@ impl_event_properties!(AvailableEvent);
 impl_to_dbus_message!(AvailableEvent);
 
 #[cfg(feature = "zbus")]
-impl TryFrom<zbus::Message> for Event {
+impl<'a> TryFrom<zbus::Message> for Event<'a> {
 	type Error = AtspiError;
 
-	fn try_from(msg: zbus::Message) -> Result<Event, AtspiError> {
+	fn try_from(msg: zbus::Message) -> Result<Event<'a>, AtspiError> {
 		let interface = msg.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
 
