@@ -13,20 +13,25 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 		write_messages_to_file(random_messages, FILE_PATH);
 	}
 
-	let random_messages = read_messages_from_file(FILE_PATH);
+	let random_messages = read_messages_from_file(FILE_PATH).into_iter();
 
 	c.bench_function("100_000 Messages into Events", |b| {
 		b.iter(|| {
-			random_messages.iter().map(Clone::clone).for_each(|m| {
+			let random_messages = random_messages.clone();
+
+			random_messages.for_each(|m| {
 				Event::try_from(black_box(m)).unwrap();
 			})
 		})
 	});
+
 	c.bench_function("100_000 Messages into Events (with header call)", |b| {
 		b.iter(|| {
-			random_messages.iter().map(Clone::clone).for_each(|m| {
-        let header = m.header();
-        drop(black_box(header));
+			let random_messages = random_messages.clone();
+
+			random_messages.for_each(|m| {
+				let header = m.header();
+				let _ = black_box(header);
 				Event::try_from(black_box(m)).unwrap();
 			})
 		})
