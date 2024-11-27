@@ -887,7 +887,9 @@ macro_rules! event_test_cases_borrow {
 		#[cfg(test)]
 		#[rename_item::rename(name($path), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$path, AtspiError, Event, BusProperties, MessageConversion, EventProperties, EventTypeProperties, MessageConversionBorrow};
+			#[allow(unused_imports)]
+			use super::{MessageConversion, MessageConversionBorrow};
+			use super::{$path, AtspiError, Event, BusProperties, EventProperties, EventTypeProperties};
       use zbus::Message;
       // TODO: use [`std::assert_matches::assert_matches`] when stabalized
       use assert_matches::assert_matches;
