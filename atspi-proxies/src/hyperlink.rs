@@ -13,7 +13,7 @@
 use crate::common::ObjectRef;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
-trait Hyperlink {
+pub trait Hyperlink {
 	/// GetObject method
 	fn get_object(&self, i: i32) -> zbus::Result<ObjectRef>;
 

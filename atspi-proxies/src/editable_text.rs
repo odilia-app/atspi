@@ -11,7 +11,7 @@
 //!
 
 #[zbus::proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = true)]
-trait EditableText {
+pub trait EditableText {
 	/// CopyText method
 	fn copy_text(&self, start_pos: i32, end_pos: i32) -> zbus::Result<()>;
 

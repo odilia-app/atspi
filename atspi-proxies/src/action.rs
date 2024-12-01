@@ -35,7 +35,7 @@ use atspi_common::Action;
 /// [TextProxy]: crate::text::TextProxy
 /// [ValueProxy]: crate::value::ValueProxy
 #[zbus::proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
-trait Action {
+pub trait Action {
 	/// Performs the specified action on the object.
 	///
 	/// Returns: Ok(true) on success, Ok(false) otherwise.
