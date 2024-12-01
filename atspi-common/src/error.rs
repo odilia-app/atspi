@@ -92,11 +92,9 @@ impl std::fmt::Display for AtspiError {
 			}
 			Self::SignatureMatch(e) => {
 				f.write_str(format!("atspi: body signature mismatch in conversion: {e:?}").as_str())
+			}
 			Self::InterfaceNotAvailable(e) => {
 				f.write_str(format!("atspi: interface not available: {e}").as_str())
-			}
-			Self::UnknownBusSignature(e) => {
-				f.write_str(format!("atspi: Unknown bus body signature: {e:?}").as_str())
 			}
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),
