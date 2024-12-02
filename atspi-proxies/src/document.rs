@@ -13,7 +13,7 @@
 use crate::common::TextSelection;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Document", assume_defaults = true)]
-trait Document {
+pub trait Document {
 	/// GetTextSelections method
 	fn get_text_selections(&self) -> zbus::Result<Vec<TextSelection>>;
 

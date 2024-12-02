@@ -17,7 +17,7 @@ use crate::common::ObjectRef;
 	default_path = "/org/a11y/atspi/accessible/root",
 	default_service = "org.a11y.atspi.Registry"
 )]
-trait Socket {
+pub trait Socket {
 	/// @plug: a string for the unique bus name of the application, and an object path
 	/// for the application's' root object.
 	///
