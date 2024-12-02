@@ -69,11 +69,11 @@
     <!--
         AccessibleId: application-specific identifier for the current object.
 
-        You can use this to give a special id to an object to use in tests, for example,
-        "my_widget".  Note that there is no way to directly find an object by its id; your
-        test program may have to recursively get the children to find a specific id.  This
-        is because accessible objects can be created dynamically, and they do not always
-        correspond to a static view of an application's data.
+        This can be used to give a special id to an object for reliable identification by
+        ATs or for use in tests, for example, "my_widget".  Note that there is no way to
+        directly find an object by its id; ATs may have to recursively get the children to
+        find a specific id.  This is because accessible objects can be created dynamically,
+        and they do not always correspond to a static view of an application's data.
     -->
     <property name="AccessibleId" type="s" access="read"/>
 
@@ -108,6 +108,9 @@
         Returns a list of the object's accessible children.
 
         Each array element (so) is a string for the application name, and an object path.
+
+        An implementor may return an error if the object exposes a large
+        number of children such that returning a list would be prohibitive.
     -->
     <method name="GetChildren">
       <arg direction="out" type="a(so)"/>
@@ -261,7 +264,7 @@
         technologies (ATs) with a standard interface, regardless of toolkit.  For example,
         a widget that acts like a conventional push button (appears unpressed; presses
         when acted upon; invokes a certain action when pressed) can expose an
-        ATSPI_ROLE_PUSH_BUTTON role.
+        ATSPI_ROLE_BUTTON role.
 
         Role values - these are the enum values from AtspiRole in atspi-constants.h:
 
@@ -384,7 +387,7 @@
         42 - ATSPI_ROLE_PROGRESS_BAR: An object used to indicate how much of a task has
              been completed.
 
-        43 - ATSPI_ROLE_PUSH_BUTTON: An object the user can manipulate to tell the
+        43 - ATSPI_ROLE_BUTTON: An object the user can manipulate to tell the
              application to do something.
 
         44 - ATSPI_ROLE_RADIO_BUTTON: A specialized check box that will cause other

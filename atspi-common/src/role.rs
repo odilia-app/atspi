@@ -98,7 +98,7 @@ pub enum Role {
 	/// An object used to indicate how much of a task has been completed.
 	ProgressBar,
 	/// An object the user can manipulate to tell the application to do something.
-	PushButton,
+	Button,
 	/// A specialized check box that will cause other radio buttons in the same group to become unchecked when this one is checked.
 	RadioButton,
 	/// Object is both a menu item and a "radio button". See [`Self::RadioButton`].
@@ -376,7 +376,7 @@ impl TryFrom<u32> for Role {
 			40 => PasswordText,
 			41 => PopupMenu,
 			42 => ProgressBar,
-			43 => PushButton,
+			43 => Button,
 			44 => RadioButton,
 			45 => RadioMenuItem,
 			46 => RootPane,
@@ -513,7 +513,7 @@ const ROLE_NAMES: &[&str] = &[
 	"password text",
 	"popup menu",
 	"progress bar",
-	"push button",
+	"button",
 	"radio button",
 	"radio menu item",
 	"root pane",
