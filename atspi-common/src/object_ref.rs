@@ -3,11 +3,10 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 
-pub const OBJECT_REF_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(so)");
+// Equiv to "(so)"
+pub const OBJECT_REF_SIGNATURE: Signature = Signature::from_static_str_unchecked(&"(so)");
 
-/// `ObjectRef` type
-///
-/// A ubiquitous type used to refer to an object in the accessibility tree.
+/// Used to refer to an object in the accessibility tree.
 ///
 /// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
 /// using a server name and object path. "(so)"
@@ -20,6 +19,35 @@ pub struct ObjectRef {
 	pub path: OwnedObjectPath,
 }
 
+#[validate(signal: "Available")]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+pub struct ObjectRefBorrow<'a> {
+	#[serde(borrow)]
+	pub name: UniqueName<'a>,
+	#[serde(borrow)]
+	pub path: ObjectPath<'a>,
+}
+
+impl ObjectRef {
+	#[must_use]
+	pub fn new<'a>(sender: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
+		Self { name: sender.into(), path: path.into() }
+	}
+}
+
+impl<'a> ObjectRefBorrow<'a> {
+	#[must_use]
+	pub fn new(name: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
+		Self { name, path }
+	}
+
+	pub fn to_fully_owned(&self) -> ObjectRef {
+		let name = OwnedUniqueName::from(self.name.clone());
+		let path = OwnedObjectPath::from(self.path.clone());
+		ObjectRef { name, path }
+	}
+}
+
 impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {
@@ -27,6 +55,14 @@ impl Default for ObjectRef {
 			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
 				.unwrap()
 				.into(),
+		}
+	}
+}
+impl Default for ObjectRefBorrow<'_> {
+	fn default() -> Self {
+		ObjectRefBorrow {
+			name: UniqueName::from_static_str(":0.0").unwrap(),
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap(),
 		}
 	}
 }
@@ -78,7 +114,7 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 		match &*value {
 			zvariant::Value::Structure(s) => {
 				if s.signature() != OBJECT_REF_SIGNATURE {
-					return Err(zvariant::Error::SignatureMismatch(s.signature(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {}", OBJECT_REF_SIGNATURE.as_str())));
+					return Err(zvariant::Error::SignatureMismatch(s.signature().clone(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {OBJECT_REF_SIGNATURE}")));
 				}
 				let fields = s.fields();
 				let name: String =
