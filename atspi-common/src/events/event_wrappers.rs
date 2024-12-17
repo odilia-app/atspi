@@ -53,7 +53,7 @@ pub enum DocumentEvents {
 	LoadStopped(LoadStoppedEvent),
 	/// See: [`ContentChangedEvent`].
 	ContentChanged(ContentChangedEvent),
-	/// See: [`AttributesChangedEvent`].
+	/// See: [`DocumentAttributesChangedEvent`].
 	AttributesChanged(DocumentAttributesChangedEvent),
 	/// See: [`PageChangedEvent`].
 	PageChanged(PageChangedEvent),
@@ -368,7 +368,7 @@ impl EventProperties for Event {
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
-	/// See: [`PropertyChangeEvent`].
+	/// See: [`ObjectPropertyChangeEvent`].
 	PropertyChange(ObjectPropertyChangeEvent),
 	/// See: [`BoundsChangedEvent`].
 	BoundsChanged(BoundsChangedEvent),
@@ -388,7 +388,7 @@ pub enum ObjectEvents {
 	ActiveDescendantChanged(ActiveDescendantChangedEvent),
 	/// See: [`AnnouncementEvent`].
 	Announcement(AnnouncementEvent),
-	/// See: [`AttributesChangedEvent`].
+	/// See: [`ObjectAttributesChangedEvent`].
 	AttributesChanged(ObjectAttributesChangedEvent),
 	/// See: [`RowInsertedEvent`].
 	RowInserted(RowInsertedEvent),
@@ -1537,7 +1537,7 @@ impl_try_from_event_for_user_facing_type!(
 /// All events on the `org.a11y.atspi.Event.Window` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum WindowEvents {
-	/// See: [`PropertyChangeEvent`].
+	/// See: [`WindowPropertyChangeEvent`].
 	PropertyChange(WindowPropertyChangeEvent),
 	/// See: [`MinimizeEvent`].
 	Minimize(MinimizeEvent),

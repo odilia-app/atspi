@@ -17,7 +17,7 @@ use zvariant::Type;
 /// Likewise, the path and sender bus name collectively make up an [`ObjectRef`], which is a way to uniquely identify an individual accessible item available to `atspi`.
 /// The latter is available via the [`EventProperties`] trait.
 ///
-/// This can also be generalized, for example this is implemented for [`Event`] by dispatching to the matching variants.
+/// This can also be generalized, for example this is implemented for [`crate::Event`] by dispatching to the matching variants.
 /// NOTE: to use `EventProperties` on wrapper types, like `Event`, you must enable the "enum-dispatch" feature.
 ///
 /// This trait *is* object-safe.
@@ -54,10 +54,10 @@ pub trait EventProperties {
 /// For a similar, but object-safe trait, see [`EventProperties`].
 pub trait BusProperties {
 	/// The `DBus` member for the event.
-	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
+	/// For example, for an [`crate::events::object::TextChangedEvent`] this should be `"TextChanged"`
 	const DBUS_MEMBER: &'static str;
 	/// The `DBus` interface name for this event.
-	/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
+	/// For example, for any event within [`crate::events::object`], this should be "org.a11y.atspi.Event.Object".
 	const DBUS_INTERFACE: &'static str;
 	/// A static match rule string for `DBus`.
 	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
@@ -69,9 +69,9 @@ pub trait BusProperties {
 }
 
 /// A specific trait *only* to define an interface name.
-/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
-/// information required to implement the [`BusProperties`] trait, you can indeed attach in
-/// interface name for all sub events of [`ObjectEvents`].
+/// This is useful for event wrappers like [`crate::events::ObjectEvents`], which, while it does not have other
+/// information required to implement the [`crate::BusProperties`] trait, you can indeed attach in
+/// interface name for all sub events of [`crate::events::ObjectEvents`].
 ///
 /// This trait *is not* object-safe.
 pub trait HasInterfaceName {
@@ -81,9 +81,9 @@ pub trait HasInterfaceName {
 }
 
 /// A specific trait *only* to define match rules.
-/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
-/// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
-/// to the `DBus` connection to capture all sub events of [`ObjectEvents`].
+/// This is useful for event wrappers like [`crate::events::ObjectEvents`], which, while it does not have other
+/// information required to implement the [`crate::BusProperties`] trait, you can indeed add a match rule
+/// to the `DBus` connection to capture all sub events of [`crate::events::ObjectEvents`].
 ///
 /// This trait *is not* object-safe.
 pub trait HasMatchRule {
@@ -94,9 +94,9 @@ pub trait HasMatchRule {
 }
 
 /// A specific trait *only* to define registry event matches.
-/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
-/// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
-/// to the AT-SPI connection to subscribe to all sub events of [`ObjectEvents`].
+/// This is useful for event wrappers like [`crate::events::ObjectEvents`], which, while it does not have other
+/// information required to implement the [`crate::BusProperties`] trait, you can indeed add a match rule
+/// to the AT-SPI connection to subscribe to all sub events of [`crate::events::ObjectEvents`].
 ///
 /// This trait *is not* object-safe.
 pub trait HasRegistryEventString {
