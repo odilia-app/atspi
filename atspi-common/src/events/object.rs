@@ -1,20 +1,14 @@
 use std::hash::Hash;
 
 #[cfg(feature = "zbus")]
-use crate::events::{
-	MessageConversion, MessageConversionExt,
-};
+use crate::events::{MessageConversion, MessageConversionExt};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned,
-		ObjectRef,
-	},
+	events::{BusProperties, EventBodyOwned, ObjectRef},
 	Event, EventProperties, State,
 };
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
-
 
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]

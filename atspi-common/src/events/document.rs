@@ -1,12 +1,6 @@
 #[cfg(feature = "zbus")]
-use crate::events::{
-	MessageConversion, MessageConversionExt,
-};
-use crate::{
-	error::AtspiError,
-	events::BusProperties,
-	Event, EventProperties,
-};
+use crate::events::{MessageConversion, MessageConversionExt};
+use crate::{error::AtspiError, events::BusProperties, Event, EventProperties};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -157,4 +151,3 @@ impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);
 impl_event_properties!(PageChangedEvent);
 impl_from_object_ref!(PageChangedEvent);
-
