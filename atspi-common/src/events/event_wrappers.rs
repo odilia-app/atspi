@@ -1,7 +1,4 @@
-use crate::events::{
-	AvailableEvent, EventListenerEvents, FocusEvents, KeyboardEvents, MouseEvents, TerminalEvents,
-	WindowEvents,
-};
+use crate::events::{AvailableEvent, EventListenerEvents};
 #[cfg(feature = "zbus")]
 use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
@@ -12,17 +9,32 @@ use crate::{
 		document::{
 			ContentChangedEvent, LoadCompleteEvent, LoadStoppedEvent, PageChangedEvent, ReloadEvent,
 		},
+		focus::FocusEvent,
+		keyboard::ModifiersEvent,
+		mouse::{AbsEvent, ButtonEvent, RelEvent},
+		terminal::{
+			ApplicationChangedEvent, CharWidthChangedEvent, ColumnCountChangedEvent,
+			LineChangedEvent, LineCountChangedEvent,
+		},
+		window::PropertyChangeEvent as WindowPropertyChangeEvent,
+		window::{
+			ActivateEvent, CloseEvent, CreateEvent, DeactivateEvent, DesktopCreateEvent,
+			DesktopDestroyEvent, DestroyEvent, LowerEvent, MaximizeEvent, MinimizeEvent, MoveEvent,
+			RaiseEvent, ReparentEvent, ResizeEvent, RestoreEvent, RestyleEvent, ShadeEvent,
+			UUshadeEvent,
+		},
 		BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString,
 	},
 	EventProperties, EventTypeProperties,
 };
 use crate::{
 	events::object::AttributesChangedEvent as ObjectAttributesChangedEvent,
+	events::object::PropertyChangeEvent as ObjectPropertyChangeEvent,
 	events::object::{
 		ActiveDescendantChangedEvent, AnnouncementEvent, BoundsChangedEvent, ChildrenChangedEvent,
 		ColumnDeletedEvent, ColumnInsertedEvent, ColumnReorderedEvent, LinkSelectedEvent,
-		ModelChangedEvent, PropertyChangeEvent, RowDeletedEvent, RowInsertedEvent,
-		RowReorderedEvent, SelectionChangedEvent, StateChangedEvent, TextAttributesChangedEvent,
+		ModelChangedEvent, RowDeletedEvent, RowInsertedEvent, RowReorderedEvent,
+		SelectionChangedEvent, StateChangedEvent, TextAttributesChangedEvent,
 		TextBoundsChangedEvent, TextCaretMovedEvent, TextChangedEvent, TextSelectionChangedEvent,
 		VisibleDataChangedEvent,
 	},
@@ -357,7 +369,7 @@ impl EventProperties for Event {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
 	/// See: [`PropertyChangeEvent`].
-	PropertyChange(PropertyChangeEvent),
+	PropertyChange(ObjectPropertyChangeEvent),
 	/// See: [`BoundsChangedEvent`].
 	BoundsChanged(BoundsChangedEvent),
 	/// See: [`LinkSelectedEvent`].
@@ -585,19 +597,19 @@ impl_from_user_facing_type_for_event_enum!(ChildrenChangedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(LinkSelectedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(PropertyChangeEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ObjectPropertyChangeEvent, Event::Object);
 
 impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
 impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
-event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
+event_wrapper_test_cases!(ObjectEvents, ObjectPropertyChangeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	PropertyChangeEvent,
+	ObjectPropertyChangeEvent,
 	ObjectEvents,
 	ObjectEvents::PropertyChange
 );
 impl_try_from_event_for_user_facing_type!(
-	PropertyChangeEvent,
+	ObjectPropertyChangeEvent,
 	ObjectEvents::PropertyChange,
 	Event::Object
 );
@@ -826,9 +838,9 @@ impl EventWrapperMessageConversion for ObjectEvents {
 		let header = msg.header();
 		let member = header.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			PropertyChangeEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
-			}
+			ObjectPropertyChangeEvent::DBUS_MEMBER => Ok(ObjectEvents::PropertyChange(
+				ObjectPropertyChangeEvent::from_message_unchecked(msg)?,
+			)),
 			BoundsChangedEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent::from_message_unchecked(msg)?))
 			}
@@ -1047,3 +1059,843 @@ impl_from_user_facing_event_for_interface_event_enum!(
 	CacheEvents::Remove
 );
 impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub enum FocusEvents {
+	/// See: [`FocusEvent`].
+	Focus(FocusEvent),
+}
+
+impl EventTypeProperties for FocusEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.member(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.match_rule(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.interface(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Focus(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for FocusEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Focus(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::Focus(inner) => inner.sender(),
+		}
+	}
+}
+impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
+impl_try_from_event_for_user_facing_event_type!(FocusEvents, Event::Focus);
+event_wrapper_test_cases!(FocusEvents, FocusEvent);
+impl HasMatchRule for FocusEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
+}
+impl HasInterfaceName for FocusEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
+}
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for FocusEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			FocusEvent::DBUS_MEMBER => {
+				Ok(FocusEvents::Focus(FocusEvent::from_message_unchecked(msg)?))
+			}
+			_ => Err(AtspiError::MemberMatch(format!(
+				"No matching member {member} for interface {}",
+				Self::DBUS_INTERFACE,
+			))),
+		}
+	}
+}
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for FocusEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
+impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
+impl HasRegistryEventString for FocusEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub enum KeyboardEvents {
+	/// See: [`ModifiersEvent`].
+	Modifiers(ModifiersEvent),
+}
+
+impl EventTypeProperties for KeyboardEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.member(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.match_rule(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.interface(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Modifiers(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for KeyboardEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Modifiers(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::Modifiers(inner) => inner.sender(),
+		}
+	}
+}
+
+impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
+impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard);
+event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
+
+impl HasMatchRule for KeyboardEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
+}
+
+impl HasInterfaceName for KeyboardEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
+}
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for KeyboardEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header
+			.member()
+			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
+		match member.as_str() {
+			ModifiersEvent::DBUS_MEMBER => {
+				Ok(KeyboardEvents::Modifiers(ModifiersEvent::from_message_unchecked(msg)?))
+			}
+			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for KeyboardEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	ModifiersEvent,
+	KeyboardEvents,
+	KeyboardEvents::Modifiers
+);
+impl_try_from_event_for_user_facing_type!(
+	ModifiersEvent,
+	KeyboardEvents::Modifiers,
+	Event::Keyboard
+);
+impl HasRegistryEventString for KeyboardEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub enum MouseEvents {
+	/// See: [`AbsEvent`].
+	Abs(AbsEvent),
+	/// See: [`RelEvent`].
+	Rel(RelEvent),
+	/// See: [`ButtonEvent`].
+	Button(ButtonEvent),
+}
+
+impl EventTypeProperties for MouseEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.member(),
+			Self::Rel(inner) => inner.member(),
+			Self::Button(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.interface(),
+			Self::Rel(inner) => inner.interface(),
+			Self::Button(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.match_rule(),
+			Self::Rel(inner) => inner.match_rule(),
+			Self::Button(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.registry_string(),
+			Self::Rel(inner) => inner.registry_string(),
+			Self::Button(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for MouseEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Abs(inner) => inner.path(),
+			Self::Rel(inner) => inner.path(),
+			Self::Button(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::Abs(inner) => inner.sender(),
+			Self::Rel(inner) => inner.sender(),
+			Self::Button(inner) => inner.sender(),
+		}
+	}
+}
+impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
+impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
+
+event_wrapper_test_cases!(MouseEvents, AbsEvent);
+
+impl HasMatchRule for MouseEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
+}
+
+impl HasInterfaceName for MouseEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
+}
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for MouseEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			AbsEvent::DBUS_MEMBER => Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?)),
+			RelEvent::DBUS_MEMBER => Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?)),
+			ButtonEvent::DBUS_MEMBER => {
+				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg)?))
+			}
+			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for MouseEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+
+impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
+impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(RelEvent, MouseEvents, MouseEvents::Rel);
+impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ButtonEvent,
+	MouseEvents,
+	MouseEvents::Button
+);
+impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Event::Mouse);
+impl HasRegistryEventString for MouseEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
+
+impl HasRegistryEventString for TerminalEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
+}
+
+/// All events related to the `org.a11y.atspi.Event.Terminal` interface.
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub enum TerminalEvents {
+	/// See: [`LineChangedEvent`].
+	LineChanged(LineChangedEvent),
+	/// See: [`ColumnCountChangedEvent`].
+	ColumnCountChanged(ColumnCountChangedEvent),
+	/// See: [`LineCountChangedEvent`].
+	LineCountChanged(LineCountChangedEvent),
+	/// See: [`ApplicationChangedEvent`].
+	ApplicationChanged(ApplicationChangedEvent),
+	/// See: [`CharWidthChangedEvent`].
+	CharWidthChanged(CharWidthChangedEvent),
+}
+
+impl EventTypeProperties for TerminalEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.member(),
+			Self::ColumnCountChanged(inner) => inner.member(),
+			Self::LineCountChanged(inner) => inner.member(),
+			Self::ApplicationChanged(inner) => inner.member(),
+			Self::CharWidthChanged(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.interface(),
+			Self::ColumnCountChanged(inner) => inner.interface(),
+			Self::LineCountChanged(inner) => inner.interface(),
+			Self::ApplicationChanged(inner) => inner.interface(),
+			Self::CharWidthChanged(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.match_rule(),
+			Self::ColumnCountChanged(inner) => inner.match_rule(),
+			Self::LineCountChanged(inner) => inner.match_rule(),
+			Self::ApplicationChanged(inner) => inner.match_rule(),
+			Self::CharWidthChanged(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::LineChanged(inner) => inner.registry_string(),
+			Self::ColumnCountChanged(inner) => inner.registry_string(),
+			Self::LineCountChanged(inner) => inner.registry_string(),
+			Self::ApplicationChanged(inner) => inner.registry_string(),
+			Self::CharWidthChanged(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for TerminalEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::LineChanged(inner) => inner.path(),
+			Self::ColumnCountChanged(inner) => inner.path(),
+			Self::LineCountChanged(inner) => inner.path(),
+			Self::ApplicationChanged(inner) => inner.path(),
+			Self::CharWidthChanged(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::LineChanged(inner) => inner.sender(),
+			Self::ColumnCountChanged(inner) => inner.sender(),
+			Self::LineCountChanged(inner) => inner.sender(),
+			Self::ApplicationChanged(inner) => inner.sender(),
+			Self::CharWidthChanged(inner) => inner.sender(),
+		}
+	}
+}
+
+impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
+impl_try_from_event_for_user_facing_event_type!(TerminalEvents, Event::Terminal);
+
+event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
+
+impl HasMatchRule for TerminalEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
+}
+
+impl HasInterfaceName for TerminalEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
+}
+
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for TerminalEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header
+			.member()
+			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
+		match member.as_str() {
+			LineChangedEvent::DBUS_MEMBER => {
+				Ok(TerminalEvents::LineChanged(LineChangedEvent::from_message_unchecked(msg)?))
+			}
+			ColumnCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ColumnCountChanged(
+				ColumnCountChangedEvent::from_message_unchecked(msg)?,
+			)),
+			LineCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::LineCountChanged(
+				LineCountChangedEvent::from_message_unchecked(msg)?,
+			)),
+			ApplicationChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ApplicationChanged(
+				ApplicationChangedEvent::from_message_unchecked(msg)?,
+			)),
+			CharWidthChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::CharWidthChanged(
+				CharWidthChangedEvent::from_message_unchecked(msg)?,
+			)),
+			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for TerminalEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	LineChangedEvent,
+	TerminalEvents,
+	TerminalEvents::LineChanged
+);
+impl_try_from_event_for_user_facing_type!(
+	LineChangedEvent,
+	TerminalEvents::LineChanged,
+	Event::Terminal
+);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ColumnCountChangedEvent,
+	TerminalEvents,
+	TerminalEvents::ColumnCountChanged
+);
+impl_try_from_event_for_user_facing_type!(
+	ColumnCountChangedEvent,
+	TerminalEvents::ColumnCountChanged,
+	Event::Terminal
+);
+impl_from_user_facing_event_for_interface_event_enum!(
+	LineCountChangedEvent,
+	TerminalEvents,
+	TerminalEvents::LineCountChanged
+);
+impl_try_from_event_for_user_facing_type!(
+	LineCountChangedEvent,
+	TerminalEvents::LineCountChanged,
+	Event::Terminal
+);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ApplicationChangedEvent,
+	TerminalEvents,
+	TerminalEvents::ApplicationChanged
+);
+impl_try_from_event_for_user_facing_type!(
+	ApplicationChangedEvent,
+	TerminalEvents::ApplicationChanged,
+	Event::Terminal
+);
+impl_from_user_facing_event_for_interface_event_enum!(
+	CharWidthChangedEvent,
+	TerminalEvents,
+	TerminalEvents::CharWidthChanged
+);
+impl_try_from_event_for_user_facing_type!(
+	CharWidthChangedEvent,
+	TerminalEvents::CharWidthChanged,
+	Event::Terminal
+);
+
+/// All events on the `org.a11y.atspi.Event.Window` interface.
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub enum WindowEvents {
+	/// See: [`PropertyChangeEvent`].
+	PropertyChange(WindowPropertyChangeEvent),
+	/// See: [`MinimizeEvent`].
+	Minimize(MinimizeEvent),
+	/// See: [`MaximizeEvent`].
+	Maximize(MaximizeEvent),
+	/// See: [`RestoreEvent`].
+	Restore(RestoreEvent),
+	/// See: [`CloseEvent`].
+	Close(CloseEvent),
+	/// See: [`CreateEvent`].
+	Create(CreateEvent),
+	/// See: [`ReparentEvent`].
+	Reparent(ReparentEvent),
+	/// See: [`DesktopCreateEvent`].
+	DesktopCreate(DesktopCreateEvent),
+	/// See: [`DesktopDestroyEvent`].
+	DesktopDestroy(DesktopDestroyEvent),
+	/// See: [`DestroyEvent`].
+	Destroy(DestroyEvent),
+	/// See: [`ActivateEvent`].
+	Activate(ActivateEvent),
+	/// See: [`DeactivateEvent`].
+	Deactivate(DeactivateEvent),
+	/// See: [`RaiseEvent`].
+	Raise(RaiseEvent),
+	/// See: [`LowerEvent`].
+	Lower(LowerEvent),
+	/// See: [`MoveEvent`].
+	Move(MoveEvent),
+	/// See: [`ResizeEvent`].
+	Resize(ResizeEvent),
+	/// See: [`ShadeEvent`].
+	Shade(ShadeEvent),
+	/// See: [`UUshadeEvent`].
+	UUshade(UUshadeEvent),
+	/// See: [`RestyleEvent`].
+	Restyle(RestyleEvent),
+}
+
+impl EventTypeProperties for WindowEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.member(),
+			Self::Minimize(inner) => inner.member(),
+			Self::Maximize(inner) => inner.member(),
+			Self::Restore(inner) => inner.member(),
+			Self::Close(inner) => inner.member(),
+			Self::Create(inner) => inner.member(),
+			Self::Reparent(inner) => inner.member(),
+			Self::DesktopCreate(inner) => inner.member(),
+			Self::DesktopDestroy(inner) => inner.member(),
+			Self::Destroy(inner) => inner.member(),
+			Self::Activate(inner) => inner.member(),
+			Self::Deactivate(inner) => inner.member(),
+			Self::Raise(inner) => inner.member(),
+			Self::Lower(inner) => inner.member(),
+			Self::Move(inner) => inner.member(),
+			Self::Resize(inner) => inner.member(),
+			Self::Shade(inner) => inner.member(),
+			Self::UUshade(inner) => inner.member(),
+			Self::Restyle(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.interface(),
+			Self::Minimize(inner) => inner.interface(),
+			Self::Maximize(inner) => inner.interface(),
+			Self::Restore(inner) => inner.interface(),
+			Self::Close(inner) => inner.interface(),
+			Self::Create(inner) => inner.interface(),
+			Self::Reparent(inner) => inner.interface(),
+			Self::DesktopCreate(inner) => inner.interface(),
+			Self::DesktopDestroy(inner) => inner.interface(),
+			Self::Destroy(inner) => inner.interface(),
+			Self::Activate(inner) => inner.interface(),
+			Self::Deactivate(inner) => inner.interface(),
+			Self::Raise(inner) => inner.interface(),
+			Self::Lower(inner) => inner.interface(),
+			Self::Move(inner) => inner.interface(),
+			Self::Resize(inner) => inner.interface(),
+			Self::Shade(inner) => inner.interface(),
+			Self::UUshade(inner) => inner.interface(),
+			Self::Restyle(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.match_rule(),
+			Self::Minimize(inner) => inner.match_rule(),
+			Self::Maximize(inner) => inner.match_rule(),
+			Self::Restore(inner) => inner.match_rule(),
+			Self::Close(inner) => inner.match_rule(),
+			Self::Create(inner) => inner.match_rule(),
+			Self::Reparent(inner) => inner.match_rule(),
+			Self::DesktopCreate(inner) => inner.match_rule(),
+			Self::DesktopDestroy(inner) => inner.match_rule(),
+			Self::Destroy(inner) => inner.match_rule(),
+			Self::Activate(inner) => inner.match_rule(),
+			Self::Deactivate(inner) => inner.match_rule(),
+			Self::Raise(inner) => inner.match_rule(),
+			Self::Lower(inner) => inner.match_rule(),
+			Self::Move(inner) => inner.match_rule(),
+			Self::Resize(inner) => inner.match_rule(),
+			Self::Shade(inner) => inner.match_rule(),
+			Self::UUshade(inner) => inner.match_rule(),
+			Self::Restyle(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.registry_string(),
+			Self::Minimize(inner) => inner.registry_string(),
+			Self::Maximize(inner) => inner.registry_string(),
+			Self::Restore(inner) => inner.registry_string(),
+			Self::Close(inner) => inner.registry_string(),
+			Self::Create(inner) => inner.registry_string(),
+			Self::Reparent(inner) => inner.registry_string(),
+			Self::DesktopCreate(inner) => inner.registry_string(),
+			Self::DesktopDestroy(inner) => inner.registry_string(),
+			Self::Destroy(inner) => inner.registry_string(),
+			Self::Activate(inner) => inner.registry_string(),
+			Self::Deactivate(inner) => inner.registry_string(),
+			Self::Raise(inner) => inner.registry_string(),
+			Self::Lower(inner) => inner.registry_string(),
+			Self::Move(inner) => inner.registry_string(),
+			Self::Resize(inner) => inner.registry_string(),
+			Self::Shade(inner) => inner.registry_string(),
+			Self::UUshade(inner) => inner.registry_string(),
+			Self::Restyle(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for WindowEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::PropertyChange(inner) => inner.path(),
+			Self::Minimize(inner) => inner.path(),
+			Self::Maximize(inner) => inner.path(),
+			Self::Restore(inner) => inner.path(),
+			Self::Close(inner) => inner.path(),
+			Self::Create(inner) => inner.path(),
+			Self::Reparent(inner) => inner.path(),
+			Self::DesktopCreate(inner) => inner.path(),
+			Self::DesktopDestroy(inner) => inner.path(),
+			Self::Destroy(inner) => inner.path(),
+			Self::Activate(inner) => inner.path(),
+			Self::Deactivate(inner) => inner.path(),
+			Self::Raise(inner) => inner.path(),
+			Self::Lower(inner) => inner.path(),
+			Self::Move(inner) => inner.path(),
+			Self::Resize(inner) => inner.path(),
+			Self::Shade(inner) => inner.path(),
+			Self::UUshade(inner) => inner.path(),
+			Self::Restyle(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::PropertyChange(inner) => inner.sender(),
+			Self::Minimize(inner) => inner.sender(),
+			Self::Maximize(inner) => inner.sender(),
+			Self::Restore(inner) => inner.sender(),
+			Self::Close(inner) => inner.sender(),
+			Self::Create(inner) => inner.sender(),
+			Self::Reparent(inner) => inner.sender(),
+			Self::DesktopCreate(inner) => inner.sender(),
+			Self::DesktopDestroy(inner) => inner.sender(),
+			Self::Destroy(inner) => inner.sender(),
+			Self::Activate(inner) => inner.sender(),
+			Self::Deactivate(inner) => inner.sender(),
+			Self::Raise(inner) => inner.sender(),
+			Self::Lower(inner) => inner.sender(),
+			Self::Move(inner) => inner.sender(),
+			Self::Resize(inner) => inner.sender(),
+			Self::Shade(inner) => inner.sender(),
+			Self::UUshade(inner) => inner.sender(),
+			Self::Restyle(inner) => inner.sender(),
+		}
+	}
+}
+
+impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);
+impl_try_from_event_for_user_facing_event_type!(WindowEvents, Event::Window);
+
+event_wrapper_test_cases!(WindowEvents, MoveEvent);
+
+impl HasMatchRule for WindowEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window'";
+}
+
+impl HasInterfaceName for WindowEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
+}
+
+#[cfg(feature = "zbus")]
+impl EventWrapperMessageConversion for WindowEvents {
+	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
+		let header = msg.header();
+		let member = header.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			WindowPropertyChangeEvent::DBUS_MEMBER => Ok(WindowEvents::PropertyChange(
+				WindowPropertyChangeEvent::from_message_unchecked(msg)?,
+			)),
+			MinimizeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Minimize(MinimizeEvent::from_message_unchecked(msg)?))
+			}
+			MaximizeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Maximize(MaximizeEvent::from_message_unchecked(msg)?))
+			}
+			RestoreEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Restore(RestoreEvent::from_message_unchecked(msg)?))
+			}
+			"Close" => Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg)?)),
+			CreateEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Create(CreateEvent::from_message_unchecked(msg)?))
+			}
+			ReparentEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg)?))
+			}
+			"DesktopCreate" => {
+				Ok(WindowEvents::DesktopCreate(DesktopCreateEvent::from_message_unchecked(msg)?))
+			}
+			"DesktopDestroy" => {
+				Ok(WindowEvents::DesktopDestroy(DesktopDestroyEvent::from_message_unchecked(msg)?))
+			}
+			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg)?)),
+			"Activate" => Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg)?)),
+			"Deactivate" => {
+				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg)?))
+			}
+			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg)?)),
+			"Lower" => Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg)?)),
+			"Move" => Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg)?)),
+			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg)?)),
+			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg)?)),
+			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg)?)),
+			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg)?)),
+			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for WindowEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	WindowPropertyChangeEvent,
+	WindowEvents,
+	WindowEvents::PropertyChange
+);
+impl_try_from_event_for_user_facing_type!(
+	WindowPropertyChangeEvent,
+	WindowEvents::PropertyChange,
+	Event::Window
+);
+impl_from_user_facing_event_for_interface_event_enum!(
+	MinimizeEvent,
+	WindowEvents,
+	WindowEvents::Minimize
+);
+impl_try_from_event_for_user_facing_type!(MinimizeEvent, WindowEvents::Minimize, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	MaximizeEvent,
+	WindowEvents,
+	WindowEvents::Maximize
+);
+impl_try_from_event_for_user_facing_type!(MaximizeEvent, WindowEvents::Maximize, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RestoreEvent,
+	WindowEvents,
+	WindowEvents::Restore
+);
+impl_try_from_event_for_user_facing_type!(RestoreEvent, WindowEvents::Restore, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	CloseEvent,
+	WindowEvents,
+	WindowEvents::Close
+);
+impl_try_from_event_for_user_facing_type!(CloseEvent, WindowEvents::Close, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	CreateEvent,
+	WindowEvents,
+	WindowEvents::Create
+);
+impl_try_from_event_for_user_facing_type!(CreateEvent, WindowEvents::Create, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ReparentEvent,
+	WindowEvents,
+	WindowEvents::Reparent
+);
+impl_try_from_event_for_user_facing_type!(ReparentEvent, WindowEvents::Reparent, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	DesktopCreateEvent,
+	WindowEvents,
+	WindowEvents::DesktopCreate
+);
+impl_try_from_event_for_user_facing_type!(
+	DesktopCreateEvent,
+	WindowEvents::DesktopCreate,
+	Event::Window
+);
+impl_from_user_facing_event_for_interface_event_enum!(
+	DesktopDestroyEvent,
+	WindowEvents,
+	WindowEvents::DesktopDestroy
+);
+impl_try_from_event_for_user_facing_type!(
+	DesktopDestroyEvent,
+	WindowEvents::DesktopDestroy,
+	Event::Window
+);
+impl_from_user_facing_event_for_interface_event_enum!(
+	DestroyEvent,
+	WindowEvents,
+	WindowEvents::Destroy
+);
+impl_try_from_event_for_user_facing_type!(DestroyEvent, WindowEvents::Destroy, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ActivateEvent,
+	WindowEvents,
+	WindowEvents::Activate
+);
+impl_try_from_event_for_user_facing_type!(ActivateEvent, WindowEvents::Activate, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	DeactivateEvent,
+	WindowEvents,
+	WindowEvents::Deactivate
+);
+impl_try_from_event_for_user_facing_type!(DeactivateEvent, WindowEvents::Deactivate, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RaiseEvent,
+	WindowEvents,
+	WindowEvents::Raise
+);
+impl_try_from_event_for_user_facing_type!(RaiseEvent, WindowEvents::Raise, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	LowerEvent,
+	WindowEvents,
+	WindowEvents::Lower
+);
+impl_try_from_event_for_user_facing_type!(LowerEvent, WindowEvents::Lower, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(MoveEvent, WindowEvents, WindowEvents::Move);
+impl_try_from_event_for_user_facing_type!(MoveEvent, WindowEvents::Move, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ResizeEvent,
+	WindowEvents,
+	WindowEvents::Resize
+);
+impl_try_from_event_for_user_facing_type!(ResizeEvent, WindowEvents::Resize, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ShadeEvent,
+	WindowEvents,
+	WindowEvents::Shade
+);
+impl_try_from_event_for_user_facing_type!(ShadeEvent, WindowEvents::Shade, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	UUshadeEvent,
+	WindowEvents,
+	WindowEvents::UUshade
+);
+impl_try_from_event_for_user_facing_type!(UUshadeEvent, WindowEvents::UUshade, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	RestyleEvent,
+	WindowEvents,
+	WindowEvents::Restyle
+);
+impl_try_from_event_for_user_facing_type!(RestyleEvent, WindowEvents::Restyle, Event::Window);
+impl HasRegistryEventString for WindowEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+}

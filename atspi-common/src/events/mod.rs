@@ -1,7 +1,10 @@
 pub mod cache;
 pub mod document;
 pub mod event_wrappers;
-pub use event_wrappers::{CacheEvents, DocumentEvents, Event, ObjectEvents};
+pub use event_wrappers::{
+	CacheEvents, DocumentEvents, Event, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents,
+	TerminalEvents, WindowEvents,
+};
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
@@ -38,10 +41,6 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::OwnedObjectPath;
 use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
 
-pub use crate::events::{
-	focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents, terminal::TerminalEvents,
-	window::WindowEvents,
-};
 use crate::{AtspiError, ObjectRef};
 
 /// Qt event body, which is not the same as other GUI frameworks.
