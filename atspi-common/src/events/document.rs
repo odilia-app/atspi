@@ -1,11 +1,11 @@
 #[cfg(feature = "zbus")]
 use crate::events::{
-	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+	MessageConversion, MessageConversionExt,
 };
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
-	Event, EventProperties, EventTypeProperties,
+	events::BusProperties,
+	Event, EventProperties,
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;

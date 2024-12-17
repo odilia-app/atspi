@@ -2,15 +2,15 @@ use std::hash::Hash;
 
 #[cfg(feature = "zbus")]
 use crate::events::{
-	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+	MessageConversion, MessageConversionExt,
 };
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		BusProperties, EventBodyOwned,
 		ObjectRef,
 	},
-	Event, EventProperties, EventTypeProperties, State,
+	Event, EventProperties, State,
 };
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
