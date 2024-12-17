@@ -1,15 +1,7 @@
-use crate::{
-	AtspiError,
-	ObjectRef,
-};
-use zvariant::{
-	Type,
-	ObjectPath,
-};
+use crate::{AtspiError, ObjectRef};
+use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
-use serde::{
-	Serialize, Deserialize,
-};
+use zvariant::{ObjectPath, Type};
 
 /// Describes properties of a specific event _type_.
 ///
@@ -125,7 +117,6 @@ pub(crate) trait TryFromMessage {
 		Self: Sized;
 }
 
-
 #[cfg(feature = "zbus")]
 pub trait MessageConversionExt<B>: MessageConversion<Body = B>
 where
@@ -205,7 +196,6 @@ where
 	}
 }
 
-
 #[cfg(feature = "zbus")]
 pub trait MessageConversion: BusProperties {
 	/// What is the body type of this event.
@@ -261,4 +251,3 @@ pub trait MessageConversion: BusProperties {
 	/// The body of the object.
 	fn body(&self) -> Self::Body;
 }
-

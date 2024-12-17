@@ -1,18 +1,14 @@
 pub mod cache;
 pub mod document;
 pub mod event_wrappers;
-pub use event_wrappers::{
-	Event,
-	ObjectEvents,
-	DocumentEvents,
-};
+pub use event_wrappers::{DocumentEvents, Event, ObjectEvents};
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
 pub mod object;
 pub mod terminal;
-pub mod window;
 pub mod traits;
+pub mod window;
 pub use traits::*;
 
 // Unmarshalled event body signatures: These outline the event specific deserialized event types.
@@ -43,8 +39,8 @@ use zvariant::OwnedObjectPath;
 use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
 
 pub use crate::events::{
-	cache::CacheEvents, focus::FocusEvents, keyboard::KeyboardEvents,
-	mouse::MouseEvents, terminal::TerminalEvents, window::WindowEvents,
+	cache::CacheEvents, focus::FocusEvents, keyboard::KeyboardEvents, mouse::MouseEvents,
+	terminal::TerminalEvents, window::WindowEvents,
 };
 use crate::{AtspiError, ObjectRef};
 
@@ -601,7 +597,6 @@ impl TryFrom<&zbus::Message> for Event {
 		}
 	}
 }
-
 
 impl<T: BusProperties> EventTypeProperties for T {
 	fn member(&self) -> &'static str {
