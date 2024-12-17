@@ -7,7 +7,6 @@ use crate::{
 	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
-pub use crate::events::wrappers::DocumentEvents;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
