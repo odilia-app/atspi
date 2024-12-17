@@ -112,6 +112,13 @@ impl EventProperties for DocumentEvents {
 	}
 }
 
+impl_from_user_facing_type_for_event_enum!(PageChangedEvent, Event::Document);
+impl_from_user_facing_type_for_event_enum!(DocumentAttributesChangedEvent, Event::Document);
+impl_from_user_facing_type_for_event_enum!(ContentChangedEvent, Event::Document);
+impl_from_user_facing_type_for_event_enum!(LoadStoppedEvent, Event::Document);
+impl_from_user_facing_type_for_event_enum!(ReloadEvent, Event::Document);
+impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent, Event::Document);
+
 impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
 impl_try_from_event_for_user_facing_event_type!(DocumentEvents, Event::Document);
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
