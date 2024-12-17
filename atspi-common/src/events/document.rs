@@ -1,6 +1,6 @@
 #[cfg(feature = "zbus")]
 use crate::events::{MessageConversion, MessageConversionExt};
-use crate::{error::AtspiError, events::BusProperties, Event, EventProperties};
+use crate::{error::AtspiError, events::BusProperties, EventProperties};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -104,15 +104,11 @@ impl BusProperties for PageChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
-impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent, Event::Document);
-
 event_test_cases!(LoadCompleteEvent);
 impl_to_dbus_message!(LoadCompleteEvent);
 impl_from_dbus_message!(LoadCompleteEvent);
 impl_event_properties!(LoadCompleteEvent);
 impl_from_object_ref!(LoadCompleteEvent);
-
-impl_from_user_facing_type_for_event_enum!(ReloadEvent, Event::Document);
 
 event_test_cases!(ReloadEvent);
 impl_to_dbus_message!(ReloadEvent);
@@ -120,15 +116,11 @@ impl_from_dbus_message!(ReloadEvent);
 impl_event_properties!(ReloadEvent);
 impl_from_object_ref!(ReloadEvent);
 
-impl_from_user_facing_type_for_event_enum!(LoadStoppedEvent, Event::Document);
-
 event_test_cases!(LoadStoppedEvent);
 impl_to_dbus_message!(LoadStoppedEvent);
 impl_from_dbus_message!(LoadStoppedEvent);
 impl_event_properties!(LoadStoppedEvent);
 impl_from_object_ref!(LoadStoppedEvent);
-
-impl_from_user_facing_type_for_event_enum!(ContentChangedEvent, Event::Document);
 
 event_test_cases!(ContentChangedEvent);
 impl_to_dbus_message!(ContentChangedEvent);
@@ -136,15 +128,11 @@ impl_from_dbus_message!(ContentChangedEvent);
 impl_event_properties!(ContentChangedEvent);
 impl_from_object_ref!(ContentChangedEvent);
 
-impl_from_user_facing_type_for_event_enum!(AttributesChangedEvent, Event::Document);
-
 event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
 impl_from_object_ref!(AttributesChangedEvent);
-
-impl_from_user_facing_type_for_event_enum!(PageChangedEvent, Event::Document);
 
 event_test_cases!(PageChangedEvent);
 impl_to_dbus_message!(PageChangedEvent);
