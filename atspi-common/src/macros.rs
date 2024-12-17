@@ -73,6 +73,7 @@ macro_rules! impl_from_object_ref {
 /// ```
 macro_rules! impl_from_interface_event_enum_for_event {
 	($outer_type:ty, $outer_variant:path) => {
+		#[cfg(feature = "wrappers")]
 		impl From<$outer_type> for Event {
 			fn from(event_variant: $outer_type) -> Event {
 				$outer_variant(event_variant.into())
@@ -163,6 +164,7 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 /// ```
 macro_rules! impl_from_user_facing_type_for_event_enum {
 	($inner_type:ty, $outer_variant:path) => {
+		#[cfg(feature = "wrappers")]
 		impl From<$inner_type> for Event {
 			fn from(event_variant: $inner_type) -> Event {
 				$outer_variant(event_variant.into())
@@ -195,6 +197,7 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 /// ```
 macro_rules! impl_try_from_event_for_user_facing_type {
 	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
+		#[cfg(feature = "wrappers")]
 		impl TryFrom<Event> for $inner_type {
 			type Error = AtspiError;
 			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {

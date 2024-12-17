@@ -1,6 +1,9 @@
 #[cfg(feature = "zbus")]
-use crate::events::{MessageConversion, MessageConversionExt};
-use crate::{error::AtspiError, events::BusProperties, Event, EventProperties};
+use crate::{
+	error::AtspiError,
+	events::{MessageConversion, MessageConversionExt},
+};
+use crate::{events::BusProperties, EventProperties};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -17,8 +20,6 @@ impl BusProperties for FocusEvent {
 		"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 }
-
-impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
 
 event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);

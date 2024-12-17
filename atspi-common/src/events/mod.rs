@@ -1,6 +1,8 @@
 pub mod cache;
 pub mod document;
+#[cfg(feature = "wrappers")]
 pub mod event_wrappers;
+#[cfg(feature = "wrappers")]
 pub use event_wrappers::{
 	CacheEvents, DocumentEvents, Event, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents,
 	TerminalEvents, WindowEvents,
@@ -75,7 +77,9 @@ use zvariant::{
 	ObjectPath, OwnedValue, Signature, Type, Value,
 };
 
-use crate::{AtspiError, ObjectRef};
+#[cfg(feature = "zbus")]
+use crate::AtspiError;
+use crate::ObjectRef;
 
 /// Qt event body, which is not the same as other GUI frameworks.
 /// Signature:  "siiv(so)"
@@ -536,11 +540,13 @@ pub struct AvailableEvent {
 	pub item: ObjectRef,
 	pub socket: ObjectRef,
 }
+#[cfg(feature = "wrappers")]
 impl From<AvailableEvent> for Event {
 	fn from(ev: AvailableEvent) -> Event {
 		Event::Available(ev)
 	}
 }
+#[cfg(feature = "wrappers")]
 impl TryFrom<Event> for AvailableEvent {
 	type Error = AtspiError;
 	fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {

@@ -1,12 +1,12 @@
-use crate::{
-	error::AtspiError,
-	events::{BusProperties, EventBodyOwned},
-	Event, EventProperties,
-};
 #[cfg(feature = "zbus")]
 use crate::{
+	error::AtspiError,
 	events::{MessageConversion, MessageConversionExt},
 	ObjectRef,
+};
+use crate::{
+	events::{BusProperties, EventBodyOwned},
+	EventProperties,
 };
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
@@ -45,8 +45,6 @@ impl MessageConversion for ModifiersEvent {
 		copy.into()
 	}
 }
-
-impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
 
 event_test_cases!(ModifiersEvent);
 impl_to_dbus_message!(ModifiersEvent);

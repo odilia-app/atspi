@@ -1,7 +1,12 @@
-use crate::{AtspiError, ObjectRef};
+#[cfg(feature = "zbus")]
+use crate::AtspiError;
+use crate::ObjectRef;
+#[cfg(feature = "zbus")]
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, Type};
+use zvariant::ObjectPath;
+#[cfg(feature = "zbus")]
+use zvariant::Type;
 
 /// Describes properties of a specific event _type_.
 ///

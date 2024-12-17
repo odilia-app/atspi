@@ -1,6 +1,9 @@
 #[cfg(feature = "zbus")]
-use crate::events::{MessageConversion, MessageConversionExt};
-use crate::{error::AtspiError, events::BusProperties, Event, EventProperties};
+use crate::{
+	error::AtspiError,
+	events::{MessageConversion, MessageConversionExt},
+};
+use crate::{events::BusProperties, EventProperties};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -81,35 +84,30 @@ impl BusProperties for CharWidthChangedEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
-impl_from_user_facing_type_for_event_enum!(LineChangedEvent, Event::Terminal);
 event_test_cases!(LineChangedEvent);
 impl_to_dbus_message!(LineChangedEvent);
 impl_from_dbus_message!(LineChangedEvent);
 impl_event_properties!(LineChangedEvent);
 impl_from_object_ref!(LineChangedEvent);
 
-impl_from_user_facing_type_for_event_enum!(ColumnCountChangedEvent, Event::Terminal);
 event_test_cases!(ColumnCountChangedEvent);
 impl_to_dbus_message!(ColumnCountChangedEvent);
 impl_from_dbus_message!(ColumnCountChangedEvent);
 impl_event_properties!(ColumnCountChangedEvent);
 impl_from_object_ref!(ColumnCountChangedEvent);
 
-impl_from_user_facing_type_for_event_enum!(LineCountChangedEvent, Event::Terminal);
 event_test_cases!(LineCountChangedEvent);
 impl_to_dbus_message!(LineCountChangedEvent);
 impl_from_dbus_message!(LineCountChangedEvent);
 impl_event_properties!(LineCountChangedEvent);
 impl_from_object_ref!(LineCountChangedEvent);
 
-impl_from_user_facing_type_for_event_enum!(ApplicationChangedEvent, Event::Terminal);
 event_test_cases!(ApplicationChangedEvent);
 impl_to_dbus_message!(ApplicationChangedEvent);
 impl_from_dbus_message!(ApplicationChangedEvent);
 impl_event_properties!(ApplicationChangedEvent);
 impl_from_object_ref!(ApplicationChangedEvent);
 
-impl_from_user_facing_type_for_event_enum!(CharWidthChangedEvent, Event::Terminal);
 event_test_cases!(CharWidthChangedEvent);
 impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
