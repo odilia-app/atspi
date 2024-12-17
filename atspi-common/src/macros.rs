@@ -778,7 +778,8 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$type, AtspiError, Event, BusProperties, MessageConversion, EventProperties, EventTypeProperties};
+			use crate::{EventTypeProperties, Event};
+			use super::{$type, AtspiError, BusProperties, MessageConversion, EventProperties};
       use zbus::Message;
       // TODO: use [`std::assert_matches::assert_matches`] when stabalized
       use assert_matches::assert_matches;
