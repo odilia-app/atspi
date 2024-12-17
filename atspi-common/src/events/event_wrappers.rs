@@ -556,6 +556,29 @@ impl EventProperties for ObjectEvents {
 	}
 }
 
+impl_from_user_facing_type_for_event_enum!(TextCaretMovedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextAttributesChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextSelectionChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextBoundsChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ColumnDeletedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ColumnReorderedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ColumnInsertedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(RowDeletedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(RowReorderedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(RowInsertedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ObjectAttributesChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(AnnouncementEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ActiveDescendantChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ModelChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(SelectionChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(VisibleDataChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ChildrenChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(LinkSelectedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(PropertyChangeEvent, Event::Object);
+
 impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
 impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
 event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
