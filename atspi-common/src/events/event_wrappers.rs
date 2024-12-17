@@ -934,6 +934,10 @@ pub enum CacheEvents {
 	Remove(RemoveAccessibleEvent),
 }
 
+impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
+impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
+impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
+
 impl HasMatchRule for CacheEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
 }
@@ -1101,6 +1105,8 @@ impl EventProperties for FocusEvents {
 		}
 	}
 }
+
+impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
 impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
 impl_try_from_event_for_user_facing_event_type!(FocusEvents, Event::Focus);
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
@@ -1181,6 +1187,7 @@ impl EventProperties for KeyboardEvents {
 	}
 }
 
+impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
 impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
 impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard);
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
@@ -1288,6 +1295,9 @@ impl EventProperties for MouseEvents {
 		}
 	}
 }
+impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
+impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
+impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
 impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
 impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
 
@@ -1416,6 +1426,12 @@ impl EventProperties for TerminalEvents {
 		}
 	}
 }
+
+impl_from_user_facing_type_for_event_enum!(CharWidthChangedEvent, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(ApplicationChangedEvent, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(LineCountChangedEvent, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(ColumnCountChangedEvent, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(LineChangedEvent, Event::Terminal);
 
 impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
 impl_try_from_event_for_user_facing_event_type!(TerminalEvents, Event::Terminal);
@@ -1704,6 +1720,26 @@ impl EventProperties for WindowEvents {
 		}
 	}
 }
+
+impl_from_user_facing_type_for_event_enum!(ReparentEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(CloseEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(RestoreEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(MaximizeEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(MinimizeEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(WindowPropertyChangeEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(RestyleEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(UUshadeEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(ShadeEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(ResizeEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(MoveEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(LowerEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(RaiseEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DeactivateEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(ActivateEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DestroyEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DesktopDestroyEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DesktopCreateEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(CreateEvent, Event::Window);
 
 impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);
 impl_try_from_event_for_user_facing_event_type!(WindowEvents, Event::Window);

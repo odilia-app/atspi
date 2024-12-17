@@ -1,10 +1,12 @@
-#[cfg(feature = "zbus")]
-use crate::events::{MessageConversion, MessageConversionExt};
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
-	error::AtspiError,
 	events::{BusProperties, ObjectRef},
-	Event, EventProperties,
+	EventProperties,
+};
+#[cfg(feature = "zbus")]
+use crate::{
+	error::AtspiError,
+	events::{MessageConversion, MessageConversionExt},
 };
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
@@ -20,7 +22,6 @@ pub struct LegacyAddAccessibleEvent {
 	pub node_added: LegacyCacheItem,
 }
 
-impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
 event_test_cases!(LegacyAddAccessibleEvent, Explicit);
 impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent);
@@ -62,7 +63,6 @@ pub struct AddAccessibleEvent {
 	pub node_added: CacheItem,
 }
 
-impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
 event_test_cases!(AddAccessibleEvent, Explicit);
 
 impl BusProperties for AddAccessibleEvent {
@@ -105,7 +105,6 @@ pub struct RemoveAccessibleEvent {
 	pub node_removed: ObjectRef,
 }
 
-impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent, Explicit);
 
 impl BusProperties for RemoveAccessibleEvent {

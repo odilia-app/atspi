@@ -1,12 +1,12 @@
-use crate::{
-	error::AtspiError,
-	events::{BusProperties, EventBodyOwned},
-	Event, EventProperties,
-};
 #[cfg(feature = "zbus")]
 use crate::{
+	error::AtspiError,
 	events::{MessageConversion, MessageConversionExt},
 	ObjectRef,
+};
+use crate::{
+	events::{BusProperties, EventBodyOwned},
+	EventProperties,
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
@@ -117,8 +117,6 @@ impl MessageConversion for ButtonEvent {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
-
 event_test_cases!(AbsEvent);
 impl_to_dbus_message!(AbsEvent);
 impl_from_dbus_message!(AbsEvent);
@@ -135,7 +133,6 @@ impl From<AbsEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
 event_test_cases!(RelEvent);
 impl_to_dbus_message!(RelEvent);
 impl_from_dbus_message!(RelEvent);
@@ -152,7 +149,6 @@ impl From<RelEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
 event_test_cases!(ButtonEvent);
 impl_to_dbus_message!(ButtonEvent);
 impl_from_dbus_message!(ButtonEvent);

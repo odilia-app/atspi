@@ -14,9 +14,10 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["async-std"]
+default = ["async-std", "wrappers"]
 async-std = ["zbus/async-io"]
 tokio = ["zbus/tokio"]
+wrappers = []
 
 [dependencies]
 enumflags2 = "0.7.7"
