@@ -1,8 +1,10 @@
 pub mod cache;
 pub mod document;
-pub mod wrappers;
-pub use wrappers::{
+pub mod event_wrappers;
+pub use event_wrappers::{
 	Event,
+	ObjectEvents,
+	DocumentEvents,
 };
 pub mod focus;
 pub mod keyboard;
@@ -75,8 +77,8 @@ use zvariant::{
 };
 
 pub use crate::events::{
-	cache::CacheEvents, document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents,
-	mouse::MouseEvents, object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
+	cache::CacheEvents, focus::FocusEvents, keyboard::KeyboardEvents,
+	mouse::MouseEvents, terminal::TerminalEvents, window::WindowEvents,
 };
 use crate::{AtspiError, ObjectRef};
 
