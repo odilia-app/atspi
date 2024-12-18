@@ -86,7 +86,7 @@ macro_rules! impl_from_interface_event_enum_for_event {
 ///
 /// eg
 /// ```ignore
-/// impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+/// impl_try_from_event_for_interface_enum!(ObjectEvents, Event::Object);
 /// ```
 /// expands to:
 ///
@@ -102,7 +102,7 @@ macro_rules! impl_from_interface_event_enum_for_event {
 ///     }
 /// }
 /// ```
-macro_rules! impl_try_from_event_for_user_facing_event_type {
+macro_rules! impl_try_from_event_for_interface_enum {
 	($outer_type:ty, $outer_variant:path) => {
 		impl TryFrom<Event> for $outer_type {
 			type Error = AtspiError;

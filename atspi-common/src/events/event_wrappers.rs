@@ -133,7 +133,7 @@ impl_from_user_facing_type_for_event_enum!(ReloadEvent, Event::Document);
 impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent, Event::Document);
 
 impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
-impl_try_from_event_for_user_facing_event_type!(DocumentEvents, Event::Document);
+impl_try_from_event_for_interface_enum!(DocumentEvents, Event::Document);
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
 
 impl HasMatchRule for DocumentEvents {
@@ -600,7 +600,7 @@ impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(ObjectPropertyChangeEvent, Event::Object);
 
 impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
-impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+impl_try_from_event_for_interface_enum!(ObjectEvents, Event::Object);
 event_wrapper_test_cases!(ObjectEvents, ObjectPropertyChangeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
@@ -1108,7 +1108,7 @@ impl EventProperties for FocusEvents {
 
 impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
 impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
-impl_try_from_event_for_user_facing_event_type!(FocusEvents, Event::Focus);
+impl_try_from_event_for_interface_enum!(FocusEvents, Event::Focus);
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
 impl HasMatchRule for FocusEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
@@ -1189,7 +1189,7 @@ impl EventProperties for KeyboardEvents {
 
 impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
 impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
-impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard);
+impl_try_from_event_for_interface_enum!(KeyboardEvents, Event::Keyboard);
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
 impl HasMatchRule for KeyboardEvents {
@@ -1299,7 +1299,7 @@ impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
 impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
 impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
 impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
-impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
+impl_try_from_event_for_interface_enum!(MouseEvents, Event::Mouse);
 
 event_wrapper_test_cases!(MouseEvents, AbsEvent);
 
@@ -1434,7 +1434,7 @@ impl_from_user_facing_type_for_event_enum!(ColumnCountChangedEvent, Event::Termi
 impl_from_user_facing_type_for_event_enum!(LineChangedEvent, Event::Terminal);
 
 impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
-impl_try_from_event_for_user_facing_event_type!(TerminalEvents, Event::Terminal);
+impl_try_from_event_for_interface_enum!(TerminalEvents, Event::Terminal);
 
 event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
 
@@ -1742,7 +1742,7 @@ impl_from_user_facing_type_for_event_enum!(DesktopCreateEvent, Event::Window);
 impl_from_user_facing_type_for_event_enum!(CreateEvent, Event::Window);
 
 impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);
-impl_try_from_event_for_user_facing_event_type!(WindowEvents, Event::Window);
+impl_try_from_event_for_interface_enum!(WindowEvents, Event::Window);
 
 event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
