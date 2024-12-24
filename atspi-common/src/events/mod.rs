@@ -589,7 +589,7 @@ impl_from_dbus_message!(AvailableEvent, Explicit);
 impl_event_properties!(AvailableEvent);
 impl_to_dbus_message!(AvailableEvent);
 
-#[cfg(feature = "zbus")]
+#[cfg(all(feature = "zbus", feature = "wrappers"))]
 impl TryFrom<&zbus::Message> for Event {
 	type Error = AtspiError;
 
