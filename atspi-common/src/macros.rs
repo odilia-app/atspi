@@ -73,6 +73,7 @@ macro_rules! impl_from_object_ref {
 /// ```
 macro_rules! impl_from_interface_event_enum_for_event {
 	($outer_type:ty, $outer_variant:path) => {
+		#[cfg(feature = "wrappers")]
 		impl From<$outer_type> for Event {
 			fn from(event_variant: $outer_type) -> Event {
 				$outer_variant(event_variant.into())
@@ -85,7 +86,7 @@ macro_rules! impl_from_interface_event_enum_for_event {
 ///
 /// eg
 /// ```ignore
-/// impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+/// impl_try_from_event_for_interface_enum!(ObjectEvents, Event::Object);
 /// ```
 /// expands to:
 ///
@@ -101,7 +102,7 @@ macro_rules! impl_from_interface_event_enum_for_event {
 ///     }
 /// }
 /// ```
-macro_rules! impl_try_from_event_for_user_facing_event_type {
+macro_rules! impl_try_from_event_for_interface_enum {
 	($outer_type:ty, $outer_variant:path) => {
 		impl TryFrom<Event> for $outer_type {
 			type Error = AtspiError;
@@ -163,6 +164,7 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 /// ```
 macro_rules! impl_from_user_facing_type_for_event_enum {
 	($inner_type:ty, $outer_variant:path) => {
+		#[cfg(feature = "wrappers")]
 		impl From<$inner_type> for Event {
 			fn from(event_variant: $inner_type) -> Event {
 				$outer_variant(event_variant.into())
@@ -195,6 +197,7 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 /// ```
 macro_rules! impl_try_from_event_for_user_facing_type {
 	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
+		#[cfg(feature = "wrappers")]
 		impl TryFrom<Event> for $inner_type {
 			type Error = AtspiError;
 			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {
@@ -778,7 +781,8 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use super::{$type, AtspiError, Event, BusProperties, MessageConversion, EventProperties, EventTypeProperties};
+			use crate::{EventTypeProperties, Event};
+			use super::{$type, AtspiError, BusProperties, MessageConversion, EventProperties};
       use zbus::Message;
       // TODO: use [`std::assert_matches::assert_matches`] when stabalized
       use assert_matches::assert_matches;
