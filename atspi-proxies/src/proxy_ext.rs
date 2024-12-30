@@ -12,13 +12,13 @@ use atspi_common::{Interface, InterfaceSet, Result};
 /// Equip objects with conversions to proxies of the objects' further implemented interfaces
 /// by extending `AccessibleProxy`.
 ///
-/// The `proxies` method returns a `Proxies` object, which contains the related interface proxies.
+/// The `proxies` method returns a `Proxies` struct, which contains lazily loaded proxy accessors.
 ///
 /// # Lazy initialization and cheap checks
 ///
 /// Proxies are lazily initialized, so they are only created when requested.
 /// Interface availability is checked before creating the proxy and is a cheap bitop.
-pub trait ObjectProxies<'a> {
+pub trait ProxyExt<'a> {
 	/// Get `Proxies` for the current object.
 	fn proxies(&self) -> impl std::future::Future<Output = Result<Proxies<'a>>>;
 }
@@ -50,7 +50,7 @@ struct InnerProxies<'a> {
 	value: Option<ValueProxy<'a>>,
 }
 
-impl<'a> ObjectProxies<'a> for AccessibleProxy<'a> {
+impl<'a> ProxyExt<'a> for AccessibleProxy<'a> {
 	async fn proxies(&self) -> Result<Proxies<'a>> {
 		let iface_set: InterfaceSet = self.get_interfaces().await?;
 		let proxy = self.inner().clone();
