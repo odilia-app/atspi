@@ -635,7 +635,9 @@ pub mod tests {
 				.unwrap_or_else(|_| panic!("Unable to encode {from_role}"));
 			println!("ENCODED: {encoded:?}");
 
-			let (zbus_role, _) = encoded.deserialize().expect("Unable to decode {encoded:?}");
+			let (zbus_role, _) = encoded
+				.deserialize()
+				.unwrap_or_else(|_| panic!("Unable to decode {encoded:?}"));
 
 			assert_eq!(from_role, zbus_role, "The serde `Data::deserialize` and `From<u32>` impls produced different results. The number used was {role_num}, it produced a Role of {from_role}, but the from_slice(...) implementation produced {zbus_role}");
 			assert_eq!(

@@ -203,7 +203,7 @@ impl std::fmt::Display for ObjectPathConversionError {
 		match self {
 			Self::NoIdAvailable => f.write_str("No ID available in the path."),
 			Self::ParseError(e) => {
-				f.write_str("Failure to parse: {e}")?;
+				f.write_str("Failure to parse: ")?;
 				e.fmt(f)
 			}
 		}
