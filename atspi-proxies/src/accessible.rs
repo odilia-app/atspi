@@ -127,9 +127,9 @@ trait Accessible {
 	///
 	/// For example, a widget that acts like a conventional push button
 	/// (appears unpressed; presses	when acted upon; invokes a certain action
-	/// when pressed) can expose an	[`Role::PushButton`] role.
+	/// when pressed) can expose an	[`Role::Button`] role.
 	///
-	/// [`Role::PushButton`]: crate::common::Role::PushButton
+	/// [`Role::Button`]: crate::common::Role::Button
 	/// [`Role`]: crate::common::Role
 	fn get_role(&self) -> zbus::Result<Role>;
 

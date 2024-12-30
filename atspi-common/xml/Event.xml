@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node>
-
-  <!-- FIXME: all the following signatures are incorrect and need to be synched
-       with the C code and the actual implementations in toolkits.
-
-       See https://gitlab.gnome.org/GNOME/at-spi2-core/-/issues/74
-  -->
-
   <interface name="org.a11y.atspi.Event.Object">
     <signal name="PropertyChange">
       <arg name="property" type="s"/>
