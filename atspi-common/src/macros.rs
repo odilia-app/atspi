@@ -286,7 +286,7 @@ macro_rules! impl_from_dbus_message {
         Self::validate_member(msg)?;
 
         let body = msg.body();
-        let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+        let body_signature = body.signature();
         let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
             let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
             qtbody.into()
@@ -296,7 +296,7 @@ macro_rules! impl_from_dbus_message {
           return Err(AtspiError::SignatureMatch(format!(
             "The message signature {} does not match the signal's body signature: {}",
             body_signature,
-            <Self as MessageConversion>::Body::signature().as_str(),
+            <Self as MessageConversion>::Body::SIGNATURE,
           )));
         };
         let item = msg.try_into()?;
@@ -335,7 +335,7 @@ macro_rules! generic_event_test_case {
 			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let body = struct_event.body();
-			let body2 = Message::method(
+			let body2 = Message::method_call(
 				struct_event.path().as_str(),
 				<$type as BusProperties>::DBUS_MEMBER,
 			)
@@ -568,7 +568,7 @@ macro_rules! zbus_message_test_case {
 			.build(&())
 			.unwrap();
 			let event = <$type>::try_from(&fake_msg);
-      assert_matches!(event, Err(AtspiError::MissingSignature), "Wrong kind of error");
+      assert_matches!(event, Err(AtspiError::SignatureMatch(_)), "Wrong kind of error");
 		}
 
 		#[cfg(feature = "zbus")]

@@ -18,12 +18,43 @@ pub mod window;
 // specific signal types with TryFrom implementations. See crate::[`identify`]
 //  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
 //  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
-pub const ATSPI_EVENT_SIGNATURE: Signature<'_> =
-	Signature::from_static_str_unchecked("(siiva{sv})");
-pub const QSPI_EVENT_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(siiv(so))");
-pub const EVENT_LISTENER_SIGNATURE: Signature<'_> = Signature::from_static_str_unchecked("(ss)");
-pub const CACHE_ADD_SIGNATURE: Signature<'_> =
-	Signature::from_static_str_unchecked("((so)(so)(so)iiassusau)");
+// Same as "(siiva{sv})"
+pub const ATSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
+	&Signature::Str,
+	&Signature::I32,
+	&Signature::I32,
+	&Signature::Variant,
+	&Signature::Dict {
+		key: Child::Static { child: &Signature::Str },
+		value: Child::Static { child: &Signature::Variant },
+	},
+]);
+pub const EVENT_NAME_SIGNATURE: &Signature =
+	&Signature::static_structure(&[&Signature::Str, &Signature::Str]);
+// Same as "(siiv(so))"
+pub const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
+	&Signature::Str,
+	&Signature::I32,
+	&Signature::I32,
+	&Signature::Variant,
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+]);
+// Same as "(so)"
+pub const EVENT_LISTENER_SIGNATURE: &Signature =
+	&Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
+// Same as "((so)(so)(so)iiassusau)"
+pub const CACHE_ADD_SIGNATURE: &Signature = &Signature::static_structure(&[
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
+	&Signature::I32,
+	&Signature::I32,
+	&Signature::Array(Child::Static { child: &Signature::Str }),
+	&Signature::Str,
+	&Signature::U32,
+	&Signature::Str,
+	&Signature::Array(Child::Static { child: &Signature::U32 }),
+]);
 
 use std::collections::HashMap;
 
@@ -32,7 +63,10 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
 use zvariant::OwnedObjectPath;
-use zvariant::{ObjectPath, OwnedValue, Signature, Type, Value};
+use zvariant::{
+	signature::{Child, Fields},
+	ObjectPath, OwnedValue, Signature, Type, Value,
+};
 
 pub use crate::events::{
 	cache::CacheEvents, document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents,
@@ -670,39 +704,38 @@ impl TryFrom<&zbus::Message> for Event {
 
 	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
 		let header = msg.header();
-
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
 
 		match interface_str {
-			<AvailableEvent as BusProperties>::DBUS_INTERFACE => {
+			<AvailableEvent as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(AvailableEvent::try_from(msg)?.into())
 			}
-			ObjectEvents::DBUS_INTERFACE => {
+			<ObjectEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg)?))
 			}
-			DocumentEvents::DBUS_INTERFACE => {
+			<DocumentEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Document(DocumentEvents::try_from_message_interface_checked(msg)?))
 			}
-			WindowEvents::DBUS_INTERFACE => {
+			<WindowEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg)?))
 			}
-			TerminalEvents::DBUS_INTERFACE => {
+			<TerminalEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Terminal(TerminalEvents::try_from_message_interface_checked(msg)?))
 			}
-			MouseEvents::DBUS_INTERFACE => {
+			<MouseEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg)?))
 			}
-			FocusEvents::DBUS_INTERFACE => {
+			<FocusEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg)?))
 			}
-			KeyboardEvents::DBUS_INTERFACE => {
+			<KeyboardEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Keyboard(KeyboardEvents::try_from_message_interface_checked(msg)?))
 			}
-			CacheEvents::DBUS_INTERFACE => {
+			<CacheEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg)?))
 			}
-			EventListenerEvents::DBUS_INTERFACE => {
+			<EventListenerEvents as HasInterfaceName>::DBUS_INTERFACE => {
 				Ok(Event::Listener(EventListenerEvents::try_from_message_interface_checked(msg)?))
 			}
 			_ => Err(AtspiError::InterfaceMatch(format!(
@@ -803,7 +836,6 @@ pub trait MessageConversion: BusProperties {
 	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
 	/// - That the message has an member: [`type@AtspiError::MissingMember`]
 	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
-	/// - That the message has an signature: [`type@AtspiError::MissingSignature`]
 	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
@@ -908,7 +940,7 @@ where
 		<T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
 		<T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
 		let body = msg.body();
-		let body_sig = body.signature().ok_or(AtspiError::MissingSignature)?;
+		let body_sig = body.signature();
 		let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
 			body.deserialize_unchecked()?
 		} else if body_sig == QSPI_EVENT_SIGNATURE {
@@ -918,8 +950,8 @@ where
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {} or {}",
 				body_sig,
-				EventBodyOwned::signature(),
-				EventBodyQT::signature(),
+				EventBodyOwned::SIGNATURE,
+				EventBodyQT::SIGNATURE,
 			)));
 		};
 		let item = msg.try_into()?;
@@ -941,7 +973,6 @@ where
 	/// - The message interface does not match the one for the event: [`type@AtspiError::InterfaceMatch`]
 	/// - The message does not have an member: [`type@AtspiError::MissingMember`]
 	/// - The message member does not match the one for the event: [`type@AtspiError::MemberMatch`]
-	/// - The message does not have an signature: [`type@AtspiError::MissingSignature`]
 	/// - The message signature does not match the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// See [`MessageConversion::from_message_unchecked`] for info on panic condition that should never
@@ -990,16 +1021,15 @@ where
 	///
 	/// # Errors
 	///
-	/// - [`type@AtspiError::MissingSignature`] if there is no signature
 	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();
-		let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
-		if body_signature != Self::Body::signature() {
+		let body_signature = body.signature();
+		if body_signature != Self::Body::SIGNATURE {
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {}",
 				body_signature,
-				Self::Body::signature().as_str(),
+				&Self::Body::SIGNATURE.to_string(),
 			)));
 		}
 		Ok(())
@@ -1019,6 +1049,7 @@ pub trait HasInterfaceName {
 }
 
 /// A specific trait *only* to define match rules.
+///
 /// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
 /// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
 /// to the `DBus` connection to capture all sub events of [`ObjectEvents`].
@@ -1032,6 +1063,7 @@ pub trait HasMatchRule {
 }
 
 /// A specific trait *only* to define registry event matches.
+///
 /// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
 /// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
 /// to the AT-SPI connection to subscribe to all sub events of [`ObjectEvents`].
@@ -1083,7 +1115,7 @@ mod tests {
 
 	#[test]
 	fn check_event_body_qt_signature() {
-		assert_eq!(&<EventBodyQT as Type>::signature(), &QSPI_EVENT_SIGNATURE);
+		assert_eq!(<EventBodyQT as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
 	}
 
 	#[test]

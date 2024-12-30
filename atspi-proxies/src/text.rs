@@ -15,7 +15,7 @@
 use crate::common::{ClipType, CoordType, Granularity};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
-trait Text {
+pub trait Text {
 	/// AddSelection method
 	fn add_selection(&self, start_offset: i32, end_offset: i32) -> zbus::Result<bool>;
 

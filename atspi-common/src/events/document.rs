@@ -138,7 +138,9 @@ pub struct AttributesChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-/// The focused page has changed. This event is usually sent only by document readers, signaling
+/// The focused page has changed.
+///
+/// This event is usually sent only by document readers, signaling
 /// that the _physical page equivalent is now different.
 /// This event does not encode _which_ page is the new one, only that a new page is now the primary
 /// one.

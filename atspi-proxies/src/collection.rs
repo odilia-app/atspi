@@ -17,7 +17,7 @@
 use crate::common::{ObjectMatchRule, ObjectRef, SortOrder, TreeTraversalType};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
-trait Collection {
+pub trait Collection {
 	/// The active descendant of the given object.
 	///
 	/// May not be implemented by any known toolkit or private implementation.
