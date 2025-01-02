@@ -20,6 +20,7 @@ pub mod device_event_controller;
 pub mod device_event_listener;
 pub mod document;
 pub mod editable_text;
+pub mod proxy_ext;
 pub use common::{events, AtspiError, CoordType, Interface, InterfaceSet};
 
 pub mod hyperlink;
