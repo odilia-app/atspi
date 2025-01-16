@@ -11,7 +11,7 @@
 //!
 
 #[zbus::proxy(interface = "org.a11y.atspi.Value", assume_defaults = true)]
-trait Value {
+pub trait Value {
 	/// CurrentValue property
 	#[zbus(property)]
 	fn current_value(&self) -> zbus::Result<f64>;

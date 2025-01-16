@@ -350,9 +350,7 @@ impl MessageConversion for PropertyChangeEvent {
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature().ok_or(AtspiError::MissingSignature)?
-			== crate::events::QSPI_EVENT_SIGNATURE
-		{
+		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
 			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
 		} else {
 			msg.body().deserialize()?

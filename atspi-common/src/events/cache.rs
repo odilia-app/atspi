@@ -10,7 +10,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
-use zvariant::ObjectPath;
+use zvariant::{ObjectPath, Type};
 
 /// All events related to the `org.a11y.atspi.Cache` interface.
 /// Note that these are not telling the client that an item *has been added* to a cache.
@@ -94,19 +94,19 @@ impl EventWrapperMessageConversion for CacheEvents {
 		match member.as_str() {
 			AddAccessibleEvent::DBUS_MEMBER => {
 				let body = msg.body();
-				let sig = body.signature().ok_or(AtspiError::MissingSignature)?;
-				match sig.as_str() {
-					"(so)(so)(so)iiassusau" => {
-						Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
-					}
-					"(so)(so)(so)a(so)assusau" => Ok(CacheEvents::LegacyAdd(
-						LegacyAddAccessibleEvent::from_message_unchecked(msg)?,
-					)),
-					_ => Err(AtspiError::SignatureMatch(format!(
+				let sig = body.signature();
+				if sig == CacheItem::SIGNATURE {
+					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
+				} else if sig == LegacyCacheItem::SIGNATURE {
+					Ok(CacheEvents::LegacyAdd(LegacyAddAccessibleEvent::from_message_unchecked(
+						msg,
+					)?))
+				} else {
+					Err(AtspiError::SignatureMatch(format!(
 						"No matching event for signature {} in interface {}",
-						sig.as_str(),
+						&sig.to_string(),
 						Self::DBUS_INTERFACE
-					))),
+					)))
 				}
 			}
 			RemoveAccessibleEvent::DBUS_MEMBER => {

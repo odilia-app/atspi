@@ -19,7 +19,7 @@ use common::events::{
 };
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{fdo::DBusProxy, Address, MatchRule, MessageStream, MessageType};
+use zbus::{fdo::DBusProxy, message::Type as MessageType, Address, MatchRule, MessageStream};
 
 /// A wrapper for results whose error type is [`AtspiError`].
 pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
@@ -77,7 +77,7 @@ impl AccessibilityConnection {
 	pub async fn from_address(bus_addr: Address) -> zbus::Result<Self> {
 		#[cfg(feature = "tracing")]
 		tracing::debug!("Connecting to a11y bus");
-		let bus = Box::pin(zbus::ConnectionBuilder::address(bus_addr)?.build()).await?;
+		let bus = Box::pin(zbus::connection::Builder::address(bus_addr)?.build()).await?;
 
 		#[cfg(feature = "tracing")]
 		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
@@ -100,7 +100,7 @@ impl AccessibilityConnection {
 	/// use atspi_connection::AccessibilityConnection;
 	/// use enumflags2::BitFlag;
 	/// use atspi_connection::common::events::object::{ObjectEvents, StateChangedEvent};
-	/// use zbus::{fdo::DBusProxy, MatchRule, MessageType};
+	/// use zbus::{fdo::DBusProxy, MatchRule, message::Type as MessageType};
 	/// use atspi_connection::common::events::Event;
 	/// # use futures_lite::StreamExt;
 	/// # use std::error::Error;

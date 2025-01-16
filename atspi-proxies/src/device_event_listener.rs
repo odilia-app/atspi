@@ -13,7 +13,7 @@
 use crate::device_event_controller::DeviceEvent;
 
 #[zbus::proxy(interface = "org.a11y.atspi.DeviceEventListener", assume_defaults = true)]
-trait DeviceEventListener {
+pub trait DeviceEventListener {
 	/// NotifyEvent method
 	fn notify_event(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;
 }
