@@ -12,7 +12,7 @@ authors = [
     "Tait Hoyem <tait@tait.tech>",
 ]
 description = "AT-SPI2 protocol implementation in Rust"
-rust-version = "1.77.0"
+rust-version = "1.77.2"
 
 [workspace.dependencies]
 enumflags2 = "0.7.7"
