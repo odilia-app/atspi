@@ -73,8 +73,8 @@ macro_rules! impl_from_object_ref {
 /// ```
 macro_rules! impl_from_interface_event_enum_for_event {
 	($outer_type:ty, $outer_variant:path) => {
-		impl From<$outer_type> for Event {
-			fn from(event_variant: $outer_type) -> Event {
+		impl<'a> From<$outer_type> for Event<'a> {
+			fn from(event_variant: $outer_type) -> Event<'a> {
 				$outer_variant(event_variant.into())
 			}
 		}
@@ -90,7 +90,7 @@ macro_rules! impl_from_interface_event_enum_for_event {
 /// expands to:
 ///
 /// ```ignore
-/// impl TryFrom<Event> for ObjectEvents {
+/// impl TryFrom<Event<'_>> for ObjectEvents {
 ///     type Error = AtspiError;
 ///     fn try_from(generic_event: Event) -> Result<ObjectEvents, Self::Error> {
 ///         if let Event::Object(event_type) = generic_event {
@@ -103,7 +103,7 @@ macro_rules! impl_from_interface_event_enum_for_event {
 /// ```
 macro_rules! impl_try_from_event_for_user_facing_event_type {
 	($outer_type:ty, $outer_variant:path) => {
-		impl TryFrom<Event> for $outer_type {
+		impl TryFrom<Event<'_>> for $outer_type {
 			type Error = AtspiError;
 			fn try_from(generic_event: Event) -> Result<$outer_type, Self::Error> {
 				if let $outer_variant(event_type) = generic_event {
@@ -142,6 +142,16 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 	};
 }
 
+macro_rules! impl_from_user_facing_event_for_interface_event_enum_borrow {
+	($inner_type:ty, $outer_type:ty, $inner_variant:path) => {
+		impl<'a> From<$inner_type> for $outer_type {
+			fn from(specific_event: $inner_type) -> $outer_type {
+				$inner_variant(specific_event)
+			}
+		}
+	};
+}
+
 /// Expands to a conversion given two arguments,
 /// 1. the user facing event type `(inner_type)`
 ///    which relies on a conversion to its interface variant enum type variant.
@@ -163,8 +173,8 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 /// ```
 macro_rules! impl_from_user_facing_type_for_event_enum {
 	($inner_type:ty, $outer_variant:path) => {
-		impl From<$inner_type> for Event {
-			fn from(event_variant: $inner_type) -> Event {
+		impl<'a> From<$inner_type> for Event<'a> {
+			fn from(event_variant: $inner_type) -> Event<'a> {
 				$outer_variant(event_variant.into())
 			}
 		}
@@ -195,9 +205,23 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 /// ```
 macro_rules! impl_try_from_event_for_user_facing_type {
 	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
-		impl TryFrom<Event> for $inner_type {
+		impl TryFrom<Event<'_>> for $inner_type {
 			type Error = AtspiError;
 			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {
+				if let $outer_variant($inner_variant(specific_event)) = generic_event {
+					Ok(specific_event)
+				} else {
+					Err(AtspiError::Conversion("Invalid type"))
+				}
+			}
+		}
+	};
+}
+macro_rules! impl_try_from_event_for_user_facing_type_borrow {
+	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
+		impl<'a> TryFrom<Event<'a>> for $inner_type {
+			type Error = AtspiError;
+			fn try_from(generic_event: Event<'a>) -> Result<$inner_type, Self::Error> {
 				if let $outer_variant($inner_variant(specific_event)) = generic_event {
 					Ok(specific_event)
 				} else {
@@ -277,16 +301,16 @@ macro_rules! impl_from_dbus_message {
 	};
 	($type:ty, Auto) => {
 		#[cfg(feature = "zbus")]
-		impl TryFrom<&zbus::Message> for $type {
+		impl TryFrom<zbus::Message> for $type {
 			type Error = AtspiError;
-			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+			fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
         use zvariant::Type;
 
-        Self::validate_interface(msg)?;
-        Self::validate_member(msg)?;
+        Self::validate_interface(&msg)?;
+        Self::validate_member(&msg)?;
 
         let body = msg.body();
-        let body_signature = body.signature().ok_or(AtspiError::MissingSignature)?;
+        let body_signature = body.signature();
         let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
             let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
             qtbody.into()
@@ -296,20 +320,69 @@ macro_rules! impl_from_dbus_message {
           return Err(AtspiError::SignatureMatch(format!(
             "The message signature {} does not match the signal's body signature: {}",
             body_signature,
-            <Self as MessageConversion>::Body::signature().as_str(),
+            <Self as MessageConversion>::Body::SIGNATURE,
           )));
         };
-        let item = msg.try_into()?;
+        let name = msg.sender().ok_or(AtspiError::MissingName)?;
+        // TODO: MissingName
+        let path = msg.path().ok_or(AtspiError::MissingName)?;
+        let item = crate::ObjectRef::new(name, path);
         Self::from_message_unchecked_parts(item, deser_body)
       }
     }
 	};
 	($type:ty, Explicit) => {
 		#[cfg(feature = "zbus")]
-		impl TryFrom<&zbus::Message> for $type {
+		impl TryFrom<zbus::Message> for $type {
 			type Error = AtspiError;
-			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+			fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 				<$type as MessageConversionExt<<$type as MessageConversion>::Body>>::try_from_message(msg)
+			}
+		}
+	};
+}
+macro_rules! impl_from_dbus_message_borrow {
+	($type:ty) => {
+		impl_from_dbus_message!($type, Auto);
+	};
+	($type:ty, Auto) => {
+		#[cfg(feature = "zbus")]
+		impl<'a> TryFrom<zbus::Message> for $type {
+			type Error = AtspiError;
+			fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
+        use zvariant::Type;
+
+        Self::validate_interface(&msg)?;
+        Self::validate_member(&msg)?;
+
+        let body = msg.body();
+        let body_signature = body.signature();
+        let deser_body: <Self as MessageConversionBorrow>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
+            let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
+            qtbody.into()
+        } else if body_signature == crate::events::ATSPI_EVENT_SIGNATURE {
+            body.deserialize_unchecked()?
+        } else {
+          return Err(AtspiError::SignatureMatch(format!(
+            "The message signature {} does not match the signal's body signature: {}",
+            body_signature,
+            <Self as MessageConversionBorrow>::Body::SIGNATURE,
+          )));
+        };
+        let name = msg.sender().ok_or(AtspiError::MissingName)?;
+        // TODO: MissingName
+        let path = msg.path().ok_or(AtspiError::MissingName)?;
+        let item = crate::ObjectRefBorrow::new(name, path);
+        Self::from_message_unchecked_parts(item, deser_body)
+      }
+    }
+	};
+	($type:ty, Explicit) => {
+		#[cfg(feature = "zbus")]
+		impl<'a> TryFrom<zbus::Message> for $type {
+			type Error = AtspiError;
+			fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
+				<$type as crate::events::MessageConversionExtBorrow<'a, <$type as MessageConversionBorrow>::Body>>::try_from_message(msg)
 			}
 		}
 	};
@@ -335,7 +408,7 @@ macro_rules! generic_event_test_case {
 			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let body = struct_event.body();
-			let body2 = Message::method(
+			let body2 = Message::method_call(
 				struct_event.path().as_str(),
 				<$type as BusProperties>::DBUS_MEMBER,
 			)
@@ -344,7 +417,7 @@ macro_rules! generic_event_test_case {
 			.unwrap()
 			.build(&(body,))
 			.unwrap();
-			let build_struct = <$type>::from_message_unchecked(&body2)
+			let build_struct = <$type>::from_message_unchecked(body2)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}
@@ -443,7 +516,7 @@ macro_rules! zbus_message_qtspi_test_case {
           .unwrap()
           .build(&(qt,))
           .unwrap();
-          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
+          <$type>::try_from(msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
         }
       #[cfg(feature = "zbus")]
      #[test]
@@ -462,7 +535,7 @@ macro_rules! zbus_message_qtspi_test_case {
           .unwrap()
           .build(&(qt,))
           .unwrap();
-          assert_matches!(Event::try_from(&msg), Ok(_));
+          assert_matches!(Event::try_from(msg), Ok(_));
         }
     };
     ($type:ty, Explicit) => {};
@@ -487,7 +560,7 @@ macro_rules! zbus_message_test_case {
 			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone())
 				.expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
 			let struct_event_back =
-				<$type>::try_from(&msg).expect("Should convert from `$type::default()` originated `Message` back into a specific event type. Check the `impl_from_dbus_message` macro.");
+				<$type>::try_from(msg).expect("Should convert from `$type::default()` originated `Message` back into a specific event type. Check the `impl_from_dbus_message` macro.");
         assert_eq!(struct_event, struct_event_back, "Events converted into a message and back must be the same");
 		}
 
@@ -497,7 +570,7 @@ macro_rules! zbus_message_test_case {
 			let struct_event = <$type>::default();
 			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone()).expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
 			let event_enum_back =
-				Event::try_from(&msg).expect("Should convert a from `$type::default()` built `Message` into an event enum. Check the `impl_from_dbus_message` macro .");
+				Event::try_from(msg).expect("Should convert a from `$type::default()` built `Message` into an event enum. Check the `impl_from_dbus_message` macro .");
 			let event_enum: Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
@@ -516,7 +589,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&())
 			.unwrap();
-			let event = <$type>::try_from(&fake_msg);
+			let event = <$type>::try_from(fake_msg);
       assert_matches!(event, Err(_), "This conversion should fail");
 		}
 
@@ -533,7 +606,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&<$type>::default().body())
 			.unwrap();
-			let event = <$type>::from_message_unchecked(&fake_msg);
+			let event = <$type>::from_message_unchecked(fake_msg);
       event.expect("The from_message_unchecked function should work, despite mismatching interface and member");
 		}
 
@@ -550,7 +623,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&())
 			.unwrap();
-			let event = <$type>::try_from(&fake_msg);
+			let event = <$type>::try_from(fake_msg);
       assert_matches!(event, Err(AtspiError::MemberMatch(_)), "Wrong kind of error");
 		}
 
@@ -567,8 +640,8 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&())
 			.unwrap();
-			let event = <$type>::try_from(&fake_msg);
-      assert_matches!(event, Err(AtspiError::MissingSignature), "Wrong kind of error");
+			let event = <$type>::try_from(fake_msg);
+      assert_matches!(event, Err(AtspiError::SignatureMatch(_)), "Wrong kind of error");
 		}
 
 		#[cfg(feature = "zbus")]
@@ -586,7 +659,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&invalid_body)
 			.unwrap();
-			let event = <$type>::try_from(&fake_msg);
+			let event = <$type>::try_from(fake_msg);
       assert_matches!(event, Err(AtspiError::SignatureMatch(_)), "Wrong kind of error");
 		}
 
@@ -603,7 +676,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&<$type>::default().body())
 			.unwrap();
-			let event = <$type>::try_from(&fake_msg);
+			let event = <$type>::try_from(fake_msg);
       assert_matches!(event, Err(_));
 		}
 
@@ -620,7 +693,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&<$type>::default().body())
 			.unwrap();
-			let event = <$type>::try_from(&fake_msg);
+			let event = <$type>::try_from(fake_msg);
       assert_matches!(event, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
 		}
 		#[cfg(feature = "zbus")]
@@ -636,7 +709,7 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&<$type>::default().body())
 			.unwrap();
-			let event = <$type>::try_from(&fake_msg);
+			let event = <$type>::try_from(fake_msg);
       assert_matches!(event, Err(AtspiError::MemberMatch(_)), "Wrong kind of error");
 		}
 	};
@@ -708,8 +781,8 @@ macro_rules! event_wrapper_test_cases {
 				// The `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
         // Additioanlly, we check against the same method in `Event`; the overarchive enum that
         // contains all other events as variants.
-				let mod_type = <$type>::try_from(&fake_msg);
-				let event_type = Event::try_from(&fake_msg);
+				let mod_type = <$type>::try_from(fake_msg.clone());
+				let event_type = Event::try_from(fake_msg);
         assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
         assert_matches!(event_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
 			}
@@ -727,7 +800,7 @@ macro_rules! event_wrapper_test_cases {
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
 				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
-				let mod_type = <$type>::try_from(&fake_msg);
+				let mod_type = <$type>::try_from(fake_msg);
         assert_matches!(mod_type, Err(AtspiError::MemberMatch(_)), "Wrong kind of error");
 			}
 			#[cfg(feature = "zbus")]
@@ -744,7 +817,7 @@ macro_rules! event_wrapper_test_cases {
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
 				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
-				let mod_type = <$type>::try_from(&fake_msg);
+				let mod_type = <$type>::try_from(fake_msg);
 
 				// Note that the non-matching interface is the first error, so the member match error is not reached.
         assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
@@ -763,7 +836,7 @@ macro_rules! event_wrapper_test_cases {
 				.build(&<$any_subtype>::default().body())
 				.unwrap();
 				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
-				let mod_type = <$type>::try_from(&valid_msg);
+				let mod_type = <$type>::try_from(valid_msg);
 				mod_type.expect("Should convert from `$any_subtype::default()` built `Message` back into a interface event enum variant wrapping an inner type. Check the `impl_from_dbus_message` macro.");
 			}
 		}
@@ -803,5 +876,43 @@ macro_rules! event_test_cases {
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
+	};
+}
+
+macro_rules! event_test_cases_borrow {
+  ($path:path, $type:ty) => {
+      event_test_cases!($type, Auto);
+  };
+	($path:path, $type:ty, $qt:tt) => {
+		#[cfg(test)]
+		#[rename_item::rename(name($path), prefix = "event_tests_", case = "snake")]
+		mod foo {
+			#[allow(unused_imports)]
+			use super::{MessageConversion, MessageConversionBorrow};
+			use super::{$path, AtspiError, Event, BusProperties, EventProperties, EventTypeProperties};
+      use zbus::Message;
+      // TODO: use [`std::assert_matches::assert_matches`] when stabalized
+      use assert_matches::assert_matches;
+
+			generic_event_test_case!($path);
+			event_enum_test_case!($path);
+			zbus_message_test_case!($path, $qt);
+			event_enum_transparency_test_case!($path);
+		}
+		assert_impl_all!(
+			$path: Clone,
+			std::fmt::Debug,
+			serde::Serialize,
+			serde::Deserialize<'static>,
+			Default,
+			PartialEq,
+			Eq,
+			std::hash::Hash,
+			crate::EventProperties,
+			crate::EventTypeProperties,
+			crate::BusProperties,
+		);
+		//#[cfg(feature = "zbus")]
+		//assert_impl_all!(zbus::Message: TryFrom<$type>);
 	};
 }

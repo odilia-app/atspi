@@ -13,7 +13,7 @@
 use crate::common::ObjectRef;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
-trait Table {
+pub trait Table {
 	/// AddColumnSelection method
 	fn add_column_selection(&self, column: i32) -> zbus::Result<bool>;
 

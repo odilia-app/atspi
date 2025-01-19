@@ -24,7 +24,7 @@
 	default_service = "org.a11y.Bus",
 	default_path = "/org/a11y/bus"
 )]
-trait Status {
+pub trait Status {
 	/// IsEnabled property
 	#[zbus(property)]
 	fn is_enabled(&self) -> zbus::Result<bool>;
@@ -43,7 +43,7 @@ trait Status {
 	default_service = "org.a11y.Bus",
 	default_path = "/org/a11y/bus"
 )]
-trait Bus {
+pub trait Bus {
 	/// GetAddress method
 	fn get_address(&self) -> zbus::Result<String>;
 }

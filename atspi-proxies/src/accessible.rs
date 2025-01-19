@@ -17,7 +17,7 @@ use crate::AtspiError;
 /// Accessible is the interface which is implemented by all accessible objects.
 ///
 #[zbus::proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = true)]
-trait Accessible {
+pub trait Accessible {
 	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.
 	///
@@ -259,7 +259,7 @@ pub trait ObjectRefExt {
 	/// # Errors  
 	///
 	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
-	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::ProxyBuilder::build`].
+	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::proxy::Builder::build`].
 	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
 	fn as_accessible_proxy(
 		&self,
@@ -271,7 +271,7 @@ pub trait ObjectRefExt {
 	/// # Errors  
 	///
 	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
-	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::ProxyBuilder::build`].
+	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::proxy::Builder::build`].
 	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
 	fn into_accessible_proxy(
 		self,

@@ -58,7 +58,7 @@
 /// [`version`]: ApplicationProxy#method.version
 ///
 #[zbus::proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
-trait Application {
+pub trait Application {
 	/// Method to retrieve the application's locale.
 	///
 	/// ## Deprecation

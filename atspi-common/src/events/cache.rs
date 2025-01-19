@@ -1,44 +1,47 @@
 #[cfg(feature = "zbus")]
 use crate::events::{
-	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
+	EventWrapperMessageConversion, MessageConversion, MessageConversionBorrow,
+	MessageConversionExt, TryFromMessage,
 };
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
 	error::AtspiError,
 	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString, ObjectRef},
+	object_ref::ObjectRefBorrow,
 	Event, EventProperties, EventTypeProperties,
 };
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
-use zvariant::ObjectPath;
+use zvariant::{ObjectPath, Type};
 
 /// All events related to the `org.a11y.atspi.Cache` interface.
 /// Note that these are not telling the client that an item *has been added* to a cache.
 /// It is telling the client "here is a bunch of information to store it in your cache".
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
-pub enum CacheEvents {
+pub enum CacheEvents<'a> {
 	/// See: [`AddAccessibleEvent`].
-	Add(AddAccessibleEvent),
+	Add(AddAccessibleEvent<'a>),
 	/// See: [`LegacyAddAccessibleEvent`].
-	LegacyAdd(LegacyAddAccessibleEvent),
+	#[serde(borrow)]
+	LegacyAdd(LegacyAddAccessibleEvent<'a>),
 	/// See: [`RemoveAccessibleEvent`].
-	Remove(RemoveAccessibleEvent),
+	Remove(RemoveAccessibleEvent<'a>),
 }
 
-impl HasMatchRule for CacheEvents {
+impl HasMatchRule for CacheEvents<'_> {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
 }
 
-impl HasRegistryEventString for CacheEvents {
+impl HasRegistryEventString for CacheEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache";
 }
 
-impl HasInterfaceName for CacheEvents {
+impl HasInterfaceName for CacheEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 }
 
-impl EventTypeProperties for CacheEvents {
+impl EventTypeProperties for CacheEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Add(inner) => inner.member(),
@@ -69,7 +72,7 @@ impl EventTypeProperties for CacheEvents {
 	}
 }
 
-impl EventProperties for CacheEvents {
+impl EventProperties for CacheEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Add(inner) => inner.path(),
@@ -87,26 +90,24 @@ impl EventProperties for CacheEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for CacheEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+impl EventWrapperMessageConversion for CacheEvents<'_> {
+	fn try_from_message_interface_checked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let member = msg.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			AddAccessibleEvent::DBUS_MEMBER => {
-				let body = msg.body();
-				let sig = body.signature().ok_or(AtspiError::MissingSignature)?;
-				match sig.as_str() {
-					"(so)(so)(so)iiassusau" => {
-						Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
-					}
-					"(so)(so)(so)a(so)assusau" => Ok(CacheEvents::LegacyAdd(
-						LegacyAddAccessibleEvent::from_message_unchecked(msg)?,
-					)),
-					_ => Err(AtspiError::SignatureMatch(format!(
+				let sig = msg.signature();
+				if sig == CacheItem::SIGNATURE {
+					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
+				} else if sig == LegacyCacheItem::SIGNATURE {
+					Ok(CacheEvents::LegacyAdd(LegacyAddAccessibleEvent::from_message_unchecked(
+						msg,
+					)?))
+				} else {
+					Err(AtspiError::SignatureMatch(format!(
 						"No matching event for signature {} in interface {}",
-						sig.as_str(),
+						&sig.to_string(),
 						Self::DBUS_INTERFACE
-					))),
+					)))
 				}
 			}
 			RemoveAccessibleEvent::DBUS_MEMBER => {
@@ -122,9 +123,9 @@ impl EventWrapperMessageConversion for CacheEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for CacheEvents {
+impl TryFrom<zbus::Message> for CacheEvents<'_> {
 	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+	fn try_from(msg: zbus::Message) -> Result<Self, Self::Error> {
 		Self::try_from_message(msg)
 	}
 }
@@ -132,30 +133,31 @@ impl TryFrom<&zbus::Message> for CacheEvents {
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::LegacyCacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct LegacyAddAccessibleEvent {
+pub struct LegacyAddAccessibleEvent<'a> {
 	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
+	#[serde(borrow)]
+	pub item: ObjectRefBorrow<'a>,
 	/// A cache item to add to the internal cache.
 	pub node_added: LegacyCacheItem,
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	LegacyAddAccessibleEvent,
-	CacheEvents,
+impl_from_user_facing_event_for_interface_event_enum_borrow!(
+	LegacyAddAccessibleEvent<'a>,
+	CacheEvents<'a>,
 	CacheEvents::LegacyAdd
 );
-impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(
-	LegacyAddAccessibleEvent,
+impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent<'a>, Event::Cache);
+impl_try_from_event_for_user_facing_type_borrow!(
+	LegacyAddAccessibleEvent<'a>,
 	CacheEvents::LegacyAdd,
 	Event::Cache
 );
-event_test_cases!(LegacyAddAccessibleEvent, Explicit);
-impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
-impl_event_properties!(LegacyAddAccessibleEvent);
-impl_to_dbus_message!(LegacyAddAccessibleEvent);
+event_test_cases_borrow!(LegacyAddAccessibleEvent, LegacyAddAccessibleEvent<'a>, Explicit);
+impl_from_dbus_message_borrow!(LegacyAddAccessibleEvent<'a>, Explicit);
+impl_event_properties!(LegacyAddAccessibleEvent<'_>);
+impl_to_dbus_message!(LegacyAddAccessibleEvent<'_>);
 
-impl BusProperties for LegacyAddAccessibleEvent {
+impl BusProperties for LegacyAddAccessibleEvent<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
@@ -164,15 +166,18 @@ impl BusProperties for LegacyAddAccessibleEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for LegacyAddAccessibleEvent {
+impl<'a> MessageConversionBorrow<'a> for LegacyAddAccessibleEvent<'a> {
 	type Body = LegacyCacheItem;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: ObjectRefBorrow<'a>,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body().deserialize()?;
+		let item = msg.try_into()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 
@@ -184,23 +189,28 @@ impl MessageConversion for LegacyAddAccessibleEvent {
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::CacheItem`]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct AddAccessibleEvent {
+pub struct AddAccessibleEvent<'a> {
 	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
+	#[serde(borrow)]
+	pub item: ObjectRefBorrow<'a>,
 	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	AddAccessibleEvent,
-	CacheEvents,
+impl_from_user_facing_event_for_interface_event_enum_borrow!(
+	AddAccessibleEvent<'a>,
+	CacheEvents<'a>,
 	CacheEvents::Add
 );
-impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
-event_test_cases!(AddAccessibleEvent, Explicit);
+impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent<'a>, Event::Cache);
+impl_try_from_event_for_user_facing_type_borrow!(
+	AddAccessibleEvent<'a>,
+	CacheEvents::Add,
+	Event::Cache
+);
+event_test_cases_borrow!(AddAccessibleEvent, AddAccessibleEvent<'a>, Explicit);
 
-impl BusProperties for AddAccessibleEvent {
+impl BusProperties for AddAccessibleEvent<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
@@ -209,15 +219,18 @@ impl BusProperties for AddAccessibleEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for AddAccessibleEvent {
+impl<'a> MessageConversionBorrow<'a> for AddAccessibleEvent<'a> {
 	type Body = CacheItem;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: ObjectRefBorrow<'a>,
+		body: Self::Body,
+	) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_added: body })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
 		let body = msg.body().deserialize()?;
+		let item = msg.try_into()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 
@@ -226,30 +239,35 @@ impl MessageConversion for AddAccessibleEvent {
 	}
 }
 
-impl_from_dbus_message!(AddAccessibleEvent, Explicit);
-impl_event_properties!(AddAccessibleEvent);
-impl_to_dbus_message!(AddAccessibleEvent);
+impl_from_dbus_message_borrow!(AddAccessibleEvent<'a>, Explicit);
+impl_event_properties!(AddAccessibleEvent<'_>);
+impl_to_dbus_message!(AddAccessibleEvent<'_>);
 
 /// `Cache::RemoveAccessible` signal event type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct RemoveAccessibleEvent {
+pub struct RemoveAccessibleEvent<'a> {
 	/// The application that emitted the signal TODO Check Me
 	/// The [`ObjectRef`] the event applies to.
 	pub item: ObjectRef,
 	/// The node that was removed from the application tree  TODO Check Me
 	pub node_removed: ObjectRef,
+	_marker: core::marker::PhantomData<&'a u8>,
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	RemoveAccessibleEvent,
-	CacheEvents,
+impl_from_user_facing_event_for_interface_event_enum_borrow!(
+	RemoveAccessibleEvent<'a>,
+	CacheEvents<'a>,
 	CacheEvents::Remove
 );
-impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
-event_test_cases!(RemoveAccessibleEvent, Explicit);
+impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent<'a>, Event::Cache);
+impl_try_from_event_for_user_facing_type_borrow!(
+	RemoveAccessibleEvent<'a>,
+	CacheEvents::Remove,
+	Event::Cache
+);
+event_test_cases_borrow!(RemoveAccessibleEvent, RemoveAccessibleEvent<'a>, Explicit);
 
-impl BusProperties for RemoveAccessibleEvent {
+impl BusProperties for RemoveAccessibleEvent<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
@@ -258,15 +276,15 @@ impl BusProperties for RemoveAccessibleEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for RemoveAccessibleEvent {
+impl MessageConversion for RemoveAccessibleEvent<'_> {
 	type Body = ObjectRef;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_removed: body })
+		Ok(Self { item, node_removed: body, _marker: core::marker::PhantomData })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+	fn from_message_unchecked(msg: zbus::Message) -> Result<Self, AtspiError> {
+		let item = (&msg).try_into()?;
+		let body = msg.into_body().deserialize()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
 	fn body(&self) -> Self::Body {
@@ -274,6 +292,6 @@ impl MessageConversion for RemoveAccessibleEvent {
 	}
 }
 
-impl_from_dbus_message!(RemoveAccessibleEvent, Explicit);
-impl_event_properties!(RemoveAccessibleEvent);
-impl_to_dbus_message!(RemoveAccessibleEvent);
+impl_from_dbus_message!(RemoveAccessibleEvent<'_>, Explicit);
+impl_event_properties!(RemoveAccessibleEvent<'_>);
+impl_to_dbus_message!(RemoveAccessibleEvent<'_>);

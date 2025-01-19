@@ -33,9 +33,6 @@ pub enum AtspiError {
 	/// No member on event.
 	MissingMember,
 
-	/// No Signature.
-	MissingSignature,
-
 	/// When matching on an unknown role
 	UnknownRole(u32),
 
@@ -99,7 +96,6 @@ impl std::fmt::Display for AtspiError {
 			Self::UnknownInterface => f.write_str("Unknown interface."),
 			Self::MissingInterface => f.write_str("Missing interface."),
 			Self::MissingMember => f.write_str("Missing member."),
-			Self::MissingSignature => f.write_str("Missing signature."),
 			Self::UnknownRole(e) => {
 				f.write_str("atspi: Unknown role: ")?;
 				e.fmt(f)
