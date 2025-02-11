@@ -1,0 +1,24 @@
+# <type>[optional scope]: <description>
+#
+# [optional body]
+#
+# [optional footer(s)]
+
+
+# Types:
+#
+# feat, fix, doc, perf, refactor, style, test, 
+# security, revert, BREAKING
+# chore(release|ci|deps|pr|build|<other>)
+#
+# example titles:
+#
+# chore(build): build scripts to gather foo
+#
+# BREAKING(common): change `MessageConversion` trait
+#
+# Include relevant issue ID(s)
+#
+# Use the body to explain what and why vs. how
+#
+#
