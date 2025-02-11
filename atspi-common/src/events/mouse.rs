@@ -15,6 +15,8 @@ use crate::{
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
+use super::event_body::Properties;
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum MouseEvents {
 	/// See: [`AbsEvent`].
@@ -226,11 +228,11 @@ impl_event_properties!(AbsEvent);
 impl From<AbsEvent> for EventBodyOwned {
 	fn from(event: AbsEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: String::default(),
 			detail1: event.x,
 			detail2: event.y,
 			any_data: u8::default().into(),
+			properties: Properties,
 		}
 	}
 }
@@ -245,11 +247,11 @@ impl_event_properties!(RelEvent);
 impl From<RelEvent> for EventBodyOwned {
 	fn from(event: RelEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: String::default(),
 			detail1: event.x,
 			detail2: event.y,
 			any_data: u8::default().into(),
+			properties: Properties,
 		}
 	}
 }
@@ -268,11 +270,11 @@ impl_event_properties!(ButtonEvent);
 impl From<ButtonEvent> for EventBodyOwned {
 	fn from(event: ButtonEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: event.detail,
 			detail1: event.mouse_x,
 			detail2: event.mouse_y,
 			any_data: u8::default().into(),
+			properties: Properties,
 		}
 	}
 }

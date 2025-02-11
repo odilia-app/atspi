@@ -15,6 +15,8 @@ use crate::{
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
+use super::event_body::Properties;
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
 	/// See: [`PropertyChangeEvent`].
@@ -1056,11 +1058,11 @@ impl_event_properties!(PropertyChangeEvent);
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: event.property,
 			detail1: i32::default(),
 			detail2: i32::default(),
 			any_data: event.value.into(),
+			properties: Properties,
 		}
 	}
 }
@@ -1117,11 +1119,11 @@ impl_event_properties!(StateChangedEvent);
 impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: event.state.to_string(),
 			detail1: event.enabled.into(),
 			detail2: i32::default(),
 			any_data: u8::default().into(),
+			properties: Properties,
 		}
 	}
 }
@@ -1144,16 +1146,16 @@ impl_event_properties!(ChildrenChangedEvent);
 impl From<ChildrenChangedEvent> for EventBodyOwned {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: event.operation.to_string(),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
-			// Only path to fail is to convert a Fd into an `OwnedValue`.
+			// Only path to fail is to convert a `Fd` into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
 				.try_into()
 				.expect("Failed to convert child to OwnedValue"),
+			properties: Properties,
 		}
 	}
 }
@@ -1227,7 +1229,6 @@ impl_event_properties!(ActiveDescendantChangedEvent);
 impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	fn from(event: ActiveDescendantChangedEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: String::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
@@ -1237,6 +1238,7 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 			any_data: Value::from(event.child)
 				.try_to_owned()
 				.expect("Failed to convert child to OwnedValue"),
+			properties: Properties,
 		}
 	}
 }
@@ -1437,7 +1439,6 @@ impl_event_properties!(TextChangedEvent);
 impl From<TextChangedEvent> for EventBodyOwned {
 	fn from(event: TextChangedEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: event.operation.to_string(),
 			detail1: event.start_pos,
 			detail2: event.length,
@@ -1447,6 +1448,7 @@ impl From<TextChangedEvent> for EventBodyOwned {
 			any_data: Value::from(event.text)
 				.try_to_owned()
 				.expect("Failed to convert child to OwnedValue"),
+			properties: Properties,
 		}
 	}
 }
@@ -1486,11 +1488,11 @@ impl_event_properties!(TextCaretMovedEvent);
 impl From<TextCaretMovedEvent> for EventBodyOwned {
 	fn from(event: TextCaretMovedEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: String::default(),
 			detail1: event.position,
 			detail2: i32::default(),
 			any_data: u8::default().into(),
+			properties: Properties,
 		}
 	}
 }

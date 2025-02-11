@@ -15,6 +15,8 @@ use crate::{
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
 
+use super::event_body::Properties;
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
 	/// See: [`ModifiersEvent`].
@@ -149,11 +151,11 @@ impl_event_properties!(ModifiersEvent);
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: String::default(),
 			detail1: event.previous_modifiers,
 			detail2: event.current_modifiers,
 			any_data: OwnedValue::from(0u8),
+			properties: Properties,
 		}
 	}
 }

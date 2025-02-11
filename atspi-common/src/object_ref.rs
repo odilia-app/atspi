@@ -33,6 +33,60 @@ impl Default for ObjectRef {
 	}
 }
 
+#[validate(signal: "Available")]
+#[derive(Debug, Clone, Serialize, Type, PartialEq, Eq, Hash)]
+pub struct ObjectRefBorrow<'a> {
+	#[serde(borrow)]
+	pub name: UniqueName<'a>,
+	#[serde(borrow)]
+	pub path: ObjectPath<'a>,
+}
+
+impl<'de: 'or, 'or> Deserialize<'de> for ObjectRefBorrow<'or> {
+	fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		let (name, path) = <(UniqueName<'or>, ObjectPath<'or>)>::deserialize(deserializer)?;
+		Ok(Self { name, path })
+	}
+}
+
+impl ObjectRef {
+	/// Create a new `ObjectRef`
+	#[must_use]
+	pub fn new<'a>(sender: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
+		Self { name: sender.into(), path: path.into() }
+	}
+}
+
+impl<'a> ObjectRefBorrow<'a> {
+	/// Create a new `ObjectRefBorrow`
+	#[must_use]
+	pub fn new(name: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
+		Self { name, path }
+	}
+
+	/// Convert a partially borrowed `ObjectRefBorrow` into a fully owned `ObjectRef`
+	// A derived clone would clone the owned fields and create new borrows for the borrowed fields.
+	// Whereas sometimes we want to convert the borrowed fields into owned fields.
+	#[must_use]
+	pub fn to_fully_owned(&self) -> ObjectRef {
+		let name = OwnedUniqueName::from(self.name.clone());
+		let path = OwnedObjectPath::from(self.path.clone());
+		ObjectRef { name, path }
+	}
+}
+
+impl Default for ObjectRefBorrow<'_> {
+	fn default() -> Self {
+		ObjectRefBorrow {
+			name: UniqueName::from_static_str(":0.0").unwrap(),
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap(),
+		}
+	}
+}
+
 #[cfg(test)]
 #[test]
 fn test_accessible_from_dbus_ctxt_to_accessible() {
