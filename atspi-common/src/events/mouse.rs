@@ -1,3 +1,4 @@
+use super::event_body::Properties;
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
@@ -10,6 +11,73 @@ use crate::{
 };
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub enum MouseEvents {
+	/// See: [`AbsEvent`].
+	Abs(AbsEvent),
+	/// See: [`RelEvent`].
+	Rel(RelEvent),
+	/// See: [`ButtonEvent`].
+	Button(ButtonEvent),
+}
+
+impl EventTypeProperties for MouseEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.member(),
+			Self::Rel(inner) => inner.member(),
+			Self::Button(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.interface(),
+			Self::Rel(inner) => inner.interface(),
+			Self::Button(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.match_rule(),
+			Self::Rel(inner) => inner.match_rule(),
+			Self::Button(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Abs(inner) => inner.registry_string(),
+			Self::Rel(inner) => inner.registry_string(),
+			Self::Button(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for MouseEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Abs(inner) => inner.path(),
+			Self::Rel(inner) => inner.path(),
+			Self::Button(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::Abs(inner) => inner.sender(),
+			Self::Rel(inner) => inner.sender(),
+			Self::Button(inner) => inner.sender(),
+		}
+	}
+}
+
+impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
+impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
+
+event_wrapper_test_cases!(MouseEvents, AbsEvent);
+
+impl HasMatchRule for MouseEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
+}
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {

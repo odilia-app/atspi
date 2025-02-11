@@ -316,7 +316,7 @@ impl_from_dbus_message!(PropertyChangeEvent);
 impl_event_properties!(PropertyChangeEvent);
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
-		EventBodyOwned { kind: event.property, ..Default::default() }
+		EventBodyOwned { kind: event.property, ..Default::default(), }
 	}
 }
 

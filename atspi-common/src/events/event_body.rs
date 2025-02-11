@@ -33,7 +33,7 @@ pub struct EventBodyQtOwned {
 }
 
 impl Clone for EventBodyQtOwned {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
@@ -41,10 +41,10 @@ impl Clone for EventBodyQtOwned {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panic.  
+	/// Then this function panic.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -63,8 +63,8 @@ impl Clone for EventBodyQtOwned {
 
 /// Unit struct placeholder for `EventBodyQtOwned.properties`
 ///
-/// AT-SPI2 never reads or writes to `properties`.  
-/// `QtProperties` has the appropriate implementations for `Serialize` and `Deserialize`  
+/// AT-SPI2 never reads or writes to `properties`.
+/// `QtProperties` has the appropriate implementations for `Serialize` and `Deserialize`
 /// to make it serialize as an a valid tuple and valid bytes deserialize as placeholder.
 #[derive(Debug, Copy, Clone, Deserialize, Type, Default, PartialEq)]
 #[zvariant(signature = "(so)")]
@@ -96,8 +96,8 @@ impl Default for EventBodyQtOwned {
 
 /// Unit struct placeholder for `EventBody.properties`
 ///
-/// AT-SPI2 never reads or writes to `EventBody.properties`.  
-/// `Properties` has the appropriate implementations for `Serialize` and `Deserialize`  
+/// AT-SPI2 never reads or writes to `EventBody.properties`.
+/// `Properties` has the appropriate implementations for `Serialize` and `Deserialize`
 /// to make it serialize as an a valid dictionary and valid bytes deserialize as placeholder.
 #[derive(Debug, Copy, Clone, Type, Default, Deserialize, PartialEq)]
 #[zvariant(signature = "a{sv}")]
@@ -156,7 +156,7 @@ impl Default for EventBodyOwned {
 }
 
 impl Clone for EventBodyOwned {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
@@ -164,10 +164,10 @@ impl Clone for EventBodyOwned {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panic.  
+	/// Then this function panic.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -230,7 +230,7 @@ impl EventBodyBorrowed<'_> {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Chances are slim because none of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].  
+	/// Chances are slim because none of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// See [`zvariant::Value::try_clone`] for more information.
 	pub fn to_fully_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		let owned_any_data = self.any_data.try_to_owned()?;
@@ -246,18 +246,18 @@ impl EventBodyBorrowed<'_> {
 }
 
 impl Clone for EventBodyBorrowed<'_> {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
 	/// If the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panic.  
+	/// Then this function panic.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -311,7 +311,7 @@ impl Default for EventBodyQtBorrowed<'_> {
 }
 
 impl Clone for EventBodyQtBorrowed<'_> {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
@@ -319,10 +319,10 @@ impl Clone for EventBodyQtBorrowed<'_> {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panics.  
+	/// Then this function panics.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -382,7 +382,7 @@ impl From<EventBodyQtOwned> for EventBodyOwned {
 
 /// Common event body that can be either owned or borrowed.
 ///
-/// This is useful for APIs that can return either owned or borrowed event bodies.  
+/// This is useful for APIs that can return either owned or borrowed event bodies.
 /// Having this type allows to be generic over the event body type.
 #[derive(Debug, Clone, PartialEq)]
 pub enum EventBody<'a> {
@@ -402,8 +402,8 @@ impl<'a> EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:  
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// The borrowed variant will error if the following conditions are met:
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn as_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
@@ -417,8 +417,8 @@ impl<'a> EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:  
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// The borrowed variant will error if the following conditions are met:
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn into_owned(self) -> Result<EventBodyOwned, AtspiError> {
 		match self {

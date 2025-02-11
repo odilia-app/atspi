@@ -12,6 +12,225 @@ use zvariant::{ObjectPath, OwnedValue, Value};
 
 use super::{event_body::Properties, EventBodyQtOwned};
 
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub enum ObjectEvents {
+	/// See: [`PropertyChangeEvent`].
+	PropertyChange(PropertyChangeEvent),
+	/// See: [`BoundsChangedEvent`].
+	BoundsChanged(BoundsChangedEvent),
+	/// See: [`LinkSelectedEvent`].
+	LinkSelected(LinkSelectedEvent),
+	/// See: [`StateChangedEvent`].
+	StateChanged(StateChangedEvent),
+	/// See: [`ChildrenChangedEvent`].
+	ChildrenChanged(ChildrenChangedEvent),
+	/// See: [`VisibleDataChangedEvent`].
+	VisibleDataChanged(VisibleDataChangedEvent),
+	/// See: [`SelectionChangedEvent`].
+	SelectionChanged(SelectionChangedEvent),
+	/// See: [`ModelChangedEvent`].
+	ModelChanged(ModelChangedEvent),
+	/// See: [`ActiveDescendantChangedEvent`].
+	ActiveDescendantChanged(ActiveDescendantChangedEvent),
+	/// See: [`AnnouncementEvent`].
+	Announcement(AnnouncementEvent),
+	/// See: [`AttributesChangedEvent`].
+	AttributesChanged(AttributesChangedEvent),
+	/// See: [`RowInsertedEvent`].
+	RowInserted(RowInsertedEvent),
+	/// See: [`RowReorderedEvent`].
+	RowReordered(RowReorderedEvent),
+	/// See: [`RowDeletedEvent`].
+	RowDeleted(RowDeletedEvent),
+	/// See: [`ColumnInsertedEvent`].
+	ColumnInserted(ColumnInsertedEvent),
+	/// See: [`ColumnReorderedEvent`].
+	ColumnReordered(ColumnReorderedEvent),
+	/// See: [`ColumnDeletedEvent`].
+	ColumnDeleted(ColumnDeletedEvent),
+	/// See: [`TextBoundsChangedEvent`].
+	TextBoundsChanged(TextBoundsChangedEvent),
+	/// See: [`TextSelectionChangedEvent`].
+	TextSelectionChanged(TextSelectionChangedEvent),
+	/// See: [`TextChangedEvent`].
+	TextChanged(TextChangedEvent),
+	/// See: [`TextAttributesChangedEvent`].
+	TextAttributesChanged(TextAttributesChangedEvent),
+	/// See: [`TextCaretMovedEvent`].
+	TextCaretMoved(TextCaretMovedEvent),
+}
+
+impl EventTypeProperties for ObjectEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.member(),
+			Self::BoundsChanged(inner) => inner.member(),
+			Self::LinkSelected(inner) => inner.member(),
+			Self::StateChanged(inner) => inner.member(),
+			Self::ChildrenChanged(inner) => inner.member(),
+			Self::VisibleDataChanged(inner) => inner.member(),
+			Self::SelectionChanged(inner) => inner.member(),
+			Self::ModelChanged(inner) => inner.member(),
+			Self::ActiveDescendantChanged(inner) => inner.member(),
+			Self::Announcement(inner) => inner.member(),
+			Self::AttributesChanged(inner) => inner.member(),
+			Self::RowInserted(inner) => inner.member(),
+			Self::RowReordered(inner) => inner.member(),
+			Self::RowDeleted(inner) => inner.member(),
+			Self::ColumnInserted(inner) => inner.member(),
+			Self::ColumnReordered(inner) => inner.member(),
+			Self::ColumnDeleted(inner) => inner.member(),
+			Self::TextBoundsChanged(inner) => inner.member(),
+			Self::TextSelectionChanged(inner) => inner.member(),
+			Self::TextChanged(inner) => inner.member(),
+			Self::TextAttributesChanged(inner) => inner.member(),
+			Self::TextCaretMoved(inner) => inner.member(),
+		}
+	}
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.interface(),
+			Self::BoundsChanged(inner) => inner.interface(),
+			Self::LinkSelected(inner) => inner.interface(),
+			Self::StateChanged(inner) => inner.interface(),
+			Self::ChildrenChanged(inner) => inner.interface(),
+			Self::VisibleDataChanged(inner) => inner.interface(),
+			Self::SelectionChanged(inner) => inner.interface(),
+			Self::ModelChanged(inner) => inner.interface(),
+			Self::ActiveDescendantChanged(inner) => inner.interface(),
+			Self::Announcement(inner) => inner.interface(),
+			Self::AttributesChanged(inner) => inner.interface(),
+			Self::RowInserted(inner) => inner.interface(),
+			Self::RowReordered(inner) => inner.interface(),
+			Self::RowDeleted(inner) => inner.interface(),
+			Self::ColumnInserted(inner) => inner.interface(),
+			Self::ColumnReordered(inner) => inner.interface(),
+			Self::ColumnDeleted(inner) => inner.interface(),
+			Self::TextBoundsChanged(inner) => inner.interface(),
+			Self::TextSelectionChanged(inner) => inner.interface(),
+			Self::TextChanged(inner) => inner.interface(),
+			Self::TextAttributesChanged(inner) => inner.interface(),
+			Self::TextCaretMoved(inner) => inner.interface(),
+		}
+	}
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.match_rule(),
+			Self::BoundsChanged(inner) => inner.match_rule(),
+			Self::LinkSelected(inner) => inner.match_rule(),
+			Self::StateChanged(inner) => inner.match_rule(),
+			Self::ChildrenChanged(inner) => inner.match_rule(),
+			Self::VisibleDataChanged(inner) => inner.match_rule(),
+			Self::SelectionChanged(inner) => inner.match_rule(),
+			Self::ModelChanged(inner) => inner.match_rule(),
+			Self::ActiveDescendantChanged(inner) => inner.match_rule(),
+			Self::Announcement(inner) => inner.match_rule(),
+			Self::AttributesChanged(inner) => inner.match_rule(),
+			Self::RowInserted(inner) => inner.match_rule(),
+			Self::RowReordered(inner) => inner.match_rule(),
+			Self::RowDeleted(inner) => inner.match_rule(),
+			Self::ColumnInserted(inner) => inner.match_rule(),
+			Self::ColumnReordered(inner) => inner.match_rule(),
+			Self::ColumnDeleted(inner) => inner.match_rule(),
+			Self::TextBoundsChanged(inner) => inner.match_rule(),
+			Self::TextSelectionChanged(inner) => inner.match_rule(),
+			Self::TextChanged(inner) => inner.match_rule(),
+			Self::TextAttributesChanged(inner) => inner.match_rule(),
+			Self::TextCaretMoved(inner) => inner.match_rule(),
+		}
+	}
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::PropertyChange(inner) => inner.registry_string(),
+			Self::BoundsChanged(inner) => inner.registry_string(),
+			Self::LinkSelected(inner) => inner.registry_string(),
+			Self::StateChanged(inner) => inner.registry_string(),
+			Self::ChildrenChanged(inner) => inner.registry_string(),
+			Self::VisibleDataChanged(inner) => inner.registry_string(),
+			Self::SelectionChanged(inner) => inner.registry_string(),
+			Self::ModelChanged(inner) => inner.registry_string(),
+			Self::ActiveDescendantChanged(inner) => inner.registry_string(),
+			Self::Announcement(inner) => inner.registry_string(),
+			Self::AttributesChanged(inner) => inner.registry_string(),
+			Self::RowInserted(inner) => inner.registry_string(),
+			Self::RowReordered(inner) => inner.registry_string(),
+			Self::RowDeleted(inner) => inner.registry_string(),
+			Self::ColumnInserted(inner) => inner.registry_string(),
+			Self::ColumnReordered(inner) => inner.registry_string(),
+			Self::ColumnDeleted(inner) => inner.registry_string(),
+			Self::TextBoundsChanged(inner) => inner.registry_string(),
+			Self::TextSelectionChanged(inner) => inner.registry_string(),
+			Self::TextChanged(inner) => inner.registry_string(),
+			Self::TextAttributesChanged(inner) => inner.registry_string(),
+			Self::TextCaretMoved(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for ObjectEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::PropertyChange(inner) => inner.path(),
+			Self::BoundsChanged(inner) => inner.path(),
+			Self::LinkSelected(inner) => inner.path(),
+			Self::StateChanged(inner) => inner.path(),
+			Self::ChildrenChanged(inner) => inner.path(),
+			Self::VisibleDataChanged(inner) => inner.path(),
+			Self::SelectionChanged(inner) => inner.path(),
+			Self::ModelChanged(inner) => inner.path(),
+			Self::ActiveDescendantChanged(inner) => inner.path(),
+			Self::Announcement(inner) => inner.path(),
+			Self::AttributesChanged(inner) => inner.path(),
+			Self::RowInserted(inner) => inner.path(),
+			Self::RowReordered(inner) => inner.path(),
+			Self::RowDeleted(inner) => inner.path(),
+			Self::ColumnInserted(inner) => inner.path(),
+			Self::ColumnReordered(inner) => inner.path(),
+			Self::ColumnDeleted(inner) => inner.path(),
+			Self::TextBoundsChanged(inner) => inner.path(),
+			Self::TextSelectionChanged(inner) => inner.path(),
+			Self::TextChanged(inner) => inner.path(),
+			Self::TextAttributesChanged(inner) => inner.path(),
+			Self::TextCaretMoved(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::PropertyChange(inner) => inner.sender(),
+			Self::BoundsChanged(inner) => inner.sender(),
+			Self::LinkSelected(inner) => inner.sender(),
+			Self::StateChanged(inner) => inner.sender(),
+			Self::ChildrenChanged(inner) => inner.sender(),
+			Self::VisibleDataChanged(inner) => inner.sender(),
+			Self::SelectionChanged(inner) => inner.sender(),
+			Self::ModelChanged(inner) => inner.sender(),
+			Self::ActiveDescendantChanged(inner) => inner.sender(),
+			Self::Announcement(inner) => inner.sender(),
+			Self::AttributesChanged(inner) => inner.sender(),
+			Self::RowInserted(inner) => inner.sender(),
+			Self::RowReordered(inner) => inner.sender(),
+			Self::RowDeleted(inner) => inner.sender(),
+			Self::ColumnInserted(inner) => inner.sender(),
+			Self::ColumnReordered(inner) => inner.sender(),
+			Self::ColumnDeleted(inner) => inner.sender(),
+			Self::TextBoundsChanged(inner) => inner.sender(),
+			Self::TextSelectionChanged(inner) => inner.sender(),
+			Self::TextChanged(inner) => inner.sender(),
+			Self::TextAttributesChanged(inner) => inner.sender(),
+			Self::TextCaretMoved(inner) => inner.sender(),
+		}
+	}
+}
+
+impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
+impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+
+event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
+
+impl HasMatchRule for ObjectEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
+}
+
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
@@ -776,7 +995,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 			detail1: event.index_in_parent,
 
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
-			// Only path to fail is to convert a Fd into an `OwnedValue`.
+			// Only path to fail is to convert a `Fd` into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
 				.try_into()
