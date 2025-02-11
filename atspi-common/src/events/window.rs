@@ -585,11 +585,9 @@ impl_event_properties!(PropertyChangeEvent);
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
 			kind: event.property,
-			detail1: i32::default(),
-			detail2: i32::default(),
 			any_data: u8::default().into(),
+			..Default::default()
 		}
 	}
 }
