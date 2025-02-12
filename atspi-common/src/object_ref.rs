@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
-use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
+use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type, Value};
 
 // Equiv to "(so)"
 pub const OBJECT_REF_SIGNATURE: &Signature =
@@ -104,6 +104,14 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	}
 }
 
+impl<'b, 'a: 'b> TryFrom<Value<'a>> for ObjectRefBorrow<'b> {
+	type Error = zvariant::Error;
+	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
+		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
+		Ok(ObjectRefBorrow { name, path })
+	}
+}
+
 impl From<ObjectRef> for zvariant::Structure<'_> {
 	fn from(obj: ObjectRef) -> Self {
 		(obj.name, obj.path).into()
@@ -112,7 +120,7 @@ impl From<ObjectRef> for zvariant::Structure<'_> {
 
 #[cfg(test)]
 mod test {
-	use crate::ObjectRef;
+	use crate::{object_ref::ObjectRefBorrow, ObjectRef};
 
 	#[test]
 	fn test_accessible_from_dbus_ctxt_to_object_ref() {
@@ -176,6 +184,25 @@ mod test {
 	fn must_fail_test_try_from_invalid_value_for_object_ref() {
 		let value = zvariant::Value::from(42);
 		let obj: Result<ObjectRef, _> = value.try_into();
+		assert!(obj.is_err());
+	}
+
+	#[test]
+	fn test_try_from_value_for_object_ref_borrow() {
+		use zvariant::Value;
+
+		let oref = ObjectRef::default();
+		let value: Value = oref.into();
+		let obj_borrow: ObjectRefBorrow = value.try_into().unwrap();
+
+		assert_eq!(obj_borrow.name.as_str(), ":0.0");
+		assert_eq!(obj_borrow.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn must_fail_test_try_from_invalid_value_for_object_ref_borrow() {
+		let value = zvariant::Value::from((42, true));
+		let obj: Result<ObjectRefBorrow, _> = value.try_into();
 		assert!(obj.is_err());
 	}
 }
