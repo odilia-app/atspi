@@ -7,7 +7,7 @@ use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type};
 pub const OBJECT_REF_SIGNATURE: &Signature =
 	&Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
 
-/// `ObjectRef` type
+/// A unique identifier for an object in the accessibility tree.
 ///
 /// A ubiquitous type used to refer to an object in the accessibility tree.
 ///
@@ -33,23 +33,23 @@ impl Default for ObjectRef {
 	}
 }
 
+/// A unique identifier for an object in the accessibility tree.
+///
+/// This is a borrowed version of [`ObjectRef`].
+///
+/// A ubiquitous type used to refer to an object in the accessibility tree.
+///
+/// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
+/// using a server name and object path. "(so)"
+///
+/// Emitted by `RemoveAccessible` and `Available`
 #[validate(signal: "Available")]
-#[derive(Debug, Clone, Serialize, Type, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRefBorrow<'a> {
 	#[serde(borrow)]
 	pub name: UniqueName<'a>,
 	#[serde(borrow)]
 	pub path: ObjectPath<'a>,
-}
-
-impl<'de: 'or, 'or> Deserialize<'de> for ObjectRefBorrow<'or> {
-	fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
-	where
-		D: serde::Deserializer<'de>,
-	{
-		let (name, path) = <(UniqueName<'or>, ObjectPath<'or>)>::deserialize(deserializer)?;
-		Ok(Self { name, path })
-	}
 }
 
 impl ObjectRef {
