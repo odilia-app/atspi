@@ -87,40 +87,6 @@ impl Default for ObjectRefBorrow<'_> {
 	}
 }
 
-#[cfg(test)]
-#[test]
-fn test_accessible_from_dbus_ctxt_to_accessible() {
-	use zvariant::serialized::Context;
-	use zvariant::{to_bytes, Value, LE};
-
-	let acc = ObjectRef::default();
-	let ctxt = Context::new_dbus(LE, 0);
-	let acc_value: Value<'_> = acc.into();
-	let data = to_bytes(ctxt, &acc_value).unwrap();
-	let (value, _) = data.deserialize::<Value>().unwrap();
-	let accessible: ObjectRef = value.try_into().unwrap();
-
-	assert_eq!(accessible.name.as_str(), ":0.0");
-	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
-}
-
-#[cfg(test)]
-#[test]
-fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
-	use zvariant::serialized::Context;
-	use zvariant::{to_bytes, Value, LE};
-
-	let acc = ObjectRef::default();
-	let value: zvariant::Value = acc.into();
-	let ctxt = Context::new_dbus(LE, 0);
-	let encoded = to_bytes(ctxt, &value).unwrap();
-	let (value, _) = encoded.deserialize::<Value>().unwrap();
-	let accessible: ObjectRef = value.try_into().unwrap();
-
-	assert_eq!(accessible.name.as_str(), ":0.0");
-	assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
-}
-
 impl<'a> TryFrom<zvariant::Value<'a>> for ObjectRef {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
@@ -154,5 +120,42 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 impl From<ObjectRef> for zvariant::Structure<'_> {
 	fn from(obj: ObjectRef) -> Self {
 		(obj.name, obj.path).into()
+	}
+}
+
+#[cfg(test)]
+mod test {
+	use crate::ObjectRef;
+
+	#[test]
+	fn test_accessible_from_dbus_ctxt_to_accessible() {
+		use zvariant::serialized::Context;
+		use zvariant::{to_bytes, Value, LE};
+
+		let acc = ObjectRef::default();
+		let ctxt = Context::new_dbus(LE, 0);
+		let acc_value: Value<'_> = acc.into();
+		let data = to_bytes(ctxt, &acc_value).unwrap();
+		let (value, _) = data.deserialize::<Value>().unwrap();
+		let accessible: ObjectRef = value.try_into().unwrap();
+
+		assert_eq!(accessible.name.as_str(), ":0.0");
+		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
+		use zvariant::serialized::Context;
+		use zvariant::{to_bytes, Value, LE};
+
+		let acc = ObjectRef::default();
+		let value: zvariant::Value = acc.into();
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &value).unwrap();
+		let (value, _) = encoded.deserialize::<Value>().unwrap();
+		let accessible: ObjectRef = value.try_into().unwrap();
+
+		assert_eq!(accessible.name.as_str(), ":0.0");
+		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
 }
