@@ -90,30 +90,17 @@ impl Default for ObjectRefBorrow<'_> {
 impl<'a> TryFrom<zvariant::Value<'a>> for ObjectRef {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
-		value.try_to_owned()?.try_into()
+		// Relies on `TryFrom<OwnedValue> for (T0, T1)` implementation
+		let (name, path): (OwnedUniqueName, OwnedObjectPath) = value.try_to_owned()?.try_into()?;
+		Ok(ObjectRef { name, path })
 	}
 }
 
 impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	type Error = zvariant::Error;
-	fn try_from<'a>(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		match &*value {
-			zvariant::Value::Structure(s) => {
-				if s.signature() != OBJECT_REF_SIGNATURE {
-					return Err(zvariant::Error::SignatureMismatch(s.signature().clone(), format!("To turn a zvariant::Value into an atspi::ObjectRef, it must be of type {OBJECT_REF_SIGNATURE}")));
-				}
-				let fields = s.fields();
-				let name: String =
-					fields.first().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				let path_value: ObjectPath<'_> =
-					fields.last().ok_or(zvariant::Error::IncorrectType)?.try_into()?;
-				Ok(ObjectRef {
-					name: name.try_into().map_err(|_| zvariant::Error::IncorrectType)?,
-					path: path_value.into(),
-				})
-			}
-			_ => Err(zvariant::Error::IncorrectType),
-		}
+	fn try_from(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
+		let (name, path): (OwnedUniqueName, OwnedObjectPath) = value.try_into()?;
+		Ok(ObjectRef { name, path })
 	}
 }
 
@@ -128,7 +115,7 @@ mod test {
 	use crate::ObjectRef;
 
 	#[test]
-	fn test_accessible_from_dbus_ctxt_to_accessible() {
+	fn test_accessible_from_dbus_ctxt_to_object_ref() {
 		use zvariant::serialized::Context;
 		use zvariant::{to_bytes, Value, LE};
 
@@ -144,7 +131,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_accessible_value_wrapped_from_dbus_ctxt_to_accessible() {
+	fn test_accessible_value_wrapped_from_dbus_ctxt_to_object_ref() {
 		use zvariant::serialized::Context;
 		use zvariant::{to_bytes, Value, LE};
 
@@ -157,5 +144,38 @@ mod test {
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
 		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn test_try_from_value_for_object_ref() {
+		use zvariant::Value;
+
+		let oref = ObjectRef::default();
+		let value: Value = oref.into();
+		let obj: ObjectRef = value.try_into().unwrap();
+
+		assert_eq!(obj.name.as_str(), ":0.0");
+		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn test_try_from_owned_value_for_object_ref() {
+		use zvariant::OwnedValue;
+		use zvariant::Value;
+
+		let oref = ObjectRef::default();
+		let value: Value = oref.into();
+		let value: OwnedValue = value.try_into().unwrap();
+		let obj: ObjectRef = value.try_into().unwrap();
+
+		assert_eq!(obj.name.as_str(), ":0.0");
+		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn must_fail_test_try_from_invalid_value_for_object_ref() {
+		let value = zvariant::Value::from(42);
+		let obj: Result<ObjectRef, _> = value.try_into();
+		assert!(obj.is_err());
 	}
 }
