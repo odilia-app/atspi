@@ -58,6 +58,18 @@ impl ObjectRef {
 	pub fn new<'a>(sender: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
 		Self { name: sender.into(), path: path.into() }
 	}
+
+	/// Create a new `ObjectRef`, unchecked, with the static string values.
+	///
+	/// # Safety
+	/// The caller must ensure that the strings are valid.
+	#[must_use]
+	pub fn from_static_str_unchecked(sender: &'static str, path: &'static str) -> Self {
+		Self {
+			name: UniqueName::from_static_str_unchecked(sender).into(),
+			path: ObjectPath::from_static_str_unchecked(path).into(),
+		}
+	}
 }
 
 impl<'a> ObjectRefBorrow<'a> {
@@ -75,6 +87,18 @@ impl<'a> ObjectRefBorrow<'a> {
 		let name = OwnedUniqueName::from(self.name.clone());
 		let path = OwnedObjectPath::from(self.path.clone());
 		ObjectRef { name, path }
+	}
+
+	/// Create a static `ObjectRefBorrow`, unchecked, from static string values.
+	///
+	/// # Safety
+	/// The caller must ensure that the strings are valid.
+	#[must_use]
+	pub const fn from_static_str_unchecked(sender: &'static str, path: &'static str) -> Self {
+		Self {
+			name: UniqueName::from_static_str_unchecked(sender),
+			path: ObjectPath::from_static_str_unchecked(path),
+		}
 	}
 }
 
