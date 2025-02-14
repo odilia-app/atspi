@@ -113,7 +113,7 @@ impl BusProperties for AbsEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for AbsEvent {
+impl MessageConversion<'_> for AbsEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -140,7 +140,7 @@ impl BusProperties for RelEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for RelEvent {
+impl MessageConversion<'_> for RelEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -167,7 +167,7 @@ impl BusProperties for ButtonEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for ButtonEvent {
+impl MessageConversion<'_> for ButtonEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {

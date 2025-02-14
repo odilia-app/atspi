@@ -8,7 +8,6 @@ use crate::{events::event_body::EventBodyOwned, EventProperties};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
 
-
 use super::{event_body::Properties, BusProperties};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -80,7 +79,7 @@ impl BusProperties for ModifiersEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for ModifiersEvent {
+impl MessageConversion<'_> for ModifiersEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -105,17 +104,9 @@ impl_event_properties!(ModifiersEvent);
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
-<<<<<<< HEAD
-			properties: Properties,
-||||||| parent of a290b37 (refactor(common): event_body.rs and refactor object_ref (squashed))
-			properties: std::collections::HashMap::new(),
-=======
->>>>>>> a290b37 (refactor(common): event_body.rs and refactor object_ref (squashed))
-			kind: String::default(),
 			detail1: event.previous_modifiers,
 			detail2: event.current_modifiers,
-			any_data: OwnedValue::from(0u8),
-			properties: Properties,
+			..Default::default()
 		}
 	}
 }

@@ -603,7 +603,7 @@ impl BusProperties for PropertyChangeEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for PropertyChangeEvent {
+impl MessageConversion<'_> for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -652,7 +652,7 @@ impl BusProperties for StateChangedEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for StateChangedEvent {
+impl MessageConversion<'_> for StateChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -683,7 +683,7 @@ impl BusProperties for ChildrenChangedEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for ChildrenChangedEvent {
+impl MessageConversion<'_> for ChildrenChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -742,7 +742,7 @@ impl BusProperties for ActiveDescendantChangedEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for ActiveDescendantChangedEvent {
+impl MessageConversion<'_> for ActiveDescendantChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -773,7 +773,7 @@ impl BusProperties for AnnouncementEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for AnnouncementEvent {
+impl MessageConversion<'_> for AnnouncementEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -880,7 +880,7 @@ impl BusProperties for TextChangedEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for TextChangedEvent {
+impl MessageConversion<'_> for TextChangedEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -925,7 +925,7 @@ impl BusProperties for TextCaretMovedEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for TextCaretMovedEvent {
+impl MessageConversion<'_> for TextCaretMovedEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
