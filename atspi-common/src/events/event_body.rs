@@ -306,7 +306,7 @@ impl EventBodyBorrow<'_> {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, Type)]
+#[derive(Debug, Serialize, Deserialize, Type, PartialEq)]
 pub struct EventBodyQTBorrow<'m> {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
@@ -337,15 +337,6 @@ impl Default for EventBodyQTBorrow<'_> {
 			any_data: Value::new(Array::new(&Signature::U8)),
 			properties: QtProperties,
 		}
-	}
-}
-
-impl PartialEq for EventBodyQTBorrow<'_> {
-	fn eq(&self, other: &Self) -> bool {
-		self.kind == other.kind
-			&& self.detail1 == other.detail1
-			&& self.detail2 == other.detail2
-			&& self.any_data == other.any_data
 	}
 }
 
