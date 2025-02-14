@@ -8,6 +8,8 @@ use zvariant::{Array, ObjectPath, OwnedValue, Signature, Value};
 
 use crate::AtspiError;
 
+use super::{ATSPI_EVENT_SIGNATURE, QSPI_EVENT_SIGNATURE};
+
 /// Event body as used exclusively by 'Qt' toolkit.
 ///
 /// Signature:  "siiv(so)"
@@ -402,7 +404,7 @@ impl From<EventBodyQT> for EventBodyOwned {
 
 /// Common event body that can be either owned or borrowed.
 ///
-/// This is useful for APIs that can return either owned or borrowed event bodies.
+/// This is useful for APIs that can return either owned or borrowed event bodies.  
 /// Having this type allows to be generic over the event body type.
 #[derive(Debug)]
 pub enum EventBody<'a> {
@@ -416,8 +418,8 @@ impl EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
+	/// The borrowed variant will error if the following conditions are met:  
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn as_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
@@ -431,14 +433,28 @@ impl EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
+	/// The borrowed variant will error if the following conditions are met:  
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn into_owned(self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
 			EventBody::Owned(owned) => Ok(owned),
 			EventBody::Borrowed(borrowed) => borrowed.to_fully_owned(),
 		}
+	}
+}
+
+impl Type for EventBody<'_> {
+	const SIGNATURE: &'static zvariant::Signature = ATSPI_EVENT_SIGNATURE;
+}
+
+impl<'de: 'a, 'a> Deserialize<'de> for EventBody<'a> {
+	fn deserialize<D>(deserializer: D) -> Result<EventBody<'a>, D::Error>
+	where
+		D: serde::de::Deserializer<'de>,
+	{
+		let borrowed = EventBodyBorrow::deserialize(deserializer)?;
+		Ok(EventBody::Borrowed(borrowed))
 	}
 }
 
@@ -452,14 +468,28 @@ pub enum EventBodyQt<'a> {
 	Borrowed(EventBodyQTBorrow<'a>),
 }
 
+impl Type for EventBodyQt<'_> {
+	const SIGNATURE: &'static zvariant::Signature = QSPI_EVENT_SIGNATURE;
+}
+
+impl<'de: 'a, 'a> Deserialize<'de> for EventBodyQt<'a> {
+	fn deserialize<D>(deserializer: D) -> Result<EventBodyQt<'a>, D::Error>
+	where
+		D: serde::de::Deserializer<'de>,
+	{
+		let borrowed = EventBodyQTBorrow::deserialize(deserializer)?;
+		Ok(EventBodyQt::Borrowed(borrowed))
+	}
+}
+
 impl EventBodyQt<'_> {
 	/// Non-consuming conversion to an owned event body.
 	///
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
+	/// The borrowed variant will error if the following conditions are met:  
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn as_owned(&self) -> Result<EventBodyQT, AtspiError> {
 		match self {
@@ -473,8 +503,8 @@ impl EventBodyQt<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
+	/// The borrowed variant will error if the following conditions are met:  
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn into_owned(self) -> Result<EventBodyQT, AtspiError> {
 		match self {
@@ -522,16 +552,11 @@ impl PartialEq<EventBodyQTBorrow<'_>> for EventBodyBorrow<'_> {
 
 #[cfg(test)]
 mod test {
-	use std::collections::HashMap;
-
-	use tokio_test::assert_err;
-	use zvariant::serialized::Context;
-	use zvariant::LE;
-
+	use super::*;
 	use crate::object_ref::ObjectRefBorrow;
 	use crate::ObjectRef;
-
-	use super::*;
+	use std::collections::HashMap;
+	use zvariant::{serialized::Context, LE};
 
 	#[cfg(test)]
 	#[test]
@@ -634,7 +659,7 @@ mod test {
 		let ctxt = Context::new_dbus(LE, 0);
 		let bytes = zvariant::to_bytes::<&str>(ctxt, &"test").unwrap();
 
-		assert_err!(bytes.deserialize::<Properties>());
+		assert!(bytes.deserialize::<Properties>().is_err());
 	}
 
 	#[test]
@@ -642,7 +667,7 @@ mod test {
 		let ctxt = Context::new_dbus(LE, 0);
 		let bytes = zvariant::to_bytes::<&str>(ctxt, &"ola").unwrap();
 
-		assert_err!(bytes.deserialize::<QtProperties>());
+		assert!(bytes.deserialize::<QtProperties>().is_err());
 	}
 
 	#[test]
