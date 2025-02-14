@@ -164,7 +164,7 @@ impl BusProperties for LegacyAddAccessibleEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for LegacyAddAccessibleEvent {
+impl MessageConversion<'_> for LegacyAddAccessibleEvent {
 	type Body = LegacyCacheItem;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -209,7 +209,7 @@ impl BusProperties for AddAccessibleEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for AddAccessibleEvent {
+impl MessageConversion<'_> for AddAccessibleEvent {
 	type Body = CacheItem;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
@@ -258,7 +258,7 @@ impl BusProperties for RemoveAccessibleEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for RemoveAccessibleEvent {
+impl MessageConversion<'_> for RemoveAccessibleEvent {
 	type Body = ObjectRef;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {

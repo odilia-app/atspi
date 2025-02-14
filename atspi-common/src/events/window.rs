@@ -342,7 +342,7 @@ impl BusProperties for PropertyChangeEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for PropertyChangeEvent {
+impl MessageConversion<'_> for PropertyChangeEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {

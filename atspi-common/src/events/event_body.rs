@@ -403,7 +403,7 @@ pub enum EventBody<'a> {
 	Borrowed(EventBodyBorrow<'a>),
 }
 
-impl EventBody<'_> {
+impl<'a> EventBody<'_> {
 	/// Non-consuming conversion to an owned event body.
 	///
 	/// Does cloning.
@@ -412,10 +412,10 @@ impl EventBody<'_> {
 	/// The borrowed variant will error if the following conditions are met:  
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn as_owned(&self) -> Result<EventBodyOwned, AtspiError> {
+	pub fn as_owned(&self) -> Result<EventBody, AtspiError> {
 		match self {
-			EventBody::Owned(owned) => Ok(owned.clone()),
-			EventBody::Borrowed(borrowed) => borrowed.to_fully_owned(),
+			EventBody::Owned(owned) => Ok(EventBody::Owned(owned.clone())),
+			EventBody::Borrowed(borrowed) => Ok(EventBody::Owned(borrowed.to_fully_owned()?)),
 		}
 	}
 
@@ -427,10 +427,10 @@ impl EventBody<'_> {
 	/// The borrowed variant will error if the following conditions are met:  
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn into_owned(self) -> Result<EventBodyOwned, AtspiError> {
+	pub fn into_owned(self) -> Result<EventBody<'a>, AtspiError> {
 		match self {
-			EventBody::Owned(owned) => Ok(owned),
-			EventBody::Borrowed(borrowed) => borrowed.to_fully_owned(),
+			EventBody::Owned(owned) => Ok(EventBody::Owned(owned)),
+			EventBody::Borrowed(borrowed) => Ok(EventBody::Owned(borrowed.to_fully_owned()?)),
 		}
 	}
 }
@@ -446,6 +446,18 @@ impl<'de: 'a, 'a> Deserialize<'de> for EventBody<'a> {
 	{
 		let borrowed = EventBodyBorrow::deserialize(deserializer)?;
 		Ok(EventBody::Borrowed(borrowed))
+	}
+}
+
+impl Serialize for EventBody<'_> {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::ser::Serializer,
+	{
+		match self {
+			EventBody::Owned(owned) => owned.serialize(serializer),
+			EventBody::Borrowed(borrowed) => borrowed.serialize(serializer),
+		}
 	}
 }
 
@@ -473,7 +485,19 @@ impl<'de: 'a, 'a> Deserialize<'de> for EventBodyQt<'a> {
 	}
 }
 
-impl EventBodyQt<'_> {
+impl Serialize for EventBodyQt<'_> {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::ser::Serializer,
+	{
+		match self {
+			EventBodyQt::Owned(owned) => owned.serialize(serializer),
+			EventBodyQt::Borrowed(borrowed) => borrowed.serialize(serializer),
+		}
+	}
+}
+
+impl<'a> EventBodyQt<'_> {
 	/// Non-consuming conversion to an owned event body.
 	///
 	/// Does cloning.
@@ -482,10 +506,10 @@ impl EventBodyQt<'_> {
 	/// The borrowed variant will error if the following conditions are met:  
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn as_owned(&self) -> Result<EventBodyQT, AtspiError> {
+	pub fn as_owned(&self) -> Result<EventBodyQt, AtspiError> {
 		match self {
-			EventBodyQt::Owned(owned) => Ok(owned.clone()),
-			EventBodyQt::Borrowed(borrowed) => borrowed.try_to_owned(),
+			EventBodyQt::Owned(owned) => Ok(EventBodyQt::Owned(owned.clone())),
+			EventBodyQt::Borrowed(borrowed) => Ok(EventBodyQt::Owned(borrowed.try_to_owned()?)),
 		}
 	}
 
@@ -497,10 +521,10 @@ impl EventBodyQt<'_> {
 	/// The borrowed variant will error if the following conditions are met:  
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn into_owned(self) -> Result<EventBodyQT, AtspiError> {
+	pub fn into_owned(self) -> Result<EventBodyQt<'a>, AtspiError> {
 		match self {
-			EventBodyQt::Owned(owned) => Ok(owned),
-			EventBodyQt::Borrowed(borrowed) => borrowed.try_to_owned(),
+			EventBodyQt::Owned(owned) => Ok(EventBodyQt::Owned(owned)),
+			EventBodyQt::Borrowed(borrowed) => Ok(EventBodyQt::Owned(borrowed.try_to_owned()?)),
 		}
 	}
 }

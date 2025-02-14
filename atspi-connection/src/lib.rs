@@ -294,9 +294,10 @@ impl AccessibilityConnection {
 	/// 2. sending the event fails for some reason.
 	///
 	/// Both of these conditions should never happen as long as you have a valid event.
-	pub async fn send_event<T>(&self, event: T) -> Result<(), AtspiError>
+	pub async fn send_event<'a, T>(&self, event: T) -> Result<(), AtspiError>
 	where
-		T: BusProperties + EventProperties + MessageConversion,
+		T: BusProperties + EventProperties + MessageConversion<'a>,
+		<T as MessageConversion<'a>>::Body: zbus::export::serde::ser::Serialize,
 	{
 		let conn = self.connection();
 		let new_message = zbus::Message::signal(

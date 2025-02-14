@@ -86,7 +86,7 @@ impl BusProperties for ModifiersEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for ModifiersEvent {
+impl MessageConversion<'_> for ModifiersEvent {
 	type Body = EventBodyOwned;
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
