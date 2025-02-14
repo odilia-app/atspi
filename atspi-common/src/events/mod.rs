@@ -205,7 +205,7 @@ impl HasRegistryEventString for EventListenerEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl<T> MessageConversion for T
+impl<T> MessageConversion<'_> for T
 where
 	ObjectRef: Into<T>,
 	// this bound is not actually used for anything, but I do not want to implement this trait for
@@ -427,7 +427,7 @@ impl BusProperties for EventListenerDeregisteredEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for EventListenerDeregisteredEvent {
+impl MessageConversion<'_> for EventListenerDeregisteredEvent {
 	type Body = EventListeners;
 
 	fn from_message_unchecked_parts(
@@ -480,7 +480,7 @@ impl BusProperties for EventListenerRegisteredEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for EventListenerRegisteredEvent {
+impl MessageConversion<'_> for EventListenerRegisteredEvent {
 	type Body = EventListeners;
 
 	fn from_message_unchecked_parts(
@@ -534,7 +534,7 @@ impl BusProperties for AvailableEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for AvailableEvent {
+impl MessageConversion<'_> for AvailableEvent {
 	type Body = ObjectRef;
 
 	fn from_message_unchecked_parts(
@@ -683,9 +683,9 @@ pub trait BusProperties {
 }
 
 #[cfg(feature = "zbus")]
-pub trait MessageConversion: BusProperties {
+pub trait MessageConversion<'a>: BusProperties {
 	/// What is the body type of this event.
-	type Body: Type + Serialize + for<'a> Deserialize<'a>;
+	type Body: Type + Deserialize<'a>;
 
 	/// Build an event from a [`zbus::Message`] reference.
 	/// This function will not check for any of the following error conditions:
@@ -694,6 +694,7 @@ pub trait MessageConversion: BusProperties {
 	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
 	/// - That the message has an member: [`type@AtspiError::MissingMember`]
 	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
+	/// - That the message has an signature: [`type@AtspiError::MissingSignature`]
 	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.
@@ -738,9 +739,9 @@ pub trait MessageConversion: BusProperties {
 }
 
 #[cfg(feature = "zbus")]
-impl<T> MessageConversionExt<crate::LegacyCacheItem> for T
+impl<'a, T> MessageConversionExt<'a, crate::LegacyCacheItem> for T
 where
-	T: MessageConversion<Body = crate::LegacyCacheItem>,
+	T: MessageConversion<'a, Body = crate::LegacyCacheItem>,
 {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(msg)?;
@@ -751,9 +752,9 @@ where
 }
 
 #[cfg(feature = "zbus")]
-impl<T> MessageConversionExt<EventListeners> for T
+impl<'a, T> MessageConversionExt<'a, EventListeners> for T
 where
-	T: MessageConversion<Body = EventListeners>,
+	T: MessageConversion<'a, Body = EventListeners>,
 {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		<T as MessageConversionExt<EventListeners>>::validate_interface(msg)?;
@@ -764,9 +765,9 @@ where
 }
 
 #[cfg(feature = "zbus")]
-impl<T> MessageConversionExt<crate::CacheItem> for T
+impl<'a, T> MessageConversionExt<'a, crate::CacheItem> for T
 where
-	T: MessageConversion<Body = crate::CacheItem>,
+	T: MessageConversion<'a, Body = crate::CacheItem>,
 {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		<T as MessageConversionExt<crate::CacheItem>>::validate_interface(msg)?;
@@ -777,9 +778,9 @@ where
 }
 
 #[cfg(feature = "zbus")]
-impl<T> MessageConversionExt<ObjectRef> for T
+impl<'a, T> MessageConversionExt<'a, ObjectRef> for T
 where
-	T: MessageConversion<Body = ObjectRef>,
+	T: MessageConversion<'a, Body = ObjectRef>,
 {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		<T as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
@@ -790,9 +791,9 @@ where
 }
 
 #[cfg(feature = "zbus")]
-impl<T> MessageConversionExt<EventBodyOwned> for T
+impl<'a, T> MessageConversionExt<'a, EventBodyOwned> for T
 where
-	T: MessageConversion<Body = EventBodyOwned>,
+	T: MessageConversion<'a, Body = EventBodyOwned>,
 {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		<T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
@@ -818,9 +819,9 @@ where
 }
 
 #[cfg(feature = "zbus")]
-pub trait MessageConversionExt<B>: MessageConversion<Body = B>
+pub trait MessageConversionExt<'a, B>: MessageConversion<'a, Body = B>
 where
-	B: Type + Serialize + for<'a> Deserialize<'a>,
+	B: Type + Serialize + Deserialize<'a>,
 {
 	/// Convert a [`zbus::Message`] into this event type.
 	/// Does all the validation for you.
