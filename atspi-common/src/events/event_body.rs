@@ -11,7 +11,7 @@ use crate::AtspiError;
 /// Event body as used exclusively by 'Qt' toolkit.
 ///
 /// Signature:  "siiv(so)"
-#[derive(Debug, Serialize, Deserialize, Type)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Type)]
 pub struct EventBodyQT {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
@@ -125,15 +125,6 @@ impl Default for EventBodyQT {
 	}
 }
 
-impl PartialEq for EventBodyQT {
-	fn eq(&self, other: &Self) -> bool {
-		self.kind == other.kind
-			&& self.detail1 == other.detail1
-			&& self.detail2 == other.detail2
-			&& self.any_data == other.any_data
-	}
-}
-
 /// Unit struct placeholder for `EventBody.properties`
 ///
 /// AT-SPI2 never reads or writes to `EventBody.properties`.  
@@ -188,7 +179,7 @@ impl<'de> Deserialize<'de> for Properties {
 ///
 /// Signature `(siiva{sv})`,
 #[validate(signal: "PropertyChange")]
-#[derive(Debug, Serialize, Deserialize, Type)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Type)]
 pub struct EventBodyOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
@@ -210,15 +201,6 @@ pub struct EventBodyOwned {
 	/// Not in use.
 	/// See: [`Properties`].
 	pub(crate) properties: Properties,
-}
-
-impl PartialEq for EventBodyOwned {
-	fn eq(&self, other: &Self) -> bool {
-		self.kind == other.kind
-			&& self.detail1 == other.detail1
-			&& self.detail2 == other.detail2
-			&& self.any_data == other.any_data
-	}
 }
 
 impl Default for EventBodyOwned {
@@ -262,7 +244,7 @@ impl Clone for EventBodyOwned {
 	}
 }
 
-#[derive(Debug, Serialize, Deserialize, Type)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Type)]
 pub struct EventBodyBorrow<'a> {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
@@ -286,15 +268,6 @@ pub struct EventBodyBorrow<'a> {
 	pub(crate) properties: Properties,
 }
 
-impl PartialEq for EventBodyBorrow<'_> {
-	fn eq(&self, other: &Self) -> bool {
-		self.kind == other.kind
-			&& self.detail1 == other.detail1
-			&& self.detail2 == other.detail2
-			&& self.any_data == other.any_data
-	}
-}
-
 impl Default for EventBodyBorrow<'_> {
 	fn default() -> Self {
 		Self {
@@ -316,7 +289,7 @@ impl EventBodyBorrow<'_> {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Chances are slim because none of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
+	/// Chances are slim because none of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].  
 	/// See [`zvariant::Value::try_clone`] for more information.
 	pub fn to_fully_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		let owned_any_data = self.any_data.try_to_owned()?;
@@ -326,27 +299,6 @@ impl EventBodyBorrow<'_> {
 			detail1: self.detail1,
 			detail2: self.detail2,
 			any_data: owned_any_data,
-			properties: Properties,
-		})
-	}
-}
-
-impl EventBodyBorrow<'_> {
-	/// Convert partially borrowed event body to an owned event body.
-	///
-	/// # Errors
-	///
-	/// This will error if the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
-	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn try_to_owned(self) -> Result<EventBodyOwned, AtspiError> {
-		let any_data = self.any_data.try_to_owned()?;
-
-		Ok(EventBodyOwned {
-			kind: self.kind.to_owned(),
-			detail1: self.detail1,
-			detail2: self.detail2,
-			any_data,
 			properties: Properties,
 		})
 	}
