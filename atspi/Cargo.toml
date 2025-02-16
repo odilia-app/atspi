@@ -64,7 +64,7 @@ async-std = { version = "1.12", default-features = false }
 atspi = { path = "." }
 criterion = "0.5"
 fastrand = "2.0"
-futures = { version = "0.3", default-features = false }
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
 futures-lite = { version = "2", default-features = false }
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
