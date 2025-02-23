@@ -1,3 +1,4 @@
+use super::event_body::EventBody;
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
@@ -8,6 +9,7 @@ use crate::{
 	events::{BusProperties, EventBodyOwned},
 	EventProperties,
 };
+use zbus::message::Body as DbusBody;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -145,24 +147,25 @@ impl BusProperties for PropertyChangeEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for PropertyChangeEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, property: body.kind })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		Ok(Self { item, property: body.take_kind() })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		// TODO: Check the likely path first. also, deserialize already checks the signature
-		let body = if *msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<EventBodyQtOwned>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBody::Owned(EventBodyOwned {
+			kind: self.property.clone(),
+			any_data: u8::default().into(),
+			..Default::default()
+		})
 	}
 }
 

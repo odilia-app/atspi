@@ -63,7 +63,7 @@ impl Clone for EventBodyQtOwned {
 
 /// Unit struct placeholder for `EventBodyQtOwned.properties`
 ///
-/// AT-SPI2 never reads or writes to `properties`.
+/// AT-SPI2 never reads or writes to `EventBodyQT.properties`.
 /// `QtProperties` has the appropriate implementations for `Serialize` and `Deserialize`
 /// to make it serialize as an a valid tuple and valid bytes deserialize as placeholder.
 #[derive(Debug, Copy, Clone, Deserialize, Type, Default, PartialEq)]
@@ -390,6 +390,12 @@ pub enum EventBody<'a> {
 	Borrowed(EventBodyBorrowed<'a>),
 }
 
+impl Default for EventBody<'_> {
+	fn default() -> Self {
+		Self::Borrowed(EventBodyBorrowed::default())
+	}
+}
+
 impl<'a> EventBody<'_> {
 	/// Non-consuming conversion to an owned event body.
 	///
@@ -399,10 +405,10 @@ impl<'a> EventBody<'_> {
 	/// The borrowed variant will error if the following conditions are met:
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn as_owned(&self) -> Result<EventBody, AtspiError> {
+	pub fn as_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
-			EventBody::Owned(owned) => Ok(EventBody::Owned(owned.clone())),
-			EventBody::Borrowed(borrowed) => Ok(EventBody::Owned(borrowed.to_fully_owned()?)),
+			Self::Owned(owned) => Ok(owned.clone()),
+			Self::Borrowed(borrowed) => borrowed.to_fully_owned(),
 		}
 	}
 
@@ -414,7 +420,7 @@ impl<'a> EventBody<'_> {
 	/// The borrowed variant will error if the following conditions are met:
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn into_owned(self) -> Result<EventBody<'a>, AtspiError> {
+	pub fn into_owned(self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
 			Self::Owned(owned) => Ok(owned),
 			Self::Borrowed(borrowed) => borrowed.to_fully_owned(),
@@ -488,6 +494,74 @@ impl<'a> EventBody<'_> {
 			Self::Borrowed(borrowed) => borrowed.any_data.try_to_owned().expect("cloning 'any_data' field should not fail because we do not expect it to hold an fd"),
 		}
 	}
+
+	/// The `kind` field as `&str`.
+	///
+	/// With both variants, this method returns a reference to the `kind` field.
+	#[must_use]
+	pub fn kind(&'a self) -> &'a str {
+		match self {
+			Self::Owned(owned) => owned.kind.as_str(),
+			Self::Borrowed(borrowed) => borrowed.kind,
+		}
+	}
+
+	/// Take or convert the `kind` field as `String`.
+	///
+	/// With the owned variant, this method takes the `kind` field and replaces it with an empty string.
+	/// With the borrowed variant, this method clones and allocates the `kind` field.
+	pub fn take_kind(&mut self) -> String {
+		match self {
+			Self::Owned(owned) => std::mem::take(&mut owned.kind),
+			Self::Borrowed(borrowed) => borrowed.kind.to_owned(),
+		}
+	}
+
+	#[must_use]
+	pub fn detail1(&self) -> i32 {
+		match self {
+			Self::Owned(owned) => owned.detail1,
+			Self::Borrowed(borrowed) => borrowed.detail1,
+		}
+	}
+
+	#[must_use]
+	pub fn detail2(&self) -> i32 {
+		match self {
+			Self::Owned(owned) => owned.detail2,
+			Self::Borrowed(borrowed) => borrowed.detail2,
+		}
+	}
+
+	/// The `any_data` field as `&Value`.
+	/// With both variants, this method returns a reference to the `any_data` field.
+	#[must_use]
+	pub fn any_data(&'a self) -> &'a Value<'a> {
+		match self {
+			Self::Owned(owned) => &owned.any_data,
+			Self::Borrowed(borrowed) => &borrowed.any_data,
+		}
+	}
+
+	/// Take or convert the `any_data` field as `OwnedValue`.
+	/// With the owned variant, this method takes the `any_data` field and replaces it with a default value.
+	/// As `Value` does not have a default value, we will replace with `0_u32`, a nbon-allocating value.
+	///
+	/// With the borrowed variant, this method clones and allocates the `any_data` field.
+	///
+	/// # Panics
+	/// This method will panic if the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
+	/// the maximum number of open files for the process is exceeded.
+	///
+	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
+	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
+	/// specification describes that.
+	pub fn take_any_data(&mut self) -> OwnedValue {
+		match self {
+			Self::Owned(owned) => std::mem::replace(&mut owned.any_data, 0_u32.into()),
+			Self::Borrowed(borrowed) => borrowed.any_data.try_to_owned().expect("cloning 'any_data' field should not fail because we do not expect it to hold an fd"),
+		}
+	}
 }
 
 impl Type for EventBody<'_> {
@@ -512,50 +586,6 @@ impl Serialize for EventBody<'_> {
 		match self {
 			EventBody::Owned(owned) => owned.serialize(serializer),
 			EventBody::Borrowed(borrowed) => borrowed.serialize(serializer),
-		}
-	}
-}
-
-impl Serialize for EventBodyQt<'_> {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: serde::ser::Serializer,
-	{
-		match self {
-			EventBodyQt::Owned(owned) => owned.serialize(serializer),
-			EventBodyQt::Borrowed(borrowed) => borrowed.serialize(serializer),
-		}
-	}
-}
-
-impl<'a> EventBodyQt<'_> {
-	/// Non-consuming conversion to an owned event body.
-	///
-	/// Does cloning.
-	///
-	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
-	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn as_owned(&self) -> Result<EventBodyQt, AtspiError> {
-		match self {
-			EventBodyQt::Owned(owned) => Ok(EventBodyQt::Owned(owned.clone())),
-			EventBodyQt::Borrowed(borrowed) => Ok(EventBodyQt::Owned(borrowed.try_to_owned()?)),
-		}
-	}
-
-	/// Consuming conversion to an owned event body.
-	///
-	/// Does cloning.
-	///
-	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
-	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn into_owned(self) -> Result<EventBodyQt<'a>, AtspiError> {
-		match self {
-			EventBodyQt::Owned(owned) => Ok(EventBodyQt::Owned(owned)),
-			EventBodyQt::Borrowed(borrowed) => Ok(EventBodyQt::Owned(borrowed.try_to_owned()?)),
 		}
 	}
 }
@@ -591,21 +621,6 @@ impl From<EventBodyOwned> for EventBodyQtOwned {
 			detail1: owned.detail1,
 			detail2: owned.detail2,
 			any_data: owned.any_data,
-			properties: QtProperties,
-		}
-	}
-}
-
-impl<'a> From<EventBodyBorrowed<'a>> for EventBodyQtOwned {
-	fn from(borrowed: EventBodyBorrowed<'a>) -> Self {
-		Self {
-			kind: borrowed.kind.to_owned(),
-			detail1: borrowed.detail1,
-			detail2: borrowed.detail2,
-			any_data: borrowed
-				.any_data
-				.try_to_owned()
-				.expect("converting borrowed to owned should not fail"),
 			properties: QtProperties,
 		}
 	}
@@ -879,6 +894,78 @@ mod test {
 		assert_eq!(deserialized.detail1, 1);
 		assert_eq!(deserialized.detail2, 2);
 		assert_eq!(*deserialized.any_data, boots);
+	}
+
+	#[test]
+	fn complex_qt_body_as_bytes_deserialize_as_event_body() {
+		let boots = Array::from(vec!["these", "boots", "are", "made", "for", "walking"]);
+		let boots = Value::from(boots);
+		let event = (
+			"and that is what they'll do",
+			1,
+			2,
+			boots.clone(),
+			(":0.0", ObjectPath::from_static_str_unchecked("/")),
+		);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let bytes = zvariant::to_bytes::<(&str, i32, i32, Value, (&str, ObjectPath))>(ctxt, &event)
+			.unwrap();
+
+		let (deserialized, _) = bytes.deserialize::<EventBody>().unwrap();
+
+		assert_eq!(deserialized.kind(), "and that is what they'll do");
+		assert_eq!(deserialized.detail1(), 1);
+		assert_eq!(deserialized.detail2(), 2);
+		assert_eq!(*deserialized.any_data(), boots);
+	}
+
+	#[test]
+	fn complex_qt_body_as_message_deserialize_as_event_body() {
+		let boots = Array::from(vec!["these", "boots", "are", "made", "for", "walking"]);
+		let boots = Value::from(boots);
+		let event = (
+			"and that is what they'll do",
+			1,
+			2,
+			boots.clone(),
+			(":0.0", ObjectPath::from_static_str_unchecked("/")),
+		);
+
+		let msg = zbus::Message::signal("/", "org.a11y.atspi.Object", "StateChange")
+			.unwrap()
+			.build(&event)
+			.unwrap();
+
+		let body = msg.body();
+		let deserialized = body.deserialize_unchecked::<EventBody>().unwrap();
+
+		assert_eq!(deserialized.kind(), "and that is what they'll do");
+		assert_eq!(deserialized.detail1(), 1);
+		assert_eq!(deserialized.detail2(), 2);
+		assert_eq!(*deserialized.any_data(), boots);
+	}
+
+	#[test]
+	fn illegal_body_as_bytes_deserialize_as_event_body() {
+		let boots = Array::from(vec!["these", "boots", "are", "made", "for", "walking"]);
+		let boots = Value::from(boots);
+		let event = (
+			"and that is what they'll do",
+			1,
+			2,
+			4_u32,
+			boots.clone(),
+			(":0.0", ObjectPath::from_static_str_unchecked("/")),
+		);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let bytes = zvariant::to_bytes::<(&str, i32, i32, u32, Value<'_>, (&str, ObjectPath<'_>))>(
+			ctxt, &event,
+		)
+		.unwrap();
+
+		assert!(bytes.deserialize::<EventBody>().is_err());
 	}
 
 	#[test]
