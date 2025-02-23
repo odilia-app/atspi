@@ -25,10 +25,8 @@ pub struct ObjectRef {
 impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {
-			name: UniqueName::from_static_str(":0.0").unwrap().into(),
-			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null")
-				.unwrap()
-				.into(),
+			name: UniqueName::from_static_str_unchecked(":0.0").into(),
+			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/null").into(),
 		}
 	}
 }
@@ -105,8 +103,8 @@ impl<'a> ObjectRefBorrow<'a> {
 impl Default for ObjectRefBorrow<'_> {
 	fn default() -> Self {
 		ObjectRefBorrow {
-			name: UniqueName::from_static_str(":0.0").unwrap(),
-			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap(),
+			name: UniqueName::from_static_str_unchecked(":0.0"),
+			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/null"),
 		}
 	}
 }

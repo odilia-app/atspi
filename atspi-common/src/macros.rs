@@ -275,41 +275,42 @@ macro_rules! impl_from_dbus_message {
 	($type:ty) => {
 		impl_from_dbus_message!($type, Auto);
 	};
+
 	($type:ty, Auto) => {
 		#[cfg(feature = "zbus")]
-		impl TryFrom<&zbus::Message> for $type {
+		impl<'msg> TryFrom<&'msg zbus::Message> for $type {
 			type Error = AtspiError;
-			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-        use zvariant::Type;
 
-        Self::validate_interface(msg)?;
-        Self::validate_member(msg)?;
+			fn try_from(msg: &'msg zbus::Message) -> Result<Self, Self::Error> {
+				use crate::events::{EventBody, EventBodyQtBorrowed};
+				use zvariant::Type;
 
-        let body = msg.body();
-        let body_signature = body.signature();
-        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
-            let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
-            qtbody.into()
-        } else if body_signature == crate::events::ATSPI_EVENT_SIGNATURE {
-            body.deserialize_unchecked()?
-        } else {
-          return Err(AtspiError::SignatureMatch(format!(
-            "The message signature {} does not match the signal's body signature: {}",
-            body_signature,
-            <Self as MessageConversion>::Body::SIGNATURE,
-          )));
-        };
-        let item = msg.try_into()?;
-        Self::from_message_unchecked_parts(item, deser_body)
-      }
-    }
+				<Self as MessageConversionExt<<Self as MessageConversion>::Body<'_>>>::validate_interface(msg)?;
+				<Self as MessageConversionExt<<Self as MessageConversion>::Body<'_>>>::validate_member(msg)?;
+
+				let item = msg.try_into()?;
+				let body = msg.body();
+				let signature = body.signature();
+
+				if signature == EventBody::SIGNATURE || signature == EventBodyQtBorrowed::SIGNATURE {
+					Ok(Self::from_message_unchecked_parts(item, body)?)
+				} else {
+					Err(AtspiError::SignatureMatch(format!(
+						"signature mismatch: expected: {}, signal body: {}",
+						msg.body().signature(),
+						<Self as MessageConversion>::Body::SIGNATURE,
+					)))
+				}
+			}
+		}
 	};
+
 	($type:ty, Explicit) => {
 		#[cfg(feature = "zbus")]
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-				<$type as MessageConversionExt<<$type as MessageConversion>::Body>>::try_from_message(msg)
+				<$type as MessageConversionExt<<$type as MessageConversion>::Body<'_>>>::try_from_message(msg)
 			}
 		}
 	};
@@ -432,7 +433,7 @@ macro_rules! zbus_message_qtspi_test_case {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
         let ev = <$type>::default();
-          let qt: crate::events::EventBodyQT = ev.body().into();
+          let qt: crate::events::EventBodyQtOwned = ev.body().into();
           let msg = zbus::Message::signal(
             ev.path(),
             ev.interface(),
@@ -443,7 +444,7 @@ macro_rules! zbus_message_qtspi_test_case {
           .unwrap()
           .build(&(qt,))
           .unwrap();
-          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
+          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQtOwned for any type whose BusProperties::Body = EventBodyOwned");
         }
       #[cfg(feature = "zbus")]
      #[test]
@@ -451,7 +452,7 @@ macro_rules! zbus_message_qtspi_test_case {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
         let ev = <$type>::default();
-          let qt: crate::events::EventBodyQT = ev.body().into();
+          let qt: crate::events::EventBodyQtOwned = ev.body().into();
           let msg = zbus::Message::signal(
             ev.path(),
             ev.interface(),
@@ -484,8 +485,8 @@ macro_rules! zbus_message_test_case {
 		#[test]
 		fn zbus_msg_conversion_to_specific_event_type() {
 			let struct_event = <$type>::default();
-			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone())
-				.expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
+			let msg: zbus::Message = zbus::Message::try_from(<$type>::default()).expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
+
 			let struct_event_back =
 				<$type>::try_from(&msg).expect("Should convert from `$type::default()` originated `Message` back into a specific event type. Check the `impl_from_dbus_message` macro.");
         assert_eq!(struct_event, struct_event_back, "Events converted into a message and back must be the same");
@@ -803,5 +804,41 @@ macro_rules! event_test_cases {
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
+	};
+}
+
+/// Implements `MessageConversionExt` for a given target event type with a given body type.
+///
+/// # Example
+/// ```ignore
+/// # // 'ignore'd for bevity's sake because `impl`s require that the *example crate* defines traits `MessageConversionExt`,
+/// # // `MessageConversion` as well as the body and target types.
+///
+/// impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: RemoveAccessibleEvent, body: ObjectRef);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// #[cfg(feature = "zbus")]
+/// impl<'a> MessageConversionExt<'_, ObjectRef> for RemoveAccessibleEvent {
+///     fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+///         <Self as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
+///         <Self as MessageConversionExt<ObjectRef>>::validate_member(msg)?;
+///         <Self as MessageConversionExt<ObjectRef>>::validate_body(msg)?;
+///         <Self as MessageConversion<'a>>::from_message_unchecked(msg)
+///     }
+/// }
+/// ```
+macro_rules! impl_msg_conversion_ext_for_target_type_with_specified_body_type {
+	(target: $target_type:ty, body: $body_type:ty) => {
+		#[cfg(feature = "zbus")]
+		impl<'a> MessageConversionExt<'a, $body_type> for $target_type {
+			fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
+				<Self as MessageConversionExt<$body_type>>::validate_interface(msg)?;
+				<Self as MessageConversionExt<$body_type>>::validate_member(msg)?;
+				<Self as MessageConversionExt<$body_type>>::validate_body(msg)?;
+				<Self as MessageConversion<'a>>::from_message_unchecked(msg)
+			}
+		}
 	};
 }

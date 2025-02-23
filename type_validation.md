@@ -20,7 +20,7 @@ We leverage [zbus-lockstep](https://github.com/luukvanderduim/zbus-lockstep/) to
 | `State` | ⚠ | XML: "au", a list of enum variants. Whereas `atspi` stores a `u64` bitflag.|
 | `StateSet` | ⚠ | See `State`.|
 | `EventBodyOwned` | ✓ | Covers many other events.|
-| `EventBodyQt` | ⚠ | Signature does not appear in XML.|
+| `EventBodyQtOwned` | ⚠ | Signature does not appear in XML.|
 | `EventListeners` | ✓ | Represents signals of `EventListenerRegistered` and `EventListenerDeregistered`|
 | `SortOrder` | ✓ | 'sortby' argument pf member `GetMatches`|
 | `TreeTraversalType` | ✓ | 'tree' argument of member `GetMatchesTo`|

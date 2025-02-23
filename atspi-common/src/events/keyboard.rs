@@ -1,3 +1,4 @@
+use super::event_body::{EventBody, Properties};
 use crate::{
 	error::AtspiError,
 	events::{
@@ -12,10 +13,9 @@ use crate::{
 	},
 	ObjectRef,
 };
+use zbus::message::Body as DbusBody;
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
-
-use super::event_body::Properties;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
@@ -87,20 +87,26 @@ impl BusProperties for ModifiersEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for ModifiersEvent {
-	type Body = EventBodyOwned;
+	type Body<'msg> = EventBody<'msg>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, previous_modifiers: body.detail1, current_modifiers: body.detail2 })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		Ok(Self { item, previous_modifiers: body.detail1(), current_modifiers: body.detail2() })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
 		let body = msg.body();
-		let body: Self::Body = body.deserialize_unchecked()?;
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned {
+			detail1: self.previous_modifiers,
+			detail2: self.current_modifiers,
+			..Default::default()
+		}
+		.into()
 	}
 }
 

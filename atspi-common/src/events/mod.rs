@@ -1,5 +1,6 @@
 pub mod cache;
 pub mod document;
+pub mod event_body;
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
@@ -7,71 +8,21 @@ pub mod object;
 pub mod terminal;
 pub mod window;
 
-pub mod event_body;
-
-// Unmarshalled event body signatures: These outline the event specific deserialized event types.
-// Safety: These are evaluated at compile time.
-// ----
-// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
-// -  Cache : RemoveAccessible
-// -  Socket: Available  *( signals the availability of the `Registry` daemon.)
-//
-// ATSPI- and QSPI both describe the generic events. These can be converted into
-// specific signal types with TryFrom implementations. See crate::[`identify`]
-//  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
-//  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
-// Same as "(siiva{sv})"
-pub const ATSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
-	&Signature::Str,
-	&Signature::I32,
-	&Signature::I32,
-	&Signature::Variant,
-	&Signature::Dict {
-		key: Child::Static { child: &Signature::Str },
-		value: Child::Static { child: &Signature::Variant },
-	},
-]);
-pub const EVENT_NAME_SIGNATURE: &Signature =
-	&Signature::static_structure(&[&Signature::Str, &Signature::Str]);
-// Same as "(siiv(so))"
-pub const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
-	&Signature::Str,
-	&Signature::I32,
-	&Signature::I32,
-	&Signature::Variant,
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-]);
-// Same as "(so)"
-pub const EVENT_LISTENER_SIGNATURE: &Signature =
-	&Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
-// Same as "((so)(so)(so)iiassusau)"
-pub const CACHE_ADD_SIGNATURE: &Signature = &Signature::static_structure(&[
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::I32,
-	&Signature::I32,
-	&Signature::Array(Child::Static { child: &Signature::Str }),
-	&Signature::Str,
-	&Signature::U32,
-	&Signature::Str,
-	&Signature::Array(Child::Static { child: &Signature::U32 }),
-]);
 pub use crate::events::{
 	cache::CacheEvents, document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents,
 	mouse::MouseEvents, object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 };
 use crate::{AtspiError, ObjectRef};
-pub use event_body::{EventBodyOwned, EventBodyQT};
+pub use event_body::{
+	EventBody, EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned,
+};
 use serde::{Deserialize, Serialize};
+use zbus::message::Body as DbusBody;
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
 use zvariant::OwnedObjectPath;
-use zvariant::{
-	signature::{Child, Fields},
-	ObjectPath, Signature, Type,
-};
+use zvariant::{ObjectPath, Type};
 
 /// Encapsulates the various different accessibility bus signal types.
 ///
@@ -207,21 +158,33 @@ impl HasRegistryEventString for EventListenerEvents {
 #[cfg(feature = "zbus")]
 impl<T> MessageConversion<'_> for T
 where
+	// This blanket applies to events that consist of an `item: ObjectRef` member only.
 	ObjectRef: Into<T>,
+
 	// this bound is not actually used for anything, but I do not want to implement this trait for
 	// just any type that has an infallible conversion from an ObjectRef
 	T: BusProperties,
 {
-	type Body = EventBodyOwned;
-	fn from_message_unchecked_parts(obj_ref: ObjectRef, _: Self::Body) -> Result<Self, AtspiError> {
+	// Enum `EventBody<'_>` deserializes to the borrowed variant.
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		T: 'msg;
+
+	fn from_message_unchecked_parts(
+		obj_ref: ObjectRef,
+		_body: DbusBody,
+	) -> Result<Self, AtspiError> {
 		Ok(obj_ref.into())
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item: ObjectRef = msg.try_into()?;
-		Ok(item.into())
+		let obj_ref: ObjectRef = msg.try_into()?;
+		Ok(obj_ref.into())
 	}
-	fn body(&self) -> Self::Body {
-		EventBodyOwned::default()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned::default().into()
 	}
 }
 
@@ -428,23 +391,25 @@ impl BusProperties for EventListenerDeregisteredEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for EventListenerDeregisteredEvent {
-	type Body = EventListeners;
+	type Body<'a> = EventListeners;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		deregistered_event: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let deregistered_event = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self { item, deregistered_event })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
+
+	fn body(&self) -> Self::Body<'_> {
 		self.deregistered_event.clone()
 	}
 }
+
+impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: EventListenerDeregisteredEvent, body: EventListeners);
 impl_from_dbus_message!(EventListenerDeregisteredEvent, Explicit);
 impl_event_properties!(EventListenerDeregisteredEvent);
 impl_to_dbus_message!(EventListenerDeregisteredEvent);
@@ -481,23 +446,28 @@ impl BusProperties for EventListenerRegisteredEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for EventListenerRegisteredEvent {
-	type Body = EventListeners;
+	type Body<'a> = EventListeners;
 
 	fn from_message_unchecked_parts(
 		item: ObjectRef,
-		registered_event: Self::Body,
+		registered_event: DbusBody,
 	) -> Result<Self, AtspiError> {
+		let registered_event = registered_event.deserialize_unchecked()?;
 		Ok(Self { item, registered_event })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
+
+	fn body(&self) -> Self::Body<'_> {
 		self.registered_event.clone()
 	}
 }
+
+impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: EventListenerRegisteredEvent, body: EventListeners);
 impl_from_dbus_message!(EventListenerRegisteredEvent, Explicit);
 impl_event_properties!(EventListenerRegisteredEvent);
 impl_to_dbus_message!(EventListenerRegisteredEvent);
@@ -535,23 +505,25 @@ impl BusProperties for AvailableEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for AvailableEvent {
-	type Body = ObjectRef;
+	type Body<'a> = ObjectRef;
 
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		socket: Self::Body,
-	) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let socket = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self { item, socket })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
+
+	fn body(&self) -> Self::Body<'_> {
 		self.socket.clone()
 	}
 }
+
+impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: AvailableEvent, body: ObjectRef);
 impl_from_dbus_message!(AvailableEvent, Explicit);
 impl_event_properties!(AvailableEvent);
 impl_to_dbus_message!(AvailableEvent);
@@ -685,7 +657,9 @@ pub trait BusProperties {
 #[cfg(feature = "zbus")]
 pub trait MessageConversion<'a>: BusProperties {
 	/// What is the body type of this event.
-	type Body: Type + Deserialize<'a>;
+	type Body<'msg>: Type + Deserialize<'msg> + Serialize
+	where
+		Self: 'msg;
 
 	/// Build an event from a [`zbus::Message`] reference.
 	/// This function will not check for any of the following error conditions:
@@ -711,7 +685,7 @@ pub trait MessageConversion<'a>: BusProperties {
 	/// conditions before calling this.
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
-		Self: Sized;
+		Self: Sized + 'a;
 
 	/// Build an event from an [`ObjectRef`] and [`Self::Body`].
 	/// This function will not check for any of the following error conditions:
@@ -727,99 +701,42 @@ pub trait MessageConversion<'a>: BusProperties {
 	///
 	/// Some [`Self::Body`] types may fallibly convert data fields contained in the body.
 	/// If this happens, then the function will return an error.
-	fn from_message_unchecked_parts(
-		obj_ref: ObjectRef,
-		body: Self::Body,
-	) -> Result<Self, AtspiError>
+	fn from_message_unchecked_parts(obj_ref: ObjectRef, body: DbusBody) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 
 	/// The body of the object.
-	fn body(&self) -> Self::Body;
+	fn body(&self) -> Self::Body<'_>;
 }
 
 #[cfg(feature = "zbus")]
-impl<'a, T> MessageConversionExt<'a, crate::LegacyCacheItem> for T
+impl<'msg, T: 'msg> MessageConversionExt<'msg, EventBody<'msg>> for T
 where
-	T: MessageConversion<'a, Body = crate::LegacyCacheItem>,
+	T: MessageConversion<'msg, Body<'msg> = EventBody<'msg>>,
 {
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(msg)?;
-		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(msg)?;
-		<T as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(msg)?;
-		<T as MessageConversion>::from_message_unchecked(msg)
-	}
-}
+	fn try_from_message(msg: &'msg zbus::Message) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<EventBody<'_>>>::validate_interface(msg)?;
+		<T as MessageConversionExt<EventBody<'_>>>::validate_member(msg)?;
 
-#[cfg(feature = "zbus")]
-impl<'a, T> MessageConversionExt<'a, EventListeners> for T
-where
-	T: MessageConversion<'a, Body = EventListeners>,
-{
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		<T as MessageConversionExt<EventListeners>>::validate_interface(msg)?;
-		<T as MessageConversionExt<EventListeners>>::validate_member(msg)?;
-		<T as MessageConversionExt<EventListeners>>::validate_body(msg)?;
-		<T as MessageConversion>::from_message_unchecked(msg)
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl<'a, T> MessageConversionExt<'a, crate::CacheItem> for T
-where
-	T: MessageConversion<'a, Body = crate::CacheItem>,
-{
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		<T as MessageConversionExt<crate::CacheItem>>::validate_interface(msg)?;
-		<T as MessageConversionExt<crate::CacheItem>>::validate_member(msg)?;
-		<T as MessageConversionExt<crate::CacheItem>>::validate_body(msg)?;
-		<T as MessageConversion>::from_message_unchecked(msg)
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl<'a, T> MessageConversionExt<'a, ObjectRef> for T
-where
-	T: MessageConversion<'a, Body = ObjectRef>,
-{
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		<T as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
-		<T as MessageConversionExt<ObjectRef>>::validate_member(msg)?;
-		<T as MessageConversionExt<ObjectRef>>::validate_body(msg)?;
-		<T as MessageConversion>::from_message_unchecked(msg)
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl<'a, T> MessageConversionExt<'a, EventBodyOwned> for T
-where
-	T: MessageConversion<'a, Body = EventBodyOwned>,
-{
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		<T as MessageConversionExt<EventBodyOwned>>::validate_interface(msg)?;
-		<T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
-		let body = msg.body();
-		let body_sig = body.signature();
-		let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
-			body.deserialize_unchecked()?
-		} else if body_sig == QSPI_EVENT_SIGNATURE {
-			let qtbody: EventBodyQT = body.deserialize_unchecked()?;
-			qtbody.into()
-		} else {
-			return Err(AtspiError::SignatureMatch(format!(
-				"The message signature {} does not match the signal's body signature: {} or {}",
-				body_sig,
-				EventBodyOwned::SIGNATURE,
-				EventBodyQT::SIGNATURE,
-			)));
-		};
 		let item = msg.try_into()?;
-		Self::from_message_unchecked_parts(item, data_body)
+		let msg_body = msg.body();
+		let signature = msg_body.signature();
+
+		if signature == EventBodyOwned::SIGNATURE || signature == EventBodyQtOwned::SIGNATURE {
+			<T as MessageConversion<'msg>>::from_message_unchecked_parts(item, msg_body)
+		} else {
+			Err(AtspiError::SignatureMatch(format!(
+				"The message signature {} does not match the signal's body signature: {} or {}",
+				msg.body().signature(),
+				EventBodyOwned::SIGNATURE,
+				EventBodyQtOwned::SIGNATURE,
+			)))
+		}
 	}
 }
 
 #[cfg(feature = "zbus")]
-pub trait MessageConversionExt<'a, B>: MessageConversion<'a, Body = B>
+pub trait MessageConversionExt<'a, B>: 'a + MessageConversion<'a, Body<'a> = B>
 where
 	B: Type + Serialize + Deserialize<'a>,
 {
@@ -836,9 +753,9 @@ where
 	///
 	/// See [`MessageConversion::from_message_unchecked`] for info on panic condition that should never
 	/// happen.
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
+	fn try_from_message(msg: &'a zbus::Message) -> Result<Self, AtspiError>
 	where
-		Self: Sized;
+		Self: Sized + 'a;
 	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
 	///
 	/// # Errors
@@ -884,11 +801,13 @@ where
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();
 		let body_signature = body.signature();
-		if body_signature != Self::Body::SIGNATURE {
+
+		let expected_signature = B::SIGNATURE;
+		if body_signature != expected_signature {
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {}",
 				body_signature,
-				&Self::Body::SIGNATURE.to_string(),
+				&expected_signature.to_string(),
 			)));
 		}
 		Ok(())
@@ -934,7 +853,7 @@ pub trait HasRegistryEventString {
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
-/// An way to convert a [`zbus::Message`] without checking its interface.
+/// A way to convert a [`zbus::Message`] without checking its interface.
 #[cfg(feature = "zbus")]
 pub(crate) trait EventWrapperMessageConversion {
 	/// # Errors
@@ -950,6 +869,7 @@ pub(crate) trait TryFromMessage {
 	where
 		Self: Sized;
 }
+
 #[cfg(feature = "zbus")]
 impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
 	fn try_from_message(msg: &zbus::Message) -> Result<T, AtspiError> {
@@ -968,11 +888,21 @@ impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
 
 #[cfg(test)]
 mod tests {
-	use super::{EventBodyQT, QSPI_EVENT_SIGNATURE};
-	use zvariant::Type;
+	use super::EventBodyQtOwned;
+	use zvariant::{signature::Fields, Signature, Type};
+
+	const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
+		&Signature::Str,
+		&Signature::I32,
+		&Signature::I32,
+		&Signature::Variant,
+		&Signature::Structure(Fields::Static {
+			fields: &[&Signature::Str, &Signature::ObjectPath],
+		}),
+	]);
 
 	#[test]
 	fn check_event_body_qt_signature() {
-		assert_eq!(<EventBodyQT as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
+		assert_eq!(<EventBodyQtOwned as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
 	}
 }
