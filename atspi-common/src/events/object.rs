@@ -1,5 +1,3 @@
-use std::hash::Hash;
-
 #[cfg(feature = "zbus")]
 use crate::events::{
 	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
@@ -7,15 +5,15 @@ use crate::events::{
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
-		ObjectRef,
+		BusProperties, EventBody, EventBodyBorrowed, EventBodyOwned, HasInterfaceName,
+		HasMatchRule, HasRegistryEventString, ObjectRef,
 	},
 	Event, EventProperties, EventTypeProperties, State,
 };
+use std::hash::Hash;
+use zbus::message::Body as DbusBody;
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
-
-use super::event_body::Properties;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
@@ -256,7 +254,8 @@ impl Hash for PropertyChangeEvent {
 // Do not derive Eq if not all fields implement Eq
 impl Eq for PropertyChangeEvent {}
 
-// Looks like a false positive Clippy lint
+// TODO: Looks like a false positive Clippy lint
+// Derive me.
 #[allow(clippy::derivable_impls)]
 impl Default for PropertyChangeEvent {
 	fn default() -> Self {
@@ -386,6 +385,138 @@ impl TryFrom<EventBodyOwned> for Property {
 	}
 }
 
+impl TryFrom<EventBodyBorrowed<'_>> for Property {
+	type Error = AtspiError;
+
+	fn try_from(body: EventBodyBorrowed<'_>) -> Result<Self, Self::Error> {
+		let property = body.kind;
+
+		match property {
+			"accessible-name" => Ok(Self::Name(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
+			)),
+			"accessible-description" => Ok(Self::Description(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
+			)),
+			"accessible-role" => Ok(Self::Role({
+				let role_int: u32 = body
+					.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				let role: crate::Role = crate::Role::try_from(role_int)
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				role
+			})),
+			"accessible-parent" => Ok(Self::Parent(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
+			)),
+			"accessible-table-caption" => Ok(Self::TableCaption(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
+			)),
+			"table-column-description" => Ok(Self::TableColumnDescription(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-description"))?,
+			)),
+			"table-column-header" => Ok(Self::TableColumnHeader(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
+			)),
+			"table-row-description" => Ok(Self::TableRowDescription(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-description"))?,
+			)),
+			"table-row-header" => Ok(Self::TableRowHeader(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
+			)),
+			"table-summary" => Ok(Self::TableSummary(
+				body.any_data
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-summary"))?,
+			)),
+			_ => Ok(Self::Other((property.to_string(), body.any_data.try_to_owned().expect("Could not clone 'value'.  Since properties are not known to carry files, we do not expect to exceed open file limit."))),),
+		}
+	}
+}
+
+impl TryFrom<EventBody<'_>> for Property {
+	type Error = AtspiError;
+
+	fn try_from(mut body: EventBody<'_>) -> Result<Self, Self::Error> {
+		let property = body.kind();
+
+		match property {
+			"accessible-name" => Ok(Self::Name(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
+			)),
+			"accessible-description" => Ok(Self::Description(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
+			)),
+			"accessible-role" => Ok(Self::Role({
+				let role_int: u32 = body
+					.any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				let role: crate::Role = crate::Role::try_from(role_int)
+					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+				role
+			})),
+			"accessible-parent" => Ok(Self::Parent(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
+			)),
+			"accessible-table-caption" => Ok(Self::TableCaption(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
+			)),
+			"table-column-description" => Ok(Self::TableColumnDescription(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-description"))?,
+			)),
+			"table-column-header" => Ok(Self::TableColumnHeader(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
+			)),
+			"table-row-description" => Ok(Self::TableRowDescription(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-description"))?,
+			)),
+			"table-row-header" => Ok(Self::TableRowHeader(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
+			)),
+			"table-summary" => Ok(Self::TableSummary(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("table-summary"))?,
+			)),
+			_ => Ok(Self::Other((property.to_string(), body.take_any_data()))),
+		}
+	}
+}
+
 impl From<Property> for OwnedValue {
 	fn from(property: Property) -> Self {
 		let value = match property {
@@ -448,6 +579,8 @@ mod i32_bool_conversion {
 
 	/// Convert a boolean flag to an integer.
 	/// returns 0 if false and 1 if true
+	// TODO: Will the world REALLY fall apart if we were not to use a reference here?
+	// In other words, see if &bool can be replaced with bool.
 	#[allow(clippy::trivially_copy_pass_by_ref)]
 	pub fn serialize<S>(b: &bool, ser: S) -> Result<S::Ok, S::Error>
 	where
@@ -609,25 +742,24 @@ impl BusProperties for PropertyChangeEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for PropertyChangeEvent {
-	type Body = EventBodyOwned;
+	type Body<'b> = EventBody<'b>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		let property = body.kind.to_string();
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		let property: String = body.take_kind();
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
+
+	fn body(&self) -> Self::Body<'_> {
 		let copy = self.clone();
-		copy.into()
+		EventBodyOwned::from(copy).into()
 	}
 }
 
@@ -657,21 +789,20 @@ impl BusProperties for StateChangedEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for StateChangedEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, state: body.kind.into(), enabled: body.detail1 > 0 })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let body: Self::Body<'_> = body.deserialize_unchecked()?;
+		Ok(Self { item, state: body.kind().into(), enabled: body.detail1() > 0 })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
+
+	fn body(&self) -> Self::Body<'_> {
 		let copy = self.clone();
 		copy.into()
 	}
@@ -687,28 +818,26 @@ impl BusProperties for ChildrenChangedEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for ChildrenChangedEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
 			item,
-			operation: body.kind.as_str().parse()?,
-			index_in_parent: body.detail1,
-			child: body.any_data.try_into()?,
+			operation: body.kind().parse()?,
+			index_in_parent: body.detail1(),
+			child: body.take_any_data().try_into()?,
 		})
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned::from(self.clone()).into()
 	}
 }
 
@@ -746,23 +875,21 @@ impl BusProperties for ActiveDescendantChangedEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for ActiveDescendantChangedEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, child: body.any_data.try_into()? })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		Ok(Self { item, child: body.take_any_data().try_into()? })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned::from(self.clone()).into()
 	}
 }
 
@@ -776,27 +903,28 @@ impl BusProperties for AnnouncementEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for AnnouncementEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
 			item,
-			text: body.any_data.try_into().map_err(|_| AtspiError::Conversion("text"))?,
-			live: body.detail1.try_into()?,
+			text: body
+				.take_any_data()
+				.try_into()
+				.map_err(|_| AtspiError::Conversion("text"))?,
+			live: body.detail1().try_into()?,
 		})
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned::from(self.clone()).into()
 	}
 }
 
@@ -882,29 +1010,27 @@ impl BusProperties for TextChangedEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for TextChangedEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
 			item,
-			operation: body.kind.as_str().parse()?,
-			start_pos: body.detail1,
-			length: body.detail2,
-			text: body.any_data.try_into()?,
+			operation: body.kind().parse()?,
+			start_pos: body.detail1(),
+			length: body.detail2(),
+			text: body.take_any_data().try_into()?,
 		})
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned::from(self.clone()).into()
 	}
 }
 
@@ -926,23 +1052,21 @@ impl BusProperties for TextCaretMovedEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for TextCaretMovedEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, position: body.detail1 })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		Ok(Self { item, position: body.detail1() })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned::from(self.clone()).into()
 	}
 }
 
@@ -1057,13 +1181,23 @@ impl_event_properties!(PropertyChangeEvent);
 
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
+		EventBodyOwned { kind: event.property, any_data: event.value.into(), ..Default::default() }
+	}
+}
+
+impl From<&PropertyChangeEvent> for EventBodyOwned {
+	fn from(event: &PropertyChangeEvent) -> Self {
 		EventBodyOwned {
-			kind: event.property,
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: event.value.into(),
-			properties: Properties,
+			kind: event.property.to_string(),
+			any_data: event.value.clone().into(),
+			..Default::default()
 		}
+	}
+}
+
+impl From<PropertyChangeEvent> for EventBody<'_> {
+	fn from(event: PropertyChangeEvent) -> Self {
+		EventBodyOwned::from(event).into()
 	}
 }
 
@@ -1116,15 +1250,30 @@ event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
 impl_event_properties!(StateChangedEvent);
+
 impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
 			kind: event.state.to_string(),
 			detail1: event.enabled.into(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-			properties: Properties,
+			..Default::default()
 		}
+	}
+}
+
+impl From<&StateChangedEvent> for EventBodyOwned {
+	fn from(event: &StateChangedEvent) -> Self {
+		EventBodyOwned {
+			kind: event.state.to_string(),
+			detail1: event.enabled.into(),
+			..Default::default()
+		}
+	}
+}
+
+impl From<StateChangedEvent> for EventBody<'_> {
+	fn from(event: StateChangedEvent) -> Self {
+		EventBodyOwned::from(event).into()
 	}
 }
 
@@ -1143,6 +1292,7 @@ event_test_cases!(ChildrenChangedEvent);
 impl_to_dbus_message!(ChildrenChangedEvent);
 impl_from_dbus_message!(ChildrenChangedEvent);
 impl_event_properties!(ChildrenChangedEvent);
+
 impl From<ChildrenChangedEvent> for EventBodyOwned {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
@@ -1155,8 +1305,31 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 			any_data: Value::from(event.child)
 				.try_into()
 				.expect("Failed to convert child to OwnedValue"),
-			properties: Properties,
+			properties: super::event_body::Properties,
 		}
+	}
+}
+
+impl From<&ChildrenChangedEvent> for EventBodyOwned {
+	fn from(event: &ChildrenChangedEvent) -> Self {
+		EventBodyOwned {
+			kind: event.operation.to_string(),
+			detail1: event.index_in_parent,
+			detail2: i32::default(),
+			// `OwnedValue` is constructed from the `crate::ObjectRef`
+			// Only path to fail is to convert a `Fd` into an `OwnedValue`.
+			// Therefore, this is safe.
+			any_data: Value::from(event.child.clone())
+				.try_into()
+				.expect("ObjectRef should convert to OwnedValue without error"),
+			properties: super::event_body::Properties,
+		}
+	}
+}
+
+impl From<ChildrenChangedEvent> for EventBody<'_> {
+	fn from(event: ChildrenChangedEvent) -> Self {
+		EventBodyOwned::from(event).into()
 	}
 }
 
@@ -1238,7 +1411,7 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 			any_data: Value::from(event.child)
 				.try_to_owned()
 				.expect("Failed to convert child to OwnedValue"),
-			properties: Properties,
+			properties: super::event_body::Properties,
 		}
 	}
 }
@@ -1432,7 +1605,44 @@ impl_try_from_event_for_user_facing_type!(
 	ObjectEvents::TextChanged,
 	Event::Object
 );
-event_test_cases!(TextChangedEvent);
+
+#[cfg(test)]
+mod text_changed_event {
+	use super::{
+		AtspiError, BusProperties, Event, EventProperties, EventTypeProperties, MessageConversion,
+		TextChangedEvent,
+	};
+	use assert_matches::assert_matches;
+	use zbus::Message;
+
+	#[test]
+	fn generic_event_uses() {
+		let struct_event = <TextChangedEvent>::default();
+		assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(struct_event.sender().as_str(), ":0.0");
+
+		let body = struct_event.body();
+
+		let body2 = Message::method_call(struct_event.path(), struct_event.member())
+			.unwrap()
+			.sender(struct_event.sender())
+			.unwrap()
+			.build(&body)
+			.unwrap();
+
+		let build_struct = <TextChangedEvent>::from_message_unchecked(&body2)
+			.expect("<$type as Default>'s parts should build a valid user facing type");
+		assert_eq!(struct_event, build_struct);
+	}
+
+	event_enum_test_case!(TextChangedEvent);
+	zbus_message_test_case!(TextChangedEvent, Auto);
+	event_enum_transparency_test_case!(TextChangedEvent);
+}
+
+assert_impl_all!(TextChangedEvent:Clone,std::fmt::Debug,serde::Serialize,serde::Deserialize<'static>,Default,PartialEq,Eq,std::hash::Hash,crate::EventProperties,crate::EventTypeProperties,crate::BusProperties,);
+#[cfg(feature = "zbus")]
+assert_impl_all!(zbus::Message:TryFrom<TextChangedEvent>);
 impl_to_dbus_message!(TextChangedEvent);
 impl_from_dbus_message!(TextChangedEvent);
 impl_event_properties!(TextChangedEvent);
@@ -1448,7 +1658,7 @@ impl From<TextChangedEvent> for EventBodyOwned {
 			any_data: Value::from(event.text)
 				.try_to_owned()
 				.expect("Failed to convert child to OwnedValue"),
-			properties: Properties,
+			properties: super::event_body::Properties,
 		}
 	}
 }
@@ -1492,7 +1702,7 @@ impl From<TextCaretMovedEvent> for EventBodyOwned {
 			detail1: event.position,
 			detail2: i32::default(),
 			any_data: u8::default().into(),
-			properties: Properties,
+			properties: super::event_body::Properties,
 		}
 	}
 }

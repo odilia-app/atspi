@@ -1,3 +1,4 @@
+use super::event_body::EventBody;
 use crate::{
 	error::AtspiError,
 	events::{
@@ -12,6 +13,7 @@ use crate::{
 	},
 	ObjectRef,
 };
+use zbus::message::Body as DbusBody;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -343,23 +345,25 @@ impl BusProperties for PropertyChangeEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for PropertyChangeEvent {
-	type Body = EventBodyOwned;
+	type Body<'a> = EventBody<'a>;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, property: body.kind })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		Ok(Self { item, property: body.take_kind() })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
-		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
-		} else {
-			msg.body().deserialize()?
-		};
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
-		let copy = self.clone();
-		copy.into()
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBody::Owned(EventBodyOwned {
+			kind: self.property.clone(),
+			any_data: u8::default().into(),
+			..Default::default()
+		})
 	}
 }
 

@@ -8,15 +8,14 @@
 compile_error!("You must specify at least one of the `async-std` or `tokio` features.");
 
 pub use atspi_common as common;
+use atspi_common::{BusProperties, EventProperties};
 
 use atspi_proxies::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
 use common::error::AtspiError;
-use common::events::{
-	BusProperties, Event, EventProperties, HasMatchRule, HasRegistryEventString, MessageConversion,
-};
+use common::events::{Event, HasMatchRule, HasRegistryEventString, MessageConversion};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, message::Type as MessageType, Address, MatchRule, MessageStream};
@@ -293,11 +292,10 @@ impl AccessibilityConnection {
 	/// 1. [`zbus::Message`] fails at any point, or
 	/// 2. sending the event fails for some reason.
 	///
-	/// Both of these conditions should never happen as long as you have a valid event.
+	// / Both of these conditions should never happen as long as you have a valid event.
 	pub async fn send_event<'a, T>(&self, event: T) -> Result<(), AtspiError>
 	where
 		T: BusProperties + EventProperties + MessageConversion<'a>,
-		<T as MessageConversion<'a>>::Body: zbus::export::serde::ser::Serialize,
 	{
 		let conn = self.connection();
 		let new_message = zbus::Message::signal(
