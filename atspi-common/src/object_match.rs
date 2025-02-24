@@ -25,8 +25,9 @@ pub enum TreeTraversalType {
 /// Rule(s) against which we can match an  object or a collection thereof.
 ///
 /// # Examples
-///  ```Rust
-///     let builder = MatchRule::builder();
+/// ```rust
+/// # use zbus::MatchRule;
+/// let builder = MatchRule::builder();
 /// ```
 ///
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -46,20 +47,30 @@ pub struct ObjectMatchRule {
 	_marker: std::marker::PhantomData<()>,
 }
 
-// !!! WARNING !!! :
-//
-// State and Role are defined as u32 in Accessible.xml but as i32 in Collection.xml
-//
-// The signature on StateSet is defined inconsistently in the XMLs
-// Accessible.xml: GetState type="au"
-// Collection.xml: GetMatches argument name="rule" type="(aiia{ss}iaiiasib)"
-// The latter starts with ai, which is a signature for an array of signed ints i32.
-//
-// https://gitlab.gnome.org/federico/at-spi2-core/-/commit/4885efedeef71e0df8210622771a0b1bb10e194d
+/// !!! WARNING !!! :
+///
+/// State and Role are defined as u32 in Accessible.xml but as i32 in Collection.xml
+///
+/// The signature on `StateSet` is defined inconsistently in the XMLs:
+///
+/// - `Accessible.xml`: `GetState type="au"`
+/// - `Collection.xml`: `GetMatches` argument `name="rule" type="(aiia{ss}iaiiasib)"`
+///
+/// The latter starts with ai, which is a signature for an array of signed ints i32.
+///
+/// <https://gitlab.gnome.org/federico/at-spi2-core/-/commit/4885efedeef71e0df8210622771a0b1bb10e194d>
 impl Type for ObjectMatchRule {
-	fn signature() -> Signature<'static> {
-		Signature::from_str_unchecked("(aiia{ss}iaiiasib)")
-	}
+	const SIGNATURE: &'static Signature = &Signature::static_structure(&[
+		<Vec<i32>>::SIGNATURE,
+		&Signature::I32,
+		<HashMap<&str, &str>>::SIGNATURE,
+		&Signature::I32,
+		<Vec<i32>>::SIGNATURE,
+		&Signature::I32,
+		<Vec<&str>>::SIGNATURE,
+		&Signature::I32,
+		&Signature::Bool,
+	]);
 }
 
 impl ObjectMatchRule {
@@ -226,32 +237,35 @@ pub enum SortOrder {
 mod tests {
 	use super::*;
 	use crate::{SortOrder, State};
+	use std::str::FromStr;
 	use zbus_lockstep::method_args_signature;
 
 	#[test]
 	fn validate_match_rule_signature() {
 		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
-		assert_eq!(ObjectMatchRule::signature(), signature);
+		assert_eq!(*<ObjectMatchRule as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_match_type_signature() {
 		let rule_signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "rule");
 		// The match type signature is the fourth element in the signature
-		let match_type_signature = rule_signature.slice(3..4);
-		assert_eq!(MatchType::signature(), match_type_signature);
+		let match_type_signature_str = rule_signature.to_string();
+		let match_type_signature = Signature::from_str(&match_type_signature_str.as_str()[3..4])
+			.expect("Valid signature pattern");
+		assert_eq!(*<MatchType as Type>::SIGNATURE, match_type_signature);
 	}
 
 	#[test]
 	fn validate_tree_traversal_type_signature() {
 		let signature = method_args_signature!(member: "GetMatchesTo", interface: "org.a11y.atspi.Collection", argument: "tree");
-		assert_eq!(TreeTraversalType::signature(), signature);
+		assert_eq!(*<TreeTraversalType as Type>::SIGNATURE, signature);
 	}
 
 	#[test]
 	fn validate_sort_order_signature() {
 		let signature = method_args_signature!(member: "GetMatches", interface: "org.a11y.atspi.Collection", argument: "sortby");
-		assert_eq!(SortOrder::signature(), signature);
+		assert_eq!(*<SortOrder as Type>::SIGNATURE, signature);
 	}
 
 	#[test]

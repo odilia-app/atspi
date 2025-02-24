@@ -123,8 +123,9 @@ impl Default for LegacyCacheItem {
 #[cfg(test)]
 #[test]
 fn zvariant_type_signature_of_legacy_cache_item() {
+	use std::str::FromStr;
 	assert_eq!(
-		LegacyCacheItem::signature(),
-		zbus::zvariant::Signature::from_static_str("((so)(so)(so)a(so)assusau)").unwrap()
+		*<LegacyCacheItem as Type>::SIGNATURE,
+		zbus::zvariant::Signature::from_str("((so)(so)(so)a(so)assusau)").unwrap()
 	);
 }

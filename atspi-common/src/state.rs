@@ -498,9 +498,7 @@ impl Serialize for StateSet {
 }
 
 impl Type for StateSet {
-	fn signature() -> Signature<'static> {
-		<Vec<u32> as Type>::signature()
-	}
+	const SIGNATURE: &'static Signature = <Vec<u32> as Type>::SIGNATURE;
 }
 
 impl From<State> for StateSet {
