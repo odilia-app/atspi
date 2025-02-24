@@ -1,238 +1,14 @@
 use std::hash::Hash;
 
 #[cfg(feature = "zbus")]
-use crate::events::{
-	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
-};
+use crate::events::{MessageConversion, MessageConversionExt};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
-		ObjectRef,
-	},
-	Event, EventProperties, EventTypeProperties, State,
+	events::{BusProperties, EventBodyOwned, ObjectRef},
+	EventProperties, State,
 };
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
-
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum ObjectEvents {
-	/// See: [`PropertyChangeEvent`].
-	PropertyChange(PropertyChangeEvent),
-	/// See: [`BoundsChangedEvent`].
-	BoundsChanged(BoundsChangedEvent),
-	/// See: [`LinkSelectedEvent`].
-	LinkSelected(LinkSelectedEvent),
-	/// See: [`StateChangedEvent`].
-	StateChanged(StateChangedEvent),
-	/// See: [`ChildrenChangedEvent`].
-	ChildrenChanged(ChildrenChangedEvent),
-	/// See: [`VisibleDataChangedEvent`].
-	VisibleDataChanged(VisibleDataChangedEvent),
-	/// See: [`SelectionChangedEvent`].
-	SelectionChanged(SelectionChangedEvent),
-	/// See: [`ModelChangedEvent`].
-	ModelChanged(ModelChangedEvent),
-	/// See: [`ActiveDescendantChangedEvent`].
-	ActiveDescendantChanged(ActiveDescendantChangedEvent),
-	/// See: [`AnnouncementEvent`].
-	Announcement(AnnouncementEvent),
-	/// See: [`AttributesChangedEvent`].
-	AttributesChanged(AttributesChangedEvent),
-	/// See: [`RowInsertedEvent`].
-	RowInserted(RowInsertedEvent),
-	/// See: [`RowReorderedEvent`].
-	RowReordered(RowReorderedEvent),
-	/// See: [`RowDeletedEvent`].
-	RowDeleted(RowDeletedEvent),
-	/// See: [`ColumnInsertedEvent`].
-	ColumnInserted(ColumnInsertedEvent),
-	/// See: [`ColumnReorderedEvent`].
-	ColumnReordered(ColumnReorderedEvent),
-	/// See: [`ColumnDeletedEvent`].
-	ColumnDeleted(ColumnDeletedEvent),
-	/// See: [`TextBoundsChangedEvent`].
-	TextBoundsChanged(TextBoundsChangedEvent),
-	/// See: [`TextSelectionChangedEvent`].
-	TextSelectionChanged(TextSelectionChangedEvent),
-	/// See: [`TextChangedEvent`].
-	TextChanged(TextChangedEvent),
-	/// See: [`TextAttributesChangedEvent`].
-	TextAttributesChanged(TextAttributesChangedEvent),
-	/// See: [`TextCaretMovedEvent`].
-	TextCaretMoved(TextCaretMovedEvent),
-}
-
-impl EventTypeProperties for ObjectEvents {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.member(),
-			Self::BoundsChanged(inner) => inner.member(),
-			Self::LinkSelected(inner) => inner.member(),
-			Self::StateChanged(inner) => inner.member(),
-			Self::ChildrenChanged(inner) => inner.member(),
-			Self::VisibleDataChanged(inner) => inner.member(),
-			Self::SelectionChanged(inner) => inner.member(),
-			Self::ModelChanged(inner) => inner.member(),
-			Self::ActiveDescendantChanged(inner) => inner.member(),
-			Self::Announcement(inner) => inner.member(),
-			Self::AttributesChanged(inner) => inner.member(),
-			Self::RowInserted(inner) => inner.member(),
-			Self::RowReordered(inner) => inner.member(),
-			Self::RowDeleted(inner) => inner.member(),
-			Self::ColumnInserted(inner) => inner.member(),
-			Self::ColumnReordered(inner) => inner.member(),
-			Self::ColumnDeleted(inner) => inner.member(),
-			Self::TextBoundsChanged(inner) => inner.member(),
-			Self::TextSelectionChanged(inner) => inner.member(),
-			Self::TextChanged(inner) => inner.member(),
-			Self::TextAttributesChanged(inner) => inner.member(),
-			Self::TextCaretMoved(inner) => inner.member(),
-		}
-	}
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.interface(),
-			Self::BoundsChanged(inner) => inner.interface(),
-			Self::LinkSelected(inner) => inner.interface(),
-			Self::StateChanged(inner) => inner.interface(),
-			Self::ChildrenChanged(inner) => inner.interface(),
-			Self::VisibleDataChanged(inner) => inner.interface(),
-			Self::SelectionChanged(inner) => inner.interface(),
-			Self::ModelChanged(inner) => inner.interface(),
-			Self::ActiveDescendantChanged(inner) => inner.interface(),
-			Self::Announcement(inner) => inner.interface(),
-			Self::AttributesChanged(inner) => inner.interface(),
-			Self::RowInserted(inner) => inner.interface(),
-			Self::RowReordered(inner) => inner.interface(),
-			Self::RowDeleted(inner) => inner.interface(),
-			Self::ColumnInserted(inner) => inner.interface(),
-			Self::ColumnReordered(inner) => inner.interface(),
-			Self::ColumnDeleted(inner) => inner.interface(),
-			Self::TextBoundsChanged(inner) => inner.interface(),
-			Self::TextSelectionChanged(inner) => inner.interface(),
-			Self::TextChanged(inner) => inner.interface(),
-			Self::TextAttributesChanged(inner) => inner.interface(),
-			Self::TextCaretMoved(inner) => inner.interface(),
-		}
-	}
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.match_rule(),
-			Self::BoundsChanged(inner) => inner.match_rule(),
-			Self::LinkSelected(inner) => inner.match_rule(),
-			Self::StateChanged(inner) => inner.match_rule(),
-			Self::ChildrenChanged(inner) => inner.match_rule(),
-			Self::VisibleDataChanged(inner) => inner.match_rule(),
-			Self::SelectionChanged(inner) => inner.match_rule(),
-			Self::ModelChanged(inner) => inner.match_rule(),
-			Self::ActiveDescendantChanged(inner) => inner.match_rule(),
-			Self::Announcement(inner) => inner.match_rule(),
-			Self::AttributesChanged(inner) => inner.match_rule(),
-			Self::RowInserted(inner) => inner.match_rule(),
-			Self::RowReordered(inner) => inner.match_rule(),
-			Self::RowDeleted(inner) => inner.match_rule(),
-			Self::ColumnInserted(inner) => inner.match_rule(),
-			Self::ColumnReordered(inner) => inner.match_rule(),
-			Self::ColumnDeleted(inner) => inner.match_rule(),
-			Self::TextBoundsChanged(inner) => inner.match_rule(),
-			Self::TextSelectionChanged(inner) => inner.match_rule(),
-			Self::TextChanged(inner) => inner.match_rule(),
-			Self::TextAttributesChanged(inner) => inner.match_rule(),
-			Self::TextCaretMoved(inner) => inner.match_rule(),
-		}
-	}
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.registry_string(),
-			Self::BoundsChanged(inner) => inner.registry_string(),
-			Self::LinkSelected(inner) => inner.registry_string(),
-			Self::StateChanged(inner) => inner.registry_string(),
-			Self::ChildrenChanged(inner) => inner.registry_string(),
-			Self::VisibleDataChanged(inner) => inner.registry_string(),
-			Self::SelectionChanged(inner) => inner.registry_string(),
-			Self::ModelChanged(inner) => inner.registry_string(),
-			Self::ActiveDescendantChanged(inner) => inner.registry_string(),
-			Self::Announcement(inner) => inner.registry_string(),
-			Self::AttributesChanged(inner) => inner.registry_string(),
-			Self::RowInserted(inner) => inner.registry_string(),
-			Self::RowReordered(inner) => inner.registry_string(),
-			Self::RowDeleted(inner) => inner.registry_string(),
-			Self::ColumnInserted(inner) => inner.registry_string(),
-			Self::ColumnReordered(inner) => inner.registry_string(),
-			Self::ColumnDeleted(inner) => inner.registry_string(),
-			Self::TextBoundsChanged(inner) => inner.registry_string(),
-			Self::TextSelectionChanged(inner) => inner.registry_string(),
-			Self::TextChanged(inner) => inner.registry_string(),
-			Self::TextAttributesChanged(inner) => inner.registry_string(),
-			Self::TextCaretMoved(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for ObjectEvents {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::PropertyChange(inner) => inner.path(),
-			Self::BoundsChanged(inner) => inner.path(),
-			Self::LinkSelected(inner) => inner.path(),
-			Self::StateChanged(inner) => inner.path(),
-			Self::ChildrenChanged(inner) => inner.path(),
-			Self::VisibleDataChanged(inner) => inner.path(),
-			Self::SelectionChanged(inner) => inner.path(),
-			Self::ModelChanged(inner) => inner.path(),
-			Self::ActiveDescendantChanged(inner) => inner.path(),
-			Self::Announcement(inner) => inner.path(),
-			Self::AttributesChanged(inner) => inner.path(),
-			Self::RowInserted(inner) => inner.path(),
-			Self::RowReordered(inner) => inner.path(),
-			Self::RowDeleted(inner) => inner.path(),
-			Self::ColumnInserted(inner) => inner.path(),
-			Self::ColumnReordered(inner) => inner.path(),
-			Self::ColumnDeleted(inner) => inner.path(),
-			Self::TextBoundsChanged(inner) => inner.path(),
-			Self::TextSelectionChanged(inner) => inner.path(),
-			Self::TextChanged(inner) => inner.path(),
-			Self::TextAttributesChanged(inner) => inner.path(),
-			Self::TextCaretMoved(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::PropertyChange(inner) => inner.sender(),
-			Self::BoundsChanged(inner) => inner.sender(),
-			Self::LinkSelected(inner) => inner.sender(),
-			Self::StateChanged(inner) => inner.sender(),
-			Self::ChildrenChanged(inner) => inner.sender(),
-			Self::VisibleDataChanged(inner) => inner.sender(),
-			Self::SelectionChanged(inner) => inner.sender(),
-			Self::ModelChanged(inner) => inner.sender(),
-			Self::ActiveDescendantChanged(inner) => inner.sender(),
-			Self::Announcement(inner) => inner.sender(),
-			Self::AttributesChanged(inner) => inner.sender(),
-			Self::RowInserted(inner) => inner.sender(),
-			Self::RowReordered(inner) => inner.sender(),
-			Self::RowDeleted(inner) => inner.sender(),
-			Self::ColumnInserted(inner) => inner.sender(),
-			Self::ColumnReordered(inner) => inner.sender(),
-			Self::ColumnDeleted(inner) => inner.sender(),
-			Self::TextBoundsChanged(inner) => inner.sender(),
-			Self::TextSelectionChanged(inner) => inner.sender(),
-			Self::TextChanged(inner) => inner.sender(),
-			Self::TextAttributesChanged(inner) => inner.sender(),
-			Self::TextCaretMoved(inner) => inner.sender(),
-		}
-	}
-}
-
-impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
-impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
-
-event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
-
-impl HasMatchRule for ObjectEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
-}
 
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -944,110 +720,6 @@ impl MessageConversion for TextCaretMovedEvent {
 	}
 }
 
-impl HasInterfaceName for ObjectEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-}
-
-#[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for ObjectEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		match member.as_str() {
-			PropertyChangeEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
-			}
-			BoundsChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent::from_message_unchecked(msg)?))
-			}
-			LinkSelectedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::from_message_unchecked(msg)?))
-			}
-			StateChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::StateChanged(StateChangedEvent::from_message_unchecked(msg)?))
-			}
-			ChildrenChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ChildrenChanged(
-				ChildrenChangedEvent::from_message_unchecked(msg)?,
-			)),
-			VisibleDataChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::VisibleDataChanged(
-				VisibleDataChangedEvent::from_message_unchecked(msg)?,
-			)),
-			SelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::SelectionChanged(
-				SelectionChangedEvent::from_message_unchecked(msg)?,
-			)),
-			ModelChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::from_message_unchecked(msg)?))
-			}
-			ActiveDescendantChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ActiveDescendantChanged(
-				ActiveDescendantChangedEvent::from_message_unchecked(msg)?,
-			)),
-			AnnouncementEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::Announcement(AnnouncementEvent::from_message_unchecked(msg)?))
-			}
-			AttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::AttributesChanged(
-				AttributesChangedEvent::from_message_unchecked(msg)?,
-			)),
-			RowInsertedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowInserted(RowInsertedEvent::from_message_unchecked(msg)?))
-			}
-			RowReorderedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowReordered(RowReorderedEvent::from_message_unchecked(msg)?))
-			}
-			RowDeletedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::from_message_unchecked(msg)?))
-			}
-			ColumnInsertedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent::from_message_unchecked(msg)?))
-			}
-			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
-				ColumnReorderedEvent::from_message_unchecked(msg)?,
-			)),
-			ColumnDeletedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent::from_message_unchecked(msg)?))
-			}
-			TextBoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextBoundsChanged(
-				TextBoundsChangedEvent::from_message_unchecked(msg)?,
-			)),
-			TextSelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextSelectionChanged(
-				TextSelectionChangedEvent::from_message_unchecked(msg)?,
-			)),
-			TextChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::TextChanged(TextChangedEvent::from_message_unchecked(msg)?))
-			}
-			TextAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextAttributesChanged(
-				TextAttributesChangedEvent::from_message_unchecked(msg)?,
-			)),
-			TextCaretMovedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent::from_message_unchecked(msg)?))
-			}
-			_ => Err(AtspiError::MemberMatch(format!(
-				"No matching member {member} for interface {}",
-				Self::DBUS_INTERFACE,
-			))),
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for ObjectEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	PropertyChangeEvent,
-	ObjectEvents,
-	ObjectEvents::PropertyChange
-);
-impl_from_user_facing_type_for_event_enum!(PropertyChangeEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	PropertyChangeEvent,
-	ObjectEvents::PropertyChange,
-	Event::Object
-);
-
 event_test_cases!(PropertyChangeEvent);
 impl_to_dbus_message!(PropertyChangeEvent);
 impl_from_dbus_message!(PropertyChangeEvent);
@@ -1065,51 +737,18 @@ impl From<PropertyChangeEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	BoundsChangedEvent,
-	ObjectEvents,
-	ObjectEvents::BoundsChanged
-);
-impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	BoundsChangedEvent,
-	ObjectEvents::BoundsChanged,
-	Event::Object
-);
 event_test_cases!(BoundsChangedEvent);
 impl_to_dbus_message!(BoundsChangedEvent);
 impl_from_dbus_message!(BoundsChangedEvent);
 impl_event_properties!(BoundsChangedEvent);
 impl_from_object_ref!(BoundsChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	LinkSelectedEvent,
-	ObjectEvents,
-	ObjectEvents::LinkSelected
-);
-impl_from_user_facing_type_for_event_enum!(LinkSelectedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	LinkSelectedEvent,
-	ObjectEvents::LinkSelected,
-	Event::Object
-);
 event_test_cases!(LinkSelectedEvent);
 impl_to_dbus_message!(LinkSelectedEvent);
 impl_from_dbus_message!(LinkSelectedEvent);
 impl_event_properties!(LinkSelectedEvent);
 impl_from_object_ref!(LinkSelectedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	StateChangedEvent,
-	ObjectEvents,
-	ObjectEvents::StateChanged
-);
-impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	StateChangedEvent,
-	ObjectEvents::StateChanged,
-	Event::Object
-);
 event_test_cases!(StateChangedEvent);
 impl_to_dbus_message!(StateChangedEvent);
 impl_from_dbus_message!(StateChangedEvent);
@@ -1126,17 +765,6 @@ impl From<StateChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	ChildrenChangedEvent,
-	ObjectEvents,
-	ObjectEvents::ChildrenChanged
-);
-impl_from_user_facing_type_for_event_enum!(ChildrenChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	ChildrenChangedEvent,
-	ObjectEvents::ChildrenChanged,
-	Event::Object
-);
 event_test_cases!(ChildrenChangedEvent);
 impl_to_dbus_message!(ChildrenChangedEvent);
 impl_from_dbus_message!(ChildrenChangedEvent);
@@ -1158,68 +786,24 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	VisibleDataChangedEvent,
-	ObjectEvents,
-	ObjectEvents::VisibleDataChanged
-);
-impl_from_user_facing_type_for_event_enum!(VisibleDataChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	VisibleDataChangedEvent,
-	ObjectEvents::VisibleDataChanged,
-	Event::Object
-);
 event_test_cases!(VisibleDataChangedEvent);
 impl_to_dbus_message!(VisibleDataChangedEvent);
 impl_from_dbus_message!(VisibleDataChangedEvent);
 impl_event_properties!(VisibleDataChangedEvent);
 impl_from_object_ref!(VisibleDataChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	SelectionChangedEvent,
-	ObjectEvents,
-	ObjectEvents::SelectionChanged
-);
-impl_from_user_facing_type_for_event_enum!(SelectionChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	SelectionChangedEvent,
-	ObjectEvents::SelectionChanged,
-	Event::Object
-);
 event_test_cases!(SelectionChangedEvent);
 impl_to_dbus_message!(SelectionChangedEvent);
 impl_from_dbus_message!(SelectionChangedEvent);
 impl_event_properties!(SelectionChangedEvent);
 impl_from_object_ref!(SelectionChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	ModelChangedEvent,
-	ObjectEvents,
-	ObjectEvents::ModelChanged
-);
-impl_from_user_facing_type_for_event_enum!(ModelChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	ModelChangedEvent,
-	ObjectEvents::ModelChanged,
-	Event::Object
-);
 event_test_cases!(ModelChangedEvent);
 impl_to_dbus_message!(ModelChangedEvent);
 impl_from_dbus_message!(ModelChangedEvent);
 impl_event_properties!(ModelChangedEvent);
 impl_from_object_ref!(ModelChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	ActiveDescendantChangedEvent,
-	ObjectEvents,
-	ObjectEvents::ActiveDescendantChanged
-);
-impl_from_user_facing_type_for_event_enum!(ActiveDescendantChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	ActiveDescendantChangedEvent,
-	ObjectEvents::ActiveDescendantChanged,
-	Event::Object
-);
 event_test_cases!(ActiveDescendantChangedEvent);
 impl_to_dbus_message!(ActiveDescendantChangedEvent);
 impl_from_dbus_message!(ActiveDescendantChangedEvent);
@@ -1241,17 +825,6 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	AnnouncementEvent,
-	ObjectEvents,
-	ObjectEvents::Announcement
-);
-impl_from_user_facing_type_for_event_enum!(AnnouncementEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	AnnouncementEvent,
-	ObjectEvents::Announcement,
-	Event::Object
-);
 event_test_cases!(AnnouncementEvent);
 impl_to_dbus_message!(AnnouncementEvent);
 impl_from_dbus_message!(AnnouncementEvent);
@@ -1270,166 +843,60 @@ impl From<AnnouncementEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	AttributesChangedEvent,
-	ObjectEvents,
-	ObjectEvents::AttributesChanged
-);
-impl_from_user_facing_type_for_event_enum!(AttributesChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	AttributesChangedEvent,
-	ObjectEvents::AttributesChanged,
-	Event::Object
-);
 event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
 impl_from_object_ref!(AttributesChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	RowInsertedEvent,
-	ObjectEvents,
-	ObjectEvents::RowInserted
-);
-impl_from_user_facing_type_for_event_enum!(RowInsertedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	RowInsertedEvent,
-	ObjectEvents::RowInserted,
-	Event::Object
-);
 event_test_cases!(RowInsertedEvent);
 impl_to_dbus_message!(RowInsertedEvent);
 impl_from_dbus_message!(RowInsertedEvent);
 impl_event_properties!(RowInsertedEvent);
 impl_from_object_ref!(RowInsertedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	RowReorderedEvent,
-	ObjectEvents,
-	ObjectEvents::RowReordered
-);
-impl_from_user_facing_type_for_event_enum!(RowReorderedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	RowReorderedEvent,
-	ObjectEvents::RowReordered,
-	Event::Object
-);
 event_test_cases!(RowReorderedEvent);
 impl_to_dbus_message!(RowReorderedEvent);
 impl_from_dbus_message!(RowReorderedEvent);
 impl_event_properties!(RowReorderedEvent);
 impl_from_object_ref!(RowReorderedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	RowDeletedEvent,
-	ObjectEvents,
-	ObjectEvents::RowDeleted
-);
-impl_from_user_facing_type_for_event_enum!(RowDeletedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(RowDeletedEvent, ObjectEvents::RowDeleted, Event::Object);
 event_test_cases!(RowDeletedEvent);
 impl_to_dbus_message!(RowDeletedEvent);
 impl_from_dbus_message!(RowDeletedEvent);
 impl_event_properties!(RowDeletedEvent);
 impl_from_object_ref!(RowDeletedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	ColumnInsertedEvent,
-	ObjectEvents,
-	ObjectEvents::ColumnInserted
-);
-impl_from_user_facing_type_for_event_enum!(ColumnInsertedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	ColumnInsertedEvent,
-	ObjectEvents::ColumnInserted,
-	Event::Object
-);
 event_test_cases!(ColumnInsertedEvent);
 impl_to_dbus_message!(ColumnInsertedEvent);
 impl_from_dbus_message!(ColumnInsertedEvent);
 impl_event_properties!(ColumnInsertedEvent);
 impl_from_object_ref!(ColumnInsertedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	ColumnReorderedEvent,
-	ObjectEvents,
-	ObjectEvents::ColumnReordered
-);
-impl_from_user_facing_type_for_event_enum!(ColumnReorderedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	ColumnReorderedEvent,
-	ObjectEvents::ColumnReordered,
-	Event::Object
-);
 event_test_cases!(ColumnReorderedEvent);
 impl_to_dbus_message!(ColumnReorderedEvent);
 impl_from_dbus_message!(ColumnReorderedEvent);
 impl_event_properties!(ColumnReorderedEvent);
 impl_from_object_ref!(ColumnReorderedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	ColumnDeletedEvent,
-	ObjectEvents,
-	ObjectEvents::ColumnDeleted
-);
-impl_from_user_facing_type_for_event_enum!(ColumnDeletedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	ColumnDeletedEvent,
-	ObjectEvents::ColumnDeleted,
-	Event::Object
-);
 event_test_cases!(ColumnDeletedEvent);
 impl_to_dbus_message!(ColumnDeletedEvent);
 impl_from_dbus_message!(ColumnDeletedEvent);
 impl_event_properties!(ColumnDeletedEvent);
 impl_from_object_ref!(ColumnDeletedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	TextBoundsChangedEvent,
-	ObjectEvents,
-	ObjectEvents::TextBoundsChanged
-);
-impl_from_user_facing_type_for_event_enum!(TextBoundsChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	TextBoundsChangedEvent,
-	ObjectEvents::TextBoundsChanged,
-	Event::Object
-);
 event_test_cases!(TextBoundsChangedEvent);
 impl_to_dbus_message!(TextBoundsChangedEvent);
 impl_from_dbus_message!(TextBoundsChangedEvent);
 impl_event_properties!(TextBoundsChangedEvent);
 impl_from_object_ref!(TextBoundsChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	TextSelectionChangedEvent,
-	ObjectEvents,
-	ObjectEvents::TextSelectionChanged
-);
-impl_from_user_facing_type_for_event_enum!(TextSelectionChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	TextSelectionChangedEvent,
-	ObjectEvents::TextSelectionChanged,
-	Event::Object
-);
 event_test_cases!(TextSelectionChangedEvent);
 impl_to_dbus_message!(TextSelectionChangedEvent);
 impl_from_dbus_message!(TextSelectionChangedEvent);
 impl_event_properties!(TextSelectionChangedEvent);
 impl_from_object_ref!(TextSelectionChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	TextChangedEvent,
-	ObjectEvents,
-	ObjectEvents::TextChanged
-);
-impl_from_user_facing_type_for_event_enum!(TextChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	TextChangedEvent,
-	ObjectEvents::TextChanged,
-	Event::Object
-);
 event_test_cases!(TextChangedEvent);
 impl_to_dbus_message!(TextChangedEvent);
 impl_from_dbus_message!(TextChangedEvent);
@@ -1451,34 +918,12 @@ impl From<TextChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	TextAttributesChangedEvent,
-	ObjectEvents,
-	ObjectEvents::TextAttributesChanged
-);
-impl_from_user_facing_type_for_event_enum!(TextAttributesChangedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	TextAttributesChangedEvent,
-	ObjectEvents::TextAttributesChanged,
-	Event::Object
-);
 event_test_cases!(TextAttributesChangedEvent);
 impl_to_dbus_message!(TextAttributesChangedEvent);
 impl_from_dbus_message!(TextAttributesChangedEvent);
 impl_event_properties!(TextAttributesChangedEvent);
 impl_from_object_ref!(TextAttributesChangedEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	TextCaretMovedEvent,
-	ObjectEvents,
-	ObjectEvents::TextCaretMoved
-);
-impl_from_user_facing_type_for_event_enum!(TextCaretMovedEvent, Event::Object);
-impl_try_from_event_for_user_facing_type!(
-	TextCaretMovedEvent,
-	ObjectEvents::TextCaretMoved,
-	Event::Object
-);
 event_test_cases!(TextCaretMovedEvent);
 impl_to_dbus_message!(TextCaretMovedEvent);
 impl_from_dbus_message!(TextCaretMovedEvent);
@@ -1493,8 +938,4 @@ impl From<TextCaretMovedEvent> for EventBodyOwned {
 			any_data: u8::default().into(),
 		}
 	}
-}
-
-impl HasRegistryEventString for ObjectEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }

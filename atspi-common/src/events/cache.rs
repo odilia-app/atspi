@@ -1,133 +1,16 @@
-#[cfg(feature = "zbus")]
-use crate::events::{
-	EventWrapperMessageConversion, MessageConversion, MessageConversionExt, TryFromMessage,
-};
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
+	events::{BusProperties, ObjectRef},
+	EventProperties,
+};
+#[cfg(feature = "zbus")]
+use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString, ObjectRef},
-	Event, EventProperties, EventTypeProperties,
+	events::{MessageConversion, MessageConversionExt},
 };
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, Type};
-
-/// All events related to the `org.a11y.atspi.Cache` interface.
-/// Note that these are not telling the client that an item *has been added* to a cache.
-/// It is telling the client "here is a bunch of information to store it in your cache".
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
-#[allow(clippy::module_name_repetitions)]
-pub enum CacheEvents {
-	/// See: [`AddAccessibleEvent`].
-	Add(AddAccessibleEvent),
-	/// See: [`LegacyAddAccessibleEvent`].
-	LegacyAdd(LegacyAddAccessibleEvent),
-	/// See: [`RemoveAccessibleEvent`].
-	Remove(RemoveAccessibleEvent),
-}
-
-impl HasMatchRule for CacheEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
-}
-
-impl HasRegistryEventString for CacheEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache";
-}
-
-impl HasInterfaceName for CacheEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
-
-impl EventTypeProperties for CacheEvents {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.member(),
-			Self::LegacyAdd(inner) => inner.member(),
-			Self::Remove(inner) => inner.member(),
-		}
-	}
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.interface(),
-			Self::LegacyAdd(inner) => inner.interface(),
-			Self::Remove(inner) => inner.interface(),
-		}
-	}
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.match_rule(),
-			Self::LegacyAdd(inner) => inner.match_rule(),
-			Self::Remove(inner) => inner.match_rule(),
-		}
-	}
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::Add(inner) => inner.registry_string(),
-			Self::LegacyAdd(inner) => inner.registry_string(),
-			Self::Remove(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for CacheEvents {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::Add(inner) => inner.path(),
-			Self::LegacyAdd(inner) => inner.path(),
-			Self::Remove(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::Add(inner) => inner.sender(),
-			Self::LegacyAdd(inner) => inner.sender(),
-			Self::Remove(inner) => inner.sender(),
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for CacheEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		match member.as_str() {
-			AddAccessibleEvent::DBUS_MEMBER => {
-				let body = msg.body();
-				let sig = body.signature();
-				if sig == CacheItem::SIGNATURE {
-					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
-				} else if sig == LegacyCacheItem::SIGNATURE {
-					Ok(CacheEvents::LegacyAdd(LegacyAddAccessibleEvent::from_message_unchecked(
-						msg,
-					)?))
-				} else {
-					Err(AtspiError::SignatureMatch(format!(
-						"No matching event for signature {} in interface {}",
-						&sig.to_string(),
-						Self::DBUS_INTERFACE
-					)))
-				}
-			}
-			RemoveAccessibleEvent::DBUS_MEMBER => {
-				Ok(CacheEvents::Remove(RemoveAccessibleEvent::from_message_unchecked(msg)?))
-			}
-			_ => Err(AtspiError::MemberMatch(format!(
-				"No member {} in {}",
-				member.as_str(),
-				Self::DBUS_INTERFACE
-			))),
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for CacheEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
+use zvariant::ObjectPath;
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::LegacyCacheItem`]
@@ -139,17 +22,6 @@ pub struct LegacyAddAccessibleEvent {
 	pub node_added: LegacyCacheItem,
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	LegacyAddAccessibleEvent,
-	CacheEvents,
-	CacheEvents::LegacyAdd
-);
-impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(
-	LegacyAddAccessibleEvent,
-	CacheEvents::LegacyAdd,
-	Event::Cache
-);
 event_test_cases!(LegacyAddAccessibleEvent, Explicit);
 impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent);
@@ -191,13 +63,6 @@ pub struct AddAccessibleEvent {
 	pub node_added: CacheItem,
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	AddAccessibleEvent,
-	CacheEvents,
-	CacheEvents::Add
-);
-impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
 event_test_cases!(AddAccessibleEvent, Explicit);
 
 impl BusProperties for AddAccessibleEvent {
@@ -240,13 +105,6 @@ pub struct RemoveAccessibleEvent {
 	pub node_removed: ObjectRef,
 }
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	RemoveAccessibleEvent,
-	CacheEvents,
-	CacheEvents::Remove
-);
-impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
-impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent, Explicit);
 
 impl BusProperties for RemoveAccessibleEvent {
