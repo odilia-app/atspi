@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, collections::HashMap, marker::PhantomData};
 
 use serde::{Deserialize, Serialize};
-use zvariant::{signature::Child, Signature, Type};
+use zvariant::{Signature, Type};
 
 use crate::{Interface, InterfaceSet, Role, State, StateSet};
 
@@ -47,28 +47,25 @@ pub struct ObjectMatchRule {
 	_marker: std::marker::PhantomData<()>,
 }
 
-// !!! WARNING !!! :
-//
-// State and Role are defined as u32 in Accessible.xml but as i32 in Collection.xml
-//
-// The signature on StateSet is defined inconsistently in the XMLs
-// Accessible.xml: GetState type="au"
-// Collection.xml: GetMatches argument name="rule" type="(aiia{ss}iaiiasib)"
-// The latter starts with ai, which is a signature for an array of signed ints i32.
-//
-// https://gitlab.gnome.org/federico/at-spi2-core/-/commit/4885efedeef71e0df8210622771a0b1bb10e194d
+/// !!! WARNING !!! :
+///
+/// State and Role are defined as u32 in Accessible.xml but as i32 in Collection.xml
+///
+/// The signature on StateSet is defined inconsistently in the XMLs
+/// Accessible.xml: GetState type="au"
+/// Collection.xml: GetMatches argument name="rule" type="(aiia{ss}iaiiasib)"
+/// The latter starts with ai, which is a signature for an array of signed ints i32.
+///
+/// https://gitlab.gnome.org/federico/at-spi2-core/-/commit/4885efedeef71e0df8210622771a0b1bb10e194d
 impl Type for ObjectMatchRule {
 	const SIGNATURE: &'static Signature = &Signature::static_structure(&[
-		&Signature::Array(Child::Static { child: &Signature::I32 }),
+		<Vec<i32>>::SIGNATURE,
 		&Signature::I32,
-		&Signature::Dict {
-			key: Child::Static { child: &Signature::Str },
-			value: Child::Static { child: &Signature::Str },
-		},
+		<HashMap<&str, &str>>::SIGNATURE,
 		&Signature::I32,
-		&Signature::Array(Child::Static { child: &Signature::I32 }),
+		<Vec<i32>>::SIGNATURE,
 		&Signature::I32,
-		&Signature::Array(Child::Static { child: &Signature::Str }),
+		<Vec<&str>>::SIGNATURE,
 		&Signature::I32,
 		&Signature::Bool,
 	]);

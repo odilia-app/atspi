@@ -5,39 +5,7 @@ use crate::{InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::UniqueName;
-use zvariant::{
-	signature::{Child, Fields},
-	ObjectPath, Signature, Type,
-};
-
-// ((so)(so)(so)iiassusau)
-pub const CACHE_ITEM_SIGNATURE: &Signature = &Signature::static_structure(&[
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::I32,
-	&Signature::I32,
-	&Signature::Array(Child::Static { child: &Signature::Str }),
-	&Signature::Str,
-	&Signature::U32,
-	&Signature::Str,
-	&Signature::Array(Child::Static { child: &Signature::U32 }),
-]);
-pub const LEGACY_CACHE_ITEM_SIGNATURE: &Signature = &Signature::static_structure(&[
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Array(Child::Static {
-		child: &Signature::Structure(Fields::Static {
-			fields: &[&Signature::Str, &Signature::ObjectPath],
-		}),
-	}),
-	&Signature::Array(Child::Static { child: &Signature::Str }),
-	&Signature::Str,
-	&Signature::U32,
-	&Signature::Str,
-	&Signature::Array(Child::Static { child: &Signature::U32 }),
-]);
+use zvariant::{ObjectPath, Type};
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
@@ -160,5 +128,4 @@ fn zvariant_type_signature_of_legacy_cache_item() {
 		*<LegacyCacheItem as Type>::SIGNATURE,
 		zbus::zvariant::Signature::from_str("((so)(so)(so)a(so)assusau)").unwrap()
 	);
-	assert_eq!(<LegacyCacheItem as Type>::SIGNATURE, LEGACY_CACHE_ITEM_SIGNATURE,);
 }
