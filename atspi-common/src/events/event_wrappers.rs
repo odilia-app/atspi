@@ -2,6 +2,7 @@ use crate::events::{AvailableEvent, EventListenerEvents};
 #[cfg(feature = "zbus")]
 use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
 use crate::{
+	cache::{CacheItem, LegacyCacheItem},
 	error::AtspiError,
 	events::{
 		cache::{AddAccessibleEvent, LegacyAddAccessibleEvent, RemoveAccessibleEvent},
@@ -41,7 +42,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
-use zvariant::ObjectPath;
+use zvariant::{ObjectPath, Type};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentEvents {
@@ -1006,19 +1007,19 @@ impl EventWrapperMessageConversion for CacheEvents {
 		match member.as_str() {
 			AddAccessibleEvent::DBUS_MEMBER => {
 				let body = msg.body();
-				let sig = body.signature().ok_or(AtspiError::MissingSignature)?;
-				match sig.as_str() {
-					"(so)(so)(so)iiassusau" => {
-						Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
-					}
-					"(so)(so)(so)a(so)assusau" => Ok(CacheEvents::LegacyAdd(
-						LegacyAddAccessibleEvent::from_message_unchecked(msg)?,
-					)),
-					_ => Err(AtspiError::SignatureMatch(format!(
-						"No matching event for signature {} in interface {}",
-						sig.as_str(),
+				let sig = body.signature();
+				if sig == CacheItem::SIGNATURE {
+					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
+				} else if sig == LegacyCacheItem::SIGNATURE {
+					Ok(CacheEvents::LegacyAdd(LegacyAddAccessibleEvent::from_message_unchecked(
+						msg,
+					)?))
+				} else {
+					Err(AtspiError::SignatureMatch(format!(
+						"No matching event for signature {:?} in interface {}",
+						sig,
 						Self::DBUS_INTERFACE
-					))),
+					)))
 				}
 			}
 			RemoveAccessibleEvent::DBUS_MEMBER => {

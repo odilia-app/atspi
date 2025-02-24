@@ -99,7 +99,7 @@ impl AccessibilityConnection {
 	/// ```rust
 	/// use atspi_connection::AccessibilityConnection;
 	/// use enumflags2::BitFlag;
-	/// use atspi_connection::common::events::object::{ObjectEvents, StateChangedEvent};
+	/// use atspi_connection::common::events::{ObjectEvents, object::StateChangedEvent};
 	/// use zbus::{fdo::DBusProxy, MatchRule, message::Type as MessageType};
 	/// use atspi_connection::common::events::Event;
 	/// # use futures_lite::StreamExt;

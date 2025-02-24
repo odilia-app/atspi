@@ -10,7 +10,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, Type};
+use zvariant::ObjectPath;
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::LegacyCacheItem`]
