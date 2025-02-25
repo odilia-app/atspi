@@ -17,15 +17,8 @@ include = ["src/**/*", "LICENSE-*", "README.md"]
 
 [features]
 default = ["async-std"]
-async-std = ["proxies-async-std", "connection-async-std"]
-tokio = ["proxies-tokio", "connection-tokio"]
-
-proxies = []
-proxies-async-std = ["atspi-proxies/async-std", "proxies"]
-proxies-tokio = ["atspi-proxies/tokio", "proxies"]
-connection = []
-connection-async-std = ["atspi-connection/async-std", "connection"]
-connection-tokio = ["atspi-connection/tokio", "connection"]
+async-std = ["atspi-proxies/async-std", "atspi-connection/async-std", "zbus/async-io"]
+tokio = ["atspi-proxies/tokio", "atspi-connection/tokio", "zbus/tokio"]
 tracing = ["atspi-connection/tracing"]
 
 [dependencies]

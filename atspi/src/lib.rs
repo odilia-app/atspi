@@ -12,13 +12,9 @@ compile_error!("You must specify at least one of the `async-std` or `tokio` feat
 
 pub use atspi_common::*;
 
-#[cfg(feature = "proxies")]
 pub use atspi_proxies as proxy;
 
-#[cfg(feature = "connection")]
 pub use atspi_connection as connection;
-#[cfg(feature = "connection")]
 pub use connection::AccessibilityConnection;
 
-#[cfg(feature = "zbus")]
 pub use zbus;
