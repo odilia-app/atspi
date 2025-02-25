@@ -30,8 +30,8 @@ zvariant = { version = "5.1", default-features = false }
 zbus = { workspace = true, optional = true, default-features = false }
 
 [dev-dependencies]
-atspi-connection = { path = "../atspi-connection" }
-atspi-proxies = { path = "../atspi-proxies" }
+atspi-connection = { path = "../atspi-connection", default-features = false }
+atspi-proxies = { path = "../atspi-proxies", default-features = false }
 rename-item = "0.1.0"
 serde_plain = "1.0.1"
 static_assertions = "1.1.0"
