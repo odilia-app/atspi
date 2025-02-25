@@ -3,7 +3,7 @@ pub mod document;
 #[cfg(feature = "wrappers")]
 pub mod event_wrappers;
 
-pub use event_body::{EventBodyBorrow, EventBodyOwned, EventBodyQT, EventBodyQTBorrow};
+pub use event_body::{EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned};
 #[cfg(feature = "wrappers")]
 pub use event_wrappers::{
 	CacheEvents, DocumentEvents, Event, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents,
@@ -538,14 +538,14 @@ where
 		let data_body: EventBodyOwned = if body_sig == EventBodyOwned::SIGNATURE {
 			body.deserialize_unchecked()?
 		} else if body_sig == QSPI_EVENT_SIGNATURE {
-			let qtbody: EventBodyQT = body.deserialize_unchecked()?;
+			let qtbody: EventBodyQtOwned = body.deserialize_unchecked()?;
 			qtbody.into()
 		} else {
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {} or {}",
 				body_sig,
 				EventBodyOwned::SIGNATURE,
-				EventBodyQT::SIGNATURE,
+				EventBodyQtOwned::SIGNATURE,
 			)));
 		};
 		let item = msg.try_into()?;

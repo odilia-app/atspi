@@ -10,10 +10,10 @@ use zvariant::{ObjectPath, OwnedValue, Type, Value};
 ///
 /// Signature:  "siiv(so)"
 #[derive(Debug, Serialize, Deserialize, PartialEq, Type)]
-pub struct EventBodyQT {
+pub struct EventBodyQtOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
-	// #[serde(rename = "type")]
+	#[serde(rename = "type")]
 	pub kind: String,
 
 	/// Generic detail1 value described by AT-SPI.
@@ -32,7 +32,7 @@ pub struct EventBodyQT {
 	pub(crate) properties: QtProperties,
 }
 
-impl Clone for EventBodyQT {
+impl Clone for EventBodyQtOwned {
 	/// # Safety  
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
@@ -61,9 +61,9 @@ impl Clone for EventBodyQT {
 	}
 }
 
-/// Unit struct placeholder for `EventBodyQT.properties`
+/// Unit struct placeholder for `EventBodyQtOwned.properties`
 ///
-/// AT-SPI2 never reads or writes to `EventBodyQT.properties`.  
+/// AT-SPI2 never reads or writes to `properties`.  
 /// `QtProperties` has the appropriate implementations for `Serialize` and `Deserialize`  
 /// to make it serialize as an a valid tuple and valid bytes deserialize as placeholder.
 #[derive(Debug, Copy, Clone, Deserialize, Type, Default, PartialEq)]
@@ -82,7 +82,7 @@ impl Serialize for QtProperties {
 	}
 }
 
-impl Default for EventBodyQT {
+impl Default for EventBodyQtOwned {
 	fn default() -> Self {
 		Self {
 			kind: String::new(),
@@ -116,7 +116,7 @@ impl Serialize for Properties {
 ///
 /// All of the various signals in the AT-SPI2 protocol share this shape.
 /// Most toolkits and implementors emit this type, except for `Qt`, which has has its
-/// own type: [`EventBodyQT`].
+/// own type: [`EventBodyQtOwned`].
 ///
 /// Signature `(siiva{sv})`,
 #[validate(signal: "PropertyChange")]
@@ -161,7 +161,7 @@ impl Clone for EventBodyOwned {
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
 	/// If the following conditions are met:
-	/// 1. the `any_data` or `properties` field contain an [`std::os::fd::OwnedFd`] type, and
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
 	/// Then this function panic.  
@@ -185,7 +185,7 @@ impl Clone for EventBodyOwned {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Type)]
-pub struct EventBodyBorrow<'a> {
+pub struct EventBodyBorrowed<'a> {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
@@ -209,7 +209,7 @@ pub struct EventBodyBorrow<'a> {
 	pub(crate) properties: Properties,
 }
 
-impl Default for EventBodyBorrow<'_> {
+impl Default for EventBodyBorrowed<'_> {
 	fn default() -> Self {
 		Self {
 			kind: "",
@@ -221,7 +221,7 @@ impl Default for EventBodyBorrow<'_> {
 	}
 }
 
-impl EventBodyBorrow<'_> {
+impl EventBodyBorrowed<'_> {
 	/// Convert this borrowed event body to an owned event body.
 	///
 	/// # Errors
@@ -245,13 +245,13 @@ impl EventBodyBorrow<'_> {
 	}
 }
 
-impl Clone for EventBodyBorrow<'_> {
+impl Clone for EventBodyBorrowed<'_> {
 	/// # Safety  
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
 	/// If the following conditions are met:
-	/// 1. the `any_data` or `properties` field contain an [`std::os::fd::OwnedFd`] type, and
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
 	/// Then this function panic.  
@@ -275,7 +275,7 @@ impl Clone for EventBodyBorrow<'_> {
 }
 
 #[derive(Debug, Type, Deserialize, PartialEq)]
-pub struct EventBodyQTBorrow<'m> {
+pub struct EventBodyQtBorrowed<'m> {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
@@ -298,7 +298,7 @@ pub struct EventBodyQTBorrow<'m> {
 	pub(crate) properties: QtProperties,
 }
 
-impl Default for EventBodyQTBorrow<'_> {
+impl Default for EventBodyQtBorrowed<'_> {
 	fn default() -> Self {
 		Self {
 			kind: "",
@@ -310,16 +310,16 @@ impl Default for EventBodyQTBorrow<'_> {
 	}
 }
 
-impl Clone for EventBodyQTBorrow<'_> {
+impl Clone for EventBodyQtBorrowed<'_> {
 	/// # Safety  
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
 	/// If the following conditions are met:
-	/// 1. the `any_data` or `properties` field contain an [`std::os::fd::OwnedFd`] type, and
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panic.  
+	/// Then this function panics.  
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
 	/// specification describes that.  
@@ -339,7 +339,7 @@ impl Clone for EventBodyQTBorrow<'_> {
 	}
 }
 
-impl EventBodyQTBorrow<'_> {
+impl EventBodyQtBorrowed<'_> {
 	/// Convert partially borrowed Qt event body to an owned event body.
 	///
 	/// # Errors
@@ -347,10 +347,10 @@ impl EventBodyQTBorrow<'_> {
 	/// This will error if the following conditions are met:
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
-	pub fn try_to_owned(&self) -> Result<EventBodyQT, AtspiError> {
+	pub fn try_to_owned(&self) -> Result<EventBodyQtOwned, AtspiError> {
 		let any_data = self.any_data.try_to_owned()?;
 
-		Ok(EventBodyQT {
+		Ok(EventBodyQtOwned {
 			kind: self.kind.to_owned(),
 			detail1: self.detail1,
 			detail2: self.detail2,
@@ -360,16 +360,16 @@ impl EventBodyQTBorrow<'_> {
 	}
 }
 
-impl<'de> From<EventBodyQTBorrow<'de>> for EventBodyBorrow<'de> {
-	fn from(borrow: EventBodyQTBorrow<'de>) -> Self {
-		let EventBodyQTBorrow { kind, detail1, detail2, any_data, properties: _ } = borrow;
+impl<'de> From<EventBodyQtBorrowed<'de>> for EventBodyBorrowed<'de> {
+	fn from(borrow: EventBodyQtBorrowed<'de>) -> Self {
+		let EventBodyQtBorrowed { kind, detail1, detail2, any_data, properties: _ } = borrow;
 
 		Self { kind, detail1, detail2, any_data, properties: Properties }
 	}
 }
 
-impl From<EventBodyQT> for EventBodyOwned {
-	fn from(body: EventBodyQT) -> Self {
+impl From<EventBodyQtOwned> for EventBodyOwned {
+	fn from(body: EventBodyQtOwned) -> Self {
 		Self {
 			kind: body.kind,
 			detail1: body.detail1,
@@ -387,12 +387,12 @@ impl From<EventBodyQT> for EventBodyOwned {
 #[derive(Debug, Clone, PartialEq)]
 pub enum EventBody<'a> {
 	Owned(EventBodyOwned),
-	Borrowed(EventBodyBorrow<'a>),
+	Borrowed(EventBodyBorrowed<'a>),
 }
 
 impl Default for EventBody<'_> {
 	fn default() -> Self {
-		Self::Borrowed(EventBodyBorrow::default())
+		Self::Borrowed(EventBodyBorrowed::default())
 	}
 }
 
@@ -505,7 +505,7 @@ impl<'de> Deserialize<'de> for EventBody<'de> {
 	where
 		D: serde::de::Deserializer<'de>,
 	{
-		let borrowed = EventBodyBorrow::deserialize(deserializer)?;
+		let borrowed = EventBodyBorrowed::deserialize(deserializer)?;
 		Ok(borrowed.into())
 	}
 }
@@ -528,25 +528,25 @@ impl From<EventBodyOwned> for EventBody<'_> {
 	}
 }
 
-impl<'b> From<EventBodyBorrow<'b>> for EventBody<'b> {
-	fn from(borrowed: EventBodyBorrow<'b>) -> Self {
+impl<'b> From<EventBodyBorrowed<'b>> for EventBody<'b> {
+	fn from(borrowed: EventBodyBorrowed<'b>) -> Self {
 		EventBody::Borrowed(borrowed)
 	}
 }
 
-impl From<EventBodyQT> for EventBody<'_> {
-	fn from(qt_owned: EventBodyQT) -> Self {
+impl From<EventBodyQtOwned> for EventBody<'_> {
+	fn from(qt_owned: EventBodyQtOwned) -> Self {
 		EventBody::Owned(qt_owned.into())
 	}
 }
 
-impl<'a> From<EventBodyQTBorrow<'a>> for EventBody<'a> {
-	fn from(qt_borrowed: EventBodyQTBorrow<'a>) -> Self {
+impl<'a> From<EventBodyQtBorrowed<'a>> for EventBody<'a> {
+	fn from(qt_borrowed: EventBodyQtBorrowed<'a>) -> Self {
 		EventBody::Borrowed(qt_borrowed.into())
 	}
 }
 
-impl From<EventBodyOwned> for EventBodyQT {
+impl From<EventBodyOwned> for EventBodyQtOwned {
 	fn from(owned: EventBodyOwned) -> Self {
 		Self {
 			kind: owned.kind,
@@ -558,8 +558,8 @@ impl From<EventBodyOwned> for EventBodyQT {
 	}
 }
 
-impl<'a> From<EventBodyBorrow<'a>> for EventBodyQT {
-	fn from(borrowed: EventBodyBorrow<'a>) -> Self {
+impl<'a> From<EventBodyBorrowed<'a>> for EventBodyQtOwned {
+	fn from(borrowed: EventBodyBorrowed<'a>) -> Self {
 		Self {
 			kind: borrowed.kind.to_owned(),
 			detail1: borrowed.detail1,
@@ -573,7 +573,7 @@ impl<'a> From<EventBodyBorrow<'a>> for EventBodyQT {
 	}
 }
 
-impl From<EventBody<'_>> for EventBodyQT {
+impl From<EventBody<'_>> for EventBodyQtOwned {
 	fn from(event: EventBody) -> Self {
 		match event {
 			EventBody::Owned(owned) => owned.into(),
@@ -582,7 +582,7 @@ impl From<EventBody<'_>> for EventBodyQT {
 	}
 }
 
-impl PartialEq<EventBodyOwned> for EventBodyQT {
+impl PartialEq<EventBodyOwned> for EventBodyQtOwned {
 	fn eq(&self, other: &EventBodyOwned) -> bool {
 		self.kind == other.kind
 			&& self.detail1 == other.detail1
@@ -591,8 +591,8 @@ impl PartialEq<EventBodyOwned> for EventBodyQT {
 	}
 }
 
-impl PartialEq<EventBodyQT> for EventBodyOwned {
-	fn eq(&self, other: &EventBodyQT) -> bool {
+impl PartialEq<EventBodyQtOwned> for EventBodyOwned {
+	fn eq(&self, other: &EventBodyQtOwned) -> bool {
 		self.kind == other.kind
 			&& self.detail1 == other.detail1
 			&& self.detail2 == other.detail2
@@ -600,8 +600,8 @@ impl PartialEq<EventBodyQT> for EventBodyOwned {
 	}
 }
 
-impl PartialEq<EventBodyBorrow<'_>> for EventBodyQTBorrow<'_> {
-	fn eq(&self, other: &EventBodyBorrow<'_>) -> bool {
+impl PartialEq<EventBodyBorrowed<'_>> for EventBodyQtBorrowed<'_> {
+	fn eq(&self, other: &EventBodyBorrowed<'_>) -> bool {
 		self.kind == other.kind
 			&& self.detail1 == other.detail1
 			&& self.detail2 == other.detail2
@@ -609,8 +609,8 @@ impl PartialEq<EventBodyBorrow<'_>> for EventBodyQTBorrow<'_> {
 	}
 }
 
-impl PartialEq<EventBodyQTBorrow<'_>> for EventBodyBorrow<'_> {
-	fn eq(&self, other: &EventBodyQTBorrow<'_>) -> bool {
+impl PartialEq<EventBodyQtBorrowed<'_>> for EventBodyBorrowed<'_> {
+	fn eq(&self, other: &EventBodyQtBorrowed<'_>) -> bool {
 		self.kind == other.kind
 			&& self.detail1 == other.detail1
 			&& self.detail2 == other.detail2
@@ -636,7 +636,7 @@ mod test {
 
 	#[test]
 	fn event_body_qt_clone() {
-		let event = EventBodyQT::default();
+		let event = EventBodyQtOwned::default();
 		let cloned = event.clone();
 
 		assert_eq!(event, cloned);
@@ -644,7 +644,7 @@ mod test {
 
 	#[test]
 	fn event_body_borrowed_clone() {
-		let event = EventBodyBorrow::default();
+		let event = EventBodyBorrowed::default();
 		let cloned = event.clone();
 
 		assert_eq!(event, cloned);
@@ -652,7 +652,7 @@ mod test {
 
 	#[test]
 	fn event_body_qt_borrowed_clone() {
-		let event = EventBodyQTBorrow::default();
+		let event = EventBodyQtBorrowed::default();
 		let cloned = event.clone();
 
 		assert_eq!(event, cloned);
@@ -670,7 +670,7 @@ mod test {
 
 	#[test]
 	fn qt_event_body_default() {
-		let event = EventBodyQT::default();
+		let event = EventBodyQtOwned::default();
 
 		assert_eq!(event.kind, "");
 		assert_eq!(event.detail1, 0);
@@ -681,7 +681,7 @@ mod test {
 
 	#[test]
 	fn event_body_borrowed_default() {
-		let event = EventBodyBorrow::default();
+		let event = EventBodyBorrowed::default();
 
 		assert_eq!(event.kind, "");
 		assert_eq!(event.detail1, 0);
@@ -691,7 +691,7 @@ mod test {
 
 	#[test]
 	fn qt_event_body_borrowed_default() {
-		let event = EventBodyQTBorrow::default();
+		let event = EventBodyQtBorrowed::default();
 
 		assert_eq!(event.kind, "");
 		assert_eq!(event.detail1, 0);
@@ -704,22 +704,22 @@ mod test {
 	fn event_body_default() {
 		let event = EventBody::default();
 
-		assert_eq!(event, EventBody::Borrowed(EventBodyBorrow::default()));
+		assert_eq!(event, EventBody::Borrowed(EventBodyBorrowed::default()));
 	}
 
 	#[test]
 	fn qt_to_owned() {
-		let qt = EventBodyQT::default();
-		let owned: EventBodyOwned = EventBodyQT::default().into();
+		let qt = EventBodyQtOwned::default();
+		let owned: EventBodyOwned = EventBodyQtOwned::default().into();
 
 		assert_eq!(owned, qt);
 	}
 
 	#[test]
 	fn borrowed_to_qt() {
-		let borrowed: EventBodyBorrow = EventBodyQTBorrow::default().into();
+		let borrowed: EventBodyBorrowed = EventBodyQtBorrowed::default().into();
 
-		assert_eq!(borrowed, EventBodyBorrow::default());
+		assert_eq!(borrowed, EventBodyBorrowed::default());
 	}
 
 	#[test]
@@ -741,9 +741,9 @@ mod test {
 		let ctxt = Context::new_dbus(LE, 0);
 		let bytes = zvariant::to_bytes::<EventBodyOwned>(ctxt, &event).unwrap();
 
-		let (deserialized, _) = bytes.deserialize::<EventBodyBorrow>().unwrap();
+		let (deserialized, _) = bytes.deserialize::<EventBodyBorrowed>().unwrap();
 
-		assert_eq!(deserialized, EventBodyBorrow::default());
+		assert_eq!(deserialized, EventBodyBorrowed::default());
 		assert_eq!(deserialized.kind, event.kind.as_str());
 		assert_eq!(deserialized.detail1, event.detail1);
 		assert_eq!(deserialized.detail2, event.detail2);
@@ -752,14 +752,14 @@ mod test {
 
 	#[test]
 	fn qt_owned_event_body_deserialize_as_borrowed() {
-		let event = EventBodyQT::default();
+		let event = EventBodyQtOwned::default();
 
 		let ctxt = Context::new_dbus(LE, 0);
-		let bytes = zvariant::to_bytes::<EventBodyQT>(ctxt, &event).unwrap();
+		let bytes = zvariant::to_bytes::<EventBodyQtOwned>(ctxt, &event).unwrap();
 
-		let (deserialized, _) = bytes.deserialize::<EventBodyBorrow>().unwrap();
+		let (deserialized, _) = bytes.deserialize::<EventBodyBorrowed>().unwrap();
 
-		assert_eq!(deserialized, EventBodyBorrow::default());
+		assert_eq!(deserialized, EventBodyBorrowed::default());
 		assert_eq!(deserialized.kind, event.kind.as_str());
 		assert_eq!(deserialized.detail1, event.detail1);
 		assert_eq!(deserialized.detail2, event.detail2);
@@ -860,7 +860,7 @@ mod test {
 			zvariant::to_bytes::<(&str, i32, i32, Value, HashMap<&str, Value>)>(ctxt, &event)
 				.unwrap();
 
-		let (deserialized, _) = bytes.deserialize::<EventBodyBorrow>().unwrap();
+		let (deserialized, _) = bytes.deserialize::<EventBodyBorrowed>().unwrap();
 
 		assert_eq!(deserialized.kind, "object:state-changed:focused");
 		assert_eq!(deserialized.detail1, 1);
@@ -977,7 +977,7 @@ mod test {
 			use super::*;
 			use zvariant::Type;
 
-			let borrowed = EventBodyBorrow::SIGNATURE;
+			let borrowed = EventBodyBorrowed::SIGNATURE;
 			let owned = EventBodyOwned::SIGNATURE;
 
 			assert_eq!(borrowed, owned);

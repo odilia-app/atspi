@@ -292,8 +292,8 @@ macro_rules! impl_from_dbus_message {
         let body_signature = body.signature();
         let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::EventBodyOwned::SIGNATURE {
             body.deserialize_unchecked()?
-        } else if body_signature == crate::events::EventBodyQT::SIGNATURE {
-			let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
+        } else if body_signature == crate::events::EventBodyQtOwned::SIGNATURE {
+			let qtbody: crate::events::EventBodyQtOwned = body.deserialize_unchecked()?;
             qtbody.into()
         } else {
           return Err(AtspiError::SignatureMatch(format!(
@@ -435,7 +435,7 @@ macro_rules! zbus_message_qtspi_test_case {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
         let ev = <$type>::default();
-          let qt: crate::events::EventBodyQT = ev.body().into();
+          let qt: crate::events::EventBodyQtOwned = ev.body().into();
           let msg = zbus::Message::signal(
             ev.path(),
             ev.interface(),
@@ -446,7 +446,7 @@ macro_rules! zbus_message_qtspi_test_case {
           .unwrap()
           .build(&(qt,))
           .unwrap();
-          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
+          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQtOwned for any type whose BusProperties::Body = EventBodyOwned");
         }
       #[cfg(feature = "zbus")]
      #[test]
@@ -454,7 +454,7 @@ macro_rules! zbus_message_qtspi_test_case {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
         let ev = <$type>::default();
-          let qt: crate::events::EventBodyQT = ev.body().into();
+          let qt: crate::events::EventBodyQtOwned = ev.body().into();
           let msg = zbus::Message::signal(
             ev.path(),
             ev.interface(),
