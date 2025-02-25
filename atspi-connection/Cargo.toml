@@ -1,31 +1,31 @@
 [package]
-name = "atspi-connection"
-version = "0.9.0"
-edition = "2021"
-description = "A method of connecting, querying, sending and receiving over AT-SPI."
-license = "Apache-2.0 OR MIT" 
-keywords = ["screen-reader", "accessibility", "a11y", "linux"]
-categories = ["accessibility"]
-rust-version.workspace = true
-repository = "https://github.com/odilia-app/atspi/"
-readme = "README.md"
-include = ["src/**/*", "LICENSE-*", "README.md"]
+  categories             = [ "accessibility" ]
+  description            = "A method of connecting, querying, sending and receiving over AT-SPI."
+  edition                = "2021"
+  include                = [ "LICENSE-*", "README.md", "src/**/*" ]
+  keywords               = [ "a11y", "accessibility", "linux", "screen-reader" ]
+  license                = "Apache-2.0 OR MIT"
+  name                   = "atspi-connection"
+  readme                 = "README.md"
+  repository             = "https://github.com/odilia-app/atspi/"
+  rust-version.workspace = true
+  version                = "0.9.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+  # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["async-std"]
-tracing = ["dep:tracing"]
-async-std = ["zbus/async-io", "atspi-proxies/async-std", "atspi-common/async-std"]
-tokio = ["zbus/tokio", "atspi-proxies/tokio", "atspi-common/tokio"]
+  async-std = [ "atspi-common/async-std", "atspi-proxies/async-std", "zbus/async-io" ]
+  default   = [ "async-std" ]
+  tokio     = [ "atspi-common/tokio", "atspi-proxies/tokio", "zbus/tokio" ]
+  tracing   = [ "dep:tracing" ]
 
 [dependencies]
-atspi-common = { path = "../atspi-common/", version = "0.9.0", default-features = false, features = ["wrappers"] }
-atspi-proxies = { path = "../atspi-proxies/", version = "0.9.0", default-features = false }
-futures-lite = { version = "2", default-features = false }
-tracing = { optional = true, workspace = true }
-zbus.workspace = true
+  atspi-common   = { path = "../atspi-common/", version = "0.9.0", default-features = false, features = [ "wrappers" ] }
+  atspi-proxies  = { path = "../atspi-proxies/", version = "0.9.0", default-features = false }
+  futures-lite   = { version = "2", default-features = false }
+  tracing        = { optional = true, workspace = true }
+  zbus.workspace = true
 
 [dev-dependencies]
-tokio-test = "0.4.2"
-enumflags2.workspace = true
+  enumflags2.workspace = true
+  tokio-test           = "0.4.2"

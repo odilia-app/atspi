@@ -273,7 +273,7 @@ macro_rules! impl_to_dbus_message {
 /// ```
 ///
 /// There is also a variant that can be used for events whose [`crate::events::MessageConversion::Body`] is not
-/// [`crate::events::EventBodyOwned`]. You can call this by setting the second parameter to `Explicit`.
+/// [`crate::events::event_body::EventBodyOwned`]. You can call this by setting the second parameter to `Explicit`.
 macro_rules! impl_from_dbus_message {
 	($type:ty) => {
 		impl_from_dbus_message!($type, Auto);
@@ -290,11 +290,11 @@ macro_rules! impl_from_dbus_message {
 
         let body = msg.body();
         let body_signature = body.signature();
-        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
-            let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
-            qtbody.into()
-        } else if body_signature == crate::events::ATSPI_EVENT_SIGNATURE {
+        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::EventBodyOwned::SIGNATURE {
             body.deserialize_unchecked()?
+        } else if body_signature == crate::events::EventBodyQtOwned::SIGNATURE {
+			let qtbody: crate::events::EventBodyQtOwned = body.deserialize_unchecked()?;
+            qtbody.into()
         } else {
           return Err(AtspiError::SignatureMatch(format!(
             "The message signature {} does not match the signal's body signature: {}",
@@ -435,7 +435,7 @@ macro_rules! zbus_message_qtspi_test_case {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
         let ev = <$type>::default();
-          let qt: crate::events::EventBodyQT = ev.body().into();
+          let qt: crate::events::EventBodyQtOwned = ev.body().into();
           let msg = zbus::Message::signal(
             ev.path(),
             ev.interface(),
@@ -446,7 +446,7 @@ macro_rules! zbus_message_qtspi_test_case {
           .unwrap()
           .build(&(qt,))
           .unwrap();
-          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQT for any type whose BusProperties::Body = EventBodyOwned");
+          <$type>::try_from(&msg).expect("Should be able to use an EventBodyQtOwned for any type whose BusProperties::Body = EventBodyOwned");
         }
       #[cfg(feature = "zbus")]
      #[test]
@@ -454,7 +454,7 @@ macro_rules! zbus_message_qtspi_test_case {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
         let ev = <$type>::default();
-          let qt: crate::events::EventBodyQT = ev.body().into();
+          let qt: crate::events::EventBodyQtOwned = ev.body().into();
           let msg = zbus::Message::signal(
             ev.path(),
             ev.interface(),
