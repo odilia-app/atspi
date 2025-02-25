@@ -3,7 +3,7 @@ pub mod document;
 #[cfg(feature = "wrappers")]
 pub mod event_wrappers;
 
-use event_body::{EventBodyOwned, EventBodyQT};
+pub use event_body::{EventBodyBorrow, EventBodyOwned, EventBodyQT, EventBodyQTBorrow};
 #[cfg(feature = "wrappers")]
 pub use event_wrappers::{
 	CacheEvents, DocumentEvents, Event, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents,
