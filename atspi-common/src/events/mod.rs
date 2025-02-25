@@ -2,11 +2,13 @@ pub mod cache;
 pub mod document;
 #[cfg(feature = "wrappers")]
 pub mod event_wrappers;
+use event_body::{EventBodyOwned, EventBodyQT};
 #[cfg(feature = "wrappers")]
 pub use event_wrappers::{
 	CacheEvents, DocumentEvents, Event, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents,
 	TerminalEvents, WindowEvents,
 };
+pub mod event_body;
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
@@ -65,8 +67,6 @@ pub const CACHE_ADD_SIGNATURE: &Signature = &Signature::static_structure(&[
 	&Signature::Array(Child::Static { child: &Signature::U32 }),
 ]);
 
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
@@ -74,153 +74,12 @@ use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::OwnedObjectPath;
 use zvariant::{
 	signature::{Child, Fields},
-	ObjectPath, OwnedValue, Signature, Type, Value,
+	ObjectPath, Signature, Type,
 };
 
 #[cfg(feature = "zbus")]
 use crate::AtspiError;
 use crate::ObjectRef;
-
-/// Qt event body, which is not the same as other GUI frameworks.
-/// Signature:  "siiv(so)"
-#[derive(Debug, Serialize, Deserialize, Type, PartialEq)]
-pub struct EventBodyQT {
-	/// kind variant, used for specifying an event triple "object:state-changed:focused",
-	/// the "focus" part of this event is what is contained within the kind.
-	// #[serde(rename = "type")]
-	pub kind: String,
-	/// Generic detail1 value described by AT-SPI.
-	pub detail1: i32,
-	/// Generic detail2 value described by AT-SPI.
-	pub detail2: i32,
-	/// Generic `any_data` value described by AT-SPI.
-	/// This can be any type.
-	pub any_data: OwnedValue,
-	/// A tuple of properties.
-	/// Not in use.
-	pub properties: ObjectRef,
-}
-impl From<EventBodyOwned> for EventBodyQT {
-	fn from(ev: EventBodyOwned) -> Self {
-		EventBodyQT {
-			kind: ev.kind,
-			detail1: ev.detail1,
-			detail2: ev.detail2,
-			any_data: ev.any_data,
-			properties: ObjectRef::default(),
-		}
-	}
-}
-
-impl Default for EventBodyQT {
-	fn default() -> Self {
-		Self {
-			kind: String::new(),
-			detail1: 0,
-			detail2: 0,
-			any_data: 0u8.into(),
-			properties: ObjectRef::default(),
-		}
-	}
-}
-
-/// Standard event body (GTK, `egui`, etc.)
-/// NOTE: Qt has its own signature: [`EventBodyQT`].
-/// Signature `(siiva{sv})`,
-#[validate(signal: "PropertyChange")]
-#[derive(Debug, Serialize, Deserialize, Type, PartialEq)]
-pub struct EventBodyOwned {
-	/// kind variant, used for specifying an event triple "object:state-changed:focused",
-	/// the "focus" part of this event is what is contained within the kind.
-	#[serde(rename = "type")]
-	pub kind: String,
-	/// Generic detail1 value described by AT-SPI.
-	pub detail1: i32,
-	/// Generic detail2 value described by AT-SPI.
-	pub detail2: i32,
-	/// Generic `any_data` value described by AT-SPI.
-	/// This can be any type.
-	pub any_data: OwnedValue,
-	/// A map of properties.
-	/// Not in use.
-	pub properties: HashMap<OwnedUniqueName, OwnedValue>,
-}
-
-impl From<EventBodyQT> for EventBodyOwned {
-	fn from(body: EventBodyQT) -> Self {
-		let mut props = HashMap::new();
-
-		let name = body.properties.name;
-		let path = body.properties.path;
-
-		// We know `path` is a `OwnedObjectPath`, so the conversion to
-		// `OwnedValue` is infallible at present.
-		// Should this ever change, we need to know.
-		let value = Value::ObjectPath(path.into()).try_to_owned().unwrap_or_else(|err| {
-			panic!("Error occurred: {err:?}");
-		});
-
-		props.insert(name, value);
-		Self {
-			kind: body.kind,
-			detail1: body.detail1,
-			detail2: body.detail2,
-			any_data: body.any_data,
-			properties: props,
-		}
-	}
-}
-
-impl Default for EventBodyOwned {
-	fn default() -> Self {
-		Self {
-			kind: String::new(),
-			detail1: 0,
-			detail2: 0,
-			any_data: 0u8.into(),
-			properties: HashMap::new(),
-		}
-	}
-}
-
-/// Safety: This implementation of [`Clone`] *can panic!* Although the chance is extremely remote.
-///
-/// If:
-/// 1. the `any_data` or `properties` field contain an [`std::os::fd::OwnedFd`] type, and
-/// 2. the maximum number of open files for the process is exceeded.
-///
-/// Then, and only then, will this function panic.
-/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
-/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the
-/// specification allows that.
-///
-/// See [`zvariant::Value::try_clone`] for more information.
-impl Clone for EventBodyOwned {
-	fn clone(&self) -> Self {
-		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
-			panic!("Failure cloning 'any_data' field: {err:?}");
-		});
-
-		let cloned_properties = {
-			let mut map = HashMap::new();
-			for (key, value) in &self.properties {
-				let cloned_value = value.try_clone().unwrap_or_else(|err| {
-					panic!("Failure cloning 'props' field: {err:?}");
-				});
-				map.insert(key.clone(), cloned_value);
-			}
-			map
-		};
-
-		Self {
-			kind: self.kind.clone(),
-			detail1: self.detail1,
-			detail2: self.detail2,
-			any_data: cloned_any_data,
-			properties: cloned_properties,
-		}
-	}
-}
 
 impl HasInterfaceName for EventListenerEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
@@ -748,28 +607,5 @@ impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
 			)));
 		}
 		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg)
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::{EventBodyOwned, EventBodyQT, QSPI_EVENT_SIGNATURE};
-	use std::collections::HashMap;
-	use zvariant::{ObjectPath, Type};
-
-	#[test]
-	fn check_event_body_qt_signature() {
-		assert_eq!(<EventBodyQT as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
-	}
-
-	#[test]
-	fn test_event_body_qt_to_event_body_owned_conversion() {
-		let event_body: EventBodyOwned = EventBodyQT::default().into();
-
-		let accessible = crate::ObjectRef::default();
-		let name = accessible.name;
-		let path = accessible.path;
-		let props = HashMap::from([(name, ObjectPath::from(path).into())]);
-		assert_eq!(event_body.properties, props);
 	}
 }
