@@ -11,6 +11,8 @@ use crate::{
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
+use super::EventBodyQtOwned;
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -150,8 +152,9 @@ impl MessageConversion for PropertyChangeEvent {
 	}
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
 		let item = msg.try_into()?;
+		// TODO: Check the likely path first. also, deserialize already checks the signature
 		let body = if msg.body().signature() == crate::events::QSPI_EVENT_SIGNATURE {
-			msg.body().deserialize::<crate::events::EventBodyQT>()?.into()
+			msg.body().deserialize::<EventBodyQtOwned>()?.into()
 		} else {
 			msg.body().deserialize()?
 		};
@@ -313,13 +316,7 @@ impl_from_dbus_message!(PropertyChangeEvent);
 impl_event_properties!(PropertyChangeEvent);
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
-		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
-			kind: event.property,
-			detail1: i32::default(),
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-		}
+		EventBodyOwned { kind: event.property, ..Default::default() }
 	}
 }
 
