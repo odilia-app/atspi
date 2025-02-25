@@ -2,6 +2,7 @@ pub mod cache;
 pub mod document;
 #[cfg(feature = "wrappers")]
 pub mod event_wrappers;
+
 use event_body::{EventBodyOwned, EventBodyQT};
 #[cfg(feature = "wrappers")]
 pub use event_wrappers::{
@@ -18,53 +19,14 @@ pub mod traits;
 pub mod window;
 pub use traits::*;
 
-// Unmarshalled event body signatures: These outline the event specific deserialized event types.
-// Safety: These are evaluated at compile time.
-// ----
-// The signal signature "(so)" (an Accessible) is ambiguous, because it is used in:
-// -  Cache : RemoveAccessible
-// -  Socket: Available  *( signals the availability of the `Registry` daemon.)
-//
-// ATSPI- and QSPI both describe the generic events. These can be converted into
-// specific signal types with TryFrom implementations. See crate::[`identify`]
-//  EVENT_LISTENER_SIGNATURE is a type signature used to notify when events are registered or deregistered.
-//  CACHE_ADD_SIGNATURE and *_REMOVE have very different types
-// Same as "(siiva{sv})"
-pub const ATSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
-	&Signature::Str,
-	&Signature::I32,
-	&Signature::I32,
-	&Signature::Variant,
-	&Signature::Dict {
-		key: Child::Static { child: &Signature::Str },
-		value: Child::Static { child: &Signature::Variant },
-	},
-]);
-pub const EVENT_NAME_SIGNATURE: &Signature =
-	&Signature::static_structure(&[&Signature::Str, &Signature::Str]);
 // Same as "(siiv(so))"
-pub const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
+// The only signature that is not found in XML descriptions
+pub(crate) const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
 	&Signature::Str,
 	&Signature::I32,
 	&Signature::I32,
 	&Signature::Variant,
 	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-]);
-// Same as "(so)"
-pub const EVENT_LISTENER_SIGNATURE: &Signature =
-	&Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
-// Same as "((so)(so)(so)iiassusau)"
-pub const CACHE_ADD_SIGNATURE: &Signature = &Signature::static_structure(&[
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::Structure(Fields::Static { fields: &[&Signature::Str, &Signature::ObjectPath] }),
-	&Signature::I32,
-	&Signature::I32,
-	&Signature::Array(Child::Static { child: &Signature::Str }),
-	&Signature::Str,
-	&Signature::U32,
-	&Signature::Str,
-	&Signature::Array(Child::Static { child: &Signature::U32 }),
 ]);
 
 use serde::{Deserialize, Serialize};
@@ -72,10 +34,7 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
 use zvariant::OwnedObjectPath;
-use zvariant::{
-	signature::{Child, Fields},
-	ObjectPath, Signature, Type,
-};
+use zvariant::{signature::Fields, ObjectPath, Signature, Type};
 
 #[cfg(feature = "zbus")]
 use crate::AtspiError;
@@ -576,7 +535,7 @@ where
 		<T as MessageConversionExt<EventBodyOwned>>::validate_member(msg)?;
 		let body = msg.body();
 		let body_sig = body.signature();
-		let data_body: EventBodyOwned = if body_sig == ATSPI_EVENT_SIGNATURE {
+		let data_body: EventBodyOwned = if body_sig == EventBodyOwned::SIGNATURE {
 			body.deserialize_unchecked()?
 		} else if body_sig == QSPI_EVENT_SIGNATURE {
 			let qtbody: EventBodyQT = body.deserialize_unchecked()?;

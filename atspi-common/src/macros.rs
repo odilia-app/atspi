@@ -290,11 +290,11 @@ macro_rules! impl_from_dbus_message {
 
         let body = msg.body();
         let body_signature = body.signature();
-        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::QSPI_EVENT_SIGNATURE {
-            let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
-            qtbody.into()
-        } else if body_signature == crate::events::ATSPI_EVENT_SIGNATURE {
+        let deser_body: <Self as MessageConversion>::Body = if body_signature == crate::events::EventBodyOwned::SIGNATURE {
             body.deserialize_unchecked()?
+        } else if body_signature == crate::events::EventBodyQT::SIGNATURE {
+			let qtbody: crate::events::EventBodyQT = body.deserialize_unchecked()?;
+            qtbody.into()
         } else {
           return Err(AtspiError::SignatureMatch(format!(
             "The message signature {} does not match the signal's body signature: {}",
