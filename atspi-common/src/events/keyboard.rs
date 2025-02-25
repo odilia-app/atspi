@@ -4,12 +4,11 @@ use crate::{
 	events::{MessageConversion, MessageConversionExt},
 	ObjectRef,
 };
-use crate::{
-	events::{BusProperties, EventBodyOwned},
-	EventProperties,
-};
+use crate::{events::event_body::EventBodyOwned, EventProperties};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue};
+
+use super::{event_body::Properties, BusProperties};
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
@@ -53,7 +52,7 @@ impl_event_properties!(ModifiersEvent);
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
-			properties: std::collections::HashMap::new(),
+			properties: Properties,
 			kind: String::default(),
 			detail1: event.previous_modifiers,
 			detail2: event.current_modifiers,
