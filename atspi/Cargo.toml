@@ -16,22 +16,15 @@
   # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-  async-std = [ "connection-async-std", "proxies-async-std" ]
-  default   = [ "async-std" ]
-  tokio     = [ "connection-tokio", "proxies-tokio" ]
-
-  connection           = [  ]
-  connection-async-std = [ "atspi-connection/async-std", "connection" ]
-  connection-tokio     = [ "atspi-connection/tokio", "connection" ]
-  proxies              = [  ]
-  proxies-async-std    = [ "atspi-proxies/async-std", "proxies" ]
-  proxies-tokio        = [ "atspi-proxies/tokio", "proxies" ]
-  tracing              = [ "atspi-connection/tracing" ]
+default = ["async-std"]
+async-std = ["atspi-proxies/async-std", "atspi-connection/async-std", "zbus/async-io"]
+tokio = ["atspi-proxies/tokio", "atspi-connection/tokio", "zbus/tokio"]
+tracing = ["atspi-connection/tracing"]
 
 [dependencies]
   atspi-common     = { path = "../atspi-common", version = "0.9.0", default-features = false }
-  atspi-connection = { path = "../atspi-connection", version = "0.9.0", default-features = false, optional = true }
-  atspi-proxies    = { path = "../atspi-proxies", version = "0.9.0", default-features = false, optional = true }
+  atspi-connection = { path = "../atspi-connection", version = "0.9.0", default-features = false }
+  atspi-proxies    = { path = "../atspi-proxies", version = "0.9.0", default-features = false }
   zbus             = { workspace = true, default-features = false, optional = true }
 
 [[bench]]
@@ -47,17 +40,17 @@
 [[example]]
   name              = "tree"
   path              = "./examples/bus-tree.rs"
-  required-features = [ "proxies-tokio", "zbus" ]
+  required-features = [ "tokio" ]
 
 [[example]]
   name              = "focused-tokio"
   path              = "./examples/focused-tokio.rs"
-  required-features = [ "connection-tokio" ]
+  required-features = [ "tokio" ]
 
 [[example]]
   name              = "focused-async-std"
   path              = "./examples/focused-async-std.rs"
-  required-features = [ "connection-async-std" ]
+  required-features = [ "async-std" ]
 
 [dev-dependencies]
   async-std      = { version = "1.12", default-features = false }
