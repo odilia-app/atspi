@@ -38,7 +38,7 @@ impl Clone for EventBodyQtOwned {
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
 	/// If the following conditions are met:
-	/// 1. the `any_data` or `properties` field contain an [`std::os::fd::OwnedFd`] type, and
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
 	/// Then this function panic.  
