@@ -232,8 +232,10 @@ jobs:
           toolchain: ${{ needs.find-msrv.outputs.version }}
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Check MSRV Compliance
-        run: cargo test --workspace --no-run --all-features
+      - name: Check MSRV Compliance (tokio)
+        run: cargo test --workspace --no-run --no-default-features --features tokio
+      - name: Check MSRV Compliance (async_std)
+        run: cargo test --workspace --no-run --no-default-features --features async-std
   wasm-compatible-common-crate:
     runs-on: ubuntu-latest
     needs: [rustfmt]
@@ -276,3 +278,37 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+  feature-unification:
+    runs-on: ubuntu-latest
+    needs: [coverage,msrv-compliance]
+    name: Feature Unification
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Cache cargo home
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-cargo-home
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+               ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}- 
+      - name: Install Cargo
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Install Hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: Cargo hack (atspi-common)
+        run: cargo hack --no-dev-deps --mutually-exclusive-features tokio,async-std --feature-powerset clippy -p atspi-common -- -D warnings
+      - name: Cargo hack (atspi-proxies)
+        run: cargo hack --no-dev-deps --at-least-one-of tokio,async-std --mutually-exclusive-features tokio,async-std --feature-powerset clippy -p atspi-proxies -- -D warnings
+      - name: Cargo hack (atspi-connection)
+        run: cargo hack --no-dev-deps --at-least-one-of tokio,async-std --mutually-exclusive-features tokio,async-std --feature-powerset clippy -p atspi-proxies -- -D warnings
+      - name: Cargo hack (atspi)
+        run: cargo hack --no-dev-deps --at-least-one-of tokio,async-std --mutually-exclusive-features tokio,async-std --feature-powerset clippy -p atspi -- -D warnings
