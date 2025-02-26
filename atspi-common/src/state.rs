@@ -227,6 +227,7 @@ impl State {
 	// https://users.rust-lang.org/t/match-statement-efficiency/4488/2
 
 	/// Returns the state as a static string.
+	#[must_use]
 	pub fn to_static_str(&self) -> &'static str {
 		match self {
 			State::Invalid => "invalid",
