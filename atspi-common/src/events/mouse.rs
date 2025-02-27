@@ -17,8 +17,6 @@ use zbus::message::Body as DbusBody;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
-use super::event_body::AtspiString;
-
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum MouseEvents {
 	/// See: [`AbsEvent`].
@@ -183,7 +181,7 @@ impl MessageConversion<'_> for ButtonEvent {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
 			item,
-			detail: body.take_kind().as_string(),
+			detail: body.take_kind(),
 			mouse_x: body.detail1(),
 			mouse_y: body.detail2(),
 		})
@@ -296,7 +294,7 @@ impl_event_properties!(ButtonEvent);
 impl From<ButtonEvent> for EventBodyOwned {
 	fn from(event: ButtonEvent) -> Self {
 		EventBodyOwned {
-			kind: AtspiString::from(event.detail),
+			kind: event.detail,
 			detail1: event.mouse_x,
 			detail2: event.mouse_y,
 			..Default::default()
@@ -313,7 +311,7 @@ impl From<ButtonEvent> for EventBody<'_> {
 impl From<&ButtonEvent> for EventBodyOwned {
 	fn from(event: &ButtonEvent) -> Self {
 		EventBodyOwned {
-			kind: AtspiString::from_str(&event.detail),
+			kind: event.detail.clone(),
 			detail1: event.mouse_x,
 			detail2: event.mouse_y,
 			..Default::default()

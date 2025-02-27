@@ -6,13 +6,6 @@ use serde::{
 use zbus_lockstep_macros::validate;
 use zvariant::{ObjectPath, OwnedValue, Type, Value};
 
-// In a common module like lib.rs or types.rs
-#[cfg(feature = "heapless")]
-pub(crate) type AtspiString<const N: usize = 64> = crate::HybridString<N>;
-
-#[cfg(not(feature = "heapless"))]
-pub(crate) type AtspiString = String;
-
 /// Event body as used exclusively by 'Qt' toolkit.
 ///
 /// Signature:  "siiv(so)"
@@ -21,7 +14,7 @@ pub struct EventBodyQtOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
-	pub kind: AtspiString,
+	pub kind: String,
 
 	/// Generic detail1 value described by AT-SPI.
 	pub detail1: i32,
@@ -92,7 +85,7 @@ impl Serialize for QtProperties {
 impl Default for EventBodyQtOwned {
 	fn default() -> Self {
 		Self {
-			kind: AtspiString::new(),
+			kind: String::new(),
 			detail1: 0,
 			detail2: 0,
 			any_data: 0_u32.into(),
@@ -132,7 +125,7 @@ pub struct EventBodyOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
 	/// the "focus" part of this event is what is contained within the kind.
 	#[serde(rename = "type")]
-	pub kind: AtspiString,
+	pub kind: String,
 
 	/// Generic detail1 value described by AT-SPI.
 	pub detail1: i32,
@@ -153,7 +146,7 @@ pub struct EventBodyOwned {
 impl Default for EventBodyOwned {
 	fn default() -> Self {
 		Self {
-			kind: AtspiString::new(),
+			kind: String::new(),
 			detail1: 0,
 			detail2: 0,
 			any_data: 0_u32.into(),
@@ -358,7 +351,7 @@ impl EventBodyQtBorrowed<'_> {
 		let any_data = self.any_data.try_to_owned()?;
 
 		Ok(EventBodyQtOwned {
-			kind: AtspiString::from_str(self.kind),
+			kind: self.kind.to_owned(),
 			detail1: self.detail1,
 			detail2: self.detail2,
 			any_data,
@@ -449,10 +442,10 @@ impl<'a> EventBody<'_> {
 	///
 	/// With the owned variant, this method takes the `kind` field and replaces it with an empty string.
 	/// With the borrowed variant, this method clones and allocates the `kind` field.
-	pub fn take_kind(&mut self) -> AtspiString {
+	pub fn take_kind(&mut self) -> String {
 		match self {
 			Self::Owned(owned) => std::mem::take(&mut owned.kind),
-			Self::Borrowed(borrowed) => AtspiString::from_str(borrowed.kind),
+			Self::Borrowed(borrowed) => borrowed.kind.to_owned(),
 		}
 	}
 
@@ -568,7 +561,7 @@ impl From<EventBodyOwned> for EventBodyQtOwned {
 impl<'a> From<EventBodyBorrowed<'a>> for EventBodyQtOwned {
 	fn from(borrowed: EventBodyBorrowed<'a>) -> Self {
 		Self {
-			kind: AtspiString::from_str(borrowed.kind),
+			kind: borrowed.kind.to_owned(),
 			detail1: borrowed.detail1,
 			detail2: borrowed.detail2,
 			any_data: borrowed
@@ -669,7 +662,7 @@ mod test {
 	fn owned_event_body_default() {
 		let event = EventBodyOwned::default();
 
-		assert_eq!(event.kind, AtspiString::new());
+		assert_eq!(event.kind, "");
 		assert_eq!(event.detail1, 0);
 		assert_eq!(event.detail2, 0);
 		assert_eq!(event.any_data, 0_u32.into());
@@ -679,7 +672,7 @@ mod test {
 	fn qt_event_body_default() {
 		let event = EventBodyQtOwned::default();
 
-		assert_eq!(event.kind, AtspiString::new());
+		assert_eq!(event.kind, "");
 		assert_eq!(event.detail1, 0);
 		assert_eq!(event.detail2, 0);
 		assert_eq!(event.any_data, 0_u32.into());
@@ -844,7 +837,7 @@ mod test {
 
 		let (deserialized, _) = bytes.deserialize::<EventBodyOwned>().unwrap();
 
-		assert_eq!(deserialized.kind, AtspiString::from_str("object:state-changed:focused"));
+		assert_eq!(deserialized.kind, "object:state-changed:focused");
 		assert_eq!(deserialized.detail1, 1);
 		assert_eq!(deserialized.detail2, 2);
 		assert_eq!(*deserialized.any_data, boots);
@@ -968,7 +961,7 @@ mod test {
 
 		let deserialized = msg_body.deserialize::<EventBodyOwned>().unwrap();
 
-		assert_eq!(deserialized.kind, AtspiString::from_str("object:state-changed:focused"));
+		assert_eq!(deserialized.kind, "object:state-changed:focused");
 		assert_eq!(deserialized.detail1, 1);
 		assert_eq!(deserialized.detail2, 2);
 		assert_eq!(*deserialized.any_data, boots);
