@@ -1,4 +1,4 @@
-use super::event_body::EventBody;
+use super::event_body::{AtspiString, EventBody};
 use crate::{
 	error::AtspiError,
 	events::{
@@ -349,7 +349,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, property: body.take_kind() })
+		Ok(Self { item, property: body.take_kind().as_string() })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -360,7 +360,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 
 	fn body(&self) -> Self::Body<'_> {
 		EventBody::Owned(EventBodyOwned {
-			kind: self.property.clone(),
+			kind: AtspiString::from_str(&self.property),
 			any_data: u8::default().into(),
 			..Default::default()
 		})
@@ -589,7 +589,7 @@ impl_event_properties!(PropertyChangeEvent);
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned {
-			kind: event.property,
+			kind: AtspiString::from_str(&event.property),
 			any_data: u8::default().into(),
 			..Default::default()
 		}

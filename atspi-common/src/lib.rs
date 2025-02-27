@@ -40,6 +40,14 @@ pub use relation_type::RelationType;
 use serde::{Deserialize, Serialize};
 use zvariant::Type;
 
+#[cfg(feature = "heapless")]
+mod hybrid_string;
+#[cfg(feature = "heapless")]
+pub(crate) use hybrid_string::HybridString;
+
+#[cfg(not(feature = "heapless"))]
+type String = hybrid_string::HybridString<256>;
+
 pub type Result<T> = std::result::Result<T, AtspiError>;
 
 /// Describes a selection of text, including selections across object boundaries.

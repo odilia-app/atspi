@@ -29,6 +29,16 @@ impl FromStr for Operation {
 	}
 }
 
+impl Operation {
+	#[must_use]
+	pub fn to_static_str(&self) -> &'static str {
+		match self {
+			Operation::Insert => "add",
+			Operation::Delete => "delete",
+		}
+	}
+}
+
 impl fmt::Display for Operation {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {

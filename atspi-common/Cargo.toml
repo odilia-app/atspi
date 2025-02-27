@@ -1,41 +1,43 @@
 [package]
-name = "atspi-common"
-version = "0.9.0"
-edition = "2021"
-readme = "README.md"
-categories = ["accessibility", "api-bindings"]
-keywords = ["Macros", "Accessibility"]
-repository = "https://github.com/odilia-app/atspi"
-description = "Primitive types used for sending and receiving Linux accessibility events."
-license = "Apache-2.0 OR MIT"
-include = ["src/**/*", "LICENSE-*", "README.md", "xml/*"]
-rust-version.workspace = true
+  categories             = [ "accessibility", "api-bindings" ]
+  description            = "Primitive types used for sending and receiving Linux accessibility events."
+  edition                = "2021"
+  include                = [ "LICENSE-*", "README.md", "src/**/*", "xml/*" ]
+  keywords               = [ "Accessibility", "Macros" ]
+  license                = "Apache-2.0 OR MIT"
+  name                   = "atspi-common"
+  readme                 = "README.md"
+  repository             = "https://github.com/odilia-app/atspi"
+  rust-version.workspace = true
+  version                = "0.9.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+  # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["async-std"]
-async-std = ["zbus/async-io"]
-tokio = ["zbus/tokio"]
+  async-std = [ "zbus/async-io" ]
+  default   = [ "async-std", "heapless", "zbus" ]
+  heapless  = [ "dep:heapless", "zbus/heapless", "zvariant/heapless" ]
+  tokio     = [ "zbus/tokio" ]
 
 [dependencies]
-enumflags2 = "0.7.7"
-serde = "1.0"
-static_assertions = "1.1.0"
-zbus-lockstep = { version = "0.5.0" }
-zbus-lockstep-macros = { version = "0.5.0" }
-zbus_names = "4.0"
-zvariant = { version = "5.1", default-features = false }
-zbus = { workspace = true, optional = true, default-features = false }
+  enumflags2           = "0.7.7"
+  heapless             = { version = "0.8.0", default-features = false, optional = true }
+  serde                = "1.0"
+  static_assertions    = "1.1.0"
+  zbus                 = { workspace = true, optional = true, default-features = false }
+  zbus-lockstep        = { version = "0.5.0" }
+  zbus-lockstep-macros = { version = "0.5.0" }
+  zbus_names           = "4.0"
+  zvariant             = { version = "5.1", default-features = false }
 
 [dev-dependencies]
-atspi-connection = { path = "../atspi-connection" }
-atspi-proxies = { path = "../atspi-proxies" }
-rename-item = "0.1.0"
-serde_plain = "1.0.1"
-static_assertions = "1.1.0"
-tokio-stream = { version = "0.1", default-features = false, features = ["time"] }
-tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
-tokio-test = "0.4.2"
-zbus = { workspace = true }
-assert_matches = "1.5.0"
+  assert_matches    = "1.5.0"
+  atspi-connection  = { path = "../atspi-connection" }
+  atspi-proxies     = { path = "../atspi-proxies" }
+  rename-item       = "0.1.0"
+  serde_plain       = "1.0.1"
+  static_assertions = "1.1.0"
+  tokio             = { version = "1", default-features = false, features = [ "macros", "rt-multi-thread" ] }
+  tokio-stream      = { version = "0.1", default-features = false, features = [ "time" ] }
+  tokio-test        = "0.4.2"
+  zbus              = { workspace = true }

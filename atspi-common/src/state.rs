@@ -221,9 +221,15 @@ pub enum State {
 	ReadOnly,
 }
 
-impl fmt::Display for State {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		let state_str = match self {
+impl State {
+	// "Matches on enums with undeclared discriminants (such that the compiler can choose sequential values)
+	// are optimized down to a jump table"
+	// https://users.rust-lang.org/t/match-statement-efficiency/4488/2
+
+	/// Returns the state as a static string.
+	#[must_use]
+	pub fn to_static_str(&self) -> &'static str {
+		match self {
 			State::Invalid => "invalid",
 			State::Active => "active",
 			State::Armed => "armed",
@@ -268,8 +274,13 @@ impl fmt::Display for State {
 			State::Checkable => "checkable",
 			State::HasPopup => "has-popup",
 			State::ReadOnly => "read-only",
-		};
-		f.write_str(state_str)
+		}
+	}
+}
+
+impl fmt::Display for State {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		f.write_str(self.to_static_str())
 	}
 }
 

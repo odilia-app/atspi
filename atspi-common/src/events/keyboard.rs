@@ -1,4 +1,4 @@
-use super::event_body::{EventBody, Properties};
+use super::event_body::{AtspiString, EventBody, Properties};
 use crate::{
 	error::AtspiError,
 	events::{
@@ -157,7 +157,7 @@ impl_event_properties!(ModifiersEvent);
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
-			kind: String::default(),
+			kind: AtspiString::default(),
 			detail1: event.previous_modifiers,
 			detail2: event.current_modifiers,
 			any_data: OwnedValue::from(0u8),

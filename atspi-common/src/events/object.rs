@@ -15,6 +15,8 @@ use zbus::message::Body as DbusBody;
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
+use super::event_body::AtspiString;
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
 	/// See: [`PropertyChangeEvent`].
@@ -380,7 +382,7 @@ impl TryFrom<EventBodyOwned> for Property {
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("table-summary"))?,
 			)),
-			_ => Ok(Self::Other((property, body.any_data))),
+			_ => Ok(Self::Other((property.to_string(), body.any_data))),
 		}
 	}
 }
@@ -746,7 +748,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		let property: String = body.take_kind();
+		let property: String = body.take_kind().to_string();
 		let value: Property = body.try_into()?;
 		Ok(Self { item, property, value })
 	}
@@ -1181,14 +1183,18 @@ impl_event_properties!(PropertyChangeEvent);
 
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
-		EventBodyOwned { kind: event.property, any_data: event.value.into(), ..Default::default() }
+		EventBodyOwned {
+			kind: AtspiString::from_string(event.property),
+			any_data: event.value.into(),
+			..Default::default()
+		}
 	}
 }
 
 impl From<&PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: &PropertyChangeEvent) -> Self {
 		EventBodyOwned {
-			kind: event.property.to_string(),
+			kind: AtspiString::from_str(&event.property),
 			any_data: event.value.clone().into(),
 			..Default::default()
 		}
@@ -1254,7 +1260,7 @@ impl_event_properties!(StateChangedEvent);
 impl From<StateChangedEvent> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
-			kind: event.state.to_string(),
+			kind: AtspiString::from_str(event.state.to_static_str()),
 			detail1: event.enabled.into(),
 			..Default::default()
 		}
@@ -1264,7 +1270,7 @@ impl From<StateChangedEvent> for EventBodyOwned {
 impl From<&StateChangedEvent> for EventBodyOwned {
 	fn from(event: &StateChangedEvent) -> Self {
 		EventBodyOwned {
-			kind: event.state.to_string(),
+			kind: AtspiString::from_str(event.state.to_static_str()),
 			detail1: event.enabled.into(),
 			..Default::default()
 		}
@@ -1296,7 +1302,7 @@ impl_event_properties!(ChildrenChangedEvent);
 impl From<ChildrenChangedEvent> for EventBodyOwned {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
-			kind: event.operation.to_string(),
+			kind: AtspiString::from_str(event.operation.to_static_str()),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
@@ -1313,7 +1319,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 impl From<&ChildrenChangedEvent> for EventBodyOwned {
 	fn from(event: &ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
-			kind: event.operation.to_string(),
+			kind: AtspiString::from_str(event.operation.to_static_str()),
 			detail1: event.index_in_parent,
 			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
@@ -1402,7 +1408,7 @@ impl_event_properties!(ActiveDescendantChangedEvent);
 impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	fn from(event: ActiveDescendantChangedEvent) -> Self {
 		EventBodyOwned {
-			kind: String::default(),
+			kind: AtspiString::default(),
 			detail1: i32::default(),
 			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
@@ -1649,7 +1655,7 @@ impl_event_properties!(TextChangedEvent);
 impl From<TextChangedEvent> for EventBodyOwned {
 	fn from(event: TextChangedEvent) -> Self {
 		EventBodyOwned {
-			kind: event.operation.to_string(),
+			kind: AtspiString::from_str(event.operation.to_static_str()),
 			detail1: event.start_pos,
 			detail2: event.length,
 
@@ -1698,7 +1704,7 @@ impl_event_properties!(TextCaretMovedEvent);
 impl From<TextCaretMovedEvent> for EventBodyOwned {
 	fn from(event: TextCaretMovedEvent) -> Self {
 		EventBodyOwned {
-			kind: String::default(),
+			kind: AtspiString::default(),
 			detail1: event.position,
 			detail2: i32::default(),
 			any_data: u8::default().into(),
