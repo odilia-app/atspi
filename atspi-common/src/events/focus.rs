@@ -3,7 +3,7 @@ use crate::{
 	error::AtspiError,
 	events::{MessageConversion, MessageConversionExt},
 };
-use crate::{events::BusProperties, EventProperties};
+use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 

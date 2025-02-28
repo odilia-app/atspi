@@ -9,7 +9,7 @@ use crate::{
 	events::{BusProperties, EventBodyOwned},
 	EventProperties,
 };
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -154,8 +154,8 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 		Ok(Self { item, property: body.take_kind() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}

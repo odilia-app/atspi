@@ -1,4 +1,4 @@
-use super::event_body::{EventBody, Properties};
+use super::event_body::EventBody;
 use crate::{
 	error::AtspiError,
 	events::{
@@ -13,9 +13,9 @@ use crate::{
 	events::{MessageConversion, MessageConversionExt},
 	ObjectRef,
 };
-use crate::{events::event_body::EventBodyOwned, EventProperties};
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue};
+use zvariant::ObjectPath;
 
 impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard);
 
@@ -44,8 +44,8 @@ impl MessageConversion<'_> for ModifiersEvent {
 		Ok(Self { item, previous_modifiers: body.detail1(), current_modifiers: body.detail2() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -60,10 +60,17 @@ impl MessageConversion<'_> for ModifiersEvent {
 	}
 }
 
+impl_try_from_event_for_user_facing_type!(
+	ModifiersEvent,
+	KeyboardEvents::Modifiers,
+	Event::Keyboard
+);
+
 event_test_cases!(ModifiersEvent);
 impl_to_dbus_message!(ModifiersEvent);
 impl_from_dbus_message!(ModifiersEvent);
 impl_event_properties!(ModifiersEvent);
+
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {

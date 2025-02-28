@@ -1566,13 +1566,7 @@ impl EventWrapperMessageConversion for FocusEvents {
 		}
 	}
 }
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for FocusEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
+
 impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
 impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
 impl HasRegistryEventString for FocusEvents {
@@ -1657,17 +1651,14 @@ impl TryFrom<&zbus::Message> for KeyboardEvents {
 		Self::try_from_message(msg)
 	}
 }
+impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ModifiersEvent,
 	KeyboardEvents,
 	KeyboardEvents::Modifiers
 );
-impl_try_from_event_for_user_facing_type!(
-	ModifiersEvent,
-	KeyboardEvents::Modifiers,
-	Event::Keyboard
-);
+
 impl HasRegistryEventString for KeyboardEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 }

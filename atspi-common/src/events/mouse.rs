@@ -1,12 +1,3 @@
-use crate::{
-	error::AtspiError,
-	events::{
-		BusProperties, EventBody, EventBodyOwned, HasInterfaceName, HasMatchRule,
-		HasRegistryEventString,
-	},
-	Event, EventProperties, EventTypeProperties,
-};
->>>>>>> 5360c90 (Implementing zero-copy deserialization.)
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
@@ -17,10 +8,9 @@ use crate::{
 	events::{BusProperties, EventBodyOwned},
 	EventProperties,
 };
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
-
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
@@ -63,8 +53,8 @@ impl MessageConversion<'_> for AbsEvent {
 		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self { item, x: body.detail1(), y: body.detail2() })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -90,8 +80,8 @@ impl MessageConversion<'_> for RelEvent {
 		Ok(Self { item, x: body.detail1(), y: body.detail2() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -123,8 +113,8 @@ impl MessageConversion<'_> for ButtonEvent {
 		})
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}

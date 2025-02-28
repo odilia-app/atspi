@@ -1,6 +1,6 @@
 use crate::AtspiError;
 use serde::{
-	ser::{SerializeMap, SerializeStruct},
+	ser::{SerializeMap, SerializeTuple},
 	Deserialize, Serialize,
 };
 use zbus_lockstep_macros::validate;
@@ -75,10 +75,10 @@ impl Serialize for QtProperties {
 	where
 		S: serde::ser::Serializer,
 	{
-		let mut structure = serializer.serialize_struct("ObjectRef", 2)?;
-		structure.serialize_field("name", ":0.0")?;
-		structure.serialize_field("path", &ObjectPath::from_static_str_unchecked("/"))?;
-		structure.end()
+		let mut tup = serializer.serialize_tuple(2)?;
+		tup.serialize_element(":0.0")?;
+		tup.serialize_element(&ObjectPath::from_static_str_unchecked("/"))?;
+		tup.end()
 	}
 }
 
@@ -517,6 +517,7 @@ impl<'a> EventBody<'_> {
 		}
 	}
 
+	/// The `detail1` field.
 	#[must_use]
 	pub fn detail1(&self) -> i32 {
 		match self {
@@ -525,6 +526,7 @@ impl<'a> EventBody<'_> {
 		}
 	}
 
+	/// The `detail2` field.
 	#[must_use]
 	pub fn detail2(&self) -> i32 {
 		match self {

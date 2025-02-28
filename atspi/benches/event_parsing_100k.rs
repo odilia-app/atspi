@@ -15,6 +15,15 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
 	let random_messages = read_messages_from_file(FILE_PATH);
 
+	c.bench_function("100_000 Messages - - call .body()", |b| {
+		b.iter(|| {
+			for msg in &random_messages {
+				let body = msg.body();
+				black_box(body);
+			}
+		})
+	});
+
 	c.bench_function("100_000 Messages into Events", |b| {
 		b.iter(|| {
 			for msg in &random_messages {

@@ -29,7 +29,7 @@ pub use event_body::{
 	EventBody, EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned,
 };
 use serde::{Deserialize, Serialize};
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 #[cfg(feature = "zbus")]
@@ -190,8 +190,8 @@ where
 		Ok(obj_ref.into())
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let obj_ref: ObjectRef = msg.try_into()?;
+	fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let obj_ref: ObjectRef = header.try_into()?;
 		Ok(obj_ref.into())
 	}
 
@@ -248,11 +248,11 @@ mod accessible_tests {
 		assert_eq!(acc.path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
 }
+
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for ObjectRef {
+impl TryFrom<&Header<'_>> for ObjectRef {
 	type Error = AtspiError;
-	fn try_from(message: &zbus::Message) -> Result<Self, Self::Error> {
-		let header = message.header();
+	fn try_from(header: &Header) -> Result<Self, Self::Error> {
 		let path = header.path().expect("returned path is either `Some` or panics");
 		let owned_path: OwnedObjectPath = path.clone().into();
 
@@ -343,15 +343,17 @@ impl EventProperties for EventListenerEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for EventListenerEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			EventListenerRegisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Registered(
-				EventListenerRegisteredEvent::from_message_unchecked(msg)?,
+				EventListenerRegisteredEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			EventListenerDeregisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Deregistered(
-				EventListenerDeregisteredEvent::from_message_unchecked(msg)?,
+				EventListenerDeregisteredEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No member {} in {}",
@@ -410,8 +412,8 @@ impl MessageConversion<'_> for EventListenerDeregisteredEvent {
 		Ok(Self { item, deregistered_event })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -468,8 +470,8 @@ impl MessageConversion<'_> for EventListenerRegisteredEvent {
 		Ok(Self { item, registered_event })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -526,8 +528,8 @@ impl MessageConversion<'_> for AvailableEvent {
 		Ok(Self { item, socket })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -552,35 +554,35 @@ impl TryFrom<&zbus::Message> for Event {
 		let interface_str = interface.as_str();
 
 		match interface_str {
-			<AvailableEvent as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(AvailableEvent::try_from(msg)?.into())
-			}
 			<ObjectEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg)?))
-			}
-			<DocumentEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Document(DocumentEvents::try_from_message_interface_checked(msg)?))
-			}
-			<WindowEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg)?))
-			}
-			<TerminalEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Terminal(TerminalEvents::try_from_message_interface_checked(msg)?))
-			}
-			<MouseEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg)?))
+				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg, &header)?))
 			}
 			<FocusEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg)?))
-			}
-			<KeyboardEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Keyboard(KeyboardEvents::try_from_message_interface_checked(msg)?))
+				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg, &header)?))
 			}
 			<CacheEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg)?))
+				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg, &header)?))
 			}
-			<EventListenerEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Listener(EventListenerEvents::try_from_message_interface_checked(msg)?))
+			<WindowEvents as HasInterfaceName>::DBUS_INTERFACE => {
+				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg, &header)?))
+			}
+			<MouseEvents as HasInterfaceName>::DBUS_INTERFACE => {
+				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg, &header)?))
+			}
+			<TerminalEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Terminal(
+				TerminalEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<DocumentEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Document(
+				DocumentEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<KeyboardEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Keyboard(
+				KeyboardEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<EventListenerEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Listener(
+				EventListenerEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<AvailableEvent as HasInterfaceName>::DBUS_INTERFACE => {
+				Ok(AvailableEvent::try_from(msg)?.into())
 			}
 			_ => Err(AtspiError::InterfaceMatch(format!(
 				"No events found with interface {interface_str}"
@@ -662,7 +664,7 @@ pub trait MessageConversion<'a>: BusProperties {
 	///
 	/// It is possible to get a [`type@AtspiError::Zvariant`] error if you do not check the proper
 	/// conditions before calling this.
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError>
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError>
 	where
 		Self: Sized + 'a;
 
@@ -693,11 +695,11 @@ impl<'msg, T: 'msg> MessageConversionExt<'msg, EventBody<'msg>> for T
 where
 	T: MessageConversion<'msg, Body<'msg> = EventBody<'msg>>,
 {
-	fn try_from_message(msg: &'msg zbus::Message) -> Result<Self, AtspiError> {
-		<T as MessageConversionExt<EventBody<'_>>>::validate_interface(msg)?;
-		<T as MessageConversionExt<EventBody<'_>>>::validate_member(msg)?;
+	fn try_from_message(msg: &'msg zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		<T as MessageConversionExt<EventBody<'_>>>::validate_interface(header)?;
+		<T as MessageConversionExt<EventBody<'_>>>::validate_member(header)?;
 
-		let item = msg.try_into()?;
+		let item = ObjectRef::try_from(header)?;
 		let msg_body = msg.body();
 		let signature = msg_body.signature();
 
@@ -732,7 +734,7 @@ where
 	///
 	/// See [`MessageConversion::from_message_unchecked`] for info on panic condition that should never
 	/// happen.
-	fn try_from_message(msg: &'a zbus::Message) -> Result<Self, AtspiError>
+	fn try_from_message(msg: &'a zbus::Message, hdr: &Header) -> Result<Self, AtspiError>
 	where
 		Self: Sized + 'a;
 	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
@@ -741,8 +743,8 @@ where
 	///
 	/// - [`type@AtspiError::MissingInterface`] if there is no interface
 	/// - [`type@AtspiError::InterfaceMatch`] if the interfaces do not match
-	fn validate_interface(msg: &zbus::Message) -> Result<(), AtspiError> {
-		let header = msg.header();
+	#[inline]
+	fn validate_interface(header: &Header) -> Result<(), AtspiError> {
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		if interface != Self::DBUS_INTERFACE {
 			return Err(AtspiError::InterfaceMatch(format!(
@@ -759,9 +761,8 @@ where
 	///
 	/// - [`type@AtspiError::MissingMember`] if there is no member
 	/// - [`type@AtspiError::MemberMatch`] if the members do not match
-	fn validate_member(msg: &zbus::Message) -> Result<(), AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn validate_member(hdr: &Header) -> Result<(), AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		if member != Self::DBUS_MEMBER {
 			return Err(AtspiError::MemberMatch(format!(
 				"The member {} does not match the signal's member: {}",
@@ -777,6 +778,7 @@ where
 	/// # Errors
 	///
 	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
+	#[inline]
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();
 		let body_signature = body.signature();
@@ -837,7 +839,10 @@ pub trait HasRegistryEventString {
 pub(crate) trait EventWrapperMessageConversion {
 	/// # Errors
 	/// Will fail if no matching member or body signature is found.
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError>
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
 }
@@ -861,6 +866,6 @@ impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
 				<T as HasInterfaceName>::DBUS_INTERFACE
 			)));
 		}
-		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg)
+		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg, &header)
 	}
 }

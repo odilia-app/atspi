@@ -267,7 +267,8 @@ macro_rules! impl_to_dbus_message {
 /// impl TryFrom<&zbus::Message> for StateChangedEvents {
 ///   type Error = AtspiError;
 ///   fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-///     <$type as MessageConversion>::try_from_message(msg)
+///    let hdr = msg.header();
+///     <$type as MessageConversion>::try_from_message(msg, hdr)
 ///   }
 /// }
 /// ```
@@ -286,14 +287,17 @@ macro_rules! impl_from_dbus_message {
 			fn try_from(msg: &'msg zbus::Message) -> Result<Self, Self::Error> {
 				use crate::events::{EventBody, EventBodyQtBorrowed};
 				use zvariant::Type;
+				use crate::ObjectRef;
 
-				<Self as MessageConversionExt<<Self as MessageConversion>::Body<'_>>>::validate_interface(msg)?;
-				<Self as MessageConversionExt<<Self as MessageConversion>::Body<'_>>>::validate_member(msg)?;
+				let hdr = msg.header();
+				<Self as MessageConversionExt<<Self as MessageConversion>::Body<'_>>>::validate_interface(&hdr)?;
+				<Self as MessageConversionExt<<Self as MessageConversion>::Body<'_>>>::validate_member(&hdr)?;
+				let item = ObjectRef::try_from(&hdr)?;
 
-				let item = msg.try_into()?;
 				let body = msg.body();
 				let signature = body.signature();
 
+				// TODO: COnsider removing this check altoghether because Qt bodies will deserialize as `EventBody<'_>`
 				if signature == EventBody::SIGNATURE || signature == EventBodyQtBorrowed::SIGNATURE {
 					Ok(Self::from_message_unchecked_parts(item, body)?)
 				} else {
@@ -312,7 +316,8 @@ macro_rules! impl_from_dbus_message {
 		impl TryFrom<&zbus::Message> for $type {
 			type Error = AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-				<$type as MessageConversionExt<<$type as MessageConversion>::Body<'_>>>::try_from_message(msg)
+				let hdr = msg.header();
+				<$type as MessageConversionExt<<$type as MessageConversion>::Body<'_>>>::try_from_message(msg, &hdr)
 			}
 		}
 	};
@@ -347,7 +352,8 @@ macro_rules! generic_event_test_case {
 			.unwrap()
 			.build(&(body,))
 			.unwrap();
-			let build_struct = <$type>::from_message_unchecked(&body2)
+			let header = body2.header();
+			let build_struct = <$type>::from_message_unchecked(&body2, &header)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
 			assert_eq!(struct_event, build_struct);
 		}
@@ -536,7 +542,8 @@ macro_rules! zbus_message_test_case {
 			.unwrap()
 			.build(&<$type>::default().body())
 			.unwrap();
-			let event = <$type>::from_message_unchecked(&fake_msg);
+			let hdr = fake_msg.header();
+			let event = <$type>::from_message_unchecked(&fake_msg, &hdr);
       event.expect("The from_message_unchecked function should work, despite mismatching interface and member");
 		}
 
@@ -824,11 +831,11 @@ macro_rules! event_test_cases {
 /// ```ignore
 /// #[cfg(feature = "zbus")]
 /// impl<'a> MessageConversionExt<'_, ObjectRef> for RemoveAccessibleEvent {
-///     fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-///         <Self as MessageConversionExt<ObjectRef>>::validate_interface(msg)?;
-///         <Self as MessageConversionExt<ObjectRef>>::validate_member(msg)?;
-///         <Self as MessageConversionExt<ObjectRef>>::validate_body(msg)?;
-///         <Self as MessageConversion<'a>>::from_message_unchecked(msg)
+///     fn try_from_message(msg: &zbus::Message, hdr: &Header) -> Result<Self, AtspiError> {
+///         <Self as MessageConversionExt<$body_type>>::validate_interface(hdr)?;
+///         <Self as MessageConversionExt<$body_type>>::validate_member(hdr)?;
+///         <Self as MessageConversionExt<$body_type>>::validate_body(msg)?;
+///         <Self as MessageConversion<'a>>::from_message_unchecked(msg, hdr)
 ///     }
 /// }
 /// ```
@@ -836,11 +843,11 @@ macro_rules! impl_msg_conversion_ext_for_target_type_with_specified_body_type {
 	(target: $target_type:ty, body: $body_type:ty) => {
 		#[cfg(feature = "zbus")]
 		impl<'a> MessageConversionExt<'a, $body_type> for $target_type {
-			fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-				<Self as MessageConversionExt<$body_type>>::validate_interface(msg)?;
-				<Self as MessageConversionExt<$body_type>>::validate_member(msg)?;
+			fn try_from_message(msg: &zbus::Message, hdr: &Header) -> Result<Self, AtspiError> {
+				<Self as MessageConversionExt<$body_type>>::validate_interface(hdr)?;
+				<Self as MessageConversionExt<$body_type>>::validate_member(hdr)?;
 				<Self as MessageConversionExt<$body_type>>::validate_body(msg)?;
-				<Self as MessageConversion<'a>>::from_message_unchecked(msg)
+				<Self as MessageConversion<'a>>::from_message_unchecked(msg, hdr)
 			}
 		}
 	};
