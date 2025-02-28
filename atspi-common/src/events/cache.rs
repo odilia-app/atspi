@@ -9,7 +9,7 @@ use crate::{
 	Event, EventProperties, EventTypeProperties,
 };
 use serde::{Deserialize, Serialize};
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
 
@@ -89,18 +89,20 @@ impl EventProperties for CacheEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for CacheEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			AddAccessibleEvent::DBUS_MEMBER => {
 				let body = msg.body();
 				let sig = body.signature();
 				if sig == CacheItem::SIGNATURE {
-					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
+					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg, hdr)?))
 				} else if sig == LegacyCacheItem::SIGNATURE {
 					Ok(CacheEvents::LegacyAdd(LegacyAddAccessibleEvent::from_message_unchecked(
-						msg,
+						msg, hdr,
 					)?))
 				} else {
 					Err(AtspiError::SignatureMatch(format!(
@@ -111,7 +113,7 @@ impl EventWrapperMessageConversion for CacheEvents {
 				}
 			}
 			RemoveAccessibleEvent::DBUS_MEMBER => {
-				Ok(CacheEvents::Remove(RemoveAccessibleEvent::from_message_unchecked(msg)?))
+				Ok(CacheEvents::Remove(RemoveAccessibleEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No member {} in {}",
@@ -172,8 +174,8 @@ impl MessageConversion<'_> for LegacyAddAccessibleEvent {
 		Ok(Self { item, node_added: body.deserialize_unchecked::<Self::Body<'_>>()? })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -218,8 +220,8 @@ impl MessageConversion<'_> for AddAccessibleEvent {
 		Ok(Self { item, node_added: body.deserialize_unchecked::<Self::Body<'_>>()? })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -268,8 +270,8 @@ impl MessageConversion<'_> for RemoveAccessibleEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body.deserialize_unchecked::<Self::Body<'_>>()? })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -280,13 +282,13 @@ impl MessageConversion<'_> for RemoveAccessibleEvent {
 
 #[cfg(feature = "zbus")]
 impl MessageConversionExt<'_, LegacyCacheItem> for LegacyAddAccessibleEvent {
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(msg)?;
-		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(msg)?;
+	fn try_from_message(msg: &zbus::Message, hdr: &Header) -> Result<Self, AtspiError> {
+		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(hdr)?;
+		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(hdr)?;
 		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(
 			msg,
 		)?;
-		<LegacyAddAccessibleEvent as MessageConversion>::from_message_unchecked(msg)
+		<LegacyAddAccessibleEvent as MessageConversion>::from_message_unchecked(msg, hdr)
 	}
 }
 

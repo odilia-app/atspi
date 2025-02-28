@@ -11,7 +11,7 @@ use crate::{
 	Event, EventProperties, EventTypeProperties, State,
 };
 use std::hash::Hash;
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
@@ -751,8 +751,8 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 		Ok(Self { item, property, value })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -796,8 +796,8 @@ impl MessageConversion<'_> for StateChangedEvent {
 		Ok(Self { item, state: body.kind().into(), enabled: body.detail1() > 0 })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -830,8 +830,8 @@ impl MessageConversion<'_> for ChildrenChangedEvent {
 		})
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -882,8 +882,8 @@ impl MessageConversion<'_> for ActiveDescendantChangedEvent {
 		Ok(Self { item, child: body.take_any_data().try_into()? })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -917,8 +917,8 @@ impl MessageConversion<'_> for AnnouncementEvent {
 		})
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -1023,8 +1023,8 @@ impl MessageConversion<'_> for TextChangedEvent {
 		})
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -1059,8 +1059,8 @@ impl MessageConversion<'_> for TextCaretMovedEvent {
 		Ok(Self { item, position: body.detail1() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -1076,76 +1076,78 @@ impl HasInterfaceName for ObjectEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for ObjectEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			PropertyChangeEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
-			}
-			BoundsChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent::from_message_unchecked(msg)?))
-			}
+			PropertyChangeEvent::DBUS_MEMBER => Ok(ObjectEvents::PropertyChange(
+				PropertyChangeEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			BoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::BoundsChanged(
+				BoundsChangedEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			LinkSelectedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			StateChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::StateChanged(StateChangedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::StateChanged(StateChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ChildrenChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ChildrenChanged(
-				ChildrenChangedEvent::from_message_unchecked(msg)?,
+				ChildrenChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			VisibleDataChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::VisibleDataChanged(
-				VisibleDataChangedEvent::from_message_unchecked(msg)?,
+				VisibleDataChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			SelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::SelectionChanged(
-				SelectionChangedEvent::from_message_unchecked(msg)?,
+				SelectionChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			ModelChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ActiveDescendantChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ActiveDescendantChanged(
-				ActiveDescendantChangedEvent::from_message_unchecked(msg)?,
+				ActiveDescendantChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			AnnouncementEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::Announcement(AnnouncementEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::Announcement(AnnouncementEvent::from_message_unchecked(msg, hdr)?))
 			}
 			AttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::AttributesChanged(
-				AttributesChangedEvent::from_message_unchecked(msg)?,
+				AttributesChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			RowInsertedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowInserted(RowInsertedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowInserted(RowInsertedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			RowReorderedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowReordered(RowReorderedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowReordered(RowReorderedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			RowDeletedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::from_message_unchecked(msg, hdr)?))
 			}
-			ColumnInsertedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent::from_message_unchecked(msg)?))
-			}
-			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
-				ColumnReorderedEvent::from_message_unchecked(msg)?,
+			ColumnInsertedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnInserted(
+				ColumnInsertedEvent::from_message_unchecked(msg, hdr)?,
 			)),
-			ColumnDeletedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent::from_message_unchecked(msg)?))
-			}
+			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
+				ColumnReorderedEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			ColumnDeletedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnDeleted(
+				ColumnDeletedEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			TextBoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextBoundsChanged(
-				TextBoundsChangedEvent::from_message_unchecked(msg)?,
+				TextBoundsChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			TextSelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextSelectionChanged(
-				TextSelectionChangedEvent::from_message_unchecked(msg)?,
+				TextSelectionChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			TextChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::TextChanged(TextChangedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::TextChanged(TextChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			TextAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextAttributesChanged(
-				TextAttributesChangedEvent::from_message_unchecked(msg)?,
+				TextAttributesChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
-			TextCaretMovedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent::from_message_unchecked(msg)?))
-			}
+			TextCaretMovedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextCaretMoved(
+				TextCaretMovedEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",
 				Self::DBUS_INTERFACE,
@@ -1630,7 +1632,9 @@ mod text_changed_event {
 			.build(&body)
 			.unwrap();
 
-		let build_struct = <TextChangedEvent>::from_message_unchecked(&body2)
+		let hdr = body2.header();
+
+		let build_struct = <TextChangedEvent>::from_message_unchecked(&body2, &hdr)
 			.expect("<$type as Default>'s parts should build a valid user facing type");
 		assert_eq!(struct_event, build_struct);
 	}

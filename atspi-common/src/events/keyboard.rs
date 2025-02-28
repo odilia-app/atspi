@@ -1,4 +1,4 @@
-use super::event_body::{EventBody, Properties};
+use super::event_body::EventBody;
 use crate::{
 	error::AtspiError,
 	events::{
@@ -13,9 +13,9 @@ use crate::{
 	},
 	ObjectRef,
 };
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue};
+use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
@@ -94,8 +94,8 @@ impl MessageConversion<'_> for ModifiersEvent {
 		Ok(Self { item, previous_modifiers: body.detail1(), current_modifiers: body.detail2() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -116,14 +116,16 @@ impl HasInterfaceName for KeyboardEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for KeyboardEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
 			ModifiersEvent::DBUS_MEMBER => {
-				Ok(KeyboardEvents::Modifiers(ModifiersEvent::from_message_unchecked(msg)?))
+				Ok(KeyboardEvents::Modifiers(ModifiersEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
 		}
@@ -157,11 +159,9 @@ impl_event_properties!(ModifiersEvent);
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
-			kind: String::default(),
 			detail1: event.previous_modifiers,
 			detail2: event.current_modifiers,
-			any_data: OwnedValue::from(0u8),
-			properties: Properties,
+			..Default::default()
 		}
 	}
 }

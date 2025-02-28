@@ -7,6 +7,7 @@ use crate::{
 	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
+use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -207,27 +208,29 @@ impl HasInterfaceName for DocumentEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for DocumentEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			LoadCompleteEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::LoadComplete(LoadCompleteEvent::from_message_unchecked(msg)?))
-			}
+			LoadCompleteEvent::DBUS_MEMBER => Ok(DocumentEvents::LoadComplete(
+				LoadCompleteEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			ReloadEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg, hdr)?))
 			}
 			LoadStoppedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ContentChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::ContentChanged(
-				ContentChangedEvent::from_message_unchecked(msg)?,
+				ContentChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			AttributesChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::AttributesChanged(
-				AttributesChangedEvent::from_message_unchecked(msg)?,
+				AttributesChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			PageChangedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::PageChanged(PageChangedEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::PageChanged(PageChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 		}

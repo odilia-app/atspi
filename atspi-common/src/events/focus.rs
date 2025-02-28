@@ -7,6 +7,7 @@ use crate::{
 	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
+use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -81,12 +82,14 @@ impl HasInterfaceName for FocusEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for FocusEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			FocusEvent::DBUS_MEMBER => {
-				Ok(FocusEvents::Focus(FocusEvent::from_message_unchecked(msg)?))
+				Ok(FocusEvents::Focus(FocusEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",
