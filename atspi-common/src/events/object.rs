@@ -11,7 +11,7 @@ use crate::{
 	Event, EventProperties, EventTypeProperties, State,
 };
 use std::hash::Hash;
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
 
@@ -1076,9 +1076,11 @@ impl HasInterfaceName for ObjectEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for ObjectEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			PropertyChangeEvent::DBUS_MEMBER => {
 				Ok(ObjectEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))

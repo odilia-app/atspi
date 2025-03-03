@@ -3,8 +3,6 @@
 
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all, missing_docs)]
 #![allow(clippy::multiple_crate_versions)]
-// ICE https://github.com/rust-lang/rust/issues/137640
-#![allow(clippy::macro_use_imports)]
 
 #[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
 compile_error!("You must specify at least one of the `async-std` or `tokio` features.");

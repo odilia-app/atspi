@@ -7,6 +7,7 @@ use crate::{
 	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
+use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
 
@@ -178,9 +179,11 @@ impl HasInterfaceName for TerminalEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for TerminalEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {

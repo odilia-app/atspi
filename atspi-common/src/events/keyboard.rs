@@ -1,4 +1,4 @@
-use super::event_body::{EventBody, Properties};
+use super::event_body::EventBody;
 use crate::{
 	error::AtspiError,
 	events::{
@@ -13,9 +13,9 @@ use crate::{
 	},
 	ObjectRef,
 };
-use zbus::message::Body as DbusBody;
+use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue};
+use zvariant::ObjectPath;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
@@ -116,9 +116,11 @@ impl HasInterfaceName for KeyboardEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for KeyboardEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
@@ -157,11 +159,9 @@ impl_event_properties!(ModifiersEvent);
 impl From<ModifiersEvent> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
-			kind: String::default(),
 			detail1: event.previous_modifiers,
 			detail2: event.current_modifiers,
-			any_data: OwnedValue::from(0u8),
-			properties: Properties,
+			..Default::default()
 		}
 	}
 }
