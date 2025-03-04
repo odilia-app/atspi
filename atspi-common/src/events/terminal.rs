@@ -26,6 +26,8 @@ pub enum TerminalEvents {
 	CharWidthChanged(CharWidthChangedEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(TerminalEvents);
+
 impl EventTypeProperties for TerminalEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -303,3 +305,15 @@ impl_from_object_ref!(CharWidthChangedEvent);
 impl HasRegistryEventString for TerminalEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
+
+impl_msg_conversion_ext_for_target_type!(LineChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ColumnCountChangedEvent);
+impl_msg_conversion_ext_for_target_type!(LineCountChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ApplicationChangedEvent);
+impl_msg_conversion_ext_for_target_type!(CharWidthChangedEvent);
+
+impl_msg_conversion_for_types_built_from_object_ref!(LineChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ColumnCountChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(LineCountChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ApplicationChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(CharWidthChangedEvent);

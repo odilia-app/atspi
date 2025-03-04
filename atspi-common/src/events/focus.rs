@@ -17,6 +17,8 @@ pub enum FocusEvents {
 	Focus(FocusEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(FocusEvents);
+
 impl EventTypeProperties for FocusEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -98,6 +100,9 @@ impl EventWrapperMessageConversion for FocusEvents {
 		}
 	}
 }
+
+impl_msg_conversion_ext_for_target_type!(FocusEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(FocusEvent);
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for FocusEvents {

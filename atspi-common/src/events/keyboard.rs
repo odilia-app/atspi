@@ -23,6 +23,8 @@ pub enum KeyboardEvents {
 	Modifiers(ModifiersEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(KeyboardEvents);
+
 impl EventTypeProperties for KeyboardEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -131,6 +133,8 @@ impl EventWrapperMessageConversion for KeyboardEvents {
 		}
 	}
 }
+
+impl_msg_conversion_ext_for_target_type!(ModifiersEvent);
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for KeyboardEvents {

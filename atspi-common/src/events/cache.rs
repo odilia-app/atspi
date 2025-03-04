@@ -27,6 +27,22 @@ pub enum CacheEvents {
 	Remove(RemoveAccessibleEvent),
 }
 
+#[cfg(feature = "zbus")]
+impl TryFromMessage for CacheEvents {
+	fn try_from_message(msg: &zbus::Message) -> Result<CacheEvents, AtspiError> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		if interface != Self::DBUS_INTERFACE {
+			return Err(AtspiError::InterfaceMatch(format!(
+				"Interface {} does not match require interface for event: {}",
+				interface,
+				Self::DBUS_INTERFACE
+			)));
+		}
+		Self::try_from_message_interface_checked(msg, &header)
+	}
+}
+
 impl HasMatchRule for CacheEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
 }

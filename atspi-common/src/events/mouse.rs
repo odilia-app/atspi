@@ -29,6 +29,8 @@ pub enum MouseEvents {
 	Button(ButtonEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(MouseEvents);
+
 impl EventTypeProperties for MouseEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -328,3 +330,7 @@ impl From<&ButtonEvent> for EventBodyOwned {
 impl HasRegistryEventString for MouseEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 }
+
+impl_msg_conversion_ext_for_target_type!(AbsEvent);
+impl_msg_conversion_ext_for_target_type!(RelEvent);
+impl_msg_conversion_ext_for_target_type!(ButtonEvent);
