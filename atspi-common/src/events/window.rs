@@ -352,8 +352,8 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 		Ok(Self { item, property: body.take_kind() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
@@ -523,43 +523,45 @@ impl EventWrapperMessageConversion for WindowEvents {
 	) -> Result<Self, AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			PropertyChangeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::PropertyChange(PropertyChangeEvent::from_message_unchecked(msg)?))
-			}
+			PropertyChangeEvent::DBUS_MEMBER => Ok(WindowEvents::PropertyChange(
+				PropertyChangeEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			MinimizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Minimize(MinimizeEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Minimize(MinimizeEvent::from_message_unchecked(msg, hdr)?))
 			}
 			MaximizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Maximize(MaximizeEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Maximize(MaximizeEvent::from_message_unchecked(msg, hdr)?))
 			}
 			RestoreEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Restore(RestoreEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Restore(RestoreEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Close" => Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg)?)),
+			"Close" => Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg, hdr)?)),
 			CreateEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Create(CreateEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Create(CreateEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ReparentEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"DesktopCreate" => {
-				Ok(WindowEvents::DesktopCreate(DesktopCreateEvent::from_message_unchecked(msg)?))
+			"DesktopCreate" => Ok(WindowEvents::DesktopCreate(
+				DesktopCreateEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			"DesktopDestroy" => Ok(WindowEvents::DesktopDestroy(
+				DesktopDestroyEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg, hdr)?)),
+			"Activate" => {
+				Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"DesktopDestroy" => {
-				Ok(WindowEvents::DesktopDestroy(DesktopDestroyEvent::from_message_unchecked(msg)?))
-			}
-			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg)?)),
-			"Activate" => Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg)?)),
 			"Deactivate" => {
-				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg)?)),
-			"Lower" => Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg)?)),
-			"Move" => Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg)?)),
-			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg)?)),
-			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg)?)),
-			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg)?)),
-			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg)?)),
+			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg, hdr)?)),
+			"Lower" => Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg, hdr)?)),
+			"Move" => Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg, hdr)?)),
+			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg, hdr)?)),
+			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg, hdr)?)),
+			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg, hdr)?)),
+			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg, hdr)?)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 		}
 	}
