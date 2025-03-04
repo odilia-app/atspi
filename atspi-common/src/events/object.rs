@@ -1300,14 +1300,13 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 		EventBodyOwned {
 			kind: event.operation.to_string(),
 			detail1: event.index_in_parent,
-			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
-			// Only path to fail is to convert a `Fd` into an `OwnedValue`.
+			// Only way to fail is to convert a `Fd` into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
 				.try_into()
 				.expect("Failed to convert child to OwnedValue"),
-			properties: super::event_body::Properties,
+			..Default::default()
 		}
 	}
 }
@@ -1404,16 +1403,13 @@ impl_event_properties!(ActiveDescendantChangedEvent);
 impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	fn from(event: ActiveDescendantChangedEvent) -> Self {
 		EventBodyOwned {
-			kind: String::default(),
-			detail1: i32::default(),
-			detail2: i32::default(),
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
-			// Only path to fail is to convert a Fd into an `OwnedValue`.
+			// Only way to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
 				.try_to_owned()
 				.expect("Failed to convert child to OwnedValue"),
-			properties: super::event_body::Properties,
+			..Default::default()
 		}
 	}
 }
@@ -1656,13 +1652,12 @@ impl From<TextChangedEvent> for EventBodyOwned {
 			kind: event.operation.to_string(),
 			detail1: event.start_pos,
 			detail2: event.length,
-
 			// `OwnedValue` is constructed from a `String`
 			// Therefore, this is safe.
 			any_data: Value::from(event.text)
 				.try_to_owned()
 				.expect("Failed to convert child to OwnedValue"),
-			properties: super::event_body::Properties,
+			..Default::default()
 		}
 	}
 }
@@ -1701,13 +1696,7 @@ impl_from_dbus_message!(TextCaretMovedEvent);
 impl_event_properties!(TextCaretMovedEvent);
 impl From<TextCaretMovedEvent> for EventBodyOwned {
 	fn from(event: TextCaretMovedEvent) -> Self {
-		EventBodyOwned {
-			kind: String::default(),
-			detail1: event.position,
-			detail2: i32::default(),
-			any_data: u8::default().into(),
-			properties: super::event_body::Properties,
-		}
+		EventBodyOwned { detail1: event.position, ..Default::default() }
 	}
 }
 
