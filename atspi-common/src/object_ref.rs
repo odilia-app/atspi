@@ -43,7 +43,7 @@ impl Default for ObjectRef {
 /// Emitted by `RemoveAccessible` and `Available`
 #[validate(signal: "Available")]
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct ObjectRefBorrow<'a> {
+pub struct ObjectRefBorrowed<'a> {
 	#[serde(borrow)]
 	pub name: UniqueName<'a>,
 	#[serde(borrow)]
@@ -70,14 +70,14 @@ impl ObjectRef {
 	}
 }
 
-impl<'a> ObjectRefBorrow<'a> {
-	/// Create a new `ObjectRefBorrow`
+impl<'a> ObjectRefBorrowed<'a> {
+	/// Create a new `ObjectRefBorrowed`
 	#[must_use]
 	pub fn new(name: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
 		Self { name, path }
 	}
 
-	/// Convert a partially borrowed `ObjectRefBorrow` into a fully owned `ObjectRef`
+	/// Convert a partially borrowed `ObjectRefBorrowed` into a fully owned `ObjectRef`
 	// A derived clone would clone the owned fields and create new borrows for the borrowed fields.
 	// Whereas sometimes we want to convert the borrowed fields into owned fields.
 	#[must_use]
@@ -87,7 +87,7 @@ impl<'a> ObjectRefBorrow<'a> {
 		ObjectRef { name, path }
 	}
 
-	/// Create a static `ObjectRefBorrow`, unchecked, from static string values.
+	/// Create a static `ObjectRefBorrowed`, unchecked, from static string values.
 	///
 	/// # Safety
 	/// The caller must ensure that the strings are valid.
@@ -100,9 +100,9 @@ impl<'a> ObjectRefBorrow<'a> {
 	}
 }
 
-impl Default for ObjectRefBorrow<'_> {
+impl Default for ObjectRefBorrowed<'_> {
 	fn default() -> Self {
-		ObjectRefBorrow {
+		ObjectRefBorrowed {
 			name: UniqueName::from_static_str_unchecked(":0.0"),
 			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/null"),
 		}
@@ -126,11 +126,11 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	}
 }
 
-impl<'b, 'a: 'b> TryFrom<Value<'a>> for ObjectRefBorrow<'b> {
+impl<'b, 'a: 'b> TryFrom<Value<'a>> for ObjectRefBorrowed<'b> {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
 		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
-		Ok(ObjectRefBorrow { name, path })
+		Ok(ObjectRefBorrowed { name, path })
 	}
 }
 
@@ -142,7 +142,7 @@ impl From<ObjectRef> for zvariant::Structure<'_> {
 
 #[cfg(test)]
 mod test {
-	use crate::{object_ref::ObjectRefBorrow, ObjectRef};
+	use crate::{object_ref::ObjectRefBorrowed, ObjectRef};
 
 	#[test]
 	fn test_accessible_from_dbus_ctxt_to_object_ref() {
@@ -215,7 +215,7 @@ mod test {
 
 		let oref = ObjectRef::default();
 		let value: Value = oref.into();
-		let obj_borrow: ObjectRefBorrow = value.try_into().unwrap();
+		let obj_borrow: ObjectRefBorrowed = value.try_into().unwrap();
 
 		assert_eq!(obj_borrow.name.as_str(), ":0.0");
 		assert_eq!(obj_borrow.path.as_str(), "/org/a11y/atspi/accessible/null");
@@ -224,7 +224,7 @@ mod test {
 	#[test]
 	fn must_fail_test_try_from_invalid_value_for_object_ref_borrow() {
 		let value = zvariant::Value::from((42, true));
-		let obj: Result<ObjectRefBorrow, _> = value.try_into();
+		let obj: Result<ObjectRefBorrowed, _> = value.try_into();
 		assert!(obj.is_err());
 	}
 }
