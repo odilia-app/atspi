@@ -359,11 +359,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 	}
 
 	fn body(&self) -> Self::Body<'_> {
-		EventBody::Owned(EventBodyOwned {
-			kind: self.property.clone(),
-			any_data: u8::default().into(),
-			..Default::default()
-		})
+		EventBody::Owned(EventBodyOwned { kind: self.property.clone(), ..Default::default() })
 	}
 }
 
@@ -535,33 +531,51 @@ impl EventWrapperMessageConversion for WindowEvents {
 			RestoreEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Restore(RestoreEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Close" => Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg, hdr)?)),
+			CloseEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg, hdr)?))
+			}
 			CreateEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Create(CreateEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ReparentEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"DesktopCreate" => Ok(WindowEvents::DesktopCreate(
+			DesktopCreateEvent::DBUS_MEMBER => Ok(WindowEvents::DesktopCreate(
 				DesktopCreateEvent::from_message_unchecked(msg, hdr)?,
 			)),
-			"DesktopDestroy" => Ok(WindowEvents::DesktopDestroy(
+			DesktopDestroyEvent::DBUS_MEMBER => Ok(WindowEvents::DesktopDestroy(
 				DesktopDestroyEvent::from_message_unchecked(msg, hdr)?,
 			)),
-			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg, hdr)?)),
-			"Activate" => {
+			DestroyEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg, hdr)?))
+			}
+			ActivateEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Deactivate" => {
+			DeactivateEvent::DBUS_MEMBER => {
 				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg, hdr)?)),
-			"Lower" => Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg, hdr)?)),
-			"Move" => Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg, hdr)?)),
-			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg, hdr)?)),
-			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg, hdr)?)),
-			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg, hdr)?)),
-			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg, hdr)?)),
+			RaiseEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg, hdr)?))
+			}
+			LowerEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg, hdr)?))
+			}
+			MoveEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg, hdr)?))
+			}
+			ResizeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg, hdr)?))
+			}
+			ShadeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg, hdr)?))
+			}
+			UUshadeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg, hdr)?))
+			}
+			RestyleEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg, hdr)?))
+			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 		}
 	}
@@ -592,11 +606,7 @@ impl_from_dbus_message!(PropertyChangeEvent);
 impl_event_properties!(PropertyChangeEvent);
 impl From<PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
-		EventBodyOwned {
-			kind: event.property,
-			any_data: u8::default().into(),
-			..Default::default()
-		}
+		EventBodyOwned { kind: event.property, ..Default::default() }
 	}
 }
 
