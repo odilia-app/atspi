@@ -913,3 +913,48 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 		}
 	};
 }
+
+/// Implements `TryFromMessage` for a given event wrapper type.
+///
+/// # Example
+/// ```ignore
+/// impl_tryfrommessage_for_event_wrapper!(StateChangedEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// #[cfg(feature = "zbus")]
+/// impl TryFromMessage for StateChangedEvent {
+///     fn try_from_message(msg: &zbus::Message) -> Result<StateChangedEvent, AtspiError> {
+///        let header = msg.header();
+///        let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+///        if interface != Self::DBUS_INTERFACE {
+///            return Err(AtspiError::InterfaceMatch(format!(
+///                "Interface {} does not match require interface for event: {}",
+///                interface,
+///                Self::DBUS_INTERFACE
+///            )));
+///        }
+///        Self::try_from_message_interface_checked(msg, &header)
+///     }
+/// }
+/// ```
+macro_rules! impl_tryfrommessage_for_event_wrapper {
+	($wrapper:ty) => {
+		#[cfg(feature = "zbus")]
+		impl TryFromMessage for $wrapper {
+			fn try_from_message(msg: &zbus::Message) -> Result<$wrapper, AtspiError> {
+				let header = msg.header();
+				let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+				if interface != Self::DBUS_INTERFACE {
+					return Err(AtspiError::InterfaceMatch(format!(
+						"Interface {} does not match require interface for event: {}",
+						interface,
+						Self::DBUS_INTERFACE
+					)));
+				}
+				Self::try_from_message_interface_checked(msg, &header)
+			}
+		}
+	};
+}

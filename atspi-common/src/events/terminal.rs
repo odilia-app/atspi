@@ -26,6 +26,8 @@ pub enum TerminalEvents {
 	CharWidthChanged(CharWidthChangedEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(TerminalEvents);
+
 impl EventTypeProperties for TerminalEvents {
 	fn member(&self) -> &'static str {
 		match self {

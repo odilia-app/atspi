@@ -248,6 +248,8 @@ pub enum EventListenerEvents {
 	Deregistered(EventListenerDeregisteredEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(EventListenerEvents);
+
 impl EventTypeProperties for EventListenerEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -693,6 +695,7 @@ where
 	fn try_from_message(msg: &'a zbus::Message, hdr: &Header) -> Result<Self, AtspiError>
 	where
 		Self: Sized + 'a;
+
 	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
 	///
 	/// # Errors
@@ -711,6 +714,7 @@ where
 		}
 		Ok(())
 	}
+
 	/// Validate the member string via [`zbus::message::Header::member`] against `Self`'s assignment of [`BusProperties::DBUS_MEMBER`]
 	///
 	/// # Errors
@@ -729,6 +733,7 @@ where
 		}
 		Ok(())
 	}
+
 	/// Validate the body signature against the [`zvariant::Signature`] of [`MessageConversion::Body`]
 	///
 	/// # Errors
@@ -810,21 +815,21 @@ pub(crate) trait TryFromMessage {
 		Self: Sized;
 }
 
-#[cfg(feature = "zbus")]
-impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
-	fn try_from_message(msg: &zbus::Message) -> Result<T, AtspiError> {
-		let header = msg.header();
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		if interface != <T as HasInterfaceName>::DBUS_INTERFACE {
-			return Err(AtspiError::InterfaceMatch(format!(
-				"Interface {} does not match require interface for event: {}",
-				interface,
-				<T as HasInterfaceName>::DBUS_INTERFACE
-			)));
-		}
-		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg, &header)
-	}
-}
+// #[cfg(feature = "zbus")]
+// impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
+// 	fn try_from_message(msg: &zbus::Message) -> Result<T, AtspiError> {
+// 		let header = msg.header();
+// 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+// 		if interface != <T as HasInterfaceName>::DBUS_INTERFACE {
+// 			return Err(AtspiError::InterfaceMatch(format!(
+// 				"Interface {} does not match require interface for event: {}",
+// 				interface,
+// 				<T as HasInterfaceName>::DBUS_INTERFACE
+// 			)));
+// 		}
+// 		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg, &header)
+// 	}
+// }
 
 #[cfg(test)]
 mod tests {

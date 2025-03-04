@@ -29,6 +29,8 @@ pub enum MouseEvents {
 	Button(ButtonEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(MouseEvents);
+
 impl EventTypeProperties for MouseEvents {
 	fn member(&self) -> &'static str {
 		match self {

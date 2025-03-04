@@ -60,6 +60,8 @@ pub enum WindowEvents {
 	Restyle(RestyleEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(WindowEvents);
+
 impl EventTypeProperties for WindowEvents {
 	fn member(&self) -> &'static str {
 		match self {

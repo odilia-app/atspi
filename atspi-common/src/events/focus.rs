@@ -17,6 +17,8 @@ pub enum FocusEvents {
 	Focus(FocusEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(FocusEvents);
+
 impl EventTypeProperties for FocusEvents {
 	fn member(&self) -> &'static str {
 		match self {

@@ -23,6 +23,8 @@ pub enum KeyboardEvents {
 	Modifiers(ModifiersEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(KeyboardEvents);
+
 impl EventTypeProperties for KeyboardEvents {
 	fn member(&self) -> &'static str {
 		match self {

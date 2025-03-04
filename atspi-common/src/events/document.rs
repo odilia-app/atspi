@@ -27,6 +27,8 @@ pub enum DocumentEvents {
 	PageChanged(PageChangedEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(DocumentEvents);
+
 impl EventTypeProperties for DocumentEvents {
 	fn member(&self) -> &'static str {
 		match self {
