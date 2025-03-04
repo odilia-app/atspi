@@ -1156,6 +1156,29 @@ impl EventWrapperMessageConversion for ObjectEvents {
 	}
 }
 
+impl_msg_conversion_ext_for_target_type!(PropertyChangeEvent);
+impl_msg_conversion_ext_for_target_type!(BoundsChangedEvent);
+impl_msg_conversion_ext_for_target_type!(LinkSelectedEvent);
+impl_msg_conversion_ext_for_target_type!(StateChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ChildrenChangedEvent);
+impl_msg_conversion_ext_for_target_type!(VisibleDataChangedEvent);
+impl_msg_conversion_ext_for_target_type!(SelectionChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ModelChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ActiveDescendantChangedEvent);
+impl_msg_conversion_ext_for_target_type!(AnnouncementEvent);
+impl_msg_conversion_ext_for_target_type!(AttributesChangedEvent);
+impl_msg_conversion_ext_for_target_type!(RowInsertedEvent);
+impl_msg_conversion_ext_for_target_type!(RowReorderedEvent);
+impl_msg_conversion_ext_for_target_type!(RowDeletedEvent);
+impl_msg_conversion_ext_for_target_type!(ColumnInsertedEvent);
+impl_msg_conversion_ext_for_target_type!(ColumnReorderedEvent);
+impl_msg_conversion_ext_for_target_type!(ColumnDeletedEvent);
+impl_msg_conversion_ext_for_target_type!(TextBoundsChangedEvent);
+impl_msg_conversion_ext_for_target_type!(TextSelectionChangedEvent);
+impl_msg_conversion_ext_for_target_type!(TextChangedEvent);
+impl_msg_conversion_ext_for_target_type!(TextAttributesChangedEvent);
+impl_msg_conversion_ext_for_target_type!(TextCaretMovedEvent);
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for ObjectEvents {
 	type Error = AtspiError;

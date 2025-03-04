@@ -328,3 +328,7 @@ impl From<&ButtonEvent> for EventBodyOwned {
 impl HasRegistryEventString for MouseEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 }
+
+impl_msg_conversion_ext_for_target_type!(AbsEvent);
+impl_msg_conversion_ext_for_target_type!(RelEvent);
+impl_msg_conversion_ext_for_target_type!(ButtonEvent);

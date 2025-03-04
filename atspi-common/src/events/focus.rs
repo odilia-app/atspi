@@ -99,6 +99,8 @@ impl EventWrapperMessageConversion for FocusEvents {
 	}
 }
 
+impl_msg_conversion_ext_for_target_type!(FocusEvent);
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for FocusEvents {
 	type Error = AtspiError;

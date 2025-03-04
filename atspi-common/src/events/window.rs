@@ -851,3 +851,23 @@ impl_from_object_ref!(RestyleEvent);
 impl HasRegistryEventString for WindowEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
+
+impl_msg_conversion_ext_for_target_type!(PropertyChangeEvent);
+impl_msg_conversion_ext_for_target_type!(MinimizeEvent);
+impl_msg_conversion_ext_for_target_type!(MaximizeEvent);
+impl_msg_conversion_ext_for_target_type!(RestoreEvent);
+impl_msg_conversion_ext_for_target_type!(CloseEvent);
+impl_msg_conversion_ext_for_target_type!(CreateEvent);
+impl_msg_conversion_ext_for_target_type!(ReparentEvent);
+impl_msg_conversion_ext_for_target_type!(DesktopCreateEvent);
+impl_msg_conversion_ext_for_target_type!(DesktopDestroyEvent);
+impl_msg_conversion_ext_for_target_type!(DestroyEvent);
+impl_msg_conversion_ext_for_target_type!(ActivateEvent);
+impl_msg_conversion_ext_for_target_type!(DeactivateEvent);
+impl_msg_conversion_ext_for_target_type!(RaiseEvent);
+impl_msg_conversion_ext_for_target_type!(LowerEvent);
+impl_msg_conversion_ext_for_target_type!(MoveEvent);
+impl_msg_conversion_ext_for_target_type!(ResizeEvent);
+impl_msg_conversion_ext_for_target_type!(ShadeEvent);
+impl_msg_conversion_ext_for_target_type!(UUshadeEvent);
+impl_msg_conversion_ext_for_target_type!(RestyleEvent);

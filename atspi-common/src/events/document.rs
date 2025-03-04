@@ -237,6 +237,13 @@ impl EventWrapperMessageConversion for DocumentEvents {
 	}
 }
 
+impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
+impl_msg_conversion_ext_for_target_type!(ReloadEvent);
+impl_msg_conversion_ext_for_target_type!(LoadStoppedEvent);
+impl_msg_conversion_ext_for_target_type!(ContentChangedEvent);
+impl_msg_conversion_ext_for_target_type!(AttributesChangedEvent);
+impl_msg_conversion_ext_for_target_type!(PageChangedEvent);
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for DocumentEvents {
 	type Error = AtspiError;

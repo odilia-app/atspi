@@ -848,3 +848,68 @@ macro_rules! impl_msg_conversion_ext_for_target_type_with_specified_body_type {
 		}
 	};
 }
+
+/// Implements `MessageConversionExt` for a given target event type.
+///
+/// # Example
+///
+/// ```ignore
+/// impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// #[cfg(feature = "zbus")]
+/// impl<'msg> MessageConversionExt<'msg, EventBody<'msg>> for LoadCompleteEvent {
+///     fn try_from_message(msg: &'msg zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+///         Self::validate_interface(header)?;
+///         Self::validate_member(header)?;
+///
+///         let item = crate::events::ObjectRef::try_from(header)?;
+///         let msg_body = msg.body();
+///         let signature = msg_body.signature();
+///
+///         if signature == crate::events::EventBodyOwned::SIGNATURE
+///             || signature == crate::events::EventBodyQtOwned::SIGNATURE
+///         {
+///             Self::from_message_unchecked_parts(item, msg_body)
+///         } else {
+///             Err(AtspiError::SignatureMatch(format!(
+///                 "The message signature {} does not match a valid signal body signature: {} or {}",
+///                 msg.body().signature(),
+///                 crate::events::EventBodyOwned::SIGNATURE,
+///                 crate::events::EventBodyQtOwned::SIGNATURE,
+///             )))
+///         }
+///     }
+/// }
+/// ```
+macro_rules! impl_msg_conversion_ext_for_target_type {
+	($target_type:ty) => {
+		#[cfg(feature = "zbus")]
+		impl<'msg> MessageConversionExt<'msg, crate::events::EventBody<'msg>> for $target_type {
+			fn try_from_message(msg: &'msg zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+				use zvariant::Type;
+				Self::validate_interface(header)?;
+				Self::validate_member(header)?;
+
+				let item = crate::events::ObjectRef::try_from(header)?;
+				let msg_body = msg.body();
+				let signature = msg_body.signature();
+
+				if signature == crate::events::EventBodyOwned::SIGNATURE
+					|| signature == crate::events::EventBodyQtOwned::SIGNATURE
+				{
+					Self::from_message_unchecked_parts(item, msg_body)
+				} else {
+					Err(AtspiError::SignatureMatch(format!(
+						"The message signature {} does not match a valid signal body signature: {} or {}",
+						msg.body().signature(),
+						crate::events::EventBodyOwned::SIGNATURE,
+						crate::events::EventBodyQtOwned::SIGNATURE,
+					)))
+				}
+			}
+		}
+	};
+}

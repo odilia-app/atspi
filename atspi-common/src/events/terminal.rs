@@ -303,3 +303,9 @@ impl_from_object_ref!(CharWidthChangedEvent);
 impl HasRegistryEventString for TerminalEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
+
+impl_msg_conversion_ext_for_target_type!(LineChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ColumnCountChangedEvent);
+impl_msg_conversion_ext_for_target_type!(LineCountChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ApplicationChangedEvent);
+impl_msg_conversion_ext_for_target_type!(CharWidthChangedEvent);

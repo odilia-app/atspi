@@ -132,6 +132,8 @@ impl EventWrapperMessageConversion for KeyboardEvents {
 	}
 }
 
+impl_msg_conversion_ext_for_target_type!(ModifiersEvent);
+
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for KeyboardEvents {
 	type Error = AtspiError;

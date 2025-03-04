@@ -198,45 +198,6 @@ impl<T: BusProperties> HasInterfaceName for T {
 	const DBUS_INTERFACE: &'static str = <T as BusProperties>::DBUS_INTERFACE;
 }
 
-#[cfg(test)]
-mod accessible_deserialization_tests {
-	use crate::events::ObjectRef;
-	use zvariant::Value;
-
-	#[test]
-	fn try_into_value() {
-		let acc = ObjectRef::default();
-		let value_struct = Value::from(acc);
-		let Value::Structure(structure) = value_struct else {
-			panic!("Unable to destructure a structure out of the Value.");
-		};
-		let vals = structure.into_fields();
-		assert_eq!(vals.len(), 2);
-		let Value::Str(bus_name) = vals.first().unwrap() else {
-			panic!("Unable to destructure field value: {:?}", vals.first().unwrap());
-		};
-		assert_eq!(bus_name, ":0.0");
-		let Value::ObjectPath(path) = vals.last().unwrap() else {
-			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
-		};
-		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
-	}
-	#[test]
-	fn try_from_value() {}
-}
-
-#[cfg(test)]
-mod accessible_tests {
-	use super::ObjectRef;
-
-	#[test]
-	fn test_accessible_default_doesnt_panic() {
-		let acc = ObjectRef::default();
-		assert_eq!(acc.name.as_str(), ":0.0");
-		assert_eq!(acc.path.as_str(), "/org/a11y/atspi/accessible/null");
-	}
-}
-
 #[cfg(feature = "zbus")]
 impl TryFrom<&Header<'_>> for ObjectRef {
 	type Error = AtspiError;
@@ -712,32 +673,6 @@ pub trait MessageConversion<'a>: BusProperties {
 }
 
 #[cfg(feature = "zbus")]
-impl<'msg, T: 'msg> MessageConversionExt<'msg, EventBody<'msg>> for T
-where
-	T: MessageConversion<'msg, Body<'msg> = EventBody<'msg>>,
-{
-	fn try_from_message(msg: &'msg zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		<T as MessageConversionExt<EventBody<'_>>>::validate_interface(header)?;
-		<T as MessageConversionExt<EventBody<'_>>>::validate_member(header)?;
-
-		let item = ObjectRef::try_from(header)?;
-		let msg_body = msg.body();
-		let signature = msg_body.signature();
-
-		if signature == EventBodyOwned::SIGNATURE || signature == EventBodyQtOwned::SIGNATURE {
-			<T as MessageConversion<'msg>>::from_message_unchecked_parts(item, msg_body)
-		} else {
-			Err(AtspiError::SignatureMatch(format!(
-				"The message signature {} does not match the signal's body signature: {} or {}",
-				msg.body().signature(),
-				EventBodyOwned::SIGNATURE,
-				EventBodyQtOwned::SIGNATURE,
-			)))
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
 pub trait MessageConversionExt<'a, B>: 'a + MessageConversion<'a, Body<'a> = B>
 where
 	B: Type + Serialize + Deserialize<'a>,
@@ -909,5 +844,37 @@ mod tests {
 	#[test]
 	fn check_event_body_qt_signature() {
 		assert_eq!(<EventBodyQtOwned as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
+	}
+}
+
+#[cfg(test)]
+mod objref_tests {
+	use super::ObjectRef;
+	use zvariant::Value;
+
+	#[test]
+	fn test_objectref_default_doesnt_panic() {
+		let objr = ObjectRef::default();
+		assert_eq!(objr.name.as_str(), ":0.0");
+		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn try_into_value() {
+		let objr = ObjectRef::default();
+		let value_struct = Value::from(objr);
+		let Value::Structure(structure) = value_struct else {
+			panic!("Unable to destructure a structure out of the Value.");
+		};
+		let vals = structure.into_fields();
+		assert_eq!(vals.len(), 2);
+		let Value::Str(bus_name) = vals.first().unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.first().unwrap());
+		};
+		assert_eq!(bus_name, ":0.0");
+		let Value::ObjectPath(path) = vals.last().unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
+		};
+		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
 }
