@@ -297,7 +297,6 @@ macro_rules! impl_from_dbus_message {
 				let body = msg.body();
 				let signature = body.signature();
 
-				// TODO: COnsider removing this check altoghether because Qt bodies will deserialize as `EventBody<'_>`
 				if signature == EventBody::SIGNATURE || signature == EventBodyQtBorrowed::SIGNATURE {
 					Ok(Self::from_message_unchecked_parts(item, body)?)
 				} else {

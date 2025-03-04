@@ -931,7 +931,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 			detail1: event.index_in_parent,
 
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
-			// Only path to fail is to convert a `Fd` into an `OwnedValue`.
+			// Only way to fail is to convert a `Fd` into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
 				.try_into()
@@ -990,7 +990,7 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	fn from(event: ActiveDescendantChangedEvent) -> Self {
 		EventBodyOwned {
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
-			// Only path to fail is to convert a Fd into an `OwnedValue`.
+			// Only way to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
 			any_data: Value::from(event.child)
 				.try_to_owned()
@@ -1123,13 +1123,12 @@ impl From<TextChangedEvent> for EventBodyOwned {
 			kind: event.operation.to_string(),
 			detail1: event.start_pos,
 			detail2: event.length,
-
 			// `OwnedValue` is constructed from a `String`
 			// Therefore, this is safe.
 			any_data: Value::from(event.text)
 				.try_to_owned()
 				.expect("Failed to convert child to OwnedValue"),
-			properties: super::event_body::Properties,
+			..Default::default()
 		}
 	}
 }
