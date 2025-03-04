@@ -204,3 +204,7 @@ impl From<&ButtonEvent> for EventBodyOwned {
 		}
 	}
 }
+
+impl_msg_conversion_ext_for_target_type!(AbsEvent);
+impl_msg_conversion_ext_for_target_type!(RelEvent);
+impl_msg_conversion_ext_for_target_type!(ButtonEvent);

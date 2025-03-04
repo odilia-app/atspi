@@ -286,6 +286,8 @@ pub enum ObjectEvents {
 	TextCaretMoved(TextCaretMovedEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(ObjectEvents);
+
 impl EventTypeProperties for ObjectEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -1504,6 +1506,8 @@ pub enum FocusEvents {
 	Focus(FocusEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(FocusEvents);
+
 impl EventTypeProperties for FocusEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -1539,7 +1543,6 @@ impl EventProperties for FocusEvents {
 		}
 	}
 }
-
 impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
 impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
 impl_try_from_event_for_interface_enum!(FocusEvents, Event::Focus);
@@ -1578,6 +1581,8 @@ pub enum KeyboardEvents {
 	/// See: [`ModifiersEvent`].
 	Modifiers(ModifiersEvent),
 }
+
+impl_tryfrommessage_for_event_wrapper!(KeyboardEvents);
 
 impl EventTypeProperties for KeyboardEvents {
 	fn member(&self) -> &'static str {
@@ -1651,7 +1656,6 @@ impl TryFrom<&zbus::Message> for KeyboardEvents {
 		Self::try_from_message(msg)
 	}
 }
-impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ModifiersEvent,
@@ -1672,6 +1676,8 @@ pub enum MouseEvents {
 	/// See: [`ButtonEvent`].
 	Button(ButtonEvent),
 }
+
+impl_tryfrommessage_for_event_wrapper!(MouseEvents);
 
 impl EventTypeProperties for MouseEvents {
 	fn member(&self) -> &'static str {
@@ -1791,6 +1797,8 @@ pub enum TerminalEvents {
 	/// See: [`CharWidthChangedEvent`].
 	CharWidthChanged(CharWidthChangedEvent),
 }
+
+impl_tryfrommessage_for_event_wrapper!(TerminalEvents);
 
 impl EventTypeProperties for TerminalEvents {
 	fn member(&self) -> &'static str {
@@ -2001,6 +2009,8 @@ pub enum WindowEvents {
 	/// See: [`RestyleEvent`].
 	Restyle(RestyleEvent),
 }
+
+impl_tryfrommessage_for_event_wrapper!(WindowEvents);
 
 impl EventTypeProperties for WindowEvents {
 	fn member(&self) -> &'static str {

@@ -21,6 +21,11 @@ impl BusProperties for FocusEvent {
 	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
 }
 
+impl_msg_conversion_ext_for_target_type!(FocusEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(FocusEvent);
+
+impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
+
 event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);

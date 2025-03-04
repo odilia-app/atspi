@@ -851,3 +851,175 @@ macro_rules! impl_msg_conversion_ext_for_target_type_with_specified_body_type {
 		}
 	};
 }
+
+/// Implements `MessageConversionExt` for a given target event type.
+///
+/// # Example
+///
+/// ```ignore
+/// impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// #[cfg(feature = "zbus")]
+/// impl<'msg> MessageConversionExt<'msg, EventBody<'msg>> for LoadCompleteEvent {
+///     fn try_from_message(msg: &'msg zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+///         Self::validate_interface(header)?;
+///         Self::validate_member(header)?;
+///
+///         let item = crate::events::ObjectRef::try_from(header)?;
+///         let msg_body = msg.body();
+///         let signature = msg_body.signature();
+///
+///         if signature == crate::events::EventBodyOwned::SIGNATURE
+///             || signature == crate::events::EventBodyQtOwned::SIGNATURE
+///         {
+///             Self::from_message_unchecked_parts(item, msg_body)
+///         } else {
+///             Err(AtspiError::SignatureMatch(format!(
+///                 "The message signature {} does not match a valid signal body signature: {} or {}",
+///                 msg.body().signature(),
+///                 crate::events::EventBodyOwned::SIGNATURE,
+///                 crate::events::EventBodyQtOwned::SIGNATURE,
+///             )))
+///         }
+///     }
+/// }
+/// ```
+macro_rules! impl_msg_conversion_ext_for_target_type {
+	($target_type:ty) => {
+		#[cfg(feature = "zbus")]
+		impl<'msg> MessageConversionExt<'msg, crate::events::EventBody<'msg>> for $target_type {
+			fn try_from_message(msg: &'msg zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+				use zvariant::Type;
+				Self::validate_interface(header)?;
+				Self::validate_member(header)?;
+
+				let item = crate::events::ObjectRef::try_from(header)?;
+				let msg_body = msg.body();
+				let signature = msg_body.signature();
+
+				if signature == crate::events::EventBodyOwned::SIGNATURE
+					|| signature == crate::events::EventBodyQtOwned::SIGNATURE
+				{
+					Self::from_message_unchecked_parts(item, msg_body)
+				} else {
+					Err(AtspiError::SignatureMatch(format!(
+						"The message signature {} does not match a valid signal body signature: {} or {}",
+						msg.body().signature(),
+						crate::events::EventBodyOwned::SIGNATURE,
+						crate::events::EventBodyQtOwned::SIGNATURE,
+					)))
+				}
+			}
+		}
+	};
+}
+
+/// Implements `TryFromMessage` for a given event wrapper type.
+///
+/// # Example
+/// ```ignore
+/// impl_tryfrommessage_for_event_wrapper!(StateChangedEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// #[cfg(feature = "zbus")]
+/// impl TryFromMessage for StateChangedEvent {
+///     fn try_from_message(msg: &zbus::Message) -> Result<StateChangedEvent, AtspiError> {
+///        let header = msg.header();
+///        let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+///        if interface != Self::DBUS_INTERFACE {
+///            return Err(AtspiError::InterfaceMatch(format!(
+///                "Interface {} does not match require interface for event: {}",
+///                interface,
+///                Self::DBUS_INTERFACE
+///            )));
+///        }
+///        Self::try_from_message_interface_checked(msg, &header)
+///     }
+/// }
+/// ```
+macro_rules! impl_tryfrommessage_for_event_wrapper {
+	($wrapper:ty) => {
+		#[cfg(feature = "zbus")]
+		impl TryFromMessage for $wrapper {
+			fn try_from_message(msg: &zbus::Message) -> Result<$wrapper, AtspiError> {
+				let header = msg.header();
+				let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+				if interface != Self::DBUS_INTERFACE {
+					return Err(AtspiError::InterfaceMatch(format!(
+						"Interface {} does not match require interface for event: {}",
+						interface,
+						Self::DBUS_INTERFACE
+					)));
+				}
+				Self::try_from_message_interface_checked(msg, &header)
+			}
+		}
+	};
+}
+
+/// Implement the `MessageConversion` trait for the given types.
+///
+/// This macro is used to implement the `MessageConversion` trait for types that are built from an
+/// `ObjectRef` and a `zbus::message::Body` only - no `EventBody` needed.
+///
+/// # Example
+///
+/// ```ignore
+/// impl_msg_conversion_for_types_built_from_object_ref!(FocusEvent, FocusEvents);
+/// ```
+///
+/// This will generate the following implementations:
+///
+/// ```ignore
+/// #[cfg(feature = "zbus")]
+/// impl MessageConversion<'_> for FocusEvent {
+///     type Body<'msg> = crate::events::EventBody<'msg>;
+///
+///     fn from_message_unchecked_parts(
+///         obj_ref: crate::events::ObjectRef,
+///         _body: zbus::message::Body,
+///     ) -> Result<Self, AtspiError> {
+///         Ok(obj_ref.into())
+///     }
+///
+///     fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+///         let obj_ref: crate::events::ObjectRef = header.try_into()?;
+///         Ok(obj_ref.into())
+///     }
+///
+///     fn body(&self) -> Self::Body<'_> {
+///         crate::events::EventBodyOwned::default().into()
+///     }
+/// }
+/// ```
+macro_rules! impl_msg_conversion_for_types_built_from_object_ref {
+	($($type:ty),*) => {
+		$(
+			#[cfg(feature = "zbus")]
+			impl MessageConversion<'_> for $type {
+				type Body<'msg> = crate::events::EventBody<'msg>;
+
+				fn from_message_unchecked_parts(
+					obj_ref: crate::events::ObjectRef,
+					_body: zbus::message::Body,
+				) -> Result<Self, AtspiError> {
+					Ok(obj_ref.into())
+				}
+
+				fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+					let obj_ref: crate::events::ObjectRef = header.try_into()?;
+					Ok(obj_ref.into())
+				}
+
+				fn body(&self) -> Self::Body<'_> {
+					crate::events::EventBodyOwned::default().into()
+				}
+			}
+		)*
+	};
+}

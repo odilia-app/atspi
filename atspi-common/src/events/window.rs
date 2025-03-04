@@ -1,4 +1,12 @@
-use super::event_body::EventBody;
+use crate::{
+	error::AtspiError,
+	events::{
+		BusProperties, EventBody, EventBodyOwned, HasInterfaceName, HasMatchRule,
+		HasRegistryEventString,
+	},
+	Event, EventProperties, EventTypeProperties,
+};
+
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
@@ -12,8 +20,6 @@ use crate::{
 use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
-
-use super::EventBodyQtOwned;
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
@@ -426,3 +432,42 @@ impl_to_dbus_message!(RestyleEvent);
 impl_from_dbus_message!(RestyleEvent);
 impl_event_properties!(RestyleEvent);
 impl_from_object_ref!(RestyleEvent);
+
+impl_msg_conversion_ext_for_target_type!(PropertyChangeEvent);
+impl_msg_conversion_ext_for_target_type!(MinimizeEvent);
+impl_msg_conversion_ext_for_target_type!(MaximizeEvent);
+impl_msg_conversion_ext_for_target_type!(RestoreEvent);
+impl_msg_conversion_ext_for_target_type!(CloseEvent);
+impl_msg_conversion_ext_for_target_type!(CreateEvent);
+impl_msg_conversion_ext_for_target_type!(ReparentEvent);
+impl_msg_conversion_ext_for_target_type!(DesktopCreateEvent);
+impl_msg_conversion_ext_for_target_type!(DesktopDestroyEvent);
+impl_msg_conversion_ext_for_target_type!(DestroyEvent);
+impl_msg_conversion_ext_for_target_type!(ActivateEvent);
+impl_msg_conversion_ext_for_target_type!(DeactivateEvent);
+impl_msg_conversion_ext_for_target_type!(RaiseEvent);
+impl_msg_conversion_ext_for_target_type!(LowerEvent);
+impl_msg_conversion_ext_for_target_type!(MoveEvent);
+impl_msg_conversion_ext_for_target_type!(ResizeEvent);
+impl_msg_conversion_ext_for_target_type!(ShadeEvent);
+impl_msg_conversion_ext_for_target_type!(UUshadeEvent);
+impl_msg_conversion_ext_for_target_type!(RestyleEvent);
+
+impl_msg_conversion_for_types_built_from_object_ref!(MinimizeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(MaximizeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(RestoreEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(CloseEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(CreateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ReparentEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DesktopCreateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DesktopDestroyEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DestroyEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ActivateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DeactivateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(RaiseEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(LowerEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(MoveEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ResizeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ShadeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(UUshadeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(RestyleEvent);

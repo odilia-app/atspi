@@ -60,6 +60,8 @@ impl MessageConversion<'_> for ModifiersEvent {
 	}
 }
 
+impl_msg_conversion_ext_for_target_type!(ModifiersEvent);
+
 impl_try_from_event_for_user_facing_type!(
 	ModifiersEvent,
 	KeyboardEvents::Modifiers,
