@@ -1,8 +1,8 @@
-use super::event_body::EventBody;
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		BusProperties, EventBody, EventBodyOwned, HasInterfaceName, HasMatchRule,
+		HasRegistryEventString,
 	},
 	Event, EventProperties, EventTypeProperties,
 };
@@ -873,3 +873,22 @@ impl_msg_conversion_ext_for_target_type!(ResizeEvent);
 impl_msg_conversion_ext_for_target_type!(ShadeEvent);
 impl_msg_conversion_ext_for_target_type!(UUshadeEvent);
 impl_msg_conversion_ext_for_target_type!(RestyleEvent);
+
+impl_msg_conversion_for_types_built_from_object_ref!(MinimizeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(MaximizeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(RestoreEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(CloseEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(CreateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ReparentEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DesktopCreateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DesktopDestroyEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DestroyEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ActivateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(DeactivateEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(RaiseEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(LowerEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(MoveEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ResizeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ShadeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(UUshadeEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(RestyleEvent);

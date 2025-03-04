@@ -239,13 +239,6 @@ impl EventWrapperMessageConversion for DocumentEvents {
 	}
 }
 
-impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
-impl_msg_conversion_ext_for_target_type!(ReloadEvent);
-impl_msg_conversion_ext_for_target_type!(LoadStoppedEvent);
-impl_msg_conversion_ext_for_target_type!(ContentChangedEvent);
-impl_msg_conversion_ext_for_target_type!(AttributesChangedEvent);
-impl_msg_conversion_ext_for_target_type!(PageChangedEvent);
-
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for DocumentEvents {
 	type Error = AtspiError;
@@ -361,3 +354,17 @@ impl_from_object_ref!(PageChangedEvent);
 impl HasRegistryEventString for DocumentEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
+
+impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
+impl_msg_conversion_ext_for_target_type!(ReloadEvent);
+impl_msg_conversion_ext_for_target_type!(LoadStoppedEvent);
+impl_msg_conversion_ext_for_target_type!(ContentChangedEvent);
+impl_msg_conversion_ext_for_target_type!(AttributesChangedEvent);
+impl_msg_conversion_ext_for_target_type!(PageChangedEvent);
+
+impl_msg_conversion_for_types_built_from_object_ref!(LoadCompleteEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ReloadEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(LoadStoppedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ContentChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(AttributesChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(PageChangedEvent);

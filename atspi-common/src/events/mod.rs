@@ -155,39 +155,6 @@ impl HasRegistryEventString for EventListenerEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Event";
 }
 
-#[cfg(feature = "zbus")]
-impl<T> MessageConversion<'_> for T
-where
-	// This blanket applies to events that consist of an `item: ObjectRef` member only.
-	ObjectRef: Into<T>,
-
-	// this bound is not actually used for anything, but I do not want to implement this trait for
-	// just any type that has an infallible conversion from an ObjectRef
-	T: BusProperties,
-{
-	// Enum `EventBody<'_>` deserializes to the borrowed variant.
-	type Body<'msg>
-		= EventBody<'msg>
-	where
-		T: 'msg;
-
-	fn from_message_unchecked_parts(
-		obj_ref: ObjectRef,
-		_body: DbusBody,
-	) -> Result<Self, AtspiError> {
-		Ok(obj_ref.into())
-	}
-
-	fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let obj_ref: ObjectRef = header.try_into()?;
-		Ok(obj_ref.into())
-	}
-
-	fn body(&self) -> Self::Body<'_> {
-		EventBodyOwned::default().into()
-	}
-}
-
 impl<T: BusProperties> HasMatchRule for T {
 	const MATCH_RULE_STRING: &'static str = <T as BusProperties>::MATCH_RULE_STRING;
 }
@@ -257,18 +224,21 @@ impl EventTypeProperties for EventListenerEvents {
 			Self::Deregistered(inner) => inner.member(),
 		}
 	}
+
 	fn match_rule(&self) -> &'static str {
 		match self {
 			Self::Registered(inner) => inner.match_rule(),
 			Self::Deregistered(inner) => inner.match_rule(),
 		}
 	}
+
 	fn interface(&self) -> &'static str {
 		match self {
 			Self::Registered(inner) => inner.interface(),
 			Self::Deregistered(inner) => inner.interface(),
 		}
 	}
+
 	fn registry_string(&self) -> &'static str {
 		match self {
 			Self::Registered(inner) => inner.registry_string(),
@@ -814,22 +784,6 @@ pub(crate) trait TryFromMessage {
 	where
 		Self: Sized;
 }
-
-// #[cfg(feature = "zbus")]
-// impl<T: EventWrapperMessageConversion + HasInterfaceName> TryFromMessage for T {
-// 	fn try_from_message(msg: &zbus::Message) -> Result<T, AtspiError> {
-// 		let header = msg.header();
-// 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-// 		if interface != <T as HasInterfaceName>::DBUS_INTERFACE {
-// 			return Err(AtspiError::InterfaceMatch(format!(
-// 				"Interface {} does not match require interface for event: {}",
-// 				interface,
-// 				<T as HasInterfaceName>::DBUS_INTERFACE
-// 			)));
-// 		}
-// 		<T as EventWrapperMessageConversion>::try_from_message_interface_checked(msg, &header)
-// 	}
-// }
 
 #[cfg(test)]
 mod tests {

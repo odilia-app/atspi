@@ -958,3 +958,65 @@ macro_rules! impl_tryfrommessage_for_event_wrapper {
 		}
 	};
 }
+
+/// Implement the `MessageConversion` trait for the given types.
+///
+/// This macro is used to implement the `MessageConversion` trait for types that are built from an
+/// `ObjectRef` and a `zbus::message::Body` only - no `EventBody` needed.
+///
+/// # Example
+///
+/// ```ignore
+/// impl_msg_conversion_for_types_built_from_object_ref!(FocusEvent, FocusEvents);
+/// ```
+///
+/// This will generate the following implementations:
+///
+/// ```ignore
+/// #[cfg(feature = "zbus")]
+/// impl MessageConversion<'_> for FocusEvent {
+///     type Body<'msg> = crate::events::EventBody<'msg>;
+///
+///     fn from_message_unchecked_parts(
+///         obj_ref: crate::events::ObjectRef,
+///         _body: zbus::message::Body,
+///     ) -> Result<Self, AtspiError> {
+///         Ok(obj_ref.into())
+///     }
+///
+///     fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+///         let obj_ref: crate::events::ObjectRef = header.try_into()?;
+///         Ok(obj_ref.into())
+///     }
+///
+///     fn body(&self) -> Self::Body<'_> {
+///         crate::events::EventBodyOwned::default().into()
+///     }
+/// }
+/// ```
+macro_rules! impl_msg_conversion_for_types_built_from_object_ref {
+	($($type:ty),*) => {
+		$(
+			#[cfg(feature = "zbus")]
+			impl MessageConversion<'_> for $type {
+				type Body<'msg> = crate::events::EventBody<'msg>;
+
+				fn from_message_unchecked_parts(
+					obj_ref: crate::events::ObjectRef,
+					_body: zbus::message::Body,
+				) -> Result<Self, AtspiError> {
+					Ok(obj_ref.into())
+				}
+
+				fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+					let obj_ref: crate::events::ObjectRef = header.try_into()?;
+					Ok(obj_ref.into())
+				}
+
+				fn body(&self) -> Self::Body<'_> {
+					crate::events::EventBodyOwned::default().into()
+				}
+			}
+		)*
+	};
+}
