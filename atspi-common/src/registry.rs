@@ -1,3 +1,6 @@
+//! This module contains the events that are emitted by the registry daemon.
+//! The events are [`EventListenerRegisteredEvent`] and [`EventListenerDeregisteredEvent`].
+
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, Type};
@@ -7,11 +10,13 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
-use crate::{AtspiError, ObjectRef};
-
-use super::{
-	BusProperties, Event, EventProperties, EventTypeProperties, HasInterfaceName, HasMatchRule,
-	HasRegistryEventString, MessageConversion,
+use crate::{
+	error::AtspiError,
+	events::{
+		BusProperties, Event, EventProperties, EventTypeProperties, HasInterfaceName, HasMatchRule,
+		HasRegistryEventString, MessageConversion,
+	},
+	ObjectRef,
 };
 
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered
@@ -264,4 +269,91 @@ mod event_listener_tests {
 		assert_eq!(el.bus_name.as_str(), ":0.0");
 		assert_eq!(el.path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
+}
+
+pub mod socket {
+	//! This module contains the event that is emitted by the registry daemon's `Socket` interface.
+
+	use crate::{
+		events::MessageConversion, AtspiError, BusProperties, Event, EventProperties, ObjectRef,
+	};
+	use zbus::message::Body as DbusBody;
+
+	#[cfg(feature = "zbus")]
+	use serde::{Deserialize, Serialize};
+	#[cfg(feature = "zbus")]
+	use zbus::message::Header;
+
+	/// An event that is emitted when the registry daemon has started.
+	///
+	/// The accessibility registry emits this signal early during startup,
+	/// when it has registered with the DBus daemon and is available for
+	/// calls from applications.
+	#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
+	pub struct AvailableEvent {
+		/// The emitting [`ObjectRef`].
+		pub item: ObjectRef,
+
+		/// The [`ObjectRef`] for the Registry's root object.
+		pub socket: ObjectRef,
+	}
+
+	impl From<AvailableEvent> for Event {
+		fn from(ev: AvailableEvent) -> Event {
+			Event::Available(ev)
+		}
+	}
+
+	#[cfg(feature = "zbus")]
+	impl TryFrom<Event> for AvailableEvent {
+		type Error = AtspiError;
+		fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {
+			if let Event::Available(specific_event) = generic_event {
+				Ok(specific_event)
+			} else {
+				Err(AtspiError::Conversion("Invalid type"))
+			}
+		}
+	}
+
+	event_test_cases!(AvailableEvent, Explicit);
+
+	impl BusProperties for AvailableEvent {
+		const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
+		const MATCH_RULE_STRING: &'static str =
+			"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
+		const DBUS_MEMBER: &'static str = "Available";
+		const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
+	}
+
+	#[cfg(feature = "zbus")]
+	impl MessageConversion<'_> for AvailableEvent {
+		type Body<'a> = ObjectRef;
+
+		fn from_message_unchecked_parts(
+			item: ObjectRef,
+			body: DbusBody,
+		) -> Result<Self, AtspiError> {
+			let socket = body.deserialize_unchecked::<Self::Body<'_>>()?;
+			Ok(Self { item, socket })
+		}
+
+		fn from_message_unchecked(
+			msg: &zbus::Message,
+			header: &Header,
+		) -> Result<Self, AtspiError> {
+			let item = header.try_into()?;
+			let body = msg.body();
+			Self::from_message_unchecked_parts(item, body)
+		}
+
+		fn body(&self) -> Self::Body<'_> {
+			self.socket.clone()
+		}
+	}
+
+	impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: AvailableEvent, body: ObjectRef);
+	impl_from_dbus_message!(AvailableEvent, Explicit);
+	impl_event_properties!(AvailableEvent);
+	impl_to_dbus_message!(AvailableEvent);
 }
