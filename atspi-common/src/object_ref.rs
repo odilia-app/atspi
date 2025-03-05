@@ -29,25 +29,6 @@ impl Default for ObjectRef {
 	}
 }
 
-/// A unique identifier for an object in the accessibility tree.
-///
-/// This is a borrowed version of [`ObjectRef`].
-///
-/// A ubiquitous type used to refer to an object in the accessibility tree.
-///
-/// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
-/// using a server name and object path. "(so)"
-///
-/// Emitted by `RemoveAccessible` and `Available`
-#[validate(signal: "Available")]
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct ObjectRefBorrowed<'a> {
-	#[serde(borrow)]
-	pub name: UniqueName<'a>,
-	#[serde(borrow)]
-	pub path: ObjectPath<'a>,
-}
-
 impl ObjectRef {
 	/// Create a new `ObjectRef`
 	#[must_use]
@@ -66,6 +47,25 @@ impl ObjectRef {
 			path: ObjectPath::from_static_str_unchecked(path).into(),
 		}
 	}
+}
+
+/// A unique identifier for an object in the accessibility tree.
+///
+/// This is a borrowed version of [`ObjectRef`].
+///
+/// A ubiquitous type used to refer to an object in the accessibility tree.
+///
+/// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
+/// using a server name and object path. "(so)"
+///
+/// Emitted by `RemoveAccessible` and `Available`
+#[validate(signal: "Available")]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+pub struct ObjectRefBorrowed<'a> {
+	#[serde(borrow)]
+	pub name: UniqueName<'a>,
+	#[serde(borrow)]
+	pub path: ObjectPath<'a>,
 }
 
 impl<'a> ObjectRefBorrowed<'a> {
@@ -142,10 +142,10 @@ impl From<ObjectRef> for zvariant::Structure<'_> {
 impl TryFrom<&zbus::message::Header<'_>> for ObjectRef {
 	type Error = crate::AtspiError;
 	fn try_from(header: &zbus::message::Header) -> Result<Self, Self::Error> {
-		let path = header.path().expect("returned path is either `Some` or panics");
+		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
 		let owned_path: OwnedObjectPath = path.clone().into();
 
-		let sender: UniqueName<'_> = header.sender().expect("No sender in header").into();
+		let sender: UniqueName<'_> = header.sender().ok_or(crate::AtspiError::MissingName)?.into();
 		let name: OwnedUniqueName = sender.to_owned().into();
 
 		Ok(ObjectRef { name, path: owned_path })
