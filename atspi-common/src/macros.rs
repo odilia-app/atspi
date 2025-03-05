@@ -403,6 +403,8 @@ macro_rules! event_enum_transparency_test_case {
 	($type:ty) => {
 		#[test]
 		fn event_enum_transparency_test_case() {
+			use crate::events::EventTypeProperties;
+
 			let specific_event = <$type>::default();
 			let generic_event = Event::from(specific_event.clone());
 			assert_eq!(
@@ -437,6 +439,7 @@ macro_rules! zbus_message_qtspi_test_case {
       #[cfg(feature = "zbus")]
      #[test]
     fn zbus_message_conversion_qtspi() {
+		use crate::events::EventTypeProperties;
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
       let ev = <$type>::default();
@@ -456,6 +459,7 @@ macro_rules! zbus_message_qtspi_test_case {
     #[cfg(feature = "zbus")]
     #[test]
     fn zbus_message_conversion_qtspi_event_enum() {
+	  use crate::events::EventTypeProperties;
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
       let ev = <$type>::default();

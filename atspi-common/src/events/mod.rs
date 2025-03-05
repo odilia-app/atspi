@@ -4,14 +4,6 @@ pub mod document;
 pub mod event_wrappers;
 
 pub mod event_body;
-pub use event_body::{EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned};
-#[cfg(feature = "wrappers")]
-pub use event_wrappers::{
-	CacheEvents, DocumentEvents, Event, FocusEvents, KeyboardEvents, MouseEvents, ObjectEvents,
-	TerminalEvents, WindowEvents,
-};
-
-pub mod event_listeners;
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
@@ -25,12 +17,9 @@ pub use crate::events::{
 	cache::CacheEvents, document::DocumentEvents, focus::FocusEvents, keyboard::KeyboardEvents,
 	mouse::MouseEvents, object::ObjectEvents, terminal::TerminalEvents, window::WindowEvents,
 };
-use crate::{AtspiError, ObjectRef};
+use crate::{AtspiError, AvailableEvent, EventListenerEvents, ObjectRef};
 pub use event_body::{
 	EventBody, EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned,
-};
-pub use event_listeners::{
-	EventListenerDeregisteredEvent, EventListenerEvents, EventListenerRegisteredEvent,
 };
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
@@ -167,66 +156,6 @@ impl<T: BusProperties> HasRegistryEventString for T {
 impl<T: BusProperties> HasInterfaceName for T {
 	const DBUS_INTERFACE: &'static str = <T as BusProperties>::DBUS_INTERFACE;
 }
-
-/// An event that is emitted when the registry daemon has started.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
-pub struct AvailableEvent {
-	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
-	pub socket: ObjectRef,
-}
-
-#[cfg(feature = "wrappers")]
-impl From<AvailableEvent> for Event {
-	fn from(ev: AvailableEvent) -> Event {
-		Event::Available(ev)
-	}
-}
-
-#[cfg(feature = "wrappers")]
-impl TryFrom<Event> for AvailableEvent {
-	type Error = AtspiError;
-	fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {
-		if let Event::Available(specific_event) = generic_event {
-			Ok(specific_event)
-		} else {
-			Err(AtspiError::Conversion("Invalid type"))
-		}
-	}
-}
-event_test_cases!(AvailableEvent, Explicit);
-impl BusProperties for AvailableEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
-	const DBUS_MEMBER: &'static str = "Available";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion<'_> for AvailableEvent {
-	type Body<'a> = ObjectRef;
-
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
-		let socket = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, socket })
-	}
-
-	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
-		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
-	}
-
-	fn body(&self) -> Self::Body<'_> {
-		self.socket.clone()
-	}
-}
-
-impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: AvailableEvent, body: ObjectRef);
-impl_from_dbus_message!(AvailableEvent, Explicit);
-impl_event_properties!(AvailableEvent);
-impl_to_dbus_message!(AvailableEvent);
 
 #[cfg(all(feature = "zbus", feature = "wrappers"))]
 impl TryFrom<&zbus::Message> for Event {

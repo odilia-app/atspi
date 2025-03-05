@@ -24,6 +24,11 @@ pub mod operation;
 pub use operation::Operation;
 pub mod interface;
 pub use interface::{Interface, InterfaceSet};
+pub mod registry;
+pub use registry::socket::AvailableEvent;
+pub use registry::{
+	EventListenerDeregisteredEvent, EventListenerEvents, EventListenerRegisteredEvent,
+};
 pub mod state;
 pub use state::{State, StateSet};
 pub mod cache;
