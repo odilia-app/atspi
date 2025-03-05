@@ -11,6 +11,7 @@ pub use event_wrappers::{
 	TerminalEvents, WindowEvents,
 };
 
+pub mod event_listeners;
 pub mod focus;
 pub mod keyboard;
 pub mod mouse;
@@ -28,13 +29,16 @@ use crate::{AtspiError, ObjectRef};
 pub use event_body::{
 	EventBody, EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned,
 };
-use serde::{Deserialize, Serialize};
-use zbus::message::{Body as DbusBody, Header};
-use zbus_lockstep_macros::validate;
-use zbus_names::{OwnedUniqueName, UniqueName};
-#[cfg(feature = "zbus")]
-use zvariant::OwnedObjectPath;
+pub use event_listeners::{
+	EventListenerDeregisteredEvent, EventListenerEvents, EventListenerRegisteredEvent,
+};
+use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
+
+#[cfg(feature = "zbus")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "zbus")]
+use zbus::message::{Body as DbusBody, Header};
 
 /// Encapsulates the various different accessibility bus signal types.
 ///
@@ -154,19 +158,6 @@ impl EventProperties for Event {
 	}
 }
 
-impl HasInterfaceName for EventListenerEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
-}
-
-impl HasMatchRule for EventListenerEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Registry'";
-}
-
-impl HasRegistryEventString for EventListenerEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Event";
-}
-
 impl<T: BusProperties> HasMatchRule for T {
 	const MATCH_RULE_STRING: &'static str = <T as BusProperties>::MATCH_RULE_STRING;
 }
@@ -177,248 +168,6 @@ impl<T: BusProperties> HasInterfaceName for T {
 	const DBUS_INTERFACE: &'static str = <T as BusProperties>::DBUS_INTERFACE;
 }
 
-#[cfg(feature = "zbus")]
-impl TryFrom<&Header<'_>> for ObjectRef {
-	type Error = AtspiError;
-	fn try_from(header: &Header) -> Result<Self, Self::Error> {
-		let path = header.path().expect("returned path is either `Some` or panics");
-		let owned_path: OwnedObjectPath = path.clone().into();
-
-		let sender: UniqueName<'_> = header.sender().expect("No sender in header").into();
-		let name: OwnedUniqueName = sender.to_owned().into();
-
-		Ok(ObjectRef { name, path: owned_path })
-	}
-}
-
-/// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
-/// which belong to the `Registry` interface, implemented by the registry-daemon.
-#[validate(signal: "EventListenerRegistered")]
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-pub struct EventListeners {
-	pub bus_name: OwnedUniqueName,
-	pub path: String,
-}
-
-impl Default for EventListeners {
-	fn default() -> Self {
-		Self {
-			bus_name: UniqueName::try_from(":0.0").unwrap().into(),
-			path: "/org/a11y/atspi/accessible/null".to_string(),
-		}
-	}
-}
-
-#[cfg(test)]
-#[test]
-fn test_event_listener_default_no_panic() {
-	let el = EventListeners::default();
-	assert_eq!(el.bus_name.as_str(), ":0.0");
-	assert_eq!(el.path.as_str(), "/org/a11y/atspi/accessible/null");
-}
-
-/// Covers both `EventListener` events.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[allow(clippy::module_name_repetitions)]
-pub enum EventListenerEvents {
-	/// See: [`EventListenerRegisteredEvent`].
-	Registered(EventListenerRegisteredEvent),
-	/// See: [`EventListenerDeregisteredEvent`].
-	Deregistered(EventListenerDeregisteredEvent),
-}
-
-impl_tryfrommessage_for_event_wrapper!(EventListenerEvents);
-
-impl EventTypeProperties for EventListenerEvents {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::Registered(inner) => inner.member(),
-			Self::Deregistered(inner) => inner.member(),
-		}
-	}
-
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::Registered(inner) => inner.match_rule(),
-			Self::Deregistered(inner) => inner.match_rule(),
-		}
-	}
-
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::Registered(inner) => inner.interface(),
-			Self::Deregistered(inner) => inner.interface(),
-		}
-	}
-
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::Registered(inner) => inner.registry_string(),
-			Self::Deregistered(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for EventListenerEvents {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::Registered(inner) => inner.path(),
-			Self::Deregistered(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::Registered(inner) => inner.sender(),
-			Self::Deregistered(inner) => inner.sender(),
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for EventListenerEvents {
-	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
-		hdr: &Header,
-	) -> Result<Self, AtspiError> {
-		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
-		match member.as_str() {
-			EventListenerRegisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Registered(
-				EventListenerRegisteredEvent::from_message_unchecked(msg, hdr)?,
-			)),
-			EventListenerDeregisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Deregistered(
-				EventListenerDeregisteredEvent::from_message_unchecked(msg, hdr)?,
-			)),
-			_ => Err(AtspiError::MemberMatch(format!(
-				"No member {} in {}",
-				member.as_str(),
-				Self::DBUS_INTERFACE
-			))),
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for EventListenerEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
-/// An event that is emitted by the registry daemon, to inform that an event has been deregistered
-/// to no longer listen for.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct EventListenerDeregisteredEvent {
-	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
-	/// A list of events that have been deregistered via the registry interface.
-	/// See `atspi-connection`.
-	pub deregistered_event: EventListeners,
-}
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	EventListenerDeregisteredEvent,
-	EventListenerEvents,
-	EventListenerEvents::Deregistered
-);
-impl_from_user_facing_type_for_event_enum!(EventListenerDeregisteredEvent, Event::Listener);
-impl_try_from_event_for_user_facing_type!(
-	EventListenerDeregisteredEvent,
-	EventListenerEvents::Deregistered,
-	Event::Listener
-);
-event_test_cases!(EventListenerDeregisteredEvent, Explicit);
-impl BusProperties for EventListenerDeregisteredEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
-	const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion<'_> for EventListenerDeregisteredEvent {
-	type Body<'a> = EventListeners;
-
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
-		let deregistered_event = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, deregistered_event })
-	}
-
-	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
-		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
-	}
-
-	fn body(&self) -> Self::Body<'_> {
-		self.deregistered_event.clone()
-	}
-}
-
-impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: EventListenerDeregisteredEvent, body: EventListeners);
-impl_from_dbus_message!(EventListenerDeregisteredEvent, Explicit);
-impl_event_properties!(EventListenerDeregisteredEvent);
-impl_to_dbus_message!(EventListenerDeregisteredEvent);
-
-/// An event that is emitted by the regostry daemon to signal that an event has been registered to listen for.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
-pub struct EventListenerRegisteredEvent {
-	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
-	/// A list of events that have been registered via the registry interface.
-	/// See `atspi-connection`.
-	pub registered_event: EventListeners,
-}
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	EventListenerRegisteredEvent,
-	EventListenerEvents,
-	EventListenerEvents::Registered
-);
-impl_from_user_facing_type_for_event_enum!(EventListenerRegisteredEvent, Event::Listener);
-impl_try_from_event_for_user_facing_type!(
-	EventListenerRegisteredEvent,
-	EventListenerEvents::Registered,
-	Event::Listener
-);
-event_test_cases!(EventListenerRegisteredEvent, Explicit);
-impl BusProperties for EventListenerRegisteredEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
-	const DBUS_MEMBER: &'static str = "EventListenerRegistered";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion<'_> for EventListenerRegisteredEvent {
-	type Body<'a> = EventListeners;
-
-	fn from_message_unchecked_parts(
-		item: ObjectRef,
-		registered_event: DbusBody,
-	) -> Result<Self, AtspiError> {
-		let registered_event = registered_event.deserialize_unchecked()?;
-		Ok(Self { item, registered_event })
-	}
-
-	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
-		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
-	}
-
-	fn body(&self) -> Self::Body<'_> {
-		self.registered_event.clone()
-	}
-}
-
-impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: EventListenerRegisteredEvent, body: EventListeners);
-impl_from_dbus_message!(EventListenerRegisteredEvent, Explicit);
-impl_event_properties!(EventListenerRegisteredEvent);
-impl_to_dbus_message!(EventListenerRegisteredEvent);
-
 /// An event that is emitted when the registry daemon has started.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 pub struct AvailableEvent {
@@ -426,12 +175,14 @@ pub struct AvailableEvent {
 	pub item: ObjectRef,
 	pub socket: ObjectRef,
 }
+
 #[cfg(feature = "wrappers")]
 impl From<AvailableEvent> for Event {
 	fn from(ev: AvailableEvent) -> Event {
 		Event::Available(ev)
 	}
 }
+
 #[cfg(feature = "wrappers")]
 impl TryFrom<Event> for AvailableEvent {
 	type Error = AtspiError;
@@ -762,57 +513,4 @@ pub(crate) trait TryFromMessage {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where
 		Self: Sized;
-}
-
-#[cfg(test)]
-mod tests {
-	use super::EventBodyQtOwned;
-	use zvariant::{signature::Fields, Signature, Type};
-
-	const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
-		&Signature::Str,
-		&Signature::I32,
-		&Signature::I32,
-		&Signature::Variant,
-		&Signature::Structure(Fields::Static {
-			fields: &[&Signature::Str, &Signature::ObjectPath],
-		}),
-	]);
-
-	#[test]
-	fn check_event_body_qt_signature() {
-		assert_eq!(<EventBodyQtOwned as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
-	}
-}
-
-#[cfg(test)]
-mod objref_tests {
-	use super::ObjectRef;
-	use zvariant::Value;
-
-	#[test]
-	fn test_objectref_default_doesnt_panic() {
-		let objr = ObjectRef::default();
-		assert_eq!(objr.name.as_str(), ":0.0");
-		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/accessible/null");
-	}
-
-	#[test]
-	fn try_into_value() {
-		let objr = ObjectRef::default();
-		let value_struct = Value::from(objr);
-		let Value::Structure(structure) = value_struct else {
-			panic!("Unable to destructure a structure out of the Value.");
-		};
-		let vals = structure.into_fields();
-		assert_eq!(vals.len(), 2);
-		let Value::Str(bus_name) = vals.first().unwrap() else {
-			panic!("Unable to destructure field value: {:?}", vals.first().unwrap());
-		};
-		assert_eq!(bus_name, ":0.0");
-		let Value::ObjectPath(path) = vals.last().unwrap() else {
-			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
-		};
-		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
-	}
 }

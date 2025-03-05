@@ -1099,6 +1099,9 @@ mod test {
 
 	#[cfg(test)]
 	mod signatures {
+		use crate::events::EventBodyQtOwned;
+		use zvariant::{signature::Fields, Signature, Type};
+
 		#[test]
 		fn test_event_body_signature_equals_borrowed_event_body_signature() {
 			use super::*;
@@ -1108,6 +1111,24 @@ mod test {
 			let owned = EventBodyOwned::SIGNATURE;
 
 			assert_eq!(borrowed, owned);
+		}
+
+		// We have no definition of the Qt event body, so we can't compare the type
+		// to a signature definition in XML.
+		// That is why we keep a copy here.
+		const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
+			&Signature::Str,
+			&Signature::I32,
+			&Signature::I32,
+			&Signature::Variant,
+			&Signature::Structure(Fields::Static {
+				fields: &[&Signature::Str, &Signature::ObjectPath],
+			}),
+		]);
+
+		#[test]
+		fn check_event_body_qt_signature() {
+			assert_eq!(<EventBodyQtOwned as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
 		}
 	}
 }

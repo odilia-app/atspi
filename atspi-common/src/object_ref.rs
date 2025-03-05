@@ -1,11 +1,9 @@
-use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
-use zvariant::{ObjectPath, OwnedObjectPath, Signature, Type, Value};
+use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 
-// Equiv to "(so)"
-pub static OBJECT_REF_SIGNATURE: Signature =
-	Signature::static_structure(&[&Signature::Str, &Signature::ObjectPath]);
+#[cfg(feature = "zbus")]
+use serde::{Deserialize, Serialize};
 
 /// A unique identifier for an object in the accessibility tree.
 ///
@@ -140,8 +138,24 @@ impl From<ObjectRef> for zvariant::Structure<'_> {
 	}
 }
 
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::message::Header<'_>> for ObjectRef {
+	type Error = crate::AtspiError;
+	fn try_from(header: &zbus::message::Header) -> Result<Self, Self::Error> {
+		let path = header.path().expect("returned path is either `Some` or panics");
+		let owned_path: OwnedObjectPath = path.clone().into();
+
+		let sender: UniqueName<'_> = header.sender().expect("No sender in header").into();
+		let name: OwnedUniqueName = sender.to_owned().into();
+
+		Ok(ObjectRef { name, path: owned_path })
+	}
+}
+
 #[cfg(test)]
 mod test {
+	use zvariant::Value;
+
 	use crate::{object_ref::ObjectRefBorrowed, ObjectRef};
 
 	#[test]
@@ -226,5 +240,31 @@ mod test {
 		let value = zvariant::Value::from((42, true));
 		let obj: Result<ObjectRefBorrowed, _> = value.try_into();
 		assert!(obj.is_err());
+	}
+
+	#[test]
+	fn test_objectref_default_doesnt_panic() {
+		let objr = ObjectRef::default();
+		assert_eq!(objr.name.as_str(), ":0.0");
+		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn try_into_value() {
+		let objr = ObjectRef::default();
+		let value_struct = Value::from(objr);
+		let Value::Structure(structure) = value_struct else {
+			panic!("Unable to destructure a structure out of the Value.");
+		};
+		let vals = structure.into_fields();
+		assert_eq!(vals.len(), 2);
+		let Value::Str(bus_name) = vals.first().unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.first().unwrap());
+		};
+		assert_eq!(bus_name, ":0.0");
+		let Value::ObjectPath(path) = vals.last().unwrap() else {
+			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
+		};
+		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
 	}
 }

@@ -19,11 +19,11 @@
 /// ```
 macro_rules! impl_event_properties {
 	($type:ty) => {
-		impl EventProperties for $type {
-			fn sender(&self) -> UniqueName<'_> {
+		impl crate::EventProperties for $type {
+			fn sender(&self) -> zbus::names::UniqueName<'_> {
 				self.item.name.as_ref()
 			}
-			fn path(&self) -> ObjectPath<'_> {
+			fn path(&self) -> zbus::zvariant::ObjectPath<'_> {
 				self.item.path.as_ref()
 			}
 		}
@@ -313,10 +313,10 @@ macro_rules! impl_from_dbus_message {
 	($type:ty, Explicit) => {
 		#[cfg(feature = "zbus")]
 		impl TryFrom<&zbus::Message> for $type {
-			type Error = AtspiError;
+			type Error = crate::AtspiError;
 			fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
 				let hdr = msg.header();
-				<$type as MessageConversionExt<<$type as MessageConversion>::Body<'_>>>::try_from_message(msg, &hdr)
+				<$type as crate::events::MessageConversionExt<<$type as MessageConversion>::Body<'_>>>::try_from_message(msg, &hdr)
 			}
 		}
 	};
@@ -439,39 +439,39 @@ macro_rules! zbus_message_qtspi_test_case {
     fn zbus_message_conversion_qtspi() {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
-        let ev = <$type>::default();
-          let qt: crate::events::EventBodyQtOwned = ev.body().into();
-          let msg = zbus::Message::signal(
-            ev.path(),
-            ev.interface(),
-            ev.member(),
-          )
-          .unwrap()
-          .sender(":0.0")
-          .unwrap()
-          .build(&(qt,))
-          .unwrap();
+      let ev = <$type>::default();
+      let qt: crate::events::EventBodyQtOwned = ev.body().into();
+      let msg = zbus::Message::signal(
+          ev.path(),
+          ev.interface(),
+          ev.member(),
+      )
+        .unwrap()
+        .sender(":0.0")
+        .unwrap()
+        .build(&(qt,))
+        .unwrap();
           <$type>::try_from(&msg).expect("Should be able to use an EventBodyQtOwned for any type whose BusProperties::Body = EventBodyOwned");
-        }
-      #[cfg(feature = "zbus")]
-     #[test]
+    }
+    #[cfg(feature = "zbus")]
+    #[test]
     fn zbus_message_conversion_qtspi_event_enum() {
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
-        let ev = <$type>::default();
-          let qt: crate::events::EventBodyQtOwned = ev.body().into();
-          let msg = zbus::Message::signal(
-            ev.path(),
-            ev.interface(),
-            ev.member(),
-          )
-          .unwrap()
-          .sender(":0.0")
-          .unwrap()
-          .build(&(qt,))
-          .unwrap();
-          assert_matches!(Event::try_from(&msg), Ok(_));
-        }
+      let ev = <$type>::default();
+      let qt: crate::events::EventBodyQtOwned = ev.body().into();
+      let msg = zbus::Message::signal(
+        ev.path(),
+        ev.interface(),
+        ev.member(),
+      )
+        .unwrap()
+        .sender(":0.0")
+        .unwrap()
+        .build(&(qt,))
+        .unwrap();
+        assert_matches!(Event::try_from(&msg), Ok(_));
+     }
     };
     ($type:ty, Explicit) => {};
 }
@@ -841,8 +841,9 @@ macro_rules! event_test_cases {
 macro_rules! impl_msg_conversion_ext_for_target_type_with_specified_body_type {
 	(target: $target_type:ty, body: $body_type:ty) => {
 		#[cfg(feature = "zbus")]
-		impl<'a> MessageConversionExt<'a, $body_type> for $target_type {
+		impl<'a> crate::events::MessageConversionExt<'a, $body_type> for $target_type {
 			fn try_from_message(msg: &zbus::Message, hdr: &Header) -> Result<Self, AtspiError> {
+				use crate::events::MessageConversionExt;
 				<Self as MessageConversionExt<$body_type>>::validate_interface(hdr)?;
 				<Self as MessageConversionExt<$body_type>>::validate_member(hdr)?;
 				<Self as MessageConversionExt<$body_type>>::validate_body(msg)?;
@@ -945,8 +946,10 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 macro_rules! impl_tryfrommessage_for_event_wrapper {
 	($wrapper:ty) => {
 		#[cfg(feature = "zbus")]
-		impl TryFromMessage for $wrapper {
+		impl crate::events::TryFromMessage for $wrapper {
 			fn try_from_message(msg: &zbus::Message) -> Result<$wrapper, AtspiError> {
+				use crate::events::EventWrapperMessageConversion;
+
 				let header = msg.header();
 				let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 				if interface != Self::DBUS_INTERFACE {
