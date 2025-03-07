@@ -5,8 +5,8 @@ use crate::events::{
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, EventBody, EventBodyBorrowed, EventBodyOwned, HasInterfaceName,
-		HasMatchRule, HasRegistryEventString, ObjectRef,
+		DBusInterface, DBusMatchRule, EventBody, EventBodyBorrowed, EventBodyOwned, ObjectRef,
+		RegistryEventString,
 	},
 	Event, EventProperties, EventTypeProperties, State,
 };
@@ -14,6 +14,8 @@ use std::hash::Hash;
 use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};
+
+use super::DBusMember;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
@@ -230,11 +232,19 @@ impl EventProperties for ObjectEvents {
 impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
 impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
 
-event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
-
-impl HasMatchRule for ObjectEvents {
+impl DBusMatchRule for ObjectEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
 }
+
+impl DBusInterface for ObjectEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
+}
+
+impl RegistryEventString for ObjectEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "object:";
+}
+
+event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
 
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -734,13 +744,13 @@ pub struct TextCaretMovedEvent {
 	pub position: i32,
 }
 
-impl BusProperties for PropertyChangeEvent {
-	const DBUS_MEMBER: &'static str = "PropertyChange";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	PropertyChangeEvent,
+	"PropertyChange",
+	"org.a11y.atspi.Event.Object",
+	"object:property-change",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for PropertyChangeEvent {
@@ -765,29 +775,29 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 	}
 }
 
-impl BusProperties for BoundsChangedEvent {
-	const DBUS_MEMBER: &'static str = "BoundsChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	BoundsChangedEvent,
+	"BoundsChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:bounds-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='BoundsChanged'"
+);
 
-impl BusProperties for LinkSelectedEvent {
-	const DBUS_MEMBER: &'static str = "LinkSelected";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LinkSelectedEvent,
+	"LinkSelected",
+	"org.a11y.atspi.Event.Object",
+	"object:link-selected",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='LinkSelected'"
+);
 
-impl BusProperties for StateChangedEvent {
-	const DBUS_MEMBER: &'static str = "StateChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	StateChangedEvent,
+	"StateChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:state-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='StateChanged'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for StateChangedEvent {
@@ -810,13 +820,13 @@ impl MessageConversion<'_> for StateChangedEvent {
 	}
 }
 
-impl BusProperties for ChildrenChangedEvent {
-	const DBUS_MEMBER: &'static str = "ChildrenChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ChildrenChangedEvent,
+	"ChildrenChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:children-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='ChildrenChanged'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for ChildrenChangedEvent {
@@ -843,37 +853,37 @@ impl MessageConversion<'_> for ChildrenChangedEvent {
 	}
 }
 
-impl BusProperties for VisibleDataChangedEvent {
-	const DBUS_MEMBER: &'static str = "VisibleDataChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	VisibleDataChangedEvent,
+	"VisibleDataChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:visible-data-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='VisibleDataChanged'"
+);
 
-impl BusProperties for SelectionChangedEvent {
-	const DBUS_MEMBER: &'static str = "SelectionChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	SelectionChangedEvent,
+	"SelectionChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:selection-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='SelectionChanged'"
+);
 
-impl BusProperties for ModelChangedEvent {
-	const DBUS_MEMBER: &'static str = "ModelChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ModelChangedEvent,
+	"ModelChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:model-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='ModelChanged'"
+);
 
-impl BusProperties for ActiveDescendantChangedEvent {
-	const DBUS_MEMBER: &'static str = "ActiveDescendantChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ActiveDescendantChangedEvent,
+	"ActiveDescendantChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:active-descendant-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='ActiveDescendantChanged'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for ActiveDescendantChangedEvent {
@@ -895,13 +905,13 @@ impl MessageConversion<'_> for ActiveDescendantChangedEvent {
 	}
 }
 
-impl BusProperties for AnnouncementEvent {
-	const DBUS_MEMBER: &'static str = "Announcement";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	AnnouncementEvent,
+	"Announcement",
+	"org.a11y.atspi.Event.Object",
+	"object:announcement",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='Announcement'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for AnnouncementEvent {
@@ -930,85 +940,85 @@ impl MessageConversion<'_> for AnnouncementEvent {
 	}
 }
 
-impl BusProperties for AttributesChangedEvent {
-	const DBUS_MEMBER: &'static str = "AttributesChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	AttributesChangedEvent,
+	"AttributesChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:attributes-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='AttributesChanged'"
+);
 
-impl BusProperties for RowInsertedEvent {
-	const DBUS_MEMBER: &'static str = "RowInserted";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RowInsertedEvent,
+	"RowInserted",
+	"org.a11y.atspi.Event.Object",
+	"object:row-inserted",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='RowInserted'"
+);
 
-impl BusProperties for RowReorderedEvent {
-	const DBUS_MEMBER: &'static str = "RowReordered";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RowReorderedEvent,
+	"RowReordered",
+	"org.a11y.atspi.Event.Object",
+	"object:row-reordered",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='RowReordered'"
+);
 
-impl BusProperties for RowDeletedEvent {
-	const DBUS_MEMBER: &'static str = "RowDeleted";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RowDeletedEvent,
+	"RowDeleted",
+	"org.a11y.atspi.Event.Object",
+	"object:row-deleted",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='RowDeleted'"
+);
 
-impl BusProperties for ColumnInsertedEvent {
-	const DBUS_MEMBER: &'static str = "ColumnInserted";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ColumnInsertedEvent,
+	"ColumnInserted",
+	"org.a11y.atspi.Event.Object",
+	"object:column-inserted",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnInserted'"
+);
 
-impl BusProperties for ColumnReorderedEvent {
-	const DBUS_MEMBER: &'static str = "ColumnReordered";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ColumnReorderedEvent,
+	"ColumnReordered",
+	"org.a11y.atspi.Event.Object",
+	"object:column-reordered",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnReordered'"
+);
 
-impl BusProperties for ColumnDeletedEvent {
-	const DBUS_MEMBER: &'static str = "ColumnDeleted";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ColumnDeletedEvent,
+	"ColumnDeleted",
+	"org.a11y.atspi.Event.Object",
+	"object:column-deleted",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='ColumnDeleted'"
+);
 
-impl BusProperties for TextBoundsChangedEvent {
-	const DBUS_MEMBER: &'static str = "TextBoundsChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	TextBoundsChangedEvent,
+	"TextBoundsChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:text-bounds-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='TextBoundsChanged'"
+);
 
-impl BusProperties for TextSelectionChangedEvent {
-	const DBUS_MEMBER: &'static str = "TextSelectionChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	TextSelectionChangedEvent,
+	"TextSelectionChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:text-selection-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='TextSelectionChanged'"
+);
 
-impl BusProperties for TextChangedEvent {
-	const DBUS_MEMBER: &'static str = "TextChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	TextChangedEvent,
+	"TextChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:text-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='TextChanged'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for TextChangedEvent {
@@ -1036,21 +1046,21 @@ impl MessageConversion<'_> for TextChangedEvent {
 	}
 }
 
-impl BusProperties for TextAttributesChangedEvent {
-	const DBUS_MEMBER: &'static str = "TextAttributesChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	TextAttributesChangedEvent,
+	"TextAttributesChanged",
+	"org.a11y.atspi.Event.Object",
+	"object:text-attributes-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='TextAttributesChanged'"
+);
 
-impl BusProperties for TextCaretMovedEvent {
-	const DBUS_MEMBER: &'static str = "TextCaretMoved";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'";
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	TextCaretMovedEvent,
+	"TextCaretMoved",
+	"org.a11y.atspi.Event.Object",
+	"object:text-caret-moved",
+	"type='signal',interface='org.a11y.atspi.Event.Object',member='TextCaretMoved'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for TextCaretMovedEvent {
@@ -1070,10 +1080,6 @@ impl MessageConversion<'_> for TextCaretMovedEvent {
 	fn body(&self) -> Self::Body<'_> {
 		EventBodyOwned::from(self.clone()).into()
 	}
-}
-
-impl HasInterfaceName for ObjectEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 }
 
 #[cfg(feature = "zbus")]
@@ -1609,7 +1615,7 @@ impl_try_from_event_for_user_facing_type!(
 #[cfg(test)]
 mod text_changed_event {
 	use super::{
-		AtspiError, BusProperties, Event, EventProperties, EventTypeProperties, MessageConversion,
+		AtspiError, Event, EventProperties, EventTypeProperties, MessageConversion,
 		TextChangedEvent,
 	};
 	use assert_matches::assert_matches;
@@ -1642,7 +1648,7 @@ mod text_changed_event {
 	event_enum_transparency_test_case!(TextChangedEvent);
 }
 
-assert_impl_all!(TextChangedEvent:Clone,std::fmt::Debug,serde::Serialize,serde::Deserialize<'static>,Default,PartialEq,Eq,std::hash::Hash,crate::EventProperties,crate::EventTypeProperties,crate::BusProperties,);
+assert_impl_all!(TextChangedEvent:Clone,std::fmt::Debug,serde::Serialize,serde::Deserialize<'static>,Default,PartialEq,Eq,std::hash::Hash,crate::EventProperties,crate::EventTypeProperties);
 #[cfg(feature = "zbus")]
 assert_impl_all!(zbus::Message:TryFrom<TextChangedEvent>);
 impl_to_dbus_message!(TextChangedEvent);
@@ -1700,10 +1706,6 @@ impl From<TextCaretMovedEvent> for EventBodyOwned {
 	fn from(event: TextCaretMovedEvent) -> Self {
 		EventBodyOwned { detail1: event.position, ..Default::default() }
 	}
-}
-
-impl HasRegistryEventString for ObjectEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
 }
 
 impl_msg_conversion_ext_for_target_type!(PropertyChangeEvent);

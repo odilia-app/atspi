@@ -4,12 +4,14 @@ use crate::events::{
 };
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
+	events::{DBusInterface, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
+
+use super::{DBusMatchRule, DBusMember};
 
 /// All events related to the `org.a11y.atspi.Event.Terminal` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -24,6 +26,11 @@ pub enum TerminalEvents {
 	ApplicationChanged(ApplicationChangedEvent),
 	/// See: [`CharWidthChangedEvent`].
 	CharWidthChanged(CharWidthChangedEvent),
+}
+
+impl DBusMatchRule for TerminalEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 }
 
 impl_tryfrommessage_for_event_wrapper!(TerminalEvents);
@@ -93,11 +100,6 @@ impl_try_from_event_for_user_facing_event_type!(TerminalEvents, Event::Terminal)
 
 event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
 
-impl HasMatchRule for TerminalEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
-}
-
 /// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
@@ -135,48 +137,52 @@ pub struct CharWidthChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl BusProperties for LineChangedEvent {
-	const DBUS_MEMBER: &'static str = "LineChanged";
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LineChangedEvent,
+	"LineChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:line-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ColumnCountChangedEvent,
+	"ColumncountChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:columncount-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LineCountChangedEvent,
+	"LinecountChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:linecount-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ApplicationChangedEvent,
+	"ApplicationChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:application-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	CharWidthChangedEvent,
+	"CharwidthChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:char-width-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'"
+);
+
+impl DBusInterface for TerminalEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
 }
 
-impl BusProperties for ColumnCountChangedEvent {
-	const DBUS_MEMBER: &'static str = "ColumncountChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
-
-impl BusProperties for LineCountChangedEvent {
-	const DBUS_MEMBER: &'static str = "LinecountChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
-
-impl BusProperties for ApplicationChangedEvent {
-	const DBUS_MEMBER: &'static str = "ApplicationChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
-
-impl BusProperties for CharWidthChangedEvent {
-	const DBUS_MEMBER: &'static str = "CharwidthChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
-
-impl HasInterfaceName for TerminalEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
+impl RegistryEventString for TerminalEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "terminal:";
 }
 
 #[cfg(feature = "zbus")]
@@ -301,10 +307,6 @@ impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
 impl_event_properties!(CharWidthChangedEvent);
 impl_from_object_ref!(CharWidthChangedEvent);
-
-impl HasRegistryEventString for TerminalEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
 
 impl_msg_conversion_ext_for_target_type!(LineChangedEvent);
 impl_msg_conversion_ext_for_target_type!(ColumnCountChangedEvent);

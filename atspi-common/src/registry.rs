@@ -13,8 +13,8 @@ use zbus::message::{Body as DbusBody, Header};
 use crate::{
 	error::AtspiError,
 	events::{
-		BusProperties, Event, EventProperties, EventTypeProperties, HasInterfaceName, HasMatchRule,
-		HasRegistryEventString, MessageConversion,
+		DBusInterface, DBusMatchRule, DBusMember, Event, EventProperties, EventTypeProperties,
+		MessageConversion, RegistryEventString,
 	},
 	ObjectRef,
 };
@@ -44,13 +44,16 @@ impl_try_from_event_for_user_facing_type!(
 );
 
 event_test_cases!(EventListenerDeregisteredEvent, Explicit);
-impl BusProperties for EventListenerDeregisteredEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerDeregistered";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'";
-	const DBUS_MEMBER: &'static str = "EventListenerDeregistered";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
-}
+
+// The registry string cannot be found in upstrream at-spi2-core.
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	EventListenerDeregisteredEvent,
+	"EventListenerDeregistered",
+	"org.a11y.atspi.Registry",
+	"registry:event-listener-deregistered",
+	"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerDeregistered'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for EventListenerDeregisteredEvent {
@@ -130,13 +133,15 @@ impl_try_from_event_for_user_facing_type!(
 );
 
 event_test_cases!(EventListenerRegisteredEvent, Explicit);
-impl BusProperties for EventListenerRegisteredEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Registry:EventListenerRegistered";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'";
-	const DBUS_MEMBER: &'static str = "EventListenerRegistered";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
-}
+
+// The registry string cannot be found in upstrream at-spi2-core.
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	EventListenerRegisteredEvent,
+	"EventListenerRegistered",
+	"org.a11y.atspi.Registry",
+	"registry:event-listener-registered",
+	"type='signal',interface='org.a11y.atspi.Registry',member='EventListenerRegistered'"
+);
 
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
@@ -168,16 +173,16 @@ pub enum EventListenerEvents {
 	Deregistered(EventListenerDeregisteredEvent),
 }
 
-impl HasInterfaceName for EventListenerEvents {
+impl DBusInterface for EventListenerEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 }
 
-impl HasMatchRule for EventListenerEvents {
+impl DBusMatchRule for EventListenerEvents {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Registry'";
 }
 
-impl HasRegistryEventString for EventListenerEvents {
+impl RegistryEventString for EventListenerEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Event";
 }
 
@@ -274,9 +279,7 @@ mod event_listener_tests {
 pub mod socket {
 	//! This module contains the event that is emitted by the registry daemon's `Socket` interface.
 
-	use crate::{
-		events::MessageConversion, AtspiError, BusProperties, Event, EventProperties, ObjectRef,
-	};
+	use crate::{events::MessageConversion, AtspiError, Event, EventProperties, ObjectRef};
 	use zbus::message::Body as DbusBody;
 
 	#[cfg(feature = "zbus")]
@@ -318,13 +321,15 @@ pub mod socket {
 
 	event_test_cases!(AvailableEvent, Explicit);
 
-	impl BusProperties for AvailableEvent {
-		const REGISTRY_EVENT_STRING: &'static str = "Socket:Available";
-		const MATCH_RULE_STRING: &'static str =
-			"type='signal',interface='org.a11y.atspi.Socket',member='Available'";
-		const DBUS_MEMBER: &'static str = "Available";
-		const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Socket";
-	}
+	// We cannot really register at Registry for this event, as it is emitted by the Registry itself at early startup.
+	// So, we do not have a registry event string for this event.
+	impl_member_interface_registry_string_and_match_rule_for_event!(
+		AvailableEvent,
+		"Available",
+		"org.a11y.atspi.Socket",
+		"",
+		"type='signal',interface='org.a11y.atspi.Socket',member='Available'"
+	);
 
 	#[cfg(feature = "zbus")]
 	impl MessageConversion<'_> for AvailableEvent {

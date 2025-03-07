@@ -1,9 +1,6 @@
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBody, EventBodyOwned, HasInterfaceName, HasMatchRule,
-		HasRegistryEventString,
-	},
+	events::{DBusInterface, DBusMatchRule, EventBody, EventBodyOwned, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 #[cfg(feature = "zbus")]
@@ -16,6 +13,8 @@ use crate::{
 use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
+
+use super::DBusMember;
 
 /// All events on the `org.a11y.atspi.Event.Window` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -211,7 +210,7 @@ impl_try_from_event_for_user_facing_event_type!(WindowEvents, Event::Window);
 
 event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
-impl HasMatchRule for WindowEvents {
+impl DBusMatchRule for WindowEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window'";
 }
 
@@ -337,13 +336,13 @@ pub struct RestyleEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl BusProperties for PropertyChangeEvent {
-	const DBUS_MEMBER: &'static str = "PropertyChange";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	PropertyChangeEvent,
+	"PropertyChange",
+	"org.a11y.atspi.Event.Window",
+	"window:property-change",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='PropertyChange'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for PropertyChangeEvent {
@@ -365,152 +364,158 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 	}
 }
 
-impl BusProperties for MinimizeEvent {
-	const DBUS_MEMBER: &'static str = "Minimize";
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	MinimizeEvent,
+	"Minimize",
+	"org.a11y.atspi.Event.Window",
+	"window:minimize",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	MaximizeEvent,
+	"Maximize",
+	"org.a11y.atspi.Event.Window",
+	"window:maximize",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RestoreEvent,
+	"Restore",
+	"org.a11y.atspi.Event.Window",
+	"window:restore",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	CloseEvent,
+	"Close",
+	"org.a11y.atspi.Event.Window",
+	"window:close",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	CreateEvent,
+	"Create",
+	"org.a11y.atspi.Event.Window",
+	"window:create",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Create'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ReparentEvent,
+	"Reparent",
+	"org.a11y.atspi.Event.Window",
+	"window:reparent",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	DesktopCreateEvent,
+	"DesktopCreate",
+	"org.a11y.atspi.Event.Window",
+	"window:desktop-create",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	DesktopDestroyEvent,
+	"DesktopDestroy",
+	"org.a11y.atspi.Event.Window",
+	"window:desktop-destroy",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	DestroyEvent,
+	"Destroy",
+	"org.a11y.atspi.Event.Window",
+	"window:destroy",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ActivateEvent,
+	"Activate",
+	"org.a11y.atspi.Event.Window",
+	"window:activate",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	DeactivateEvent,
+	"Deactivate",
+	"org.a11y.atspi.Event.Window",
+	"window:deactivate",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RaiseEvent,
+	"Raise",
+	"org.a11y.atspi.Event.Window",
+	"window:raise",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LowerEvent,
+	"Lower",
+	"org.a11y.atspi.Event.Window",
+	"window:lower",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	MoveEvent,
+	"Move",
+	"org.a11y.atspi.Event.Window",
+	"window:move",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ResizeEvent,
+	"Resize",
+	"org.a11y.atspi.Event.Window",
+	"window:resize",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ShadeEvent,
+	"Shade",
+	"org.a11y.atspi.Event.Window",
+	"window:shade",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	UUshadeEvent,
+	"uUshade",
+	"org.a11y.atspi.Event.Window",
+	"window:uushade",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RestyleEvent,
+	"Restyle",
+	"org.a11y.atspi.Event.Window",
+	"window:restyle",
+	"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'"
+);
+
+#[cfg(feature = "zbus")]
+impl DBusInterface for WindowEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Minimize'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
 }
 
-impl BusProperties for MaximizeEvent {
-	const DBUS_MEMBER: &'static str = "Maximize";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Maximize'";
+#[cfg(feature = "zbus")]
+impl RegistryEventString for WindowEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for RestoreEvent {
-	const DBUS_MEMBER: &'static str = "Restore";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Restore'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for CloseEvent {
-	const DBUS_MEMBER: &'static str = "Close";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Close'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for CreateEvent {
-	const DBUS_MEMBER: &'static str = "Create";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Create'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for ReparentEvent {
-	const DBUS_MEMBER: &'static str = "Reparent";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Reparent'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for DesktopCreateEvent {
-	const DBUS_MEMBER: &'static str = "DesktopCreate";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopCreate'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for DesktopDestroyEvent {
-	const DBUS_MEMBER: &'static str = "DesktopDestroy";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='DesktopDestroy'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for DestroyEvent {
-	const DBUS_MEMBER: &'static str = "Destroy";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Destroy'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for ActivateEvent {
-	const DBUS_MEMBER: &'static str = "Activate";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Activate'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for DeactivateEvent {
-	const DBUS_MEMBER: &'static str = "Deactivate";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Deactivate'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for RaiseEvent {
-	const DBUS_MEMBER: &'static str = "Raise";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Raise'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for LowerEvent {
-	const DBUS_MEMBER: &'static str = "Lower";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Lower'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for MoveEvent {
-	const DBUS_MEMBER: &'static str = "Move";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Move'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for ResizeEvent {
-	const DBUS_MEMBER: &'static str = "Resize";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Resize'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for ShadeEvent {
-	const DBUS_MEMBER: &'static str = "Shade";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Shade'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for UUshadeEvent {
-	const DBUS_MEMBER: &'static str = "uUshade";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='uUshade'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl BusProperties for RestyleEvent {
-	const DBUS_MEMBER: &'static str = "Restyle";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Window',member='Restyle'";
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
-
-impl HasInterfaceName for WindowEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 }
 
 #[cfg(feature = "zbus")]
@@ -849,10 +854,6 @@ impl_to_dbus_message!(RestyleEvent);
 impl_from_dbus_message!(RestyleEvent);
 impl_event_properties!(RestyleEvent);
 impl_from_object_ref!(RestyleEvent);
-
-impl HasRegistryEventString for WindowEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
-}
 
 impl_msg_conversion_ext_for_target_type!(PropertyChangeEvent);
 impl_msg_conversion_ext_for_target_type!(MinimizeEvent);
