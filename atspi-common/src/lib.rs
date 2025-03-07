@@ -36,7 +36,7 @@ pub use cache::{CacheItem, LegacyCacheItem};
 pub mod error;
 pub use error::AtspiError;
 pub mod events;
-pub use events::{BusProperties, Event, EventProperties, EventTypeProperties};
+pub use events::{Event, EventProperties, EventTypeProperties};
 mod role;
 pub use role::Role;
 mod relation_type;

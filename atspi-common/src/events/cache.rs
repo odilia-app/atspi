@@ -5,13 +5,15 @@ use crate::events::{
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString, ObjectRef},
+	events::{DBusInterface, DBusMatchRule, ObjectRef, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use serde::{Deserialize, Serialize};
 use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
+
+use super::DBusMember;
 
 /// All events related to the `org.a11y.atspi.Cache` interface.
 /// Note that these are not telling the client that an item *has been added* to a cache.
@@ -43,16 +45,16 @@ impl TryFromMessage for CacheEvents {
 	}
 }
 
-impl HasMatchRule for CacheEvents {
+impl DBusMatchRule for CacheEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
 }
 
-impl HasRegistryEventString for CacheEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache";
+impl DBusInterface for CacheEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 }
 
-impl HasInterfaceName for CacheEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
+impl RegistryEventString for CacheEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "cache:";
 }
 
 impl EventTypeProperties for CacheEvents {
@@ -174,13 +176,13 @@ impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
 
-impl BusProperties for LegacyAddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LegacyAddAccessibleEvent,
+	"AddAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:add",
+	"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for LegacyAddAccessibleEvent {
@@ -220,13 +222,13 @@ impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
 event_test_cases!(AddAccessibleEvent, Explicit);
 
-impl BusProperties for AddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	AddAccessibleEvent,
+	"AddAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:add",
+	"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for AddAccessibleEvent {
@@ -271,13 +273,13 @@ impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
 event_test_cases!(RemoveAccessibleEvent, Explicit);
 
-impl BusProperties for RemoveAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
-	const DBUS_MEMBER: &'static str = "RemoveAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RemoveAccessibleEvent,
+	"RemoveAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:remove",
+	"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for RemoveAccessibleEvent {

@@ -1,9 +1,7 @@
-use super::event_body::EventBody;
+use super::{event_body::EventBody, DBusMember};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
-	},
+	events::{DBusInterface, DBusMatchRule, EventBodyOwned, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 #[cfg(feature = "zbus")]
@@ -66,9 +64,17 @@ impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard)
 
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
-impl HasMatchRule for KeyboardEvents {
+impl DBusMatchRule for KeyboardEvents {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
+}
+
+impl DBusInterface for KeyboardEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
+}
+
+impl RegistryEventString for KeyboardEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "keyboard:";
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -79,12 +85,12 @@ pub struct ModifiersEvent {
 	pub current_modifiers: i32,
 }
 
-impl BusProperties for ModifiersEvent {
-	const DBUS_MEMBER: &'static str = "Modifiers";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
-	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
+impl_member_interface_registry_string_and_match_rule_for_event! {
+	ModifiersEvent,
+	"Modifiers",
+	"org.a11y.atspi.Event.Keyboard",
+	"keyboard:modifiers",
+	"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'"
 }
 
 #[cfg(feature = "zbus")]
@@ -110,10 +116,6 @@ impl MessageConversion<'_> for ModifiersEvent {
 		}
 		.into()
 	}
-}
-
-impl HasInterfaceName for KeyboardEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 }
 
 #[cfg(feature = "zbus")]
@@ -168,8 +170,4 @@ impl From<ModifiersEvent> for EventBodyOwned {
 			..Default::default()
 		}
 	}
-}
-
-impl HasRegistryEventString for KeyboardEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 }

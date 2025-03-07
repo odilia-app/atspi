@@ -4,12 +4,14 @@ use crate::events::{
 };
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
+	events::{DBusInterface, DBusMatchRule, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
+
+use super::DBusMember;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum FocusEvents {
@@ -60,8 +62,16 @@ impl_try_from_event_for_user_facing_event_type!(FocusEvents, Event::Focus);
 
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
 
-impl HasMatchRule for FocusEvents {
+impl DBusMatchRule for FocusEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
+}
+
+impl RegistryEventString for FocusEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "focus:";
+}
+
+impl DBusInterface for FocusEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -70,16 +80,12 @@ pub struct FocusEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl BusProperties for FocusEvent {
-	const DBUS_MEMBER: &'static str = "Focus";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'";
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
-}
-
-impl HasInterfaceName for FocusEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
+impl_member_interface_registry_string_and_match_rule_for_event! {
+	FocusEvent,
+	"Focus",
+	"org.a11y.atspi.Event.Focus",
+	"focus:",
+	"type='signal',interface='org.a11y.atspi.Event.Focus',member='Focus'"
 }
 
 #[cfg(feature = "zbus")]
@@ -121,7 +127,3 @@ impl_to_dbus_message!(FocusEvent);
 impl_from_dbus_message!(FocusEvent);
 impl_event_properties!(FocusEvent);
 impl_from_object_ref!(FocusEvent);
-
-impl HasRegistryEventString for FocusEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
-}

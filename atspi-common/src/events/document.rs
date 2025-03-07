@@ -4,12 +4,14 @@ use crate::events::{
 };
 use crate::{
 	error::AtspiError,
-	events::{BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString},
+	events::{DBusInterface, DBusMatchRule, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
+
+use super::DBusMember;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentEvents {
@@ -99,11 +101,6 @@ impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
 impl_try_from_event_for_user_facing_event_type!(DocumentEvents, Event::Document);
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
 
-impl HasMatchRule for DocumentEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document'";
-}
-
 /// An event triggered by the completion of a document load action.
 /// For example: a web page has finished loading its initial payload, or
 /// `LibreOffice` has loaded a document from disk.
@@ -156,56 +153,66 @@ pub struct PageChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl BusProperties for LoadCompleteEvent {
-	const DBUS_MEMBER: &'static str = "LoadComplete";
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LoadCompleteEvent,
+	"LoadComplete",
+	"org.a11y.atspi.Event.Document",
+	"document:load-complete",
+	"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ReloadEvent,
+	"Reload",
+	"org.a11y.atspi.Event.Document",
+	"document:reload",
+	"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LoadStoppedEvent,
+	"LoadStopped",
+	"org.a11y.atspi.Event.Document",
+	"document:load-stopped",
+	"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'"
+);
+
+// TODO confirm registry event string, not found in grep at at-spi2-core
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ContentChangedEvent,
+	"ContentChanged",
+	"org.a11y.atspi.Event.Document",
+	"document:content-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	AttributesChangedEvent,
+	"AttributesChanged",
+	"org.a11y.atspi.Event.Document",
+	"document:attributes-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	PageChangedEvent,
+	"PageChanged",
+	"org.a11y.atspi.Event.Document",
+	"document:page-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'"
+);
+
+impl DBusInterface for DocumentEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadComplete'";
-	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
-impl BusProperties for ReloadEvent {
-	const DBUS_MEMBER: &'static str = "Reload";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
+impl DBusMatchRule for DocumentEvents {
 	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document',member='Reload'";
-	const REGISTRY_EVENT_STRING: &'static str = "Document:";
+		"type='signal',interface='org.a11y.atspi.Event.Document'";
 }
 
-impl BusProperties for LoadStoppedEvent {
-	const DBUS_MEMBER: &'static str = "LoadStopped";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document',member='LoadStopped'";
+impl RegistryEventString for DocumentEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
-
-impl BusProperties for ContentChangedEvent {
-	const DBUS_MEMBER: &'static str = "ContentChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document',member='ContentChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
-
-impl BusProperties for AttributesChangedEvent {
-	const DBUS_MEMBER: &'static str = "AttributesChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document',member='AttributesChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
-
-impl BusProperties for PageChangedEvent {
-	const DBUS_MEMBER: &'static str = "PageChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
-
-impl HasInterfaceName for DocumentEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 }
 
 #[cfg(feature = "zbus")]
@@ -350,10 +357,6 @@ impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);
 impl_event_properties!(PageChangedEvent);
 impl_from_object_ref!(PageChangedEvent);
-
-impl HasRegistryEventString for DocumentEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
 
 impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
 impl_msg_conversion_ext_for_target_type!(ReloadEvent);
