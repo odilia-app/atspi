@@ -240,10 +240,11 @@ macro_rules! impl_to_dbus_message {
 		impl TryFrom<$type> for zbus::Message {
 			type Error = AtspiError;
 			fn try_from(event: $type) -> Result<Self, Self::Error> {
+				use crate::events::{DBusInterface, DBusMember};
 				Ok(zbus::Message::signal(
 					event.path(),
-					<$type as BusProperties>::DBUS_INTERFACE,
-					<$type as BusProperties>::DBUS_MEMBER,
+					<$type as DBusInterface>::DBUS_INTERFACE,
+					<$type as DBusMember>::DBUS_MEMBER,
 				)?
 				.sender(event.sender().to_string())?
 				.build(&event.body())?)
@@ -344,7 +345,7 @@ macro_rules! generic_event_test_case {
 			let body = struct_event.body();
 			let body2 = Message::method_call(
 				struct_event.path().as_str(),
-				<$type as BusProperties>::DBUS_MEMBER,
+				<$type as crate::events::DBusMember>::DBUS_MEMBER,
 			)
 			.unwrap()
 			.sender(struct_event.sender().as_str())
@@ -555,7 +556,7 @@ macro_rules! zbus_message_test_case {
 		fn zbus_msg_conversion_failure_correct_interface() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
-				<$type as BusProperties>::DBUS_INTERFACE,
+				<$type as crate::events::DBusInterface>::DBUS_INTERFACE,
 				"MadeUpMember",
 			)
 			.unwrap()
@@ -572,8 +573,8 @@ macro_rules! zbus_message_test_case {
 		fn zbus_msg_conversion_failure_correct_interface_and_member() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
-				<$type as BusProperties>::DBUS_INTERFACE,
-				<$type as BusProperties>::DBUS_MEMBER,
+				<$type as crate::events::DBusInterface>::DBUS_INTERFACE,
+				<$type as crate::events::DBusMember>::DBUS_MEMBER,
 			)
 			.unwrap()
 			.sender(":0.0")
@@ -591,8 +592,8 @@ macro_rules! zbus_message_test_case {
       let invalid_body: (i32, u64, String, String) = (0, 0, String::new(), String::new());
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
-				<$type as BusProperties>::DBUS_INTERFACE,
-				<$type as BusProperties>::DBUS_MEMBER,
+				<$type as crate::events::DBusInterface>::DBUS_INTERFACE,
+				<$type as crate::events::DBusMember>::DBUS_MEMBER,
 			)
 			.unwrap()
 			.sender(":0.0")
@@ -626,7 +627,7 @@ macro_rules! zbus_message_test_case {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.accessible.technically.valid",
-				<$type as BusProperties>::DBUS_MEMBER,
+				<$type as crate::events::DBusMember>::DBUS_MEMBER,
 			)
 			.unwrap()
 			.sender(":0.0")
@@ -641,8 +642,8 @@ macro_rules! zbus_message_test_case {
 		fn zbus_msg_conversion_failure_correct_body_and_interface() -> () {
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
-				<$type as BusProperties>::DBUS_INTERFACE,
-        "MadeUpMember",
+				<$type as crate::events::DBusInterface>::DBUS_INTERFACE,
+				"MadeUpMember",
 			)
 			.unwrap()
 			.sender(":0.0")
@@ -678,7 +679,7 @@ macro_rules! event_wrapper_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "events_tests_", case = "snake")]
 		mod foo {
-			use super::{$any_subtype, $type, AtspiError, Event, BusProperties, MessageConversion};
+			use super::{$any_subtype, $type, AtspiError, Event, MessageConversion};
       // TODO: replace with [`std::assert_matches::assert_matches`] when stabailized
       use assert_matches::assert_matches;
 			#[test]
@@ -703,7 +704,7 @@ macro_rules! event_wrapper_test_cases {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
 					"org.a11y.atspi.technically.valid.lol",
-					<$any_subtype as BusProperties>::DBUS_MEMBER,
+					<$any_subtype as crate::events::DBusMember>::DBUS_MEMBER,
 				)
 				.unwrap()
 				.sender(":0.0")
@@ -731,7 +732,7 @@ macro_rules! event_wrapper_test_cases {
 			fn zbus_msg_invalid_member() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
-					<$any_subtype as BusProperties>::DBUS_INTERFACE,
+					<$any_subtype as crate::events::DBusInterface>::DBUS_INTERFACE,
 					"FakeFunctionLol",
 				)
 				.unwrap()
@@ -767,8 +768,8 @@ macro_rules! event_wrapper_test_cases {
 			fn zbus_msg_conversion() {
 				let valid_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
-					<$any_subtype as BusProperties>::DBUS_INTERFACE,
-					<$any_subtype as BusProperties>::DBUS_MEMBER,
+					<$any_subtype as crate::events::DBusInterface>::DBUS_INTERFACE,
+					<$any_subtype as crate::events::DBusMember>::DBUS_MEMBER,
 				)
 				.unwrap()
 				.sender(":0.0")
@@ -792,8 +793,8 @@ macro_rules! event_test_cases {
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
 			use crate::{EventTypeProperties, Event};
-			use super::{$type, AtspiError, BusProperties, MessageConversion, EventProperties};
-      use zbus::Message;
+			use super::{$type, AtspiError, Event, MessageConversion, EventProperties };
+            use zbus::Message;
       // TODO: use [`std::assert_matches::assert_matches`] when stabalized
       use assert_matches::assert_matches;
 
@@ -813,7 +814,10 @@ macro_rules! event_test_cases {
 			std::hash::Hash,
 			crate::EventProperties,
 			crate::EventTypeProperties,
-			crate::BusProperties,
+			crate::events::DBusInterface,
+			crate::events::DBusMember,
+			crate::events::DBusMatchRule,
+			crate::events::RegistryEventString
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
@@ -1028,5 +1032,56 @@ macro_rules! impl_msg_conversion_for_types_built_from_object_ref {
 				}
 			}
 		)*
+	};
+}
+
+/// Implement `DBusMember`, `DBusInterface`, `DBusMatchRule`, and `RegistryEventString`
+/// for a given event type.
+///
+/// This macro takes 5 arguments in the order:
+/// - The target type
+/// - The member string
+/// - The interface string
+/// - The registry string
+/// - The match rule string
+///
+/// # Example
+/// ```ignore
+/// impl_member_interface_registry_string_and_match_rule_for_event!(
+/// FocusEvent, "Focus", "org.a11y.atspi.Event.Focus", "focus",
+/// "type='signal',interface='org.a11y.atspi.Event.Focus'");
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl DBusMember for FocusEvent {
+///    const DBUS_MEMBER: &'static str = "Focus";
+/// }
+/// impl DBusInterface for FocusEvent {
+///   const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
+/// }
+/// impl MatchRule for FocusEvent {
+///  const MATCH_RULE: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
+/// }
+/// impl RegistryEventString for FocusEvent {
+///  const REGISTRY_STRING: &'static str = "focus";
+/// }
+/// impl DBusProperties for FocusEvent {}
+/// ```
+macro_rules! impl_member_interface_registry_string_and_match_rule_for_event {
+	($target_type:ty, $member_str:literal, $interface_str:literal, $registry_str:literal, $match_rule_str:literal) => {
+		impl crate::events::DBusMember for $target_type {
+			const DBUS_MEMBER: &'static str = $member_str;
+		}
+		impl crate::events::DBusInterface for $target_type {
+			const DBUS_INTERFACE: &'static str = $interface_str;
+		}
+		impl crate::events::DBusMatchRule for $target_type {
+			const MATCH_RULE_STRING: &'static str = $match_rule_str;
+		}
+		impl crate::events::RegistryEventString for $target_type {
+			const REGISTRY_EVENT_STRING: &'static str = $registry_str;
+		}
+		impl crate::events::DBusProperties for $target_type {}
 	};
 }

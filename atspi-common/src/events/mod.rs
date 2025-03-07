@@ -29,227 +29,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
-/// Encapsulates the various different accessibility bus signal types.
-///
-/// Assumes being non exhaustive to allow for future- or custom signals.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[non_exhaustive]
-pub enum Event {
-	/// See: [`DocumentEvents`].
-	Document(DocumentEvents),
-	/// See: [`FocusEvents`].
-	Focus(FocusEvents),
-	/// See: [`KeyboardEvents`].
-	Keyboard(KeyboardEvents),
-	/// See: [`MouseEvents`].
-	Mouse(MouseEvents),
-	/// See: [`ObjectEvents`].
-	Object(ObjectEvents),
-	/// See: [`TerminalEvents`].
-	Terminal(TerminalEvents),
-	/// See: [`WindowEvents`].
-	Window(WindowEvents),
-	/// See: [`AvailableEvent`].
-	Available(AvailableEvent),
-	/// See: [`CacheEvents`].
-	Cache(CacheEvents),
-	/// See: [`EventListenerEvents`].
-	Listener(EventListenerEvents),
-}
-
-impl EventTypeProperties for Event {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::Document(inner) => inner.member(),
-			Self::Focus(inner) => inner.member(),
-			Self::Keyboard(inner) => inner.member(),
-			Self::Mouse(inner) => inner.member(),
-			Self::Object(inner) => inner.member(),
-			Self::Terminal(inner) => inner.member(),
-			Self::Window(inner) => inner.member(),
-			Self::Available(inner) => inner.member(),
-			Self::Cache(inner) => inner.member(),
-			Self::Listener(inner) => inner.member(),
-		}
-	}
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::Document(inner) => inner.interface(),
-			Self::Focus(inner) => inner.interface(),
-			Self::Keyboard(inner) => inner.interface(),
-			Self::Mouse(inner) => inner.interface(),
-			Self::Object(inner) => inner.interface(),
-			Self::Terminal(inner) => inner.interface(),
-			Self::Window(inner) => inner.interface(),
-			Self::Available(inner) => inner.interface(),
-			Self::Cache(inner) => inner.interface(),
-			Self::Listener(inner) => inner.interface(),
-		}
-	}
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::Document(inner) => inner.match_rule(),
-			Self::Focus(inner) => inner.match_rule(),
-			Self::Keyboard(inner) => inner.match_rule(),
-			Self::Mouse(inner) => inner.match_rule(),
-			Self::Object(inner) => inner.match_rule(),
-			Self::Terminal(inner) => inner.match_rule(),
-			Self::Window(inner) => inner.match_rule(),
-			Self::Available(inner) => inner.match_rule(),
-			Self::Cache(inner) => inner.match_rule(),
-			Self::Listener(inner) => inner.match_rule(),
-		}
-	}
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::Document(inner) => inner.registry_string(),
-			Self::Focus(inner) => inner.registry_string(),
-			Self::Keyboard(inner) => inner.registry_string(),
-			Self::Mouse(inner) => inner.registry_string(),
-			Self::Object(inner) => inner.registry_string(),
-			Self::Terminal(inner) => inner.registry_string(),
-			Self::Window(inner) => inner.registry_string(),
-			Self::Available(inner) => inner.registry_string(),
-			Self::Cache(inner) => inner.registry_string(),
-			Self::Listener(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for Event {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::Document(inner) => inner.path(),
-			Self::Focus(inner) => inner.path(),
-			Self::Keyboard(inner) => inner.path(),
-			Self::Mouse(inner) => inner.path(),
-			Self::Object(inner) => inner.path(),
-			Self::Terminal(inner) => inner.path(),
-			Self::Window(inner) => inner.path(),
-			Self::Available(inner) => inner.path(),
-			Self::Cache(inner) => inner.path(),
-			Self::Listener(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::Document(inner) => inner.sender(),
-			Self::Focus(inner) => inner.sender(),
-			Self::Keyboard(inner) => inner.sender(),
-			Self::Mouse(inner) => inner.sender(),
-			Self::Object(inner) => inner.sender(),
-			Self::Terminal(inner) => inner.sender(),
-			Self::Window(inner) => inner.sender(),
-			Self::Available(inner) => inner.sender(),
-			Self::Cache(inner) => inner.sender(),
-			Self::Listener(inner) => inner.sender(),
-		}
-	}
-}
-
-impl<T: BusProperties> HasMatchRule for T {
-	const MATCH_RULE_STRING: &'static str = <T as BusProperties>::MATCH_RULE_STRING;
-}
-impl<T: BusProperties> HasRegistryEventString for T {
-	const REGISTRY_EVENT_STRING: &'static str = <T as BusProperties>::REGISTRY_EVENT_STRING;
-}
-impl<T: BusProperties> HasInterfaceName for T {
-	const DBUS_INTERFACE: &'static str = <T as BusProperties>::DBUS_INTERFACE;
-}
-
-#[cfg(all(feature = "zbus", feature = "wrappers"))]
-impl TryFrom<&zbus::Message> for Event {
-	type Error = AtspiError;
-
-	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
-		let header = msg.header();
-		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
-		let interface_str = interface.as_str();
-
-		match interface_str {
-			<ObjectEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg, &header)?))
-			}
-			<FocusEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg, &header)?))
-			}
-			<CacheEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg, &header)?))
-			}
-			<WindowEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg, &header)?))
-			}
-			<MouseEvents as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg, &header)?))
-			}
-			<TerminalEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Terminal(
-				TerminalEvents::try_from_message_interface_checked(msg, &header)?,
-			)),
-			<DocumentEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Document(
-				DocumentEvents::try_from_message_interface_checked(msg, &header)?,
-			)),
-			<KeyboardEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Keyboard(
-				KeyboardEvents::try_from_message_interface_checked(msg, &header)?,
-			)),
-			<EventListenerEvents as HasInterfaceName>::DBUS_INTERFACE => Ok(Event::Listener(
-				EventListenerEvents::try_from_message_interface_checked(msg, &header)?,
-			)),
-			<AvailableEvent as HasInterfaceName>::DBUS_INTERFACE => {
-				Ok(AvailableEvent::try_from(msg)?.into())
-			}
-			_ => Err(AtspiError::InterfaceMatch(format!(
-				"No events found with interface {interface_str}"
-			))),
-		}
-	}
-}
-
-impl<T: BusProperties> EventTypeProperties for T {
-	fn member(&self) -> &'static str {
-		<T>::DBUS_MEMBER
-	}
-	fn interface(&self) -> &'static str {
-		<T>::DBUS_INTERFACE
-	}
-	fn match_rule(&self) -> &'static str {
-		<T>::MATCH_RULE_STRING
-	}
-	fn registry_string(&self) -> &'static str {
-		<T>::REGISTRY_EVENT_STRING
-	}
-}
-
 assert_obj_safe!(EventTypeProperties);
-
 assert_obj_safe!(EventProperties);
 
-/// Describes the `DBus`-related information about a given struct.
-///
-/// - `DBus` member name
-/// - `DBus` interface name
-/// - `DBus` match string: used to tell `DBus` you are interested in a particular signal
-/// - accessibility registry event string: used to tell the accessibility registry that you are interested in a particular event
-///
-/// This trait *is not* object-safe.
-/// For a similar, but object-safe trait, see [`EventProperties`].
-pub trait BusProperties {
-	/// The `DBus` member for the event.
-	/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
-	const DBUS_MEMBER: &'static str;
-	/// The `DBus` interface name for this event.
-	/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
-	const DBUS_INTERFACE: &'static str;
-	/// A static match rule string for `DBus`.
-	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
-	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
-	const MATCH_RULE_STRING: &'static str;
-	/// A registry event string for registering for event receiving via the `RegistryProxy`.
-	/// This should be deprecated in favour of composing the string from [`Self::DBUS_MEMBER`] and [`Self::DBUS_INTERFACE`].
-	const REGISTRY_EVENT_STRING: &'static str;
-}
-
 #[cfg(feature = "zbus")]
-pub trait MessageConversion<'a>: BusProperties {
+pub trait MessageConversion<'a>: DBusProperties {
 	/// What is the body type of this event.
 	type Body<'msg>: Type + Deserialize<'msg> + Serialize
 	where
@@ -385,44 +169,39 @@ where
 	}
 }
 
-/// A specific trait *only* to define an interface name.
-/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
-/// information required to implement the [`BusProperties`] trait, you can indeed attach in
-/// interface name for all sub events of [`ObjectEvents`].
-///
-/// This trait *is not* object-safe.
-pub trait HasInterfaceName {
+/// The `DBus` member for the event.
+/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
+pub trait DBusMember {
+	const DBUS_MEMBER: &'static str;
+}
+
+/// The `DBus` interface name for an event - or a wrapper type.
+/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
+pub trait DBusInterface {
 	/// A static interface string for `DBus`.
 	/// This should usually be a string that looks like this: `"org.a11y.atspi.Event.*"`;
 	const DBUS_INTERFACE: &'static str;
 }
 
-/// A specific trait *only* to define match rules.
-///
-/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
-/// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
-/// to the `DBus` connection to capture all sub events of [`ObjectEvents`].
-///
-/// This trait *is not* object-safe.
-pub trait HasMatchRule {
+/// A static `DBus` match rule string.
+/// This should usually be a string that looks like this:
+/// `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
+// We cannot concat! consts, so we (at time of writing) need to have a separate trait for this.
+// Otherwise composing from `DBusMember` and `DBusInterface` would be preferred.
+pub trait DBusMatchRule {
 	/// A static match rule string for `DBus`.
-	/// This should usually be a string that looks like this: `"type='signal',interface='org.a11y.atspi.Event.Object',member='PropertyChange'"`;
-	/// This should be deprecated in favour of composing the string from [`BusProperties::DBUS_MEMBER`] and [`BusProperties::DBUS_INTERFACE`].
 	const MATCH_RULE_STRING: &'static str;
 }
 
-/// A specific trait *only* to define registry event matches.
-///
-/// This is useful for event wrappers like [`ObjectEvents`], which, while it does not have other
-/// information required to implement the [`BusProperties`] trait, you can indeed add a match rule
-/// to the AT-SPI connection to subscribe to all sub events of [`ObjectEvents`].
-///
-/// This trait *is not* object-safe.
-pub trait HasRegistryEventString {
+/// A static `Registry` event string for registering with the `RegistryProxy` for receiving events.
+pub trait RegistryEventString {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
 	/// This should be deprecated in favour of composing the string from [`BusProperties::DBUS_MEMBER`] and [`BusProperties::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 }
+
+/// A 'alias'-trait that combines all the `DBus` related traits.
+pub trait DBusProperties: DBusMember + DBusInterface + DBusMatchRule + RegistryEventString {}
 
 /// A way to convert a [`zbus::Message`] without checking its interface.
 #[cfg(feature = "zbus")]

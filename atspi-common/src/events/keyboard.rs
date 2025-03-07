@@ -1,9 +1,7 @@
-use super::event_body::EventBody;
+use super::{event_body::EventBody, DBusMember};
 use crate::{
 	error::AtspiError,
-	events::{
-		BusProperties, EventBodyOwned, HasInterfaceName, HasMatchRule, HasRegistryEventString,
-	},
+	events::{DBusInterface, DBusMatchRule, EventBodyOwned, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
 
@@ -27,12 +25,12 @@ pub struct ModifiersEvent {
 	pub current_modifiers: i32,
 }
 
-impl BusProperties for ModifiersEvent {
-	const DBUS_MEMBER: &'static str = "Modifiers";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'";
-	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
+impl_member_interface_registry_string_and_match_rule_for_event! {
+	ModifiersEvent,
+	"Modifiers",
+	"org.a11y.atspi.Event.Keyboard",
+	"keyboard:modifiers",
+	"type='signal',interface='org.a11y.atspi.Event.Keyboard',member='Modifiers'"
 }
 
 #[cfg(feature = "zbus")]
@@ -61,12 +59,6 @@ impl MessageConversion<'_> for ModifiersEvent {
 }
 
 impl_msg_conversion_ext_for_target_type!(ModifiersEvent);
-
-impl_try_from_event_for_user_facing_type!(
-	ModifiersEvent,
-	KeyboardEvents::Modifiers,
-	Event::Keyboard
-);
 
 event_test_cases!(ModifiersEvent);
 impl_to_dbus_message!(ModifiersEvent);

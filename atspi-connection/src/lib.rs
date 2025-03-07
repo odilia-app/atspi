@@ -8,14 +8,17 @@
 compile_error!("You must specify at least one of the `async-std` or `tokio` features.");
 
 pub use atspi_common as common;
-use atspi_common::{BusProperties, EventProperties};
+use atspi_common::{
+	events::{DBusInterface, DBusMember},
+	EventProperties,
+};
 
 use atspi_proxies::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
 use common::error::AtspiError;
-use common::events::{Event, HasMatchRule, HasRegistryEventString, MessageConversion};
+use common::events::{DBusMatchRule, Event, MessageConversion, RegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, message::Type as MessageType, Address, MatchRule, MessageStream};
@@ -183,8 +186,8 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
-	pub async fn add_match_rule<T: HasMatchRule>(&self) -> Result<(), AtspiError> {
-		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING)?;
+	pub async fn add_match_rule<T: DBusMatchRule>(&self) -> Result<(), AtspiError> {
+		let match_rule = MatchRule::try_from(<T as DBusMatchRule>::MATCH_RULE_STRING)?;
 		self.dbus_proxy.add_match_rule(match_rule).await?;
 		Ok(())
 	}
@@ -202,8 +205,8 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
-	pub async fn remove_match_rule<T: HasMatchRule>(&self) -> Result<(), AtspiError> {
-		let match_rule = MatchRule::try_from(<T as HasMatchRule>::MATCH_RULE_STRING)?;
+	pub async fn remove_match_rule<T: DBusMatchRule>(&self) -> Result<(), AtspiError> {
+		let match_rule = MatchRule::try_from(<T as DBusMatchRule>::MATCH_RULE_STRING)?;
 		self.dbus_proxy.add_match_rule(match_rule).await?;
 		Ok(())
 	}
@@ -224,9 +227,9 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// May cause an error if the `DBus` method [`atspi_proxies::registry::RegistryProxy::register_event`] fails.
-	pub async fn add_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
+	pub async fn add_registry_event<T: RegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
-			.register_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
+			.register_event(<T as RegistryEventString>::REGISTRY_EVENT_STRING)
 			.await?;
 		Ok(())
 	}
@@ -248,9 +251,9 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// May cause an error if the `DBus` method [`RegistryProxy::deregister_event`] fails.
-	pub async fn remove_registry_event<T: HasRegistryEventString>(&self) -> Result<(), AtspiError> {
+	pub async fn remove_registry_event<T: RegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
-			.deregister_event(<T as HasRegistryEventString>::REGISTRY_EVENT_STRING)
+			.deregister_event(<T as RegistryEventString>::REGISTRY_EVENT_STRING)
 			.await?;
 		Ok(())
 	}
@@ -258,7 +261,7 @@ impl AccessibilityConnection {
 	/// This calls [`Self::add_registry_event`] and [`Self::add_match_rule`], two components necessary to receive accessibility events.
 	/// # Errors
 	/// This will only fail if [`Self::add_registry_event`[ or [`Self::add_match_rule`] fails.
-	pub async fn register_event<T: HasRegistryEventString + HasMatchRule>(
+	pub async fn register_event<T: RegistryEventString + DBusMatchRule>(
 		&self,
 	) -> Result<(), AtspiError> {
 		self.add_registry_event::<T>().await?;
@@ -269,7 +272,7 @@ impl AccessibilityConnection {
 	/// This calls [`Self::remove_registry_event`] and [`Self::remove_match_rule`], two components necessary to receive accessibility events.
 	/// # Errors
 	/// This will only fail if [`Self::remove_registry_event`] or [`Self::remove_match_rule`] fails.
-	pub async fn deregister_event<T: HasRegistryEventString + HasMatchRule>(
+	pub async fn deregister_event<T: RegistryEventString + DBusMatchRule>(
 		&self,
 	) -> Result<(), AtspiError> {
 		self.remove_registry_event::<T>().await?;
@@ -295,13 +298,13 @@ impl AccessibilityConnection {
 	// / Both of these conditions should never happen as long as you have a valid event.
 	pub async fn send_event<'a, T>(&self, event: T) -> Result<(), AtspiError>
 	where
-		T: BusProperties + EventProperties + MessageConversion<'a>,
+		T: DBusMember + DBusInterface + EventProperties + MessageConversion<'a>,
 	{
 		let conn = self.connection();
 		let new_message = zbus::Message::signal(
 			event.path(),
-			<T as BusProperties>::DBUS_INTERFACE,
-			<T as BusProperties>::DBUS_MEMBER,
+			<T as DBusInterface>::DBUS_INTERFACE,
+			<T as DBusMember>::DBUS_MEMBER,
 		)?
 		.sender(conn.unique_name().ok_or(AtspiError::MissingName)?)?
 		// this re-encodes the entire body; it's not great..., but you can't replace a sender once a message a created.

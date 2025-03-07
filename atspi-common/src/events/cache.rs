@@ -6,7 +6,8 @@ use crate::{
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
-	events::{MessageConversion, MessageConversionExt},
+	events::{DBusInterface, DBusMatchRule, ObjectRef, RegistryEventString},
+	Event, EventProperties, EventTypeProperties,
 };
 use serde::{Deserialize, Serialize};
 use zbus::message::{Body as DbusBody, Header};
@@ -27,13 +28,13 @@ impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
 
-impl BusProperties for LegacyAddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LegacyAddAccessibleEvent,
+	"AddAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:add",
+	"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for LegacyAddAccessibleEvent {
@@ -66,13 +67,13 @@ pub struct AddAccessibleEvent {
 
 event_test_cases!(AddAccessibleEvent, Explicit);
 
-impl BusProperties for AddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	AddAccessibleEvent,
+	"AddAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:add",
+	"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for AddAccessibleEvent {
@@ -110,13 +111,13 @@ pub struct RemoveAccessibleEvent {
 
 event_test_cases!(RemoveAccessibleEvent, Explicit);
 
-impl BusProperties for RemoveAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
-	const DBUS_MEMBER: &'static str = "RemoveAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RemoveAccessibleEvent,
+	"RemoveAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:remove",
+	"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'"
+);
 
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for RemoveAccessibleEvent {

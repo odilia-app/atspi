@@ -24,7 +24,7 @@ use crate::{
 			RaiseEvent, ReparentEvent, ResizeEvent, RestoreEvent, RestyleEvent, ShadeEvent,
 			UUshadeEvent,
 		},
-		BusProperties, HasInterfaceName, HasMatchRule, HasRegistryEventString,
+		BusProperties, DBusInterface, DBusMatchRule, EventTypeProperties, RegistryEventString,
 	},
 	EventProperties, EventTypeProperties,
 };
@@ -43,6 +43,8 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
+
+use super::DBusMatchRule;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
@@ -89,16 +91,16 @@ impl EventProperties for KeyboardEvents {
 impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
-impl HasMatchRule for KeyboardEvents {
+impl DBusMatchRule for KeyboardEvents {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 }
 
-impl HasInterfaceName for KeyboardEvents {
+impl DBusInterfaceName for KeyboardEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 }
 
-impl HasRegistryEventString for KeyboardEvents {
+impl RegistryEventString for KeyboardEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "keyboard:";
 }
 
@@ -179,15 +181,15 @@ event_wrapper_test_cases!(MouseEvents, AbsEvent);
 impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
 impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
 
-impl HasInterfaceName for MouseEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-}
-
-impl HasMatchRule for MouseEvents {
+impl DBusMatchRule for MouseEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
 }
 
-impl HasRegistryEventString for MouseEvents {
+impl DBusInterface for MouseEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
+}
+
+impl RegistryEventString for MouseEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "mouse:";
 }
 
@@ -455,18 +457,6 @@ impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
 
 event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
 
-impl HasMatchRule for ObjectEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
-}
-
-impl HasInterfaceName for ObjectEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
-}
-
-impl HasRegistryEventString for ObjectEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "object:";
-}
-
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextChangedEvent,
 	ObjectEvents,
@@ -493,6 +483,21 @@ pub enum DocumentEvents {
 	AttributesChanged(DocumentAttributesChangedEvent),
 	/// See: [`PageChangedEvent`].
 	PageChanged(PageChangedEvent),
+}
+
+impl_tryfrommessage_for_event_wrapper!(DocumentEvents);
+
+impl DBusInterface for DocumentEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
+}
+
+impl DBusMatchRule for DocumentEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Document'";
+}
+
+impl RegistryEventString for DocumentEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
 impl EventTypeProperties for DocumentEvents {
@@ -571,15 +576,6 @@ impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent, Event::Document);
 impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
 impl_try_from_event_for_interface_enum!(DocumentEvents, Event::Document);
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
-
-impl HasMatchRule for DocumentEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Document'";
-}
-
-impl HasInterfaceName for DocumentEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
-}
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for DocumentEvents {
@@ -679,10 +675,6 @@ impl_try_from_event_for_user_facing_type!(
 	DocumentEvents::PageChanged,
 	Event::Document
 );
-
-impl HasRegistryEventString for DocumentEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Document:";
-}
 
 /// Encapsulates the various different accessibility bus signal types.
 ///
@@ -802,6 +794,53 @@ impl EventProperties for Event {
 	}
 }
 
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for Event {
+	type Error = AtspiError;
+
+	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
+		let header = msg.header();
+		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
+		let interface_str = interface.as_str();
+
+		match interface_str {
+			<ObjectEvents as DBusInterface>::DBUS_INTERFACE => {
+				Ok(Event::Object(ObjectEvents::try_from_message_interface_checked(msg, &header)?))
+			}
+			<FocusEvents as DBusInterface>::DBUS_INTERFACE => {
+				Ok(Event::Focus(FocusEvents::try_from_message_interface_checked(msg, &header)?))
+			}
+			<CacheEvents as DBusInterface>::DBUS_INTERFACE => {
+				Ok(Event::Cache(CacheEvents::try_from_message_interface_checked(msg, &header)?))
+			}
+			<WindowEvents as DBusInterface>::DBUS_INTERFACE => {
+				Ok(Event::Window(WindowEvents::try_from_message_interface_checked(msg, &header)?))
+			}
+			<MouseEvents as DBusInterface>::DBUS_INTERFACE => {
+				Ok(Event::Mouse(MouseEvents::try_from_message_interface_checked(msg, &header)?))
+			}
+			<TerminalEvents as DBusInterface>::DBUS_INTERFACE => Ok(Event::Terminal(
+				TerminalEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<DocumentEvents as DBusInterface>::DBUS_INTERFACE => Ok(Event::Document(
+				DocumentEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<KeyboardEvents as DBusInterface>::DBUS_INTERFACE => Ok(Event::Keyboard(
+				KeyboardEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<EventListenerEvents as DBusInterface>::DBUS_INTERFACE => Ok(Event::Listener(
+				EventListenerEvents::try_from_message_interface_checked(msg, &header)?,
+			)),
+			<AvailableEvent as DBusInterface>::DBUS_INTERFACE => {
+				Ok(AvailableEvent::try_from(msg)?.into())
+			}
+			_ => Err(AtspiError::InterfaceMatch(format!(
+				"No events found with interface {interface_str}"
+			))),
+		}
+	}
+}
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
 	/// See: [`ObjectPropertyChangeEvent`].
@@ -849,6 +888,8 @@ pub enum ObjectEvents {
 	/// See: [`TextCaretMovedEvent`].
 	TextCaretMoved(TextCaretMovedEvent),
 }
+
+impl_tryfrommessage_for_event_wrapper!(ObjectEvents);
 
 impl EventTypeProperties for ObjectEvents {
 	fn member(&self) -> &'static str {
@@ -1256,16 +1297,16 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Object
 );
 
-impl HasMatchRule for ObjectEvents {
+impl DBusMatchRule for ObjectEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
 }
 
-impl HasInterfaceName for ObjectEvents {
+impl DBusInterface for ObjectEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 }
 
-impl HasRegistryEventString for ObjectEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Object:";
+impl RegistryEventString for ObjectEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "object:";
 }
 
 #[cfg(feature = "zbus")]
@@ -1374,15 +1415,15 @@ impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
 impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
 
-impl HasMatchRule for CacheEvents {
+impl DBUsMatchRule for CacheEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
 }
 
-impl HasRegistryEventString for CacheEvents {
+impl RegistryEventString for CacheEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache";
 }
 
-impl HasInterfaceName for CacheEvents {
+impl DBusInterface for CacheEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 }
 
@@ -1543,16 +1584,12 @@ impl EventProperties for FocusEvents {
 		}
 	}
 }
+
 impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
 impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
 impl_try_from_event_for_interface_enum!(FocusEvents, Event::Focus);
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
-impl HasMatchRule for FocusEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
-}
-impl HasInterfaceName for FocusEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
-}
+
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for FocusEvents {
 	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -1572,8 +1609,17 @@ impl EventWrapperMessageConversion for FocusEvents {
 
 impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
 impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
-impl HasRegistryEventString for FocusEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Focus:";
+
+impl DBusMatchRule for FocusEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
+}
+
+impl RegistryEventString for FocusEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "focus:";
+}
+
+impl DBusInterface for FocusEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -1625,14 +1671,19 @@ impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
 impl_try_from_event_for_interface_enum!(KeyboardEvents, Event::Keyboard);
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
-impl HasMatchRule for KeyboardEvents {
+impl DBusMatchRule for KeyboardEvents {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 }
 
-impl HasInterfaceName for KeyboardEvents {
+impl DBusInterface for KeyboardEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 }
+
+impl RegistryEventString for KeyboardEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "keyboard:";
+}
+
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for KeyboardEvents {
 	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -1666,6 +1717,12 @@ impl_from_user_facing_event_for_interface_event_enum!(
 impl HasRegistryEventString for KeyboardEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
 }
+
+impl_try_from_event_for_user_facing_type!(
+	ModifiersEvent,
+	KeyboardEvents::Modifiers,
+	Event::Keyboard
+);
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum MouseEvents {
@@ -1734,13 +1791,18 @@ impl_try_from_event_for_interface_enum!(MouseEvents, Event::Mouse);
 
 event_wrapper_test_cases!(MouseEvents, AbsEvent);
 
-impl HasMatchRule for MouseEvents {
+impl DBusMatchRule for MouseEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
 }
 
-impl HasInterfaceName for MouseEvents {
+impl DBusInterfaceName for MouseEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 }
+
+impl HasRegistryEventString for MouseEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+}
+
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for MouseEvents {
 	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
@@ -1775,13 +1837,6 @@ impl_from_user_facing_event_for_interface_event_enum!(
 	MouseEvents::Button
 );
 impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Event::Mouse);
-impl HasRegistryEventString for MouseEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
-}
-
-impl HasRegistryEventString for TerminalEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
 
 /// All events related to the `org.a11y.atspi.Event.Terminal` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -1871,37 +1926,48 @@ impl_try_from_event_for_interface_enum!(TerminalEvents, Event::Terminal);
 
 event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
 
-impl HasMatchRule for TerminalEvents {
+impl DBusMatchRule for TerminalEvents {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 }
 
-impl HasInterfaceName for TerminalEvents {
+impl RegistryEventString for TerminalEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "terminal:";
+}
+
+impl DBusInterface for TerminalEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
+}
+
+impl DBusMatchRule for TerminalEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 }
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for TerminalEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr
 			.member()
 			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
 			LineChangedEvent::DBUS_MEMBER => {
-				Ok(TerminalEvents::LineChanged(LineChangedEvent::from_message_unchecked(msg)?))
+				Ok(TerminalEvents::LineChanged(LineChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ColumnCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ColumnCountChanged(
-				ColumnCountChangedEvent::from_message_unchecked(msg)?,
+				ColumnCountChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			LineCountChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::LineCountChanged(
-				LineCountChangedEvent::from_message_unchecked(msg)?,
+				LineCountChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			ApplicationChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::ApplicationChanged(
-				ApplicationChangedEvent::from_message_unchecked(msg)?,
+				ApplicationChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			CharWidthChangedEvent::DBUS_MEMBER => Ok(TerminalEvents::CharWidthChanged(
-				CharWidthChangedEvent::from_message_unchecked(msg)?,
+				CharWidthChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
 		}
@@ -2181,12 +2247,16 @@ impl_try_from_event_for_interface_enum!(WindowEvents, Event::Window);
 
 event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
-impl HasMatchRule for WindowEvents {
+impl DBusMatchRule for WindowEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window'";
 }
 
-impl HasInterfaceName for WindowEvents {
+impl DBusInterface for WindowEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
+}
+
+impl RegistryEventString for WindowEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "window:";
 }
 
 #[cfg(feature = "zbus")]
@@ -2367,6 +2437,124 @@ impl_from_user_facing_event_for_interface_event_enum!(
 	WindowEvents::Restyle
 );
 impl_try_from_event_for_user_facing_type!(RestyleEvent, WindowEvents::Restyle, Event::Window);
-impl HasRegistryEventString for WindowEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Window:";
+
+/// The events that can be emitted by the registry daemon.
+/// This enum is used to wrap the events that are emitted by the registry daemon.
+/// The events are [`EventListenerRegisteredEvent`] and [`EventListenerDeregisteredEvent`].
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[allow(clippy::module_name_repetitions)]
+pub enum EventListenerEvents {
+	/// See: [`EventListenerRegisteredEvent`].
+	Registered(EventListenerRegisteredEvent),
+	/// See: [`EventListenerDeregisteredEvent`].
+	Deregistered(EventListenerDeregisteredEvent),
+}
+
+impl_tryfrommessage_for_event_wrapper!(EventListenerEvents);
+
+impl DBusInterface for EventListenerEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
+}
+
+impl DBusMatchRule for EventListenerEvents {
+	const MATCH_RULE_STRING: &'static str =
+		"type='signal',interface='org.a11y.atspi.Event.Registry'";
+}
+
+impl RegistryEventString for EventListenerEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "Event";
+}
+
+impl EventTypeProperties for EventListenerEvents {
+	fn member(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.member(),
+			Self::Deregistered(inner) => inner.member(),
+		}
+	}
+
+	fn match_rule(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.match_rule(),
+			Self::Deregistered(inner) => inner.match_rule(),
+		}
+	}
+
+	fn interface(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.interface(),
+			Self::Deregistered(inner) => inner.interface(),
+		}
+	}
+
+	fn registry_string(&self) -> &'static str {
+		match self {
+			Self::Registered(inner) => inner.registry_string(),
+			Self::Deregistered(inner) => inner.registry_string(),
+		}
+	}
+}
+
+impl EventProperties for EventListenerEvents {
+	fn path(&self) -> ObjectPath<'_> {
+		match self {
+			Self::Registered(inner) => inner.path(),
+			Self::Deregistered(inner) => inner.path(),
+		}
+	}
+	fn sender(&self) -> UniqueName<'_> {
+		match self {
+			Self::Registered(inner) => inner.sender(),
+			Self::Deregistered(inner) => inner.sender(),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl crate::events::EventWrapperMessageConversion for EventListenerEvents {
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &zbus::message::Header,
+	) -> Result<Self, crate::AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
+		match member.as_str() {
+			EventListenerRegisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Registered(
+				EventListenerRegisteredEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			EventListenerDeregisteredEvent::DBUS_MEMBER => Ok(EventListenerEvents::Deregistered(
+				EventListenerDeregisteredEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			_ => Err(AtspiError::MemberMatch(format!(
+				"No member {} in {}",
+				member.as_str(),
+				Self::DBUS_INTERFACE
+			))),
+		}
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for EventListenerEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		<Self as crate::events::TryFromMessage>::try_from_message(msg)
+	}
+}
+
+impl From<AvailableEvent> for Event {
+	fn from(ev: AvailableEvent) -> Event {
+		Event::Available(ev)
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl TryFrom<Event> for AvailableEvent {
+	type Error = AtspiError;
+	fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {
+		if let Event::Available(specific_event) = generic_event {
+			Ok(specific_event)
+		} else {
+			Err(AtspiError::Conversion("Invalid type"))
+		}
+	}
 }

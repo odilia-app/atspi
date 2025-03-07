@@ -1,3 +1,8 @@
+use crate::{
+	error::AtspiError,
+	events::{DBusInterface, DBusMatchRule, EventBody, EventBodyOwned, RegistryEventString},
+	Event, EventProperties, EventTypeProperties,
+};
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
@@ -11,6 +16,11 @@ use crate::{
 use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;
+<<<<<<< HEAD
+
+use super::DBusMember;
+
+impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
@@ -37,12 +47,28 @@ pub struct ButtonEvent {
 	pub mouse_y: i32,
 }
 
-impl BusProperties for AbsEvent {
-	const DBUS_MEMBER: &'static str = "Abs";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'";
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
+impl_member_interface_registry_string_and_match_rule_for_event! {
+	AbsEvent,
+	"Abs",
+	"org.a11y.atspi.Event.Mouse",
+	"mouse:abs",
+	"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Abs'"
+}
+
+impl_member_interface_registry_string_and_match_rule_for_event! {
+	RelEvent,
+	"Rel",
+	"org.a11y.atspi.Event.Mouse",
+	"mouse:rel",
+	"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'"
+}
+
+impl_member_interface_registry_string_and_match_rule_for_event! {
+	ButtonEvent,
+	"Button",
+	"org.a11y.atspi.Event.Mouse",
+	"mouse:button",
+	"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'"
 }
 
 #[cfg(feature = "zbus")]
@@ -63,14 +89,6 @@ impl MessageConversion<'_> for AbsEvent {
 	}
 }
 
-impl BusProperties for RelEvent {
-	const DBUS_MEMBER: &'static str = "Rel";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Rel'";
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
-}
-
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for RelEvent {
 	type Body<'a> = EventBody<'a>;
@@ -89,14 +107,6 @@ impl MessageConversion<'_> for RelEvent {
 	fn body(&self) -> Self::Body<'_> {
 		EventBodyOwned { detail1: self.x, detail2: self.y, ..Default::default() }.into()
 	}
-}
-
-impl BusProperties for ButtonEvent {
-	const DBUS_MEMBER: &'static str = "Button";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Mouse',member='Button'";
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
 }
 
 #[cfg(feature = "zbus")]
@@ -124,6 +134,9 @@ impl MessageConversion<'_> for ButtonEvent {
 	}
 }
 
+
+impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
+impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
 impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
 
 event_test_cases!(AbsEvent);

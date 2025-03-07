@@ -36,9 +36,7 @@ pub use cache::{CacheItem, LegacyCacheItem};
 pub mod error;
 pub use error::AtspiError;
 pub mod events;
-#[cfg(feature = "wrappers")]
-pub use events::Event;
-pub use events::{BusProperties, EventProperties, EventTypeProperties};
+pub use events::{Event, EventProperties, EventTypeProperties};
 mod role;
 pub use role::Role;
 mod relation_type;
