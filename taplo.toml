@@ -1,0 +1,16 @@
+[formatting]
+align_entries  = true
+reorder_arrays = true
+
+# Taplo formatting: https://taplo.tamasfe.dev/configuration/formatter-options.html
+# This rule makes sure that the dependencies section of Cargo.toml are sorted and formatted.
+# Other sections are to be left as they are.
+
+[[rule]]
+include = ["**/Cargo.toml", "Cargo.toml"]
+keys    = ["dependencies"]
+
+[rule.formatting]
+align_entries  = true
+reorder_arrays = true
+reorder_keys   = true
