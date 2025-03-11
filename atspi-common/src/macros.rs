@@ -365,6 +365,43 @@ macro_rules! generic_event_test_case {
 /// Converts the `Event` enum into the given event struct.
 /// Asserts that the original struct and the converted struct are equal.
 #[cfg(test)]
+macro_rules! event_has_matching_xml_definition {
+	($type:ty) => {
+		#[test]
+		fn event_has_matching_xml_definition() {
+      use zbus_xml;
+
+			let fname = match <$type>::DBUS_INTERFACE.split(".").last().expect("Has last section") {
+				"Cache" => "xml/Cache.xml",
+				"Socket" => "xml/Socket.xml",
+				"Registry" => "xml/Registry.xml",
+				_ => "xml/Event.xml",
+			};
+      let reader = std::fs::File::open(fname).expect("Valid file path!");
+      let xml = zbus_xml::Node::from_reader(reader).expect("Valid DBus XML file!");
+      let Some(interface) = xml.interfaces().iter().find(|int| int.name() == <$type>::DBUS_INTERFACE) else {
+          let possible_names: Vec<String> = xml.interfaces().iter().map(|int| int.name().as_str().to_string()).collect();
+          panic!("{} has interface name {}, but it was not found in the list of interfaces defined in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, possible_names);
+      };
+      let Some(_member) = interface.signals().iter().find(|mem| mem.name() == <$type>::DBUS_MEMBER) else {
+          let possible_names: Vec<String> = interface.signals().iter().map(|mem| mem.name().as_str().to_string()).collect();
+          panic!("{} has interface name {} and member name {}, but it was not found in the list of members defined in the corresponding interface in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, <$type>::DBUS_MEMBER, possible_names);
+      };
+		}
+	};
+}
+
+// We decorate the macro with a `#[cfg(test)]` attribute.
+// This prevents Clippy from complaining about the macro not being used.
+// It is being used, but only in test mode.
+//
+/// Tests conversion to and from the `Event` enum.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Converts the `Event` enum into the given event struct.
+/// Asserts that the original struct and the converted struct are equal.
+#[cfg(test)]
 macro_rules! event_enum_test_case {
 	($type:ty) => {
 		#[test]
@@ -791,6 +828,7 @@ macro_rules! event_test_cases {
 			event_enum_test_case!($type);
 			zbus_message_test_case!($type, $qt);
 			event_enum_transparency_test_case!($type);
+      event_has_matching_xml_definition!($type);
 		}
 		assert_impl_all!(
 			$type: Clone,
