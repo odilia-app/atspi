@@ -374,6 +374,115 @@ macro_rules! generic_event_test_case {
 	};
 }
 
+// We decorate the macro with a `#[cfg(test)]` attribute.
+// This prevents Clippy from complaining about the macro not being used.
+// It is being used, but only in test mode.
+//
+/// Tests conversion to and from the `Event` enum.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Converts the `Event` enum into the given event struct.
+/// Asserts that the original struct and the converted struct are equal.
+#[cfg(test)]
+macro_rules! event_has_matching_xml_definition {
+	($type:ty) => {
+		#[test]
+		fn event_has_matching_xml_definition() {
+      use zbus_xml;
+
+			let fname = match <$type>::DBUS_INTERFACE.split(".").last().expect("Has last section") {
+				"Cache" => "xml/Cache.xml",
+				"Socket" => "xml/Socket.xml",
+				"Registry" => "xml/Registry.xml",
+				_ => "xml/Event.xml",
+			};
+      let reader = std::fs::File::open(fname).expect("Valid file path!");
+      let xml = zbus_xml::Node::from_reader(reader).expect("Valid DBus XML file!");
+      let Some(interface) = xml.interfaces().iter().find(|int| int.name() == <$type>::DBUS_INTERFACE) else {
+          let possible_names: Vec<String> = xml.interfaces().iter().map(|int| int.name().as_str().to_string()).collect();
+          panic!("{} has interface name {}, but it was not found in the list of interfaces defined in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, possible_names);
+      };
+      let Some(_member) = interface.signals().iter().find(|mem| mem.name() == <$type>::DBUS_MEMBER) else {
+          let possible_names: Vec<String> = interface.signals().iter().map(|mem| mem.name().as_str().to_string()).collect();
+          panic!("{} has interface name {} and member name {}, but it was not found in the list of members defined in the corresponding interface in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, <$type>::DBUS_MEMBER, possible_names);
+      };
+		}
+	};
+}
+
+// We decorate the macro with a `#[cfg(test)]` attribute.
+// This prevents Clippy from complaining about the macro not being used.
+// It is being used, but only in test mode.
+//
+/// Tests conversion to and from the `Event` enum.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Converts the `Event` enum into the given event struct.
+/// Asserts that the original struct and the converted struct are equal.
+#[cfg(test)]
+macro_rules! event_enum_test_case {
+	($type:ty) => {
+		#[test]
+		fn event_enum_conversion() {
+			let struct_event = <$type>::default();
+			let event = Event::from(struct_event.clone());
+			let struct_event_back = <$type>::try_from(event)
+				.expect("Should convert event enum into specific event type because it was created from it. Check the `impl_from_interface_event_enum_for_event` macro");
+			assert_eq!(struct_event, struct_event_back);
+		}
+	};
+}
+
+/// Tests transparency of the `EventTypeProperties` and `EventProperties` trait on the `Event` wrapper type.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Checks the equality of all four functions defined in the `EventTypeProiperties` and `EventProperties` traits:
+///
+/// - `member`
+/// - `interface`
+/// - `registry_string`
+/// - `match_rule`
+/// - `path`
+/// - `sender`
+///
+/// It is imperitive that these items come through with no modifications from the wrappers.
+///
+#[cfg(test)]
+macro_rules! event_enum_transparency_test_case {
+	($type:ty) => {
+		#[test]
+		fn event_enum_transparency_test_case() {
+			let specific_event = <$type>::default();
+			let generic_event = Event::from(specific_event.clone());
+			assert_eq!(
+				specific_event.member(),
+				generic_event.member(),
+				"DBus member strings do not match."
+			);
+			assert_eq!(
+				specific_event.interface(),
+				generic_event.interface(),
+				"Registry interfaces do not match."
+			);
+			assert_eq!(
+				specific_event.registry_string(),
+				generic_event.registry_string(),
+				"Registry strings do not match."
+			);
+			assert_eq!(
+				specific_event.match_rule(),
+				generic_event.match_rule(),
+				"Match rule strings do not match."
+			);
+			assert_eq!(specific_event.path(), generic_event.path(), "Pathsdo not match.");
+			assert_eq!(specific_event.sender(), generic_event.sender(), "Senders do not match.");
+		}
+	};
+}
+
 #[cfg(test)]
 macro_rules! zbus_message_qtspi_test_case {
     ($type:ty, Auto) => {
@@ -818,6 +927,10 @@ macro_rules! event_test_cases {
 
 			generic_event_test_case!($ufet);
 			zbus_message_test_case!($ufet, $qt);
+      event_has_matching_xml_definition!($ufet);
+			generic_event_test_case!($ufet);
+			event_enum_test_case!($ufet);
+			event_enum_transparency_test_case!($ufet);
 		}
 		assert_impl_all!(
 			$ufet: Clone,
