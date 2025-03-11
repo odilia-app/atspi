@@ -66,6 +66,7 @@
   fastrand       = "2.0"
   futures        = { version = "0.3", default-features = false, features = [ "alloc" ] }
   futures-lite   = { version = "2", default-features = false }
+rand = "0.9.0"
   tokio          = { version = "1", default-features = false, features = [ "macros", "rt-multi-thread" ] }
   tokio-stream   = "0.1"
   zbus.workspace = true
