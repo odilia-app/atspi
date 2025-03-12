@@ -34,6 +34,10 @@
   atspi-proxies    = { path = "../atspi-proxies", version = "0.9.0", default-features = false, optional = true }
   zbus             = { workspace = true, default-features = false, optional = true }
 
+[[test]]
+  name    = "proptest"
+  path    = "./benches/proptest.rs"
+
 [[bench]]
   harness = false
   name    = "event_parsing"
@@ -60,12 +64,13 @@
   required-features = [ "connection-async-std" ]
 
 [dev-dependencies]
-  async-std      = { version = "1.12", default-features = false }
+  async-std      = { version = "1.12", features =["attributes"] }
   atspi          = { path = "." }
   criterion      = "0.5"
   fastrand       = "2.0"
   futures        = { version = "0.3", default-features = false, features = [ "alloc" ] }
   futures-lite   = { version = "2", default-features = false }
+proptest = "1.6.0"
 rand = "0.9.0"
   tokio          = { version = "1", default-features = false, features = [ "macros", "rt-multi-thread" ] }
   tokio-stream   = "0.1"
