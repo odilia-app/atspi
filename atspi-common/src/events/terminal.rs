@@ -1,15 +1,10 @@
-use super::{DBusMatchRule, DBusMember};
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
-	events::{DBusInterface, RegistryEventString},
-	Event, EventProperties, EventTypeProperties,
+	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
+	EventProperties,
 };
 use zbus::message::Header;
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
-
-impl_try_from_event_for_user_facing_event_type!(TerminalEvents, Event::Terminal);
 
 /// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -17,6 +12,8 @@ pub struct LineChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(LineChangedEvent);
 
 /// The width of a terminal emulator has changed sufficiently such that the number of characters
 /// able to fit on one *visual* line has changed.
@@ -26,6 +23,8 @@ pub struct ColumnCountChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(ColumnCountChangedEvent);
+
 /// The height of a terminal emulator has changed sufficiently such that the number of lines
 /// able to fit within the terminal has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -34,11 +33,15 @@ pub struct LineCountChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(LineCountChangedEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(ApplicationChangedEvent);
 
 /// The width of a terminal emulator has changed sufficiently such that the number of characters
 /// able to fit on one *visual* line has changed.
@@ -47,6 +50,8 @@ pub struct CharWidthChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(CharWidthChangedEvent);
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
 	LineChangedEvent,

@@ -1,21 +1,13 @@
-use super::{event_body::EventBody, DBusMember};
+use super::event_body::EventBody;
 use crate::{
 	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, EventBodyOwned, RegistryEventString},
-	Event, EventProperties, EventTypeProperties,
+	events::{DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString},
+	EventProperties,
 };
 
 #[cfg(feature = "zbus")]
-use crate::{
-	error::AtspiError,
-	events::{MessageConversion, MessageConversionExt},
-	ObjectRef,
-};
+use crate::{events::MessageConversion, ObjectRef};
 use zbus::message::{Body as DbusBody, Header};
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
-
-impl_try_from_event_for_user_facing_event_type!(KeyboardEvents, Event::Keyboard);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
@@ -24,6 +16,8 @@ pub struct ModifiersEvent {
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,
 }
+
+impl_event_type_properties_for_event!(ModifiersEvent);
 
 impl_member_interface_registry_string_and_match_rule_for_event! {
 	ModifiersEvent,

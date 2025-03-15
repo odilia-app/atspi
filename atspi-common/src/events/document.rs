@@ -1,13 +1,10 @@
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, RegistryEventString},
-	Event, EventProperties, EventTypeProperties,
+	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
+	EventProperties,
 };
-
 use zbus::message::Header;
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
 
 /// An event triggered by the completion of a document load action.
 /// For example: a web page has finished loading its initial payload, or
@@ -110,11 +107,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 	"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'"
 );
 
-impl_try_from_event_for_user_facing_type!(
-	LoadCompleteEvent,
-	DocumentEvents::LoadComplete,
-	Event::Document
-);
+impl_event_type_properties_for_event!(LoadCompleteEvent);
 
 event_test_cases!(LoadCompleteEvent);
 impl_to_dbus_message!(LoadCompleteEvent);
@@ -122,30 +115,35 @@ impl_from_dbus_message!(LoadCompleteEvent);
 impl_event_properties!(LoadCompleteEvent);
 impl_from_object_ref!(LoadCompleteEvent);
 
+impl_event_type_properties_for_event!(ReloadEvent);
 event_test_cases!(ReloadEvent);
 impl_to_dbus_message!(ReloadEvent);
 impl_from_dbus_message!(ReloadEvent);
 impl_event_properties!(ReloadEvent);
 impl_from_object_ref!(ReloadEvent);
 
+impl_event_type_properties_for_event!(LoadStoppedEvent);
 event_test_cases!(LoadStoppedEvent);
 impl_to_dbus_message!(LoadStoppedEvent);
 impl_from_dbus_message!(LoadStoppedEvent);
 impl_event_properties!(LoadStoppedEvent);
 impl_from_object_ref!(LoadStoppedEvent);
 
+impl_event_type_properties_for_event!(ContentChangedEvent);
 event_test_cases!(ContentChangedEvent);
 impl_to_dbus_message!(ContentChangedEvent);
 impl_from_dbus_message!(ContentChangedEvent);
 impl_event_properties!(ContentChangedEvent);
 impl_from_object_ref!(ContentChangedEvent);
 
+impl_event_type_properties_for_event!(AttributesChangedEvent);
 event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent);
 impl_from_dbus_message!(AttributesChangedEvent);
 impl_event_properties!(AttributesChangedEvent);
 impl_from_object_ref!(AttributesChangedEvent);
 
+impl_event_type_properties_for_event!(PageChangedEvent);
 event_test_cases!(PageChangedEvent);
 impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);

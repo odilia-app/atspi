@@ -1,5 +1,6 @@
 use atspi_common::events::cache::{AddAccessibleEvent, RemoveAccessibleEvent};
-use atspi_common::events::{CacheEvents, Event};
+use atspi_common::events::CacheEvents;
+use atspi_common::events::Event;
 use atspi_common::{CacheItem, ObjectRef};
 use atspi_connection::AccessibilityConnection;
 use std::time::Duration;

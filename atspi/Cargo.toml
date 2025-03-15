@@ -1,71 +1,71 @@
 [package]
-  authors.workspace      = true
-  categories             = [ "accessibility", "api-bindings" ]
-  description            = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
-  edition                = "2021"
-  homepage               = "https://github.com/odilia-app/atspi"
-  include                = [ "LICENSE-*", "README.md", "src/**/*" ]
-  keywords               = [ "a11y", "accessibility", "linux", "screen-reader", "tts" ]
-  license                = "Apache-2.0 OR MIT"
-  name                   = "atspi"
-  readme                 = "../README.md"
-  repository             = "https://github.com/odilia-app/atspi"
-  rust-version.workspace = true
-  version                = "0.25.0"
+authors.workspace      = true
+categories             = ["accessibility", "api-bindings"]
+description            = "Pure-Rust, zbus-based AT-SPI2 protocol implementation."
+edition                = "2021"
+homepage               = "https://github.com/odilia-app/atspi"
+include                = ["LICENSE-*", "README.md", "src/**/*"]
+keywords               = ["a11y", "accessibility", "linux", "screen-reader", "tts"]
+license                = "Apache-2.0 OR MIT"
+name                   = "atspi"
+readme                 = "../README.md"
+repository             = "https://github.com/odilia-app/atspi"
+rust-version.workspace = true
+version                = "0.25.0"
 
-  # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-  async-std = [ "connection-async-std", "proxies-async-std" ]
-  default   = [ "async-std" ]
-  tokio     = [ "connection-tokio", "proxies-tokio" ]
+async-std = ["connection-async-std", "proxies-async-std"]
+default   = ["async-std"]
+tokio     = ["connection-tokio", "proxies-tokio"]
 
-  connection           = [  ]
-  connection-async-std = [ "atspi-connection/async-std", "connection" ]
-  connection-tokio     = [ "atspi-connection/tokio", "connection" ]
-  proxies              = [  ]
-  proxies-async-std    = [ "atspi-proxies/async-std", "proxies" ]
-  proxies-tokio        = [ "atspi-proxies/tokio", "proxies" ]
-  tracing              = [ "atspi-connection/tracing" ]
+connection           = []
+connection-async-std = ["atspi-connection/async-std", "connection"]
+connection-tokio     = ["atspi-connection/tokio", "connection"]
+proxies              = []
+proxies-async-std    = ["atspi-proxies/async-std", "proxies"]
+proxies-tokio        = ["atspi-proxies/tokio", "proxies"]
+tracing              = ["atspi-connection/tracing"]
 
 [dependencies]
-  atspi-common     = { path = "../atspi-common", version = "0.9.0", default-features = false }
-  atspi-connection = { path = "../atspi-connection", version = "0.9.0", default-features = false, optional = true }
-  atspi-proxies    = { path = "../atspi-proxies", version = "0.9.0", default-features = false, optional = true }
-  zbus             = { workspace = true, default-features = false, optional = true }
+atspi-common     = { path = "../atspi-common", version = "0.9.0", default-features = false }
+atspi-connection = { path = "../atspi-connection", version = "0.9.0", default-features = false, optional = true }
+atspi-proxies    = { path = "../atspi-proxies", version = "0.9.0", default-features = false, optional = true }
+zbus             = { workspace = true, default-features = false, optional = true }
 
 [[bench]]
-  harness = false
-  name    = "event_parsing"
-  path    = "./benches/event_parsing.rs"
+harness = false
+name    = "event_parsing"
+path    = "./benches/event_parsing.rs"
 
 [[bench]]
-  harness = false
-  name    = "event_parsing_100k"
-  path    = "./benches/event_parsing_100k.rs"
+harness = false
+name    = "event_parsing_100k"
+path    = "./benches/event_parsing_100k.rs"
 
 [[example]]
-  name              = "tree"
-  path              = "./examples/bus-tree.rs"
-  required-features = [ "proxies-tokio", "zbus" ]
+name              = "tree"
+path              = "./examples/bus-tree.rs"
+required-features = ["proxies-tokio", "zbus"]
 
 [[example]]
-  name              = "focused-tokio"
-  path              = "./examples/focused-tokio.rs"
-  required-features = [ "connection-tokio" ]
+name              = "focused-tokio"
+path              = "./examples/focused-tokio.rs"
+required-features = ["atspi_connection/wrappers", "connection-tokio"]
 
 [[example]]
-  name              = "focused-async-std"
-  path              = "./examples/focused-async-std.rs"
-  required-features = [ "connection-async-std" ]
+name              = "focused-async-std"
+path              = "./examples/focused-async-std.rs"
+required-features = ["atspi_connection/wrappers", "connection-async-std"]
 
 [dev-dependencies]
-  async-std      = { version = "1.12", default-features = false }
-  atspi          = { path = "." }
-  criterion      = "0.5"
-  fastrand       = "2.0"
-  futures        = { version = "0.3", default-features = false, features = [ "alloc" ] }
-  futures-lite   = { version = "2", default-features = false }
-  tokio          = { version = "1", default-features = false, features = [ "macros", "rt-multi-thread" ] }
-  tokio-stream   = "0.1"
-  zbus.workspace = true
+async-std      = { version = "1.12", default-features = false }
+atspi          = { path = "." }
+criterion      = "0.5"
+fastrand       = "2.0"
+futures        = { version = "0.3", default-features = false, features = ["alloc"] }
+futures-lite   = { version = "2", default-features = false }
+tokio          = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
+tokio-stream   = "0.1"
+zbus.workspace = true

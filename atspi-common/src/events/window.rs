@@ -1,26 +1,13 @@
 use crate::{
 	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, EventBody, EventBodyOwned, RegistryEventString},
-	Event, EventProperties, EventTypeProperties,
-};
-
-#[cfg(feature = "zbus")]
-use crate::{
-	error::AtspiError,
-	events::{MessageConversion, MessageConversionExt},
-	ObjectRef,
-};
-use crate::{
-	events::{BusProperties, EventBodyOwned},
+	events::{
+		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, RegistryEventString,
+	},
 	EventProperties,
 };
+#[cfg(feature = "zbus")]
+use crate::{events::MessageConversion, ObjectRef};
 use zbus::message::{Body as DbusBody, Header};
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
-
-use super::DBusMember;
-
-impl_try_from_event_for_user_facing_event_type!(WindowEvents, Event::Window);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
@@ -29,12 +16,16 @@ pub struct PropertyChangeEvent {
 	pub property: String,
 }
 
+impl_event_type_properties_for_event!(PropertyChangeEvent);
+
 /// The window has been minimized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MinimizeEvent {
 	/// The application which has been minimized.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(MinimizeEvent);
 
 /// The window has been maximized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -43,11 +34,15 @@ pub struct MaximizeEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(MaximizeEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestoreEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(RestoreEvent);
 
 /// A window has been closed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -56,6 +51,8 @@ pub struct CloseEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(CloseEvent);
+
 /// A new window has been created.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CreateEvent {
@@ -63,11 +60,15 @@ pub struct CreateEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(CreateEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReparentEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(ReparentEvent);
 
 /// A new virtual desktop has been created.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -76,6 +77,8 @@ pub struct DesktopCreateEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(DesktopCreateEvent);
+
 /// A virtual desktop has been deleted.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopDestroyEvent {
@@ -83,11 +86,15 @@ pub struct DesktopDestroyEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(DesktopDestroyEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DestroyEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(DestroyEvent);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActivateEvent {
@@ -95,11 +102,15 @@ pub struct ActivateEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(ActivateEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DeactivateEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(DeactivateEvent);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RaiseEvent {
@@ -107,17 +118,23 @@ pub struct RaiseEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(RaiseEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LowerEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(LowerEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MoveEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(MoveEvent);
 
 /// A window has been resized.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -126,11 +143,15 @@ pub struct ResizeEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(ResizeEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ShadeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(ShadeEvent);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct UUshadeEvent {
@@ -138,11 +159,15 @@ pub struct UUshadeEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(UUshadeEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestyleEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(RestyleEvent);
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
 	PropertyChangeEvent,

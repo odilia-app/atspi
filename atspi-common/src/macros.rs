@@ -117,10 +117,10 @@ macro_rules! impl_try_from_event_for_interface_enum {
 	};
 }
 
-/// Expands to a conversion given the user facing event type and outer `Event::Interface(<InterfaceEnum>)` variant.,
-/// the enum type and outtermost variant.
+/// Expands to a conversion given the user facing event type,
+/// the wrapping interface enum variant, and the outer `Event` variant.
 ///
-/// ```ignore                                            user facing type,  enum type,    outer variant
+/// ```ignore
 /// impl_from_user_facing_event_for_interface_event_enum!(StateChangedEvent, ObjectEvents, ObjectEvents::StateChanged);
 /// ```
 ///
@@ -173,13 +173,19 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 	};
 }
 
-/// Expands to a conversion given two arguments,
-/// 1. the user facing event type `(inner_type)`
-/// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.
+/// Expands to a `TryFrom<Event> for T` where T is the user facing type.
+/// The macro takes three arguments:
 ///
-/// eg
+/// 1. The user facing type.
+/// 2. The inner variant of the user facing type.
+/// 3. The outer variant of the `Event` enum.
+///
 /// ```ignore
-/// impl_try_from_event_for_user_facing_type!(StateChangedEvent, ObjectEvents::StateChanged);
+/// impl_try_from_event_for_user_facing_type!(
+///     StateChangedEvent,
+///     ObjectEvents::StateChanged,
+///     Event::Object
+/// );
 /// ```
 /// expands to:
 ///
@@ -187,20 +193,20 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 /// impl TryFrom<Event> for StateChangedEvent {
 ///    type Error = AtspiError;
 ///   fn try_from(generic_event: Event) -> Result<StateChangedEvent, Self::Error> {
-///      if let Event::Object(ObjectEvents::StateChanged(specific_event)) = generic_event {
-///          Ok(specific_event)
-///         } else {
-///          Err(AtspiError::Conversion("Invalid type"))
-///         }
-///   }
+///    if let Event::Object(ObjectEvents::StateChanged(specific_event)) = generic_event {
+///      Ok(specific_event)
+///   } else {
+///    Err(AtspiError::Conversion("Invalid type"))
+///  }
 /// }
 /// ```
+///
 macro_rules! impl_try_from_event_for_user_facing_type {
 	($inner_type:ty, $inner_variant:path, $outer_variant:path) => {
 		#[cfg(feature = "wrappers")]
-		impl TryFrom<Event> for $inner_type {
+		impl TryFrom<crate::Event> for $inner_type {
 			type Error = AtspiError;
-			fn try_from(generic_event: Event) -> Result<$inner_type, Self::Error> {
+			fn try_from(generic_event: crate::Event) -> Result<$inner_type, Self::Error> {
 				if let $outer_variant($inner_variant(specific_event)) = generic_event {
 					Ok(specific_event)
 				} else {
@@ -240,7 +246,7 @@ macro_rules! impl_to_dbus_message {
 		impl TryFrom<$type> for zbus::Message {
 			type Error = AtspiError;
 			fn try_from(event: $type) -> Result<Self, Self::Error> {
-				use crate::events::{DBusInterface, DBusMember};
+				use crate::events::{DBusInterface, DBusMember, MessageConversion};
 				Ok(zbus::Message::signal(
 					event.path(),
 					<$type as DBusInterface>::DBUS_INTERFACE,
@@ -287,6 +293,7 @@ macro_rules! impl_from_dbus_message {
 			type Error = AtspiError;
 			fn try_from(msg: &'msg zbus::Message) -> Result<Self, Self::Error> {
 				use crate::events::{EventBody, EventBodyQtBorrowed};
+				use crate::events::traits::{MessageConversion, MessageConversionExt};
 				use zvariant::Type;
 				use crate::ObjectRef;
 
@@ -339,6 +346,7 @@ macro_rules! generic_event_test_case {
 	($type:ty) => {
 		#[test]
 		fn generic_event_uses() {
+			use crate::events::traits::MessageConversion;
 			let struct_event = <$type>::default();
 			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
@@ -375,6 +383,7 @@ macro_rules! event_enum_test_case {
 	($type:ty) => {
 		#[test]
 		fn event_enum_conversion() {
+			use crate::Event;
 			let struct_event = <$type>::default();
 			let event = Event::from(struct_event.clone());
 			let struct_event_back = <$type>::try_from(event)
@@ -405,6 +414,7 @@ macro_rules! event_enum_transparency_test_case {
 		#[test]
 		fn event_enum_transparency_test_case() {
 			use crate::events::EventTypeProperties;
+			use crate::Event;
 
 			let specific_event = <$type>::default();
 			let generic_event = Event::from(specific_event.clone());
@@ -441,7 +451,9 @@ macro_rules! zbus_message_qtspi_test_case {
      #[test]
     fn zbus_message_conversion_qtspi() {
 		use crate::events::EventTypeProperties;
-      // in the case that the body type is EventBodyOwned, we need to also check successful
+		use crate::events::MessageConversion;
+
+		// in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
       let ev = <$type>::default();
       let qt: crate::events::EventBodyQtOwned = ev.body().into();
@@ -461,6 +473,10 @@ macro_rules! zbus_message_qtspi_test_case {
     #[test]
     fn zbus_message_conversion_qtspi_event_enum() {
 	  use crate::events::EventTypeProperties;
+	  use crate::events::MessageConversion;
+	  use crate::Event;
+
+
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
       let ev = <$type>::default();
@@ -508,10 +524,10 @@ macro_rules! zbus_message_test_case {
 		#[test]
 		fn zbus_msg_conversion_to_event_enum_type() {
 			let struct_event = <$type>::default();
-			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone()).expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro .");
+			let msg: zbus::Message = zbus::Message::try_from(struct_event.clone()).expect("Should convert a `$type::default()` into a message. Check the `impl_to_dbus_message` macro.");
 			let event_enum_back =
-				Event::try_from(&msg).expect("Should convert a from `$type::default()` built `Message` into an event enum. Check the `impl_from_dbus_message` macro .");
-			let event_enum: Event = struct_event.into();
+				crate::Event::try_from(&msg).expect("Should convert a from `$type::default()` built `Message` into an event enum. Check the `impl_from_dbus_message` macro.");
+			let event_enum: crate::Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
 		// make want to consider parameterized tests here, no need for fuzz testing, but one level lower than that may be nice
@@ -536,6 +552,8 @@ macro_rules! zbus_message_test_case {
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_validated_message_with_body() -> () {
+			use crate::events::MessageConversion;
+
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.technically.valid",
@@ -607,6 +625,7 @@ macro_rules! zbus_message_test_case {
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_failure_correct_body() -> () {
+			use crate::events::MessageConversion;
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.accessible.technically.valid",
@@ -624,6 +643,8 @@ macro_rules! zbus_message_test_case {
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_failure_correct_body_and_member() -> () {
+			use crate::events::MessageConversion;
+
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				"org.a11y.atspi.accessible.technically.valid",
@@ -640,6 +661,8 @@ macro_rules! zbus_message_test_case {
 		#[cfg(feature = "zbus")]
 		#[test]
 		fn zbus_msg_conversion_failure_correct_body_and_interface() -> () {
+			use crate::events::MessageConversion;
+
 			let fake_msg = zbus::Message::signal(
 				"/org/a11y/sixtynine/fourtwenty",
 				<$type as crate::events::DBusInterface>::DBUS_INTERFACE,
@@ -664,84 +687,95 @@ macro_rules! zbus_message_test_case {
 /// 4. `zbus_msg_invalid_member_and_interface`
 /// 5. `zbus_msg_conversion`
 ///
+/// The macro takes two arguments:
+/// 1. The event's interface enum type.
+/// 2. Any user facing event type that is wrapped by the interface enum.
+///
 /// # Examples
 ///
 /// ```ignore
 /// event_wrapper_test_cases!(MouseEvents, AbsEvent);
 /// ```
-/// In the macro, its first argument `$type` is the event enum type.
-/// The second argument `$any_subtype` is the event struct type.
 ///
 /// For each of the types, the macro will create a module with the name `events_tests_{foo}`
 /// where `{foo}` is the snake case of the 'interface enum' name.
 macro_rules! event_wrapper_test_cases {
-	($type:ty, $any_subtype:ty) => {
+	($iface_enum:ty, $ufet:ty) => {
 		#[cfg(test)]
-		#[rename_item::rename(name($type), prefix = "events_tests_", case = "snake")]
+		#[rename_item::rename(name($iface_enum), prefix = "events_tests_", case = "snake")]
 		mod foo {
-			use super::{$any_subtype, $type, AtspiError, Event, MessageConversion};
-      // TODO: replace with [`std::assert_matches::assert_matches`] when stabailized
-      use assert_matches::assert_matches;
-			#[test]
-			fn into_and_try_from_event() {
-				// Create a default event struct from its type's `Default::default()` impl.
-				let sub_type = <$any_subtype>::default();
-				// Wrap the event struct in the event enum
-				let mod_type = <$type>::from(sub_type);
-				// Wrap the inner event enum into the `Event` enum.
-				let event = Event::from(mod_type.clone());
-				// Unwrap the `Event` enum into the inner event enum.
-				let mod_type2 = <$type>::try_from(event.clone())
-					.expect("Should convert outer `Event` enum into interface enum because it was created from it. Check the `impl_try_from_event_for_user_facing_event_type` macro");
-				assert_eq!(
-					mod_type, mod_type2,
-					"Events were able to be parsed and encapsulated, but they have changed value"
-				);
-			}
-			#[cfg(feature = "zbus")]
-			#[test]
-			fn zbus_msg_invalid_interface() {
-				let fake_msg = zbus::Message::signal(
-					"/org/a11y/sixtynine/fourtwenty",
-					"org.a11y.atspi.technically.valid.lol",
-					<$any_subtype as crate::events::DBusMember>::DBUS_MEMBER,
-				)
-				.unwrap()
-				.sender(":0.0")
-				.unwrap()
-				.build(&<$any_subtype>::default().body())
-				.unwrap();
+		use super::{$ufet, $iface_enum, AtspiError, Event, MessageConversion};
+		// TODO: replace with [`std::assert_matches::assert_matches`] when stabilized
+		use assert_matches::assert_matches;
 
-				// It is hard to see what eventually is tested here. Let's unravel it:
-				//
-				// Below we call `TryFrom<&zbus::Message> for $type` where `$type` the interface enum name. (eg. `MouseEvents`, `ObjectEvents`, etc.) and
-				// `mod_type` is an 'interface enum' variant (eg. `MouseEvents::Abs(AbsEvent)`).
-				// This conversion is found in the `/src/events/{iface_name}.rs`` file.
-				// This conversion in turn leans on the `impl_from_dbus_message` macro.
-				// In `MouseEvents::Abs(msg.try_into()?)`, it is the `msg.try_into()?` that should fail.
-				// The `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
-        // Additioanlly, we check against the same method in `Event`; the overarchive enum that
-        // contains all other events as variants.
-				let mod_type = <$type>::try_from(&fake_msg);
-				let event_type = Event::try_from(&fake_msg);
-        assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
-        assert_matches!(event_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
+		#[test]
+		fn into_and_try_from_event() {
+			// Create a default event struct from its type's `Default::default()` impl.
+			let sub_type = <$ufet>::default();
+
+			// Wrap the event struct in the event enum
+			let mod_type = <$iface_enum>::from(sub_type);
+
+			// Wrap the inner event enum into the `Event` enum.
+			let event = Event::from(mod_type.clone());
+
+			// Unwrap the `Event` enum into the inner event enum.
+			let mod_type2 = <$iface_enum>::try_from(event.clone())
+				.expect("Should convert outer `Event` enum into interface enum because it was created from it. Check the `impl_try_from_event_for_interface_enum` macro");
+			assert_eq!(
+				mod_type, mod_type2,
+				"Events were able to be parsed and encapsulated, but they have changed value"
+			);
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_invalid_interface() {
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				"org.a11y.atspi.technically.valid.lol",
+				<$ufet as crate::events::DBusMember>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&<$ufet>::default().body())
+			.unwrap();
+
+			// It is hard to see what eventually is tested here. Let's unravel it:
+			//
+			// Below we call `TryFrom<&zbus::Message> for $type` where `$type` the interface enum name. (eg. `MouseEvents`, `ObjectEvents`, etc.) and
+			// `mod_type` is an 'interface enum' variant (eg. `MouseEvents::Abs(AbsEvent)`).
+			// This conversion is found in the `/src/events/{iface_name}.rs`` file.
+			// This conversion in turn leans on the `impl_from_dbus_message` macro.
+			// In `MouseEvents::Abs(msg.try_into()?)`, it is the `msg.try_into()?` that should fail.
+			// The `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
+
+			// Additioanlly, we check against the same method in `Event`; the overarchive enum that
+			// contains all other events as variants.
+
+			let mod_type = <$iface_enum>::try_from(&fake_msg);
+			let event_type = Event::try_from(&fake_msg);
+
+			assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
+			assert_matches!(event_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
 			}
+
 			#[cfg(feature = "zbus")]
 			#[test]
 			fn zbus_msg_invalid_member() {
 				let fake_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
-					<$any_subtype as crate::events::DBusInterface>::DBUS_INTERFACE,
+					<$ufet as crate::events::DBusInterface>::DBUS_INTERFACE,
 					"FakeFunctionLol",
 				)
 				.unwrap()
 				.sender(":0.0")
 				.unwrap()
-				.build(&<$any_subtype>::default().body())
+				.build(&<$ufet>::default().body())
 				.unwrap();
 				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
-				let mod_type = <$type>::try_from(&fake_msg);
+				let mod_type = <$iface_enum>::try_from(&fake_msg);
         assert_matches!(mod_type, Err(AtspiError::MemberMatch(_)), "Wrong kind of error");
 			}
 			#[cfg(feature = "zbus")]
@@ -755,10 +789,10 @@ macro_rules! event_wrapper_test_cases {
 				.unwrap()
 				.sender(":0.0")
 				.unwrap()
-				.build(&<$any_subtype>::default().body())
+				.build(&<$ufet>::default().body())
 				.unwrap();
 				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
-				let mod_type = <$type>::try_from(&fake_msg);
+				let mod_type = <$iface_enum>::try_from(&fake_msg);
 
 				// Note that the non-matching interface is the first error, so the member match error is not reached.
         assert_matches!(mod_type, Err(AtspiError::InterfaceMatch(_)), "Wrong kind of error");
@@ -768,17 +802,17 @@ macro_rules! event_wrapper_test_cases {
 			fn zbus_msg_conversion() {
 				let valid_msg = zbus::Message::signal(
 					"/org/a11y/sixtynine/fourtwenty",
-					<$any_subtype as crate::events::DBusInterface>::DBUS_INTERFACE,
-					<$any_subtype as crate::events::DBusMember>::DBUS_MEMBER,
+					<$ufet as crate::events::DBusInterface>::DBUS_INTERFACE,
+					<$ufet as crate::events::DBusMember>::DBUS_MEMBER,
 				)
 				.unwrap()
 				.sender(":0.0")
 				.unwrap()
-				.build(&<$any_subtype>::default().body())
+				.build(&<$ufet>::default().body())
 				.unwrap();
 				// As above, the `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
-				let mod_type = <$type>::try_from(&valid_msg);
-				mod_type.expect("Should convert from `$any_subtype::default()` built `Message` back into a interface event enum variant wrapping an inner type. Check the `impl_from_dbus_message` macro.");
+				let mod_type = <$iface_enum>::try_from(&valid_msg);
+				mod_type.expect("Should convert from `$ufet::default()` built `Message` back into a interface event enum variant wrapping an inner type. Check the `impl_from_dbus_message` macro.");
 			}
 		}
 	};
@@ -792,11 +826,10 @@ macro_rules! event_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($type), prefix = "event_tests_", case = "snake")]
 		mod foo {
-			use crate::{EventTypeProperties, Event};
-			use super::{$type, AtspiError, Event, MessageConversion, EventProperties };
-            use zbus::Message;
-      // TODO: use [`std::assert_matches::assert_matches`] when stabalized
-      use assert_matches::assert_matches;
+		use super::{$type, AtspiError, EventProperties };
+        use zbus::Message;
+        // TODO: use [`std::assert_matches::assert_matches`] when stabalized
+        use assert_matches::assert_matches;
 
 			generic_event_test_case!($type);
 			event_enum_test_case!($type);
@@ -812,12 +845,12 @@ macro_rules! event_test_cases {
 			PartialEq,
 			Eq,
 			std::hash::Hash,
-			crate::EventProperties,
-			crate::EventTypeProperties,
-			crate::events::DBusInterface,
-			crate::events::DBusMember,
-			crate::events::DBusMatchRule,
-			crate::events::RegistryEventString
+			crate::events::traits::EventProperties,
+			crate::events::traits::EventTypeProperties,
+			crate::events::traits::DBusInterface,
+			crate::events::traits::DBusMember,
+			crate::events::traits::DBusMatchRule,
+			crate::events::traits::RegistryEventString
 		);
 		#[cfg(feature = "zbus")]
 		assert_impl_all!(zbus::Message: TryFrom<$type>);
@@ -899,9 +932,10 @@ macro_rules! impl_msg_conversion_ext_for_target_type_with_specified_body_type {
 macro_rules! impl_msg_conversion_ext_for_target_type {
 	($target_type:ty) => {
 		#[cfg(feature = "zbus")]
-		impl<'msg> MessageConversionExt<'msg, crate::events::EventBody<'msg>> for $target_type {
+		impl<'msg> crate::events::MessageConversionExt<'msg, crate::events::EventBody<'msg>> for $target_type {
 			fn try_from_message(msg: &'msg zbus::Message, header: &Header) -> Result<Self, AtspiError> {
 				use zvariant::Type;
+				use crate::events::traits::MessageConversion;
 				Self::validate_interface(header)?;
 				Self::validate_member(header)?;
 
@@ -954,9 +988,9 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 macro_rules! impl_tryfrommessage_for_event_wrapper {
 	($wrapper:ty) => {
 		#[cfg(feature = "zbus")]
-		impl crate::events::TryFromMessage for $wrapper {
+		impl crate::events::traits::TryFromMessage for $wrapper {
 			fn try_from_message(msg: &zbus::Message) -> Result<$wrapper, AtspiError> {
-				use crate::events::EventWrapperMessageConversion;
+				use crate::events::traits::EventWrapperMessageConversion;
 
 				let header = msg.header();
 				let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
@@ -1012,7 +1046,7 @@ macro_rules! impl_msg_conversion_for_types_built_from_object_ref {
 	($($type:ty),*) => {
 		$(
 			#[cfg(feature = "zbus")]
-			impl MessageConversion<'_> for $type {
+			impl crate::events::MessageConversion<'_> for $type {
 				type Body<'msg> = crate::events::EventBody<'msg>;
 
 				fn from_message_unchecked_parts(
@@ -1083,5 +1117,53 @@ macro_rules! impl_member_interface_registry_string_and_match_rule_for_event {
 			const REGISTRY_EVENT_STRING: &'static str = $registry_str;
 		}
 		impl crate::events::DBusProperties for $target_type {}
+	};
+}
+
+/// Implement `EventTypeProperties` for a given event type.
+///
+/// This macro takes one argument: the target type.
+///
+/// # Example
+/// ```ignore
+/// impl_event_type_properties_for_event!(FocusEvent);
+/// ```
+/// expands to:
+///
+/// ```ignore
+/// impl EventTypeProperties for FocusEvent {
+///    fn member(&self) -> &'static str {
+///       Self::DBUS_MEMBER
+///   }
+///  fn interface(&self) -> &'static str {
+///   Self::DBUS_INTERFACE
+/// }
+/// fn registry_string(&self) -> &'static str {
+///  Self::REGISTRY_EVENT_STRING
+/// }
+/// fn match_rule(&self) -> &'static str {
+/// Self::MATCH_RULE_STRING
+/// }
+/// }
+///
+macro_rules! impl_event_type_properties_for_event {
+	($target_type:ty) => {
+		impl crate::events::EventTypeProperties for $target_type {
+			fn member(&self) -> &'static str {
+				Self::DBUS_MEMBER
+			}
+
+			fn interface(&self) -> &'static str {
+				Self::DBUS_INTERFACE
+			}
+
+			fn registry_string(&self) -> &'static str {
+				Self::REGISTRY_EVENT_STRING
+			}
+
+			fn match_rule(&self) -> &'static str {
+				Self::MATCH_RULE_STRING
+			}
+		}
 	};
 }

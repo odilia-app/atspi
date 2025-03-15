@@ -1,20 +1,16 @@
-use super::DBusMember;
 #[cfg(feature = "zbus")]
-use crate::events::{MessageConversion, MessageConversionExt};
+use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{
-		DBusInterface, DBusMatchRule, EventBody, EventBodyBorrowed, EventBodyOwned, ObjectRef,
-		RegistryEventString,
+		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyBorrowed, EventBodyOwned,
+		ObjectRef, RegistryEventString,
 	},
-	Event, EventProperties, EventTypeProperties, State,
+	EventProperties, State,
 };
 use std::hash::Hash;
 use zbus::message::{Body as DbusBody, Header};
-use zbus_names::UniqueName;
-use zvariant::{ObjectPath, OwnedValue, Value};
-
-impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
+use zvariant::{OwnedValue, Value};
 
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -25,6 +21,8 @@ pub struct PropertyChangeEvent {
 	pub property: String,
 	pub value: Property,
 }
+
+impl_event_type_properties_for_event!(PropertyChangeEvent);
 
 impl Hash for PropertyChangeEvent {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -328,11 +326,15 @@ pub struct BoundsChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(BoundsChangedEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(LinkSelectedEvent);
 
 /// A state of an object has been modified.
 /// A [`State`] can be added or removed from any [`crate::ObjectRef`].
@@ -346,6 +348,8 @@ pub struct StateChangedEvent {
 	#[serde(with = "i32_bool_conversion")]
 	pub enabled: bool,
 }
+
+impl_event_type_properties_for_event!(StateChangedEvent);
 
 mod i32_bool_conversion {
 	use serde::{Deserialize, Deserializer, Serializer};
@@ -386,11 +390,15 @@ pub struct ChildrenChangedEvent {
 	pub child: ObjectRef,
 }
 
+impl_event_type_properties_for_event!(ChildrenChangedEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(VisibleDataChangedEvent);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
@@ -398,11 +406,15 @@ pub struct SelectionChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(SelectionChangedEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(ModelChangedEvent);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
@@ -410,6 +422,8 @@ pub struct ActiveDescendantChangedEvent {
 	pub item: crate::events::ObjectRef,
 	pub child: ObjectRef,
 }
+
+impl_event_type_properties_for_event!(ActiveDescendantChangedEvent);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
@@ -421,11 +435,15 @@ pub struct AnnouncementEvent {
 	pub live: crate::Politeness,
 }
 
+impl_event_type_properties_for_event!(AnnouncementEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(AttributesChangedEvent);
 
 /// A row has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -434,12 +452,16 @@ pub struct RowInsertedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(RowInsertedEvent);
+
 /// A row has been moved within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowReorderedEvent {
 	/// The table which has had a row re-ordered.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(RowReorderedEvent);
 
 /// A row has been deleted from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -448,12 +470,16 @@ pub struct RowDeletedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(RowDeletedEvent);
+
 /// A column has been added to a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnInsertedEvent {
 	/// The table which has had a column inserted.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(ColumnInsertedEvent);
 
 /// A column has been re-ordered within a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -462,6 +488,8 @@ pub struct ColumnReorderedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(ColumnReorderedEvent);
+
 /// A column has been removed from a table.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnDeletedEvent {
@@ -469,17 +497,23 @@ pub struct ColumnDeletedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(ColumnDeletedEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(TextBoundsChangedEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(TextSelectionChangedEvent);
 
 /// Text has changed within an [`crate::ObjectRef`].
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -496,6 +530,8 @@ pub struct TextChangedEvent {
 	pub text: String,
 }
 
+impl_event_type_properties_for_event!(TextChangedEvent);
+
 /// Signal that some attributes about the text (usually styling) have changed.
 /// This event does not encode _what_ has changed about the attributes, merely that they have
 /// changed.
@@ -505,6 +541,8 @@ pub struct TextAttributesChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(TextAttributesChangedEvent);
+
 /// The caret of the user also known as a cursor (not to be confused with mouse pointer) has changed position.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextCaretMovedEvent {
@@ -513,6 +551,8 @@ pub struct TextCaretMovedEvent {
 	/// New position of the caret.
 	pub position: i32,
 }
+
+impl_event_type_properties_for_event!(TextCaretMovedEvent);
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
 	PropertyChangeEvent,
@@ -1079,10 +1119,9 @@ event_test_cases!(TextChangedEvent);
 
 #[cfg(test)]
 mod text_changed_event {
-	use super::{
-		AtspiError, Event, EventProperties, EventTypeProperties, MessageConversion,
-		TextChangedEvent,
-	};
+	use crate::EventTypeProperties;
+
+	use super::{AtspiError, EventProperties, MessageConversion, TextChangedEvent};
 	use assert_matches::assert_matches;
 	use zbus::Message;
 

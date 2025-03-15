@@ -1,50 +1,33 @@
-use crate::events::{AvailableEvent, EventListenerEvents};
 #[cfg(feature = "zbus")]
-use crate::events::{EventWrapperMessageConversion, MessageConversion, TryFromMessage};
+use crate::events::MessageConversion;
 use crate::{
-	cache::{CacheItem, LegacyCacheItem},
 	error::AtspiError,
 	events::{
-		cache::{AddAccessibleEvent, LegacyAddAccessibleEvent, RemoveAccessibleEvent},
-		document::AttributesChangedEvent as DocumentAttributesChangedEvent,
-		document::{
-			ContentChangedEvent, LoadCompleteEvent, LoadStoppedEvent, PageChangedEvent, ReloadEvent,
+		cache::*,
+		document::{AttributesChangedEvent as DocumentAttributesChangedEvent, *},
+		focus::*,
+		keyboard::*,
+		mouse::*,
+		object::{
+			AttributesChangedEvent as ObjectAttributesChangedEvent,
+			PropertyChangeEvent as ObjectPropertyChangeEvent, *,
 		},
-		focus::FocusEvent,
-		keyboard::ModifiersEvent,
-		mouse::{AbsEvent, ButtonEvent, RelEvent},
-		terminal::{
-			ApplicationChangedEvent, CharWidthChangedEvent, ColumnCountChangedEvent,
-			LineChangedEvent, LineCountChangedEvent,
-		},
+		terminal::*,
 		window::PropertyChangeEvent as WindowPropertyChangeEvent,
-		window::{
-			ActivateEvent, CloseEvent, CreateEvent, DeactivateEvent, DesktopCreateEvent,
-			DesktopDestroyEvent, DestroyEvent, LowerEvent, MaximizeEvent, MinimizeEvent, MoveEvent,
-			RaiseEvent, ReparentEvent, ResizeEvent, RestoreEvent, RestyleEvent, ShadeEvent,
-			UUshadeEvent,
-		},
-		BusProperties, DBusInterface, DBusMatchRule, EventTypeProperties, RegistryEventString,
+		window::*,
+		DBusInterface, DBusMatchRule, DBusMember, EventTypeProperties, RegistryEventString,
 	},
-	EventProperties, EventTypeProperties,
+	EventListenerDeregisteredEvent, EventProperties, LegacyCacheItem,
 };
 use crate::{
-	events::object::AttributesChangedEvent as ObjectAttributesChangedEvent,
-	events::object::PropertyChangeEvent as ObjectPropertyChangeEvent,
-	events::object::{
-		ActiveDescendantChangedEvent, AnnouncementEvent, BoundsChangedEvent, ChildrenChangedEvent,
-		ColumnDeletedEvent, ColumnInsertedEvent, ColumnReorderedEvent, LinkSelectedEvent,
-		ModelChangedEvent, RowDeletedEvent, RowInsertedEvent, RowReorderedEvent,
-		SelectionChangedEvent, StateChangedEvent, TextAttributesChangedEvent,
-		TextBoundsChangedEvent, TextCaretMovedEvent, TextChangedEvent, TextSelectionChangedEvent,
-		VisibleDataChangedEvent,
-	},
+	events::traits::{EventWrapperMessageConversion, TryFromMessage},
+	CacheItem,
 };
+use crate::{events::AvailableEvent, EventListenerRegisteredEvent};
 use serde::{Deserialize, Serialize};
+use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
-
-use super::DBusMatchRule;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
@@ -52,6 +35,15 @@ pub enum KeyboardEvents {
 	Modifiers(ModifiersEvent),
 }
 
+impl_tryfrommessage_for_event_wrapper!(KeyboardEvents);
+impl_try_from_event_for_interface_enum!(KeyboardEvents, Event::Keyboard);
+impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	ModifiersEvent,
+	KeyboardEvents,
+	KeyboardEvents::Modifiers
+);
 impl EventTypeProperties for KeyboardEvents {
 	fn member(&self) -> &'static str {
 		match self {
@@ -88,7 +80,6 @@ impl EventProperties for KeyboardEvents {
 	}
 }
 
-impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
 impl DBusMatchRule for KeyboardEvents {
@@ -96,13 +87,29 @@ impl DBusMatchRule for KeyboardEvents {
 		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 }
 
-impl DBusInterfaceName for KeyboardEvents {
+impl DBusInterface for KeyboardEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 }
 
 impl RegistryEventString for KeyboardEvents {
 	const REGISTRY_EVENT_STRING: &'static str = "keyboard:";
 }
+
+impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for KeyboardEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+
+impl_try_from_event_for_user_facing_type!(
+	ModifiersEvent,
+	KeyboardEvents::Modifiers,
+	Event::Keyboard
+);
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum MouseEvents {
@@ -115,14 +122,33 @@ pub enum MouseEvents {
 	/// See: [`ButtonEvent`].
 	Button(ButtonEvent),
 }
+
+impl DBusMatchRule for MouseEvents {
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
+}
+
+impl DBusInterface for MouseEvents {
+	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
+}
+
+impl RegistryEventString for MouseEvents {
+	const REGISTRY_EVENT_STRING: &'static str = "mouse:";
+}
+
+impl_tryfrommessage_for_event_wrapper!(MouseEvents);
+
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for KeyboardEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr
+			.member()
+			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
 		match member.as_str() {
 			ModifiersEvent::DBUS_MEMBER => {
-				Ok(KeyboardEvents::Modifiers(ModifiersEvent::from_message_unchecked(msg)?))
+				Ok(KeyboardEvents::Modifiers(ModifiersEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
 		}
@@ -178,31 +204,34 @@ impl EventTypeProperties for MouseEvents {
 }
 
 event_wrapper_test_cases!(MouseEvents, AbsEvent);
+impl_try_from_event_for_interface_enum!(MouseEvents, Event::Mouse);
 impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
-impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
 
-impl DBusMatchRule for MouseEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
-}
-
-impl DBusInterface for MouseEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-}
-
-impl RegistryEventString for MouseEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "mouse:";
-}
+impl_from_user_facing_event_for_interface_event_enum!(RelEvent, MouseEvents, MouseEvents::Rel);
+impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ButtonEvent,
+	MouseEvents,
+	MouseEvents::Button
+);
+impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Event::Mouse);
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for MouseEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			AbsEvent::DBUS_MEMBER => Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?)),
-			RelEvent::DBUS_MEMBER => Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?)),
+			AbsEvent::DBUS_MEMBER => {
+				Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg, hdr)?))
+			}
+			RelEvent::DBUS_MEMBER => {
+				Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg, hdr)?))
+			}
 			ButtonEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg)?))
+				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
 		}
@@ -217,33 +246,17 @@ impl TryFrom<&zbus::Message> for MouseEvents {
 	}
 }
 
-#[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for MouseEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		match member.as_str() {
-			AbsEvent::DBUS_MEMBER => Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?)),
-			RelEvent::DBUS_MEMBER => Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?)),
-			ButtonEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg)?))
-			}
-			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
-		}
-	}
-}
+impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
+impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
+impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
 
 impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
-impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
 impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
-
-impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
-impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
 	/// See: [`PropertyChangeEvent`].
-	PropertyChange(PropertyChangeEvent),
+	PropertyChange(ObjectPropertyChangeEvent),
 	/// See: [`BoundsChangedEvent`].
 	BoundsChanged(BoundsChangedEvent),
 	/// See: [`LinkSelectedEvent`].
@@ -263,7 +276,7 @@ pub enum ObjectEvents {
 	/// See: [`AnnouncementEvent`].
 	Announcement(AnnouncementEvent),
 	/// See: [`AttributesChangedEvent`].
-	AttributesChanged(AttributesChangedEvent),
+	AttributesChanged(ObjectAttributesChangedEvent),
 	/// See: [`RowInsertedEvent`].
 	RowInserted(RowInsertedEvent),
 	/// See: [`RowReorderedEvent`].
@@ -452,17 +465,16 @@ impl EventProperties for ObjectEvents {
 	}
 }
 
+impl_try_from_event_for_interface_enum!(ObjectEvents, Event::Object);
 impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
-impl_try_from_event_for_user_facing_event_type!(ObjectEvents, Event::Object);
 
-event_wrapper_test_cases!(ObjectEvents, PropertyChangeEvent);
+event_wrapper_test_cases!(ObjectEvents, ObjectPropertyChangeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	TextChangedEvent,
 	ObjectEvents,
 	ObjectEvents::TextChanged
 );
-impl_from_user_facing_type_for_event_enum!(TextChangedEvent, Event::Object);
 impl_try_from_event_for_user_facing_type!(
 	TextChangedEvent,
 	ObjectEvents::TextChanged,
@@ -573,33 +585,36 @@ impl_from_user_facing_type_for_event_enum!(LoadStoppedEvent, Event::Document);
 impl_from_user_facing_type_for_event_enum!(ReloadEvent, Event::Document);
 impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent, Event::Document);
 
-impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
 impl_try_from_event_for_interface_enum!(DocumentEvents, Event::Document);
+impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
+
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for DocumentEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
-			LoadCompleteEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::LoadComplete(LoadCompleteEvent::from_message_unchecked(msg)?))
-			}
+			LoadCompleteEvent::DBUS_MEMBER => Ok(DocumentEvents::LoadComplete(
+				LoadCompleteEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			ReloadEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::Reload(ReloadEvent::from_message_unchecked(msg, hdr)?))
 			}
 			LoadStoppedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::LoadStopped(LoadStoppedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ContentChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::ContentChanged(
-				ContentChangedEvent::from_message_unchecked(msg)?,
+				ContentChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			DocumentAttributesChangedEvent::DBUS_MEMBER => Ok(DocumentEvents::AttributesChanged(
-				DocumentAttributesChangedEvent::from_message_unchecked(msg)?,
+				DocumentAttributesChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			PageChangedEvent::DBUS_MEMBER => {
-				Ok(DocumentEvents::PageChanged(PageChangedEvent::from_message_unchecked(msg)?))
+				Ok(DocumentEvents::PageChanged(PageChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 		}
@@ -841,218 +856,6 @@ impl TryFrom<&zbus::Message> for Event {
 	}
 }
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum ObjectEvents {
-	/// See: [`ObjectPropertyChangeEvent`].
-	PropertyChange(ObjectPropertyChangeEvent),
-	/// See: [`BoundsChangedEvent`].
-	BoundsChanged(BoundsChangedEvent),
-	/// See: [`LinkSelectedEvent`].
-	LinkSelected(LinkSelectedEvent),
-	/// See: [`StateChangedEvent`].
-	StateChanged(StateChangedEvent),
-	/// See: [`ChildrenChangedEvent`].
-	ChildrenChanged(ChildrenChangedEvent),
-	/// See: [`VisibleDataChangedEvent`].
-	VisibleDataChanged(VisibleDataChangedEvent),
-	/// See: [`SelectionChangedEvent`].
-	SelectionChanged(SelectionChangedEvent),
-	/// See: [`ModelChangedEvent`].
-	ModelChanged(ModelChangedEvent),
-	/// See: [`ActiveDescendantChangedEvent`].
-	ActiveDescendantChanged(ActiveDescendantChangedEvent),
-	/// See: [`AnnouncementEvent`].
-	Announcement(AnnouncementEvent),
-	/// See: [`ObjectAttributesChangedEvent`].
-	AttributesChanged(ObjectAttributesChangedEvent),
-	/// See: [`RowInsertedEvent`].
-	RowInserted(RowInsertedEvent),
-	/// See: [`RowReorderedEvent`].
-	RowReordered(RowReorderedEvent),
-	/// See: [`RowDeletedEvent`].
-	RowDeleted(RowDeletedEvent),
-	/// See: [`ColumnInsertedEvent`].
-	ColumnInserted(ColumnInsertedEvent),
-	/// See: [`ColumnReorderedEvent`].
-	ColumnReordered(ColumnReorderedEvent),
-	/// See: [`ColumnDeletedEvent`].
-	ColumnDeleted(ColumnDeletedEvent),
-	/// See: [`TextBoundsChangedEvent`].
-	TextBoundsChanged(TextBoundsChangedEvent),
-	/// See: [`TextSelectionChangedEvent`].
-	TextSelectionChanged(TextSelectionChangedEvent),
-	/// See: [`TextChangedEvent`].
-	TextChanged(TextChangedEvent),
-	/// See: [`TextAttributesChangedEvent`].
-	TextAttributesChanged(TextAttributesChangedEvent),
-	/// See: [`TextCaretMovedEvent`].
-	TextCaretMoved(TextCaretMovedEvent),
-}
-
-impl_tryfrommessage_for_event_wrapper!(ObjectEvents);
-
-impl EventTypeProperties for ObjectEvents {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.member(),
-			Self::BoundsChanged(inner) => inner.member(),
-			Self::LinkSelected(inner) => inner.member(),
-			Self::StateChanged(inner) => inner.member(),
-			Self::ChildrenChanged(inner) => inner.member(),
-			Self::VisibleDataChanged(inner) => inner.member(),
-			Self::SelectionChanged(inner) => inner.member(),
-			Self::ModelChanged(inner) => inner.member(),
-			Self::ActiveDescendantChanged(inner) => inner.member(),
-			Self::Announcement(inner) => inner.member(),
-			Self::AttributesChanged(inner) => inner.member(),
-			Self::RowInserted(inner) => inner.member(),
-			Self::RowReordered(inner) => inner.member(),
-			Self::RowDeleted(inner) => inner.member(),
-			Self::ColumnInserted(inner) => inner.member(),
-			Self::ColumnReordered(inner) => inner.member(),
-			Self::ColumnDeleted(inner) => inner.member(),
-			Self::TextBoundsChanged(inner) => inner.member(),
-			Self::TextSelectionChanged(inner) => inner.member(),
-			Self::TextChanged(inner) => inner.member(),
-			Self::TextAttributesChanged(inner) => inner.member(),
-			Self::TextCaretMoved(inner) => inner.member(),
-		}
-	}
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.interface(),
-			Self::BoundsChanged(inner) => inner.interface(),
-			Self::LinkSelected(inner) => inner.interface(),
-			Self::StateChanged(inner) => inner.interface(),
-			Self::ChildrenChanged(inner) => inner.interface(),
-			Self::VisibleDataChanged(inner) => inner.interface(),
-			Self::SelectionChanged(inner) => inner.interface(),
-			Self::ModelChanged(inner) => inner.interface(),
-			Self::ActiveDescendantChanged(inner) => inner.interface(),
-			Self::Announcement(inner) => inner.interface(),
-			Self::AttributesChanged(inner) => inner.interface(),
-			Self::RowInserted(inner) => inner.interface(),
-			Self::RowReordered(inner) => inner.interface(),
-			Self::RowDeleted(inner) => inner.interface(),
-			Self::ColumnInserted(inner) => inner.interface(),
-			Self::ColumnReordered(inner) => inner.interface(),
-			Self::ColumnDeleted(inner) => inner.interface(),
-			Self::TextBoundsChanged(inner) => inner.interface(),
-			Self::TextSelectionChanged(inner) => inner.interface(),
-			Self::TextChanged(inner) => inner.interface(),
-			Self::TextAttributesChanged(inner) => inner.interface(),
-			Self::TextCaretMoved(inner) => inner.interface(),
-		}
-	}
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.match_rule(),
-			Self::BoundsChanged(inner) => inner.match_rule(),
-			Self::LinkSelected(inner) => inner.match_rule(),
-			Self::StateChanged(inner) => inner.match_rule(),
-			Self::ChildrenChanged(inner) => inner.match_rule(),
-			Self::VisibleDataChanged(inner) => inner.match_rule(),
-			Self::SelectionChanged(inner) => inner.match_rule(),
-			Self::ModelChanged(inner) => inner.match_rule(),
-			Self::ActiveDescendantChanged(inner) => inner.match_rule(),
-			Self::Announcement(inner) => inner.match_rule(),
-			Self::AttributesChanged(inner) => inner.match_rule(),
-			Self::RowInserted(inner) => inner.match_rule(),
-			Self::RowReordered(inner) => inner.match_rule(),
-			Self::RowDeleted(inner) => inner.match_rule(),
-			Self::ColumnInserted(inner) => inner.match_rule(),
-			Self::ColumnReordered(inner) => inner.match_rule(),
-			Self::ColumnDeleted(inner) => inner.match_rule(),
-			Self::TextBoundsChanged(inner) => inner.match_rule(),
-			Self::TextSelectionChanged(inner) => inner.match_rule(),
-			Self::TextChanged(inner) => inner.match_rule(),
-			Self::TextAttributesChanged(inner) => inner.match_rule(),
-			Self::TextCaretMoved(inner) => inner.match_rule(),
-		}
-	}
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::PropertyChange(inner) => inner.registry_string(),
-			Self::BoundsChanged(inner) => inner.registry_string(),
-			Self::LinkSelected(inner) => inner.registry_string(),
-			Self::StateChanged(inner) => inner.registry_string(),
-			Self::ChildrenChanged(inner) => inner.registry_string(),
-			Self::VisibleDataChanged(inner) => inner.registry_string(),
-			Self::SelectionChanged(inner) => inner.registry_string(),
-			Self::ModelChanged(inner) => inner.registry_string(),
-			Self::ActiveDescendantChanged(inner) => inner.registry_string(),
-			Self::Announcement(inner) => inner.registry_string(),
-			Self::AttributesChanged(inner) => inner.registry_string(),
-			Self::RowInserted(inner) => inner.registry_string(),
-			Self::RowReordered(inner) => inner.registry_string(),
-			Self::RowDeleted(inner) => inner.registry_string(),
-			Self::ColumnInserted(inner) => inner.registry_string(),
-			Self::ColumnReordered(inner) => inner.registry_string(),
-			Self::ColumnDeleted(inner) => inner.registry_string(),
-			Self::TextBoundsChanged(inner) => inner.registry_string(),
-			Self::TextSelectionChanged(inner) => inner.registry_string(),
-			Self::TextChanged(inner) => inner.registry_string(),
-			Self::TextAttributesChanged(inner) => inner.registry_string(),
-			Self::TextCaretMoved(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for ObjectEvents {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::PropertyChange(inner) => inner.path(),
-			Self::BoundsChanged(inner) => inner.path(),
-			Self::LinkSelected(inner) => inner.path(),
-			Self::StateChanged(inner) => inner.path(),
-			Self::ChildrenChanged(inner) => inner.path(),
-			Self::VisibleDataChanged(inner) => inner.path(),
-			Self::SelectionChanged(inner) => inner.path(),
-			Self::ModelChanged(inner) => inner.path(),
-			Self::ActiveDescendantChanged(inner) => inner.path(),
-			Self::Announcement(inner) => inner.path(),
-			Self::AttributesChanged(inner) => inner.path(),
-			Self::RowInserted(inner) => inner.path(),
-			Self::RowReordered(inner) => inner.path(),
-			Self::RowDeleted(inner) => inner.path(),
-			Self::ColumnInserted(inner) => inner.path(),
-			Self::ColumnReordered(inner) => inner.path(),
-			Self::ColumnDeleted(inner) => inner.path(),
-			Self::TextBoundsChanged(inner) => inner.path(),
-			Self::TextSelectionChanged(inner) => inner.path(),
-			Self::TextChanged(inner) => inner.path(),
-			Self::TextAttributesChanged(inner) => inner.path(),
-			Self::TextCaretMoved(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::PropertyChange(inner) => inner.sender(),
-			Self::BoundsChanged(inner) => inner.sender(),
-			Self::LinkSelected(inner) => inner.sender(),
-			Self::StateChanged(inner) => inner.sender(),
-			Self::ChildrenChanged(inner) => inner.sender(),
-			Self::VisibleDataChanged(inner) => inner.sender(),
-			Self::SelectionChanged(inner) => inner.sender(),
-			Self::ModelChanged(inner) => inner.sender(),
-			Self::ActiveDescendantChanged(inner) => inner.sender(),
-			Self::Announcement(inner) => inner.sender(),
-			Self::AttributesChanged(inner) => inner.sender(),
-			Self::RowInserted(inner) => inner.sender(),
-			Self::RowReordered(inner) => inner.sender(),
-			Self::RowDeleted(inner) => inner.sender(),
-			Self::ColumnInserted(inner) => inner.sender(),
-			Self::ColumnReordered(inner) => inner.sender(),
-			Self::ColumnDeleted(inner) => inner.sender(),
-			Self::TextBoundsChanged(inner) => inner.sender(),
-			Self::TextSelectionChanged(inner) => inner.sender(),
-			Self::TextChanged(inner) => inner.sender(),
-			Self::TextAttributesChanged(inner) => inner.sender(),
-			Self::TextCaretMoved(inner) => inner.sender(),
-		}
-	}
-}
-
 impl_from_user_facing_type_for_event_enum!(TextCaretMovedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(TextAttributesChangedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(TextChangedEvent, Event::Object);
@@ -1075,10 +878,6 @@ impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(LinkSelectedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent, Event::Object);
 impl_from_user_facing_type_for_event_enum!(ObjectPropertyChangeEvent, Event::Object);
-
-impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
-impl_try_from_event_for_interface_enum!(ObjectEvents, Event::Object);
-event_wrapper_test_cases!(ObjectEvents, ObjectPropertyChangeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	ObjectPropertyChangeEvent,
@@ -1267,16 +1066,6 @@ impl_try_from_event_for_user_facing_type!(
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	TextChangedEvent,
-	ObjectEvents,
-	ObjectEvents::TextChanged
-);
-impl_try_from_event_for_user_facing_type!(
-	TextChangedEvent,
-	ObjectEvents::TextChanged,
-	Event::Object
-);
-impl_from_user_facing_event_for_interface_event_enum!(
 	TextAttributesChangedEvent,
 	ObjectEvents,
 	ObjectEvents::TextAttributesChanged
@@ -1311,76 +1100,78 @@ impl RegistryEventString for ObjectEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for ObjectEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			ObjectPropertyChangeEvent::DBUS_MEMBER => Ok(ObjectEvents::PropertyChange(
-				ObjectPropertyChangeEvent::from_message_unchecked(msg)?,
+				ObjectPropertyChangeEvent::from_message_unchecked(msg, hdr)?,
 			)),
-			BoundsChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::BoundsChanged(BoundsChangedEvent::from_message_unchecked(msg)?))
-			}
+			BoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::BoundsChanged(
+				BoundsChangedEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			LinkSelectedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::LinkSelected(LinkSelectedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			StateChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::StateChanged(StateChangedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::StateChanged(StateChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ChildrenChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ChildrenChanged(
-				ChildrenChangedEvent::from_message_unchecked(msg)?,
+				ChildrenChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			VisibleDataChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::VisibleDataChanged(
-				VisibleDataChangedEvent::from_message_unchecked(msg)?,
+				VisibleDataChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			SelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::SelectionChanged(
-				SelectionChangedEvent::from_message_unchecked(msg)?,
+				SelectionChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			ModelChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::ModelChanged(ModelChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ActiveDescendantChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::ActiveDescendantChanged(
-				ActiveDescendantChangedEvent::from_message_unchecked(msg)?,
+				ActiveDescendantChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			AnnouncementEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::Announcement(AnnouncementEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::Announcement(AnnouncementEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ObjectAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::AttributesChanged(
-				ObjectAttributesChangedEvent::from_message_unchecked(msg)?,
+				ObjectAttributesChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			RowInsertedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowInserted(RowInsertedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowInserted(RowInsertedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			RowReorderedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowReordered(RowReorderedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowReordered(RowReorderedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			RowDeletedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::RowDeleted(RowDeletedEvent::from_message_unchecked(msg, hdr)?))
 			}
-			ColumnInsertedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ColumnInserted(ColumnInsertedEvent::from_message_unchecked(msg)?))
-			}
-			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
-				ColumnReorderedEvent::from_message_unchecked(msg)?,
+			ColumnInsertedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnInserted(
+				ColumnInsertedEvent::from_message_unchecked(msg, hdr)?,
 			)),
-			ColumnDeletedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::ColumnDeleted(ColumnDeletedEvent::from_message_unchecked(msg)?))
-			}
+			ColumnReorderedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnReordered(
+				ColumnReorderedEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			ColumnDeletedEvent::DBUS_MEMBER => Ok(ObjectEvents::ColumnDeleted(
+				ColumnDeletedEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			TextBoundsChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextBoundsChanged(
-				TextBoundsChangedEvent::from_message_unchecked(msg)?,
+				TextBoundsChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			TextSelectionChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextSelectionChanged(
-				TextSelectionChangedEvent::from_message_unchecked(msg)?,
+				TextSelectionChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			TextChangedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::TextChanged(TextChangedEvent::from_message_unchecked(msg)?))
+				Ok(ObjectEvents::TextChanged(TextChangedEvent::from_message_unchecked(msg, hdr)?))
 			}
 			TextAttributesChangedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextAttributesChanged(
-				TextAttributesChangedEvent::from_message_unchecked(msg)?,
+				TextAttributesChangedEvent::from_message_unchecked(msg, hdr)?,
 			)),
-			TextCaretMovedEvent::DBUS_MEMBER => {
-				Ok(ObjectEvents::TextCaretMoved(TextCaretMovedEvent::from_message_unchecked(msg)?))
-			}
+			TextCaretMovedEvent::DBUS_MEMBER => Ok(ObjectEvents::TextCaretMoved(
+				TextCaretMovedEvent::from_message_unchecked(msg, hdr)?,
+			)),
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",
 				Self::DBUS_INTERFACE,
@@ -1415,7 +1206,7 @@ impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
 impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
 impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
 
-impl DBUsMatchRule for CacheEvents {
+impl DBusMatchRule for CacheEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
 }
 
@@ -1477,29 +1268,31 @@ impl EventProperties for CacheEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for CacheEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			AddAccessibleEvent::DBUS_MEMBER => {
 				let body = msg.body();
 				let sig = body.signature();
 				if sig == CacheItem::SIGNATURE {
-					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg)?))
+					Ok(CacheEvents::Add(AddAccessibleEvent::from_message_unchecked(msg, hdr)?))
 				} else if sig == LegacyCacheItem::SIGNATURE {
 					Ok(CacheEvents::LegacyAdd(LegacyAddAccessibleEvent::from_message_unchecked(
-						msg,
+						msg, hdr,
 					)?))
 				} else {
 					Err(AtspiError::SignatureMatch(format!(
-						"No matching event for signature {:?} in interface {}",
-						sig,
+						"No matching event for signature {} in interface {}",
+						&sig.to_string(),
 						Self::DBUS_INTERFACE
 					)))
 				}
 			}
 			RemoveAccessibleEvent::DBUS_MEMBER => {
-				Ok(CacheEvents::Remove(RemoveAccessibleEvent::from_message_unchecked(msg)?))
+				Ok(CacheEvents::Remove(RemoveAccessibleEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No member {} in {}",
@@ -1509,6 +1302,8 @@ impl EventWrapperMessageConversion for CacheEvents {
 		}
 	}
 }
+
+impl_tryfrommessage_for_event_wrapper!(CacheEvents);
 
 #[cfg(feature = "zbus")]
 impl TryFrom<&zbus::Message> for CacheEvents {
@@ -1540,6 +1335,7 @@ impl_from_user_facing_event_for_interface_event_enum!(
 	CacheEvents::Remove
 );
 impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
+impl_try_from_event_for_interface_enum!(CacheEvents, Event::Cache);
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum FocusEvents {
@@ -1548,6 +1344,17 @@ pub enum FocusEvents {
 }
 
 impl_tryfrommessage_for_event_wrapper!(FocusEvents);
+
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::Message> for FocusEvents {
+	type Error = AtspiError;
+	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
+		Self::try_from_message(msg)
+	}
+}
+
+impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
+impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
 
 impl EventTypeProperties for FocusEvents {
 	fn member(&self) -> &'static str {
@@ -1585,19 +1392,22 @@ impl EventProperties for FocusEvents {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
-impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
 impl_try_from_event_for_interface_enum!(FocusEvents, Event::Focus);
+
+impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
+impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for FocusEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			FocusEvent::DBUS_MEMBER => {
-				Ok(FocusEvents::Focus(FocusEvent::from_message_unchecked(msg)?))
+				Ok(FocusEvents::Focus(FocusEvent::from_message_unchecked(msg, hdr)?))
 			}
 			_ => Err(AtspiError::MemberMatch(format!(
 				"No matching member {member} for interface {}",
@@ -1606,9 +1416,6 @@ impl EventWrapperMessageConversion for FocusEvents {
 		}
 	}
 }
-
-impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
-impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
 
 impl DBusMatchRule for FocusEvents {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
@@ -1621,222 +1428,6 @@ impl RegistryEventString for FocusEvents {
 impl DBusInterface for FocusEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
 }
-
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum KeyboardEvents {
-	/// See: [`ModifiersEvent`].
-	Modifiers(ModifiersEvent),
-}
-
-impl_tryfrommessage_for_event_wrapper!(KeyboardEvents);
-
-impl EventTypeProperties for KeyboardEvents {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::Modifiers(inner) => inner.member(),
-		}
-	}
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::Modifiers(inner) => inner.match_rule(),
-		}
-	}
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::Modifiers(inner) => inner.interface(),
-		}
-	}
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::Modifiers(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for KeyboardEvents {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::Modifiers(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::Modifiers(inner) => inner.sender(),
-		}
-	}
-}
-
-impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
-impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
-impl_try_from_event_for_interface_enum!(KeyboardEvents, Event::Keyboard);
-event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
-
-impl DBusMatchRule for KeyboardEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
-}
-
-impl DBusInterface for KeyboardEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
-}
-
-impl RegistryEventString for KeyboardEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "keyboard:";
-}
-
-#[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for KeyboardEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header
-			.member()
-			.ok_or(AtspiError::MemberMatch("Event without member".into()))?;
-		match member.as_str() {
-			ModifiersEvent::DBUS_MEMBER => {
-				Ok(KeyboardEvents::Modifiers(ModifiersEvent::from_message_unchecked(msg)?))
-			}
-			_ => Err(AtspiError::MemberMatch("No matching member for Keyboard".into())),
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for KeyboardEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	ModifiersEvent,
-	KeyboardEvents,
-	KeyboardEvents::Modifiers
-);
-
-impl HasRegistryEventString for KeyboardEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Keyboard:";
-}
-
-impl_try_from_event_for_user_facing_type!(
-	ModifiersEvent,
-	KeyboardEvents::Modifiers,
-	Event::Keyboard
-);
-
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum MouseEvents {
-	/// See: [`AbsEvent`].
-	Abs(AbsEvent),
-	/// See: [`RelEvent`].
-	Rel(RelEvent),
-	/// See: [`ButtonEvent`].
-	Button(ButtonEvent),
-}
-
-impl_tryfrommessage_for_event_wrapper!(MouseEvents);
-
-impl EventTypeProperties for MouseEvents {
-	fn member(&self) -> &'static str {
-		match self {
-			Self::Abs(inner) => inner.member(),
-			Self::Rel(inner) => inner.member(),
-			Self::Button(inner) => inner.member(),
-		}
-	}
-	fn interface(&self) -> &'static str {
-		match self {
-			Self::Abs(inner) => inner.interface(),
-			Self::Rel(inner) => inner.interface(),
-			Self::Button(inner) => inner.interface(),
-		}
-	}
-	fn match_rule(&self) -> &'static str {
-		match self {
-			Self::Abs(inner) => inner.match_rule(),
-			Self::Rel(inner) => inner.match_rule(),
-			Self::Button(inner) => inner.match_rule(),
-		}
-	}
-	fn registry_string(&self) -> &'static str {
-		match self {
-			Self::Abs(inner) => inner.registry_string(),
-			Self::Rel(inner) => inner.registry_string(),
-			Self::Button(inner) => inner.registry_string(),
-		}
-	}
-}
-
-impl EventProperties for MouseEvents {
-	fn path(&self) -> ObjectPath<'_> {
-		match self {
-			Self::Abs(inner) => inner.path(),
-			Self::Rel(inner) => inner.path(),
-			Self::Button(inner) => inner.path(),
-		}
-	}
-	fn sender(&self) -> UniqueName<'_> {
-		match self {
-			Self::Abs(inner) => inner.sender(),
-			Self::Rel(inner) => inner.sender(),
-			Self::Button(inner) => inner.sender(),
-		}
-	}
-}
-impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
-impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
-impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
-impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
-impl_try_from_event_for_interface_enum!(MouseEvents, Event::Mouse);
-
-event_wrapper_test_cases!(MouseEvents, AbsEvent);
-
-impl DBusMatchRule for MouseEvents {
-	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
-}
-
-impl DBusInterfaceName for MouseEvents {
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
-}
-
-impl HasRegistryEventString for MouseEvents {
-	const REGISTRY_EVENT_STRING: &'static str = "Mouse:";
-}
-
-#[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for MouseEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
-		match member.as_str() {
-			AbsEvent::DBUS_MEMBER => Ok(MouseEvents::Abs(AbsEvent::from_message_unchecked(msg)?)),
-			RelEvent::DBUS_MEMBER => Ok(MouseEvents::Rel(RelEvent::from_message_unchecked(msg)?)),
-			ButtonEvent::DBUS_MEMBER => {
-				Ok(MouseEvents::Button(ButtonEvent::from_message_unchecked(msg)?))
-			}
-			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
-		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for MouseEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
-impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
-impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
-impl_from_user_facing_event_for_interface_event_enum!(RelEvent, MouseEvents, MouseEvents::Rel);
-impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mouse);
-impl_from_user_facing_event_for_interface_event_enum!(
-	ButtonEvent,
-	MouseEvents,
-	MouseEvents::Button
-);
-impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Event::Mouse);
 
 /// All events related to the `org.a11y.atspi.Event.Terminal` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
@@ -1921,8 +1512,8 @@ impl_from_user_facing_type_for_event_enum!(LineCountChangedEvent, Event::Termina
 impl_from_user_facing_type_for_event_enum!(ColumnCountChangedEvent, Event::Terminal);
 impl_from_user_facing_type_for_event_enum!(LineChangedEvent, Event::Terminal);
 
-impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
 impl_try_from_event_for_interface_enum!(TerminalEvents, Event::Terminal);
+impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
 
 event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
 
@@ -1937,11 +1528,6 @@ impl RegistryEventString for TerminalEvents {
 
 impl DBusInterface for TerminalEvents {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-}
-
-impl DBusMatchRule for TerminalEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 }
 
 #[cfg(feature = "zbus")]
@@ -2242,8 +1828,8 @@ impl_from_user_facing_type_for_event_enum!(DesktopDestroyEvent, Event::Window);
 impl_from_user_facing_type_for_event_enum!(DesktopCreateEvent, Event::Window);
 impl_from_user_facing_type_for_event_enum!(CreateEvent, Event::Window);
 
-impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);
 impl_try_from_event_for_interface_enum!(WindowEvents, Event::Window);
+impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);
 
 event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
@@ -2261,47 +1847,69 @@ impl RegistryEventString for WindowEvents {
 
 #[cfg(feature = "zbus")]
 impl EventWrapperMessageConversion for WindowEvents {
-	fn try_from_message_interface_checked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let header = msg.header();
-		let member = header.member().ok_or(AtspiError::MissingMember)?;
+	fn try_from_message_interface_checked(
+		msg: &zbus::Message,
+		hdr: &Header,
+	) -> Result<Self, AtspiError> {
+		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
 		match member.as_str() {
 			WindowPropertyChangeEvent::DBUS_MEMBER => Ok(WindowEvents::PropertyChange(
-				WindowPropertyChangeEvent::from_message_unchecked(msg)?,
+				WindowPropertyChangeEvent::from_message_unchecked(msg, hdr)?,
 			)),
 			MinimizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Minimize(MinimizeEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Minimize(MinimizeEvent::from_message_unchecked(msg, hdr)?))
 			}
 			MaximizeEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Maximize(MaximizeEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Maximize(MaximizeEvent::from_message_unchecked(msg, hdr)?))
 			}
 			RestoreEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Restore(RestoreEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Restore(RestoreEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Close" => Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg)?)),
+			CloseEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Close(CloseEvent::from_message_unchecked(msg, hdr)?))
+			}
 			CreateEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Create(CreateEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Create(CreateEvent::from_message_unchecked(msg, hdr)?))
 			}
 			ReparentEvent::DBUS_MEMBER => {
-				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg)?))
+				Ok(WindowEvents::Reparent(ReparentEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"DesktopCreate" => {
-				Ok(WindowEvents::DesktopCreate(DesktopCreateEvent::from_message_unchecked(msg)?))
+			DesktopCreateEvent::DBUS_MEMBER => Ok(WindowEvents::DesktopCreate(
+				DesktopCreateEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			DesktopDestroyEvent::DBUS_MEMBER => Ok(WindowEvents::DesktopDestroy(
+				DesktopDestroyEvent::from_message_unchecked(msg, hdr)?,
+			)),
+			DestroyEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"DesktopDestroy" => {
-				Ok(WindowEvents::DesktopDestroy(DesktopDestroyEvent::from_message_unchecked(msg)?))
+			ActivateEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Destroy" => Ok(WindowEvents::Destroy(DestroyEvent::from_message_unchecked(msg)?)),
-			"Activate" => Ok(WindowEvents::Activate(ActivateEvent::from_message_unchecked(msg)?)),
-			"Deactivate" => {
-				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg)?))
+			DeactivateEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Deactivate(DeactivateEvent::from_message_unchecked(msg, hdr)?))
 			}
-			"Raise" => Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg)?)),
-			"Lower" => Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg)?)),
-			"Move" => Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg)?)),
-			"Resize" => Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg)?)),
-			"Shade" => Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg)?)),
-			"uUshade" => Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg)?)),
-			"Restyle" => Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg)?)),
+			RaiseEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Raise(RaiseEvent::from_message_unchecked(msg, hdr)?))
+			}
+			LowerEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Lower(LowerEvent::from_message_unchecked(msg, hdr)?))
+			}
+			MoveEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Move(MoveEvent::from_message_unchecked(msg, hdr)?))
+			}
+			ResizeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Resize(ResizeEvent::from_message_unchecked(msg, hdr)?))
+			}
+			ShadeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Shade(ShadeEvent::from_message_unchecked(msg, hdr)?))
+			}
+			UUshadeEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::UUshade(UUshadeEvent::from_message_unchecked(msg, hdr)?))
+			}
+			RestyleEvent::DBUS_MEMBER => {
+				Ok(WindowEvents::Restyle(RestyleEvent::from_message_unchecked(msg, hdr)?))
+			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Window".into())),
 		}
 	}
@@ -2511,7 +2119,7 @@ impl EventProperties for EventListenerEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl crate::events::EventWrapperMessageConversion for EventListenerEvents {
+impl crate::events::traits::EventWrapperMessageConversion for EventListenerEvents {
 	fn try_from_message_interface_checked(
 		msg: &zbus::Message,
 		hdr: &zbus::message::Header,
@@ -2537,9 +2145,12 @@ impl crate::events::EventWrapperMessageConversion for EventListenerEvents {
 impl TryFrom<&zbus::Message> for EventListenerEvents {
 	type Error = AtspiError;
 	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		<Self as crate::events::TryFromMessage>::try_from_message(msg)
+		<Self as crate::events::traits::TryFromMessage>::try_from_message(msg)
 	}
 }
+
+impl_try_from_event_for_interface_enum!(EventListenerEvents, Event::Listener);
+impl_from_interface_event_enum_for_event!(EventListenerEvents, Event::Listener);
 
 impl From<AvailableEvent> for Event {
 	fn from(ev: AvailableEvent) -> Event {

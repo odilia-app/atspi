@@ -3,20 +3,20 @@
 
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
-use zvariant::{ObjectPath, Type};
 
 #[cfg(feature = "zbus")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
+use zvariant::Type;
 
 use crate::{
 	error::AtspiError,
 	events::{
-		DBusInterface, DBusMatchRule, DBusMember, Event, EventProperties, EventTypeProperties,
-		MessageConversion, RegistryEventString,
+		DBusInterface, DBusMatchRule, DBusMember, EventProperties, MessageConversion,
+		RegistryEventString,
 	},
-	ObjectRef,
+	Event, EventListenerEvents, ObjectRef,
 };
 
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered
@@ -29,6 +29,8 @@ pub struct EventListenerDeregisteredEvent {
 	/// See `atspi-connection`.
 	pub deregistered_event: EventListeners,
 }
+
+impl_event_type_properties_for_event!(EventListenerDeregisteredEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	EventListenerDeregisteredEvent,
@@ -90,6 +92,8 @@ pub struct EventListenerRegisteredEvent {
 	pub registered_event: EventListeners,
 }
 
+impl_event_type_properties_for_event!(EventListenerRegisteredEvent);
+
 #[cfg(feature = "zbus")]
 impl MessageConversion<'_> for EventListenerRegisteredEvent {
 	type Body<'a> = EventListeners;
@@ -149,13 +153,15 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct EventListeners {
 	pub bus_name: OwnedUniqueName,
-	pub path: OwnedObjectPath,
+	// TODO: `path` should be a `zvariant::ObjectPath` but that requires changing the signature with an attribute
+	// and `Serialize`/`Deserialize` impls.
+	pub path: String,
 }
 
 impl Default for EventListeners {
 	fn default() -> Self {
 		Self {
-			bus_name: OwnedUniqueName::from_static_str_unchecked(":0.0"),
+			bus_name: UniqueName::from_static_str_unchecked(":0.0").into(),
 			path: String::from("/org/a11y/atspi/accessible/null"),
 		}
 	}
@@ -176,7 +182,8 @@ mod event_listener_tests {
 pub mod socket {
 	//! This module contains the event that is emitted by the registry daemon's `Socket` interface.
 
-	use crate::{events::MessageConversion, AtspiError, Event, EventProperties, ObjectRef};
+	use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
+	use crate::{events::MessageConversion, AtspiError, EventProperties, ObjectRef};
 	use zbus::message::Body as DbusBody;
 
 	#[cfg(feature = "zbus")]
@@ -198,23 +205,7 @@ pub mod socket {
 		pub socket: ObjectRef,
 	}
 
-	impl From<AvailableEvent> for Event {
-		fn from(ev: AvailableEvent) -> Event {
-			Event::Available(ev)
-		}
-	}
-
-	#[cfg(feature = "zbus")]
-	impl TryFrom<Event> for AvailableEvent {
-		type Error = AtspiError;
-		fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {
-			if let Event::Available(specific_event) = generic_event {
-				Ok(specific_event)
-			} else {
-				Err(AtspiError::Conversion("Invalid type"))
-			}
-		}
-	}
+	impl_event_type_properties_for_event!(AvailableEvent);
 
 	event_test_cases!(AvailableEvent, Explicit);
 

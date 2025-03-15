@@ -1,17 +1,17 @@
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
-	events::{BusProperties, ObjectRef},
+	events::ObjectRef,
 	EventProperties,
 };
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, ObjectRef, RegistryEventString},
-	Event, EventProperties, EventTypeProperties,
+	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 };
 use serde::{Deserialize, Serialize};
 use zbus::message::{Body as DbusBody, Header};
-use zbus_names::UniqueName;
+
+use super::{MessageConversion, MessageConversionExt};
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::LegacyCacheItem`]
@@ -22,6 +22,8 @@ pub struct LegacyAddAccessibleEvent {
 	/// A cache item to add to the internal cache.
 	pub node_added: LegacyCacheItem,
 }
+
+impl_event_type_properties_for_event!(LegacyAddAccessibleEvent);
 
 event_test_cases!(LegacyAddAccessibleEvent, Explicit);
 impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
@@ -64,6 +66,8 @@ pub struct AddAccessibleEvent {
 	/// A cache item to add to the internal cache.
 	pub node_added: CacheItem,
 }
+
+impl_event_type_properties_for_event!(AddAccessibleEvent);
 
 event_test_cases!(AddAccessibleEvent, Explicit);
 
@@ -109,6 +113,8 @@ pub struct RemoveAccessibleEvent {
 	pub node_removed: ObjectRef,
 }
 
+impl_event_type_properties_for_event!(RemoveAccessibleEvent);
+
 event_test_cases!(RemoveAccessibleEvent, Explicit);
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
@@ -126,11 +132,13 @@ impl MessageConversion<'_> for RemoveAccessibleEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		Ok(Self { item, node_removed: body.deserialize_unchecked::<Self::Body<'_>>()? })
 	}
+
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
 		let item = header.try_into()?;
 		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
+
 	fn body(&self) -> Self::Body<'_> {
 		self.node_removed.clone()
 	}

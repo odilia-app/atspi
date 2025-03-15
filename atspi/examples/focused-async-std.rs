@@ -1,5 +1,4 @@
 use atspi::events::object::StateChangedEvent;
-use atspi::events::ObjectEvents;
 use futures_lite::stream::StreamExt;
 use std::{error::Error, pin::pin};
 

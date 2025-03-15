@@ -1,26 +1,13 @@
 use crate::{
 	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, EventBody, EventBodyOwned, RegistryEventString},
-	Event, EventProperties, EventTypeProperties,
-};
-#[cfg(feature = "zbus")]
-use crate::{
-	error::AtspiError,
-	events::{MessageConversion, MessageConversionExt},
-	ObjectRef,
-};
-use crate::{
-	events::{BusProperties, EventBodyOwned},
+	events::{
+		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, RegistryEventString,
+	},
 	EventProperties,
 };
+#[cfg(feature = "zbus")]
+use crate::{events::MessageConversion, ObjectRef};
 use zbus::message::{Body as DbusBody, Header};
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
-<<<<<<< HEAD
-
-use super::DBusMember;
-
-impl_try_from_event_for_user_facing_event_type!(MouseEvents, Event::Mouse);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
@@ -30,6 +17,8 @@ pub struct AbsEvent {
 	pub y: i32,
 }
 
+impl_event_type_properties_for_event!(AbsEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RelEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -37,6 +26,8 @@ pub struct RelEvent {
 	pub x: i32,
 	pub y: i32,
 }
+
+impl_event_type_properties_for_event!(RelEvent);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ButtonEvent {
@@ -46,6 +37,8 @@ pub struct ButtonEvent {
 	pub mouse_x: i32,
 	pub mouse_y: i32,
 }
+
+impl_event_type_properties_for_event!(ButtonEvent);
 
 impl_member_interface_registry_string_and_match_rule_for_event! {
 	AbsEvent,
@@ -133,11 +126,6 @@ impl MessageConversion<'_> for ButtonEvent {
 		EventBodyOwned::from(self).into()
 	}
 }
-
-
-impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
-impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
-impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
 
 event_test_cases!(AbsEvent);
 impl_to_dbus_message!(AbsEvent);

@@ -1,22 +1,18 @@
 #[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, RegistryEventString},
-	Event, EventProperties, EventTypeProperties,
+	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
+	EventProperties,
 };
 use zbus::message::Header;
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
-
-use super::DBusMember;
-
-impl_try_from_event_for_user_facing_event_type!(FocusEvents, Event::Focus);
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct FocusEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(FocusEvent);
 
 impl_member_interface_registry_string_and_match_rule_for_event! {
 	FocusEvent,

@@ -13,12 +13,15 @@ use atspi_common::{
 	EventProperties,
 };
 
+#[cfg(feature = "wrappers")]
+use atspi_common::events::Event;
+
 use atspi_proxies::{
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
 use common::error::AtspiError;
-use common::events::{DBusMatchRule, Event, MessageConversion, RegistryEventString};
+use common::events::{DBusMatchRule, MessageConversion, RegistryEventString};
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{fdo::DBusProxy, message::Type as MessageType, Address, MatchRule, MessageStream};
@@ -161,6 +164,7 @@ impl AccessibilityConnection {
 	/// #    Ok(())
 	/// # }
 	/// ```
+	#[cfg(feature = "wrappers")]
 	pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
 		MessageStream::from(self.registry.inner().connection()).filter_map(|res| {
 			let msg = match res {
