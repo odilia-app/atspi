@@ -209,8 +209,10 @@ pub mod socket {
 
 	event_test_cases!(AvailableEvent, Explicit);
 
-	// We cannot really register at Registry for this event, as it is emitted by the Registry itself at early startup.
+	// We cannot register at Registry for this event, as it is emitted by the Registry itself at early startup.
 	// So, we do not have a registry event string for this event.
+	// The `Available` event is unconditionally emitted:
+	// [at-spi2-core/registryd/registry.c:1437](https://github.com/GNOME/at-spi2-core/blob/019d1a4013216d7d01040cf4eb3b8647bffc0dc9/registryd/registry.c#L1437)
 	impl_member_interface_registry_string_and_match_rule_for_event!(
 		AvailableEvent,
 		"Available",
