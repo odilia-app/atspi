@@ -194,7 +194,7 @@ pub mod socket {
 	/// An event that is emitted when the registry daemon has started.
 	///
 	/// The accessibility registry emits this signal early during startup,
-	/// when it has registered with the DBus daemon and is available for
+	/// when it has registered with the `DBus` daemon and is available for
 	/// calls from applications.
 	#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 	pub struct AvailableEvent {
