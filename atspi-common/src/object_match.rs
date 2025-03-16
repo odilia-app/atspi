@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, collections::HashMap, marker::PhantomData};
 
 use serde::{Deserialize, Serialize};
-use zvariant::{signature::Child, Signature, Type};
+use zvariant::{Signature, Type};
 
 use crate::{Interface, InterfaceSet, Role, State, StateSet};
 
@@ -61,16 +61,13 @@ pub struct ObjectMatchRule {
 /// <https://gitlab.gnome.org/federico/at-spi2-core/-/commit/4885efedeef71e0df8210622771a0b1bb10e194d>
 impl Type for ObjectMatchRule {
 	const SIGNATURE: &'static Signature = &Signature::static_structure(&[
-		&Signature::Array(Child::Static { child: &Signature::I32 }),
+		<Vec<i32>>::SIGNATURE,
 		&Signature::I32,
-		&Signature::Dict {
-			key: Child::Static { child: &Signature::Str },
-			value: Child::Static { child: &Signature::Str },
-		},
+		<HashMap<&str, &str>>::SIGNATURE,
 		&Signature::I32,
-		&Signature::Array(Child::Static { child: &Signature::I32 }),
+		<Vec<i32>>::SIGNATURE,
 		&Signature::I32,
-		&Signature::Array(Child::Static { child: &Signature::Str }),
+		<Vec<&str>>::SIGNATURE,
 		&Signature::I32,
 		&Signature::Bool,
 	]);
