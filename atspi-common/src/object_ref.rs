@@ -106,7 +106,7 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef {
 	}
 }
 
-impl<'b, 'a: 'b> TryFrom<Value<'a>> for ObjectRefBorrowed<'b> {
+impl<'a> TryFrom<Value<'a>> for ObjectRefBorrowed<'a> {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::Value<'a>) -> Result<Self, Self::Error> {
 		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
@@ -136,9 +136,8 @@ impl TryFrom<&zbus::message::Header<'_>> for ObjectRef {
 
 #[cfg(test)]
 mod test {
-	use zvariant::Value;
-
 	use crate::{object_ref::ObjectRefBorrowed, ObjectRef};
+	use zvariant::Value;
 
 	#[test]
 	fn test_accessible_from_dbus_ctxt_to_object_ref() {
