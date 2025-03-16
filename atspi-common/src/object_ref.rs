@@ -68,13 +68,7 @@ pub struct ObjectRefBorrowed<'a> {
 	pub path: ObjectPath<'a>,
 }
 
-impl<'a> ObjectRefBorrowed<'a> {
-	/// Create a new `ObjectRefBorrowed`
-	#[must_use]
-	pub fn new(name: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
-		Self { name, path }
-	}
-
+impl ObjectRefBorrowed<'_> {
 	/// Convert a partially borrowed `ObjectRefBorrowed` into a fully owned `ObjectRef`
 	// A derived clone would clone the owned fields and create new borrows for the borrowed fields.
 	// Whereas sometimes we want to convert the borrowed fields into owned fields.
@@ -83,18 +77,6 @@ impl<'a> ObjectRefBorrowed<'a> {
 		let name = OwnedUniqueName::from(self.name.clone());
 		let path = OwnedObjectPath::from(self.path.clone());
 		ObjectRef { name, path }
-	}
-
-	/// Create a static `ObjectRefBorrowed`, unchecked, from static string values.
-	///
-	/// # Safety
-	/// The caller must ensure that the strings are valid.
-	#[must_use]
-	pub const fn from_static_str_unchecked(sender: &'static str, path: &'static str) -> Self {
-		Self {
-			name: UniqueName::from_static_str_unchecked(sender),
-			path: ObjectPath::from_static_str_unchecked(path),
-		}
 	}
 }
 
