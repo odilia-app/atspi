@@ -131,7 +131,6 @@ where
 	///
 	/// - [`type@AtspiError::MissingInterface`] if there is no interface
 	/// - [`type@AtspiError::InterfaceMatch`] if the interfaces do not match
-	#[inline]
 	fn validate_interface(header: &Header) -> Result<(), AtspiError> {
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		if interface != Self::DBUS_INTERFACE {
@@ -168,7 +167,6 @@ where
 	/// # Errors
 	///
 	/// - [`type@AtspiError::SignatureMatch`] if the signatures do not match
-	#[inline]
 	fn validate_body(msg: &zbus::Message) -> Result<(), AtspiError> {
 		let body = msg.body();
 		let body_signature = body.signature();
