@@ -3,8 +3,8 @@ use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{
-		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyBorrowed, EventBodyOwned,
-		ObjectRef, RegistryEventString,
+		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, ObjectRef,
+		RegistryEventString,
 	},
 	EventProperties, State,
 };
@@ -96,138 +96,6 @@ impl Clone for Property {
 impl Default for Property {
 	fn default() -> Self {
 		Self::Other((String::default(), u64::default().into()))
-	}
-}
-
-impl TryFrom<EventBodyOwned> for Property {
-	type Error = AtspiError;
-
-	fn try_from(body: EventBodyOwned) -> Result<Self, Self::Error> {
-		let property = body.kind;
-
-		match property.as_str() {
-			"accessible-name" => Ok(Self::Name(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
-			)),
-			"accessible-description" => Ok(Self::Description(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
-			)),
-			"accessible-role" => Ok(Self::Role({
-				let role_int: u32 = body
-					.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				let role: crate::Role = crate::Role::try_from(role_int)
-					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				role
-			})),
-			"accessible-parent" => Ok(Self::Parent(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
-			)),
-			"accessible-table-caption" => Ok(Self::TableCaption(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
-			)),
-			"table-column-description" => Ok(Self::TableColumnDescription(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-column-description"))?,
-			)),
-			"table-column-header" => Ok(Self::TableColumnHeader(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
-			)),
-			"table-row-description" => Ok(Self::TableRowDescription(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-row-description"))?,
-			)),
-			"table-row-header" => Ok(Self::TableRowHeader(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
-			)),
-			"table-summary" => Ok(Self::TableSummary(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-summary"))?,
-			)),
-			_ => Ok(Self::Other((property, body.any_data))),
-		}
-	}
-}
-
-impl TryFrom<EventBodyBorrowed<'_>> for Property {
-	type Error = AtspiError;
-
-	fn try_from(body: EventBodyBorrowed<'_>) -> Result<Self, Self::Error> {
-		let property = body.kind;
-
-		match property {
-			"accessible-name" => Ok(Self::Name(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
-			)),
-			"accessible-description" => Ok(Self::Description(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
-			)),
-			"accessible-role" => Ok(Self::Role({
-				let role_int: u32 = body
-					.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				let role: crate::Role = crate::Role::try_from(role_int)
-					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
-				role
-			})),
-			"accessible-parent" => Ok(Self::Parent(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
-			)),
-			"accessible-table-caption" => Ok(Self::TableCaption(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
-			)),
-			"table-column-description" => Ok(Self::TableColumnDescription(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-column-description"))?,
-			)),
-			"table-column-header" => Ok(Self::TableColumnHeader(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
-			)),
-			"table-row-description" => Ok(Self::TableRowDescription(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-row-description"))?,
-			)),
-			"table-row-header" => Ok(Self::TableRowHeader(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
-			)),
-			"table-summary" => Ok(Self::TableSummary(
-				body.any_data
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-summary"))?,
-			)),
-			_ => Ok(Self::Other((property.to_string(), body.any_data.try_to_owned().expect("Could not clone 'value'.  Since properties are not known to carry files, we do not expect to exceed open file limit."))),),
-		}
 	}
 }
 
