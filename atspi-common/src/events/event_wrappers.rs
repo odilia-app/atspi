@@ -2185,3 +2185,5 @@ impl TryFrom<Event> for AvailableEvent {
 		}
 	}
 }
+
+event_wrapper_test_cases!(EventListenerEvents, EventListenerRegisteredEvent);

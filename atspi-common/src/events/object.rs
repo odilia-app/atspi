@@ -985,41 +985,6 @@ impl_from_object_ref!(TextSelectionChangedEvent);
 
 event_test_cases!(TextChangedEvent);
 
-#[cfg(test)]
-mod text_changed_event {
-	use crate::EventTypeProperties;
-
-	use super::{AtspiError, EventProperties, MessageConversion, TextChangedEvent};
-	use assert_matches::assert_matches;
-	use zbus::Message;
-
-	#[test]
-	fn generic_event_uses() {
-		let struct_event = <TextChangedEvent>::default();
-		assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
-		assert_eq!(struct_event.sender().as_str(), ":0.0");
-
-		let body = struct_event.body();
-
-		let body2 = Message::method_call(struct_event.path(), struct_event.member())
-			.unwrap()
-			.sender(struct_event.sender())
-			.unwrap()
-			.build(&body)
-			.unwrap();
-
-		let hdr = body2.header();
-
-		let build_struct = <TextChangedEvent>::from_message_unchecked(&body2, &hdr)
-			.expect("<$type as Default>'s parts should build a valid user facing type");
-		assert_eq!(struct_event, build_struct);
-	}
-
-	event_enum_test_case!(TextChangedEvent);
-	zbus_message_test_case!(TextChangedEvent, Auto);
-	event_enum_transparency_test_case!(TextChangedEvent);
-}
-
 assert_impl_all!(TextChangedEvent:Clone,std::fmt::Debug,serde::Serialize,serde::Deserialize<'static>,Default,PartialEq,Eq,std::hash::Hash,crate::EventProperties,crate::EventTypeProperties);
 #[cfg(feature = "zbus")]
 assert_impl_all!(zbus::Message:TryFrom<TextChangedEvent>);
