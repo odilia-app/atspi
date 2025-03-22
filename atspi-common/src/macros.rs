@@ -658,7 +658,7 @@ macro_rules! zbus_message_test_case {
 /// ```ignore
 /// event_wrapper_test_cases!(MouseEvents, AbsEvent);
 /// ```
-/// In the macro, its first argument `$type` is the event enum type.  
+/// In the macro, its first argument `$type` is the event enum type.\
 /// The second argument `$any_subtype` is the event struct type.
 ///
 /// For each of the types, the macro will create a module with the name `events_tests_{foo}`
