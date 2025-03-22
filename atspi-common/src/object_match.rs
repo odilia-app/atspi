@@ -81,7 +81,7 @@ impl ObjectMatchRule {
 	}
 }
 
-/// The 'builder' type for `MatchRule`.  
+/// The 'builder' type for `MatchRule`.\
 /// Use its methods to set match criteria.
 #[derive(Debug, Clone, Default)]
 pub struct ObjectMatchRuleBuilder {
