@@ -7,6 +7,7 @@ use crate::{
 	events::{DBusInterface, DBusMatchRule, RegistryEventString},
 	Event, EventProperties, EventTypeProperties,
 };
+#[cfg(feature = "zbus")]
 use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;

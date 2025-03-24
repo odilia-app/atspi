@@ -11,6 +11,7 @@ use crate::{
 	Event, EventProperties, EventTypeProperties, State,
 };
 use std::hash::Hash;
+#[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, OwnedValue, Value};

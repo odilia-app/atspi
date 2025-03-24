@@ -10,6 +10,7 @@ use crate::{
 	},
 	ObjectRef,
 };
+#[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 use zbus_names::UniqueName;
 use zvariant::ObjectPath;

@@ -20,10 +20,10 @@
 macro_rules! impl_event_properties {
 	($type:ty) => {
 		impl crate::EventProperties for $type {
-			fn sender(&self) -> zbus::names::UniqueName<'_> {
+			fn sender(&self) -> zbus_names::UniqueName<'_> {
 				self.item.name.as_ref()
 			}
-			fn path(&self) -> zbus::zvariant::ObjectPath<'_> {
+			fn path(&self) -> zvariant::ObjectPath<'_> {
 				self.item.path.as_ref()
 			}
 		}

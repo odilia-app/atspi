@@ -19,7 +19,6 @@ pub use event_body::{
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
 
-#[cfg(feature = "zbus")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};

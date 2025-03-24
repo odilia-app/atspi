@@ -5,16 +5,17 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, Type};
 
-#[cfg(feature = "zbus")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
+#[cfg(feature = "zbus")]
+use crate::events::MessageConversion;
 use crate::{
 	error::AtspiError,
 	events::{
 		DBusInterface, DBusMatchRule, DBusMember, Event, EventProperties, EventTypeProperties,
-		MessageConversion, RegistryEventString,
+		RegistryEventString,
 	},
 	ObjectRef,
 };
@@ -279,10 +280,12 @@ mod event_listener_tests {
 pub mod socket {
 	//! This module contains the event that is emitted by the registry daemon's `Socket` interface.
 
-	use crate::{events::MessageConversion, AtspiError, Event, EventProperties, ObjectRef};
+	#[cfg(feature = "zbus")]
+	use crate::events::MessageConversion;
+	use crate::{AtspiError, Event, EventProperties, ObjectRef};
+	#[cfg(feature = "zbus")]
 	use zbus::message::Body as DbusBody;
 
-	#[cfg(feature = "zbus")]
 	use serde::{Deserialize, Serialize};
 	#[cfg(feature = "zbus")]
 	use zbus::message::Header;
