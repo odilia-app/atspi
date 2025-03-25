@@ -5,6 +5,7 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 
 #[cfg(feature = "zbus")]
+use crate::events::MessageConversion;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
@@ -12,12 +13,11 @@ use zvariant::Type;
 
 use crate::{
 	error::AtspiError,
-	events::{
-		DBusInterface, DBusMatchRule, DBusMember, EventProperties, MessageConversion,
-		RegistryEventString,
-	},
-	Event, EventListenerEvents, ObjectRef,
+	events::{DBusInterface, DBusMatchRule, DBusMember, EventProperties, RegistryEventString},
+	ObjectRef,
 };
+#[cfg(feature = "wrappers")]
+use crate::{events::EventListenerEvents, Event};
 
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered
 /// to no longer listen for.
@@ -31,19 +31,6 @@ pub struct EventListenerDeregisteredEvent {
 }
 
 impl_event_type_properties_for_event!(EventListenerDeregisteredEvent);
-
-impl_from_user_facing_event_for_interface_event_enum!(
-	EventListenerDeregisteredEvent,
-	EventListenerEvents,
-	EventListenerEvents::Deregistered
-);
-
-impl_from_user_facing_type_for_event_enum!(EventListenerDeregisteredEvent, Event::Listener);
-impl_try_from_event_for_user_facing_type!(
-	EventListenerDeregisteredEvent,
-	EventListenerEvents::Deregistered,
-	Event::Listener
-);
 
 event_test_cases!(EventListenerDeregisteredEvent, Explicit);
 
@@ -122,20 +109,6 @@ impl_from_dbus_message!(EventListenerRegisteredEvent, Explicit);
 impl_event_properties!(EventListenerRegisteredEvent);
 impl_to_dbus_message!(EventListenerRegisteredEvent);
 
-impl_from_user_facing_event_for_interface_event_enum!(
-	EventListenerRegisteredEvent,
-	EventListenerEvents,
-	EventListenerEvents::Registered
-);
-
-impl_from_user_facing_type_for_event_enum!(EventListenerRegisteredEvent, Event::Listener);
-
-impl_try_from_event_for_user_facing_type!(
-	EventListenerRegisteredEvent,
-	EventListenerEvents::Registered,
-	Event::Listener
-);
-
 event_test_cases!(EventListenerRegisteredEvent, Explicit);
 
 // The registry string cannot be found in upstrream at-spi2-core.
@@ -182,14 +155,14 @@ mod event_listener_tests {
 pub mod socket {
 	//! This module contains the event that is emitted by the registry daemon's `Socket` interface.
 
+	#[cfg(feature = "zbus")]
+	use crate::events::MessageConversion;
 	use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
-	use crate::{events::MessageConversion, AtspiError, EventProperties, ObjectRef};
-	use zbus::message::Body as DbusBody;
+	use crate::{AtspiError, EventProperties, ObjectRef};
+	#[cfg(feature = "zbus")]
+	use zbus::message::{Body as DbusBody, Header};
 
-	#[cfg(feature = "zbus")]
 	use serde::{Deserialize, Serialize};
-	#[cfg(feature = "zbus")]
-	use zbus::message::Header;
 
 	/// An event that is emitted when the registry daemon has started.
 	///

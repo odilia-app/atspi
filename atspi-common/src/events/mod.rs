@@ -19,5 +19,7 @@ pub use event_wrappers::{
 };
 pub use traits::{
 	DBusInterface, DBusMatchRule, DBusMember, DBusProperties, EventProperties, EventTypeProperties,
-	MessageConversion, MessageConversionExt, RegistryEventString,
+	RegistryEventString,
 };
+#[cfg(feature = "zbus")]
+pub use traits::{MessageConversion, MessageConversionExt};

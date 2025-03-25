@@ -1,9 +1,9 @@
-#[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
 	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 	EventProperties,
 };
+#[cfg(feature = "zbus")]
 use zbus::message::Header;
 
 /// An event triggered by the completion of a document load action.

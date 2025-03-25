@@ -7,6 +7,7 @@ use crate::{
 
 #[cfg(feature = "zbus")]
 use crate::{events::MessageConversion, ObjectRef};
+#[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]

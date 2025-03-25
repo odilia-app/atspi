@@ -3,14 +3,15 @@ use crate::{
 	events::ObjectRef,
 	EventProperties,
 };
-#[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
 	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 };
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
+#[cfg(feature = "zbus")]
 use super::{MessageConversion, MessageConversionExt};
 
 /// Type that contains the `zbus::Message` for meta information and

@@ -1,9 +1,9 @@
-#[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
 	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 	EventProperties,
 };
+#[cfg(feature = "zbus")]
 use zbus::message::Header;
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]

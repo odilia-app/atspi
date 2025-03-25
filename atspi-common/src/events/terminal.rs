@@ -1,9 +1,9 @@
-#[cfg(feature = "zbus")]
 use crate::{
 	error::AtspiError,
 	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 	EventProperties,
 };
+#[cfg(feature = "zbus")]
 use zbus::message::Header;
 
 /// A line of text has been changed.

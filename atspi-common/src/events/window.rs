@@ -1,3 +1,6 @@
+#[cfg(feature = "zbus")]
+use crate::events::MessageConversion;
+use crate::ObjectRef;
 use crate::{
 	error::AtspiError,
 	events::{
@@ -6,7 +9,6 @@ use crate::{
 	EventProperties,
 };
 #[cfg(feature = "zbus")]
-use crate::{events::MessageConversion, ObjectRef};
 use zbus::message::{Body as DbusBody, Header};
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]

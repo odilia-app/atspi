@@ -1,9 +1,7 @@
+use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
-
-#[cfg(feature = "zbus")]
-use serde::{Deserialize, Serialize};
 
 /// A unique identifier for an object in the accessibility tree.
 ///

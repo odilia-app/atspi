@@ -9,6 +9,7 @@ use crate::{
 	EventProperties, State,
 };
 use std::hash::Hash;
+#[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 use zvariant::{OwnedValue, Value};
 

@@ -1,5 +1,8 @@
 #[cfg(feature = "zbus")]
+use crate::events::traits::{EventWrapperMessageConversion, TryFromMessage};
+#[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
+use crate::CacheItem;
 use crate::{
 	error::AtspiError,
 	events::{
@@ -35,15 +38,39 @@ use crate::{
 	},
 	EventListenerDeregisteredEvent, EventProperties, LegacyCacheItem,
 };
-use crate::{
-	events::traits::{EventWrapperMessageConversion, TryFromMessage},
-	CacheItem,
-};
 use crate::{events::AvailableEvent, EventListenerRegisteredEvent};
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "zbus")]
 use zbus::message::Header;
 use zbus_names::UniqueName;
 use zvariant::{ObjectPath, Type};
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	EventListenerRegisteredEvent,
+	EventListenerEvents,
+	EventListenerEvents::Registered
+);
+
+impl_from_user_facing_type_for_event_enum!(EventListenerRegisteredEvent, Event::Listener);
+
+impl_try_from_event_for_user_facing_type!(
+	EventListenerRegisteredEvent,
+	EventListenerEvents::Registered,
+	Event::Listener
+);
+
+impl_from_user_facing_event_for_interface_event_enum!(
+	EventListenerDeregisteredEvent,
+	EventListenerEvents,
+	EventListenerEvents::Deregistered
+);
+
+impl_from_user_facing_type_for_event_enum!(EventListenerDeregisteredEvent, Event::Listener);
+impl_try_from_event_for_user_facing_type!(
+	EventListenerDeregisteredEvent,
+	EventListenerEvents::Deregistered,
+	Event::Listener
+);
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum KeyboardEvents {
