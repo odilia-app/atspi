@@ -16,8 +16,6 @@ use crate::{
 	events::{DBusInterface, DBusMatchRule, DBusMember, EventProperties, RegistryEventString},
 	ObjectRef,
 };
-#[cfg(feature = "wrappers")]
-use crate::{events::EventListenerEvents, Event};
 
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered
 /// to no longer listen for.

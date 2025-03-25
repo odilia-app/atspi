@@ -67,14 +67,14 @@ pub(crate) trait TryFromMessage {
 }
 
 /// The `DBus` member for the event.
-/// For example, for an [`object::TextChangedEvent`] this should be `"TextChanged"`
+/// For example, for an [`crate::events::object::TextChangedEvent`] this should be `"TextChanged"`
 pub trait DBusMember {
 	/// The event's `DBus` member.
 	const DBUS_MEMBER: &'static str;
 }
 
 /// The `DBus` interface name for an event - or a wrapper type.
-/// For example, for any event within [`object`], this should be "org.a11y.atspi.Event.Object".
+/// For example, for any event within the "Object" interface, this should be "org.a11y.atspi.Event.Object".
 pub trait DBusInterface {
 	/// A static interface string for `DBus`.
 	/// This should usually be a string that looks like this: `"org.a11y.atspi.Event.*"`;
@@ -94,7 +94,7 @@ pub trait DBusMatchRule {
 /// A static `Registry` event string for registering with the `RegistryProxy` for receiving events.
 pub trait RegistryEventString {
 	/// A registry event string for registering for event receiving via the `RegistryProxy`.
-	/// This should be deprecated in favour of composing the string from [`BusProperties::DBUS_MEMBER`] and [`BusProperties::DBUS_INTERFACE`].
+	/// This should be deprecated in favour of composing the string from [`DBusMember::DBUS_MEMBER`] and [`DBusInterface::DBUS_INTERFACE`].
 	const REGISTRY_EVENT_STRING: &'static str;
 }
 
@@ -123,7 +123,7 @@ where
 	where
 		Self: Sized + 'a;
 
-	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`BusProperties::DBUS_INTERFACE`]
+	/// Validate the interface string via [`zbus::message::Header::interface`] against `Self`'s assignment of [`DBusInterface::DBUS_INTERFACE`]
 	///
 	/// # Errors
 	///
@@ -141,7 +141,7 @@ where
 		Ok(())
 	}
 
-	/// Validate the member string via [`zbus::message::Header::member`] against `Self`'s assignment of [`BusProperties::DBUS_MEMBER`]
+	/// Validate the member string via [`zbus::message::Header::member`] against `Self`'s assignment of [`DBusMember::DBUS_MEMBER`]
 	///
 	/// # Errors
 	///
@@ -195,7 +195,6 @@ pub trait MessageConversion<'a>: DBusProperties {
 	/// - That the message interface matches the one for the event: [`type@AtspiError::InterfaceMatch`]
 	/// - That the message has an member: [`type@AtspiError::MissingMember`]
 	/// - That the message member matches the one for the event: [`type@AtspiError::MemberMatch`]
-	/// - That the message has an signature: [`type@AtspiError::MissingSignature`]
 	/// - That the message signature matches the one for the event: [`type@AtspiError::SignatureMatch`]
 	///
 	/// Therefore, this should only be used when one has checked the above conditions.

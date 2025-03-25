@@ -298,7 +298,7 @@ impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mou
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum ObjectEvents {
-	/// See: [`PropertyChangeEvent`].
+	/// See: [`ObjectPropertyChangeEvent`].
 	PropertyChange(ObjectPropertyChangeEvent),
 	/// See: [`BoundsChangedEvent`].
 	BoundsChanged(BoundsChangedEvent),
@@ -318,7 +318,7 @@ pub enum ObjectEvents {
 	ActiveDescendantChanged(ActiveDescendantChangedEvent),
 	/// See: [`AnnouncementEvent`].
 	Announcement(AnnouncementEvent),
-	/// See: [`AttributesChangedEvent`].
+	/// See: [`ObjectAttributesChangedEvent`].
 	AttributesChanged(ObjectAttributesChangedEvent),
 	/// See: [`RowInsertedEvent`].
 	RowInserted(RowInsertedEvent),

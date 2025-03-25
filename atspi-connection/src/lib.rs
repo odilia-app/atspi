@@ -291,7 +291,7 @@ impl AccessibilityConnection {
 	}
 
 	/// Send an event over the accessibility bus.
-	/// This converts the event into a [`zbus::Message`] using the [`BusProperties`] trait.
+	/// This converts the event into a [`zbus::Message`] using the [`DBusMember`] + [`DBusInterface`] trait.
 	///
 	/// # Errors
 	///
