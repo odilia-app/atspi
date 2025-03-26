@@ -1,6 +1,7 @@
 pub mod cache;
 pub mod document;
 pub mod event_body;
+#[cfg(feature = "wrappers")]
 pub mod event_wrappers;
 pub mod focus;
 pub mod keyboard;
