@@ -1,3 +1,6 @@
+use crate::events::registry::socket::AvailableEvent;
+
+use crate::events::registry::{EventListenerDeregisteredEvent, EventListenerRegisteredEvent};
 #[cfg(feature = "zbus")]
 use crate::events::traits::{EventWrapperMessageConversion, TryFromMessage};
 #[cfg(feature = "zbus")]
@@ -36,9 +39,8 @@ use crate::{
 		},
 		DBusInterface, DBusMatchRule, DBusMember, EventTypeProperties, RegistryEventString,
 	},
-	EventListenerDeregisteredEvent, EventProperties, LegacyCacheItem,
+	EventProperties, LegacyCacheItem,
 };
-use crate::{events::AvailableEvent, EventListenerRegisteredEvent};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::Header;

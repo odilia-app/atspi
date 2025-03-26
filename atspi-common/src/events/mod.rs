@@ -6,10 +6,11 @@ pub mod focus;
 pub mod keyboard;
 pub mod mouse;
 pub mod object;
+pub mod registry;
 pub mod terminal;
 pub mod traits;
 pub mod window;
-use crate::{AvailableEvent, ObjectRef};
+use crate::ObjectRef;
 pub use event_body::{
 	EventBody, EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned,
 };
