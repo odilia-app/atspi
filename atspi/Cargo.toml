@@ -62,7 +62,9 @@ required-features = ["atspi_connection/wrappers", "connection-async-std"]
 [dev-dependencies]
 async-std      = { version = "1.12", default-features = false }
 atspi          = { path = "." }
-criterion      = "0.5"
+# TOOD: pinned due to MSRV 1.77.2 policy; this can be lifted when we bump.
+criterion      = "=0.5.0"
+half = "=2.4.0"
 fastrand       = "2.0"
 futures        = { version = "0.3", default-features = false, features = ["alloc"] }
 futures-lite   = { version = "2", default-features = false }
