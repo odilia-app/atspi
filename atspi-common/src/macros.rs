@@ -56,6 +56,7 @@ macro_rules! impl_from_object_ref {
 	};
 }
 
+#[cfg(feature = "wrappers")]
 /// Expands to a conversion given the enclosed event type and outer `Event` variant.
 ///
 /// eg
@@ -82,6 +83,7 @@ macro_rules! impl_from_interface_event_enum_for_event {
 	};
 }
 
+#[cfg(feature = "wrappers")]
 /// Expands to a conversion given the enclosed event enum type and outer `Event` variant.
 ///
 /// eg
@@ -117,6 +119,7 @@ macro_rules! impl_try_from_event_for_interface_enum {
 	};
 }
 
+#[cfg(feature = "wrappers")]
 /// Expands to a conversion given the user facing event type,
 /// the wrapping interface enum variant, and the outer `Event` variant.
 ///
@@ -143,6 +146,7 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 	};
 }
 
+#[cfg(feature = "wrappers")]
 /// Expands to a conversion given two arguments,
 /// 1. the user facing event type `(inner_type)`
 ///    which relies on a conversion to its interface variant enum type variant.
@@ -173,6 +177,7 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 	};
 }
 
+#[cfg(feature = "wrappers")]
 /// Expands to a `TryFrom<Event> for T` where T is the user facing type.
 /// The macro takes three arguments:
 ///
@@ -603,6 +608,7 @@ macro_rules! zbus_message_test_case {
 	};
 }
 
+#[cfg(feature = "wrappers")]
 /// Expands to five tests:
 ///
 /// 1. `into_and_try_from_event`
@@ -937,6 +943,7 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 	};
 }
 
+#[cfg(feature = "wrappers")]
 /// Implements `TryFromMessage` for a given event wrapper type.
 ///
 /// # Example

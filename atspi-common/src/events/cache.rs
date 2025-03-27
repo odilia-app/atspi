@@ -1,11 +1,11 @@
+#[cfg(feature = "wrappers")]
+use crate::error::AtspiError;
+use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
+#[cfg(feature = "zbus")]
+use crate::EventProperties;
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
 	events::ObjectRef,
-	EventProperties,
-};
-use crate::{
-	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 };
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]

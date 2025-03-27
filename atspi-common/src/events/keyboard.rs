@@ -1,9 +1,10 @@
+#[cfg(feature = "wrappers")]
 use super::event_body::EventBody;
-use crate::{
-	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString},
-	EventProperties,
+use crate::events::{
+	DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString,
 };
+#[cfg(feature = "wrappers")]
+use crate::{error::AtspiError, EventProperties};
 
 #[cfg(feature = "zbus")]
 use crate::{events::MessageConversion, ObjectRef};

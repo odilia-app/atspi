@@ -15,6 +15,7 @@ use crate::ObjectRef;
 pub use event_body::{
 	EventBody, EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned,
 };
+#[cfg(feature = "wrappers")]
 pub use event_wrappers::{
 	CacheEvents, DocumentEvents, Event, EventListenerEvents, FocusEvents, KeyboardEvents,
 	MouseEvents, ObjectEvents, TerminalEvents, WindowEvents,

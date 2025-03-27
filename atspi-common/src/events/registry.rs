@@ -5,15 +5,14 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 
 #[cfg(feature = "zbus")]
-use crate::events::MessageConversion;
+use crate::{error::AtspiError, events::MessageConversion, EventProperties};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 use zvariant::Type;
 
 use crate::{
-	error::AtspiError,
-	events::{DBusInterface, DBusMatchRule, DBusMember, EventProperties, RegistryEventString},
+	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 	ObjectRef,
 };
 
@@ -156,7 +155,11 @@ pub mod socket {
 	#[cfg(feature = "zbus")]
 	use crate::events::MessageConversion;
 	use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
-	use crate::{AtspiError, EventProperties, ObjectRef};
+	#[cfg(feature = "zbus")]
+	use crate::AtspiError;
+	#[cfg(feature = "zbus")]
+	use crate::EventProperties;
+	use crate::ObjectRef;
 	#[cfg(feature = "zbus")]
 	use zbus::message::{Body as DbusBody, Header};
 

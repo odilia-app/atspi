@@ -1,12 +1,14 @@
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
+#[cfg(feature = "wrappers")]
+use crate::EventProperties;
 use crate::{
 	error::AtspiError,
 	events::{
 		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, ObjectRef,
 		RegistryEventString,
 	},
-	EventProperties, State,
+	State,
 };
 use std::hash::Hash;
 #[cfg(feature = "zbus")]
