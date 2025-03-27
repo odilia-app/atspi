@@ -22,9 +22,12 @@ use atspi_proxies::{
 };
 use common::error::AtspiError;
 use common::events::{DBusMatchRule, MessageConversion, RegistryEventString};
+#[cfg(feature = "wrappers")]
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{fdo::DBusProxy, message::Type as MessageType, Address, MatchRule, MessageStream};
+use zbus::{fdo::DBusProxy, Address, MatchRule};
+#[cfg(feature = "wrappers")]
+use zbus::{message::Type as MessageType, MessageStream};
 
 /// A wrapper for results whose error type is [`AtspiError`].
 pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
