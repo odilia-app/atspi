@@ -196,13 +196,14 @@ macro_rules! impl_from_user_facing_type_for_event_enum {
 ///
 /// ```ignore
 /// impl TryFrom<Event> for StateChangedEvent {
-///    type Error = AtspiError;
-///   fn try_from(generic_event: Event) -> Result<StateChangedEvent, Self::Error> {
-///    if let Event::Object(ObjectEvents::StateChanged(specific_event)) = generic_event {
-///      Ok(specific_event)
-///   } else {
-///    Err(AtspiError::Conversion("Invalid type"))
-///  }
+///     type Error = AtspiError;
+///     fn try_from(generic_event: Event) -> Result<StateChangedEvent, Self::Error> {
+///         if let Event::Object(ObjectEvents::StateChanged(specific_event)) = generic_event {
+///             Ok(specific_event)
+///         } else {
+///             Err(AtspiError::Conversion("Invalid type"))
+///         }
+///     }
 /// }
 /// ```
 ///
