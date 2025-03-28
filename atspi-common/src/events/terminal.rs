@@ -1,11 +1,10 @@
+#[cfg(feature = "wrappers")]
+use crate::error::AtspiError;
+use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
+#[cfg(feature = "wrappers")]
+use crate::EventProperties;
 #[cfg(feature = "zbus")]
-use crate::{
-	error::AtspiError,
-	events::{MessageConversion, MessageConversionExt},
-};
-use crate::{events::BusProperties, EventProperties};
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
+use zbus::message::Header;
 
 /// A line of text has been changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -13,6 +12,8 @@ pub struct LineChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(LineChangedEvent);
 
 /// The width of a terminal emulator has changed sufficiently such that the number of characters
 /// able to fit on one *visual* line has changed.
@@ -22,6 +23,8 @@ pub struct ColumnCountChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(ColumnCountChangedEvent);
+
 /// The height of a terminal emulator has changed sufficiently such that the number of lines
 /// able to fit within the terminal has changed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
@@ -30,11 +33,15 @@ pub struct LineCountChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
+impl_event_type_properties_for_event!(LineCountChangedEvent);
+
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
 }
+
+impl_event_type_properties_for_event!(ApplicationChangedEvent);
 
 /// The width of a terminal emulator has changed sufficiently such that the number of characters
 /// able to fit on one *visual* line has changed.
@@ -44,45 +51,47 @@ pub struct CharWidthChangedEvent {
 	pub item: crate::events::ObjectRef,
 }
 
-impl BusProperties for LineChangedEvent {
-	const DBUS_MEMBER: &'static str = "LineChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
+impl_event_type_properties_for_event!(CharWidthChangedEvent);
 
-impl BusProperties for ColumnCountChangedEvent {
-	const DBUS_MEMBER: &'static str = "ColumncountChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LineChangedEvent,
+	"LineChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:line-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LineChanged'"
+);
 
-impl BusProperties for LineCountChangedEvent {
-	const DBUS_MEMBER: &'static str = "LinecountChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ColumnCountChangedEvent,
+	"ColumncountChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:columncount-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ColumncountChanged'"
+);
 
-impl BusProperties for ApplicationChangedEvent {
-	const DBUS_MEMBER: &'static str = "ApplicationChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LineCountChangedEvent,
+	"LinecountChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:linecount-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='LinecountChanged'"
+);
 
-impl BusProperties for CharWidthChangedEvent {
-	const DBUS_MEMBER: &'static str = "CharwidthChanged";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'";
-	const REGISTRY_EVENT_STRING: &'static str = "Terminal:";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	ApplicationChangedEvent,
+	"ApplicationChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:application-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='ApplicationChanged'"
+);
+
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	CharWidthChangedEvent,
+	"CharwidthChanged",
+	"org.a11y.atspi.Event.Terminal",
+	"terminal:char-width-changed",
+	"type='signal',interface='org.a11y.atspi.Event.Terminal',member='CharwidthChanged'"
+);
 
 event_test_cases!(LineChangedEvent);
 impl_to_dbus_message!(LineChangedEvent);
@@ -113,3 +122,15 @@ impl_to_dbus_message!(CharWidthChangedEvent);
 impl_from_dbus_message!(CharWidthChangedEvent);
 impl_event_properties!(CharWidthChangedEvent);
 impl_from_object_ref!(CharWidthChangedEvent);
+
+impl_msg_conversion_ext_for_target_type!(LineChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ColumnCountChangedEvent);
+impl_msg_conversion_ext_for_target_type!(LineCountChangedEvent);
+impl_msg_conversion_ext_for_target_type!(ApplicationChangedEvent);
+impl_msg_conversion_ext_for_target_type!(CharWidthChangedEvent);
+
+impl_msg_conversion_for_types_built_from_object_ref!(LineChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ColumnCountChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(LineCountChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(ApplicationChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(CharWidthChangedEvent);

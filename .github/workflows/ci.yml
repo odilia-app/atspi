@@ -1,7 +1,7 @@
 name: CI
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-on: 
+on:
   push:
     branches:
       - main
@@ -19,7 +19,7 @@ jobs:
         run: echo "version=`cat Cargo.toml | sed -n 's/rust-version = "\(.*\)"/\1/p' | xargs`" >> "$GITHUB_OUTPUT"
   benchmarks:
     runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -42,7 +42,7 @@ jobs:
         run: cargo bench --no-run --bench event_parsing_100k
   clippy:
     runs-on: ubuntu-latest
-    needs: [rustfmt,no-unused-dependencies,wasm-compatible-common-crate]
+    needs: [rustfmt, no-unused-dependencies, wasm-compatible-common-crate]
     name: nightly Clippy
     steps:
       - name: Git checkout
@@ -59,17 +59,17 @@ jobs:
             ~/.cargo/git/db
           key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
-               ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
           components: clippy
           toolchain: nightly
       - name: Clippy
-        run: cargo clippy --tests --workspace --no-deps -- -D warnings 
+        run: cargo clippy --tests --workspace --no-deps -- -D warnings
   tests:
     runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -111,7 +111,7 @@ jobs:
         run: cargo fmt --all --check
   rustdoc:
     runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -194,7 +194,7 @@ jobs:
         run: cargo machete
   semver-compliance:
     runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -224,7 +224,7 @@ jobs:
         run: cargo semver-checks check-release -p atspi --default-features
   msrv-compliance:
     runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies,find-msrv]
+    needs: [clippy, no-unused-dependencies, find-msrv]
     steps:
       - name: install stable toolchain
         uses: dtolnay/rust-toolchain@master
@@ -252,7 +252,7 @@ jobs:
         run: cargo build -p atspi-common --no-default-features --target wasm32-wasip1
   coverage:
     runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3

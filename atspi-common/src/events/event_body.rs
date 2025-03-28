@@ -1,6 +1,6 @@
 use crate::AtspiError;
 use serde::{
-	ser::{SerializeMap, SerializeStruct},
+	ser::{SerializeMap, SerializeTuple},
 	Deserialize, Serialize,
 };
 use zbus_lockstep_macros::validate;
@@ -33,7 +33,7 @@ pub struct EventBodyQtOwned {
 }
 
 impl Clone for EventBodyQtOwned {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
@@ -41,10 +41,10 @@ impl Clone for EventBodyQtOwned {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panic.  
+	/// Then this function panic.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -63,8 +63,8 @@ impl Clone for EventBodyQtOwned {
 
 /// Unit struct placeholder for `EventBodyQtOwned.properties`
 ///
-/// AT-SPI2 never reads or writes to `properties`.  
-/// `QtProperties` has the appropriate implementations for `Serialize` and `Deserialize`  
+/// AT-SPI2 never reads or writes to `EventBodyQT.properties`.
+/// `QtProperties` has the appropriate implementations for `Serialize` and `Deserialize`
 /// to make it serialize as an a valid tuple and valid bytes deserialize as placeholder.
 #[derive(Debug, Copy, Clone, Deserialize, Type, Default, PartialEq)]
 #[zvariant(signature = "(so)")]
@@ -75,10 +75,10 @@ impl Serialize for QtProperties {
 	where
 		S: serde::ser::Serializer,
 	{
-		let mut structure = serializer.serialize_struct("ObjectRef", 2)?;
-		structure.serialize_field("name", ":0.0")?;
-		structure.serialize_field("path", &ObjectPath::from_static_str_unchecked("/"))?;
-		structure.end()
+		let mut tup = serializer.serialize_tuple(2)?;
+		tup.serialize_element(":0.0")?;
+		tup.serialize_element(&ObjectPath::from_static_str_unchecked("/"))?;
+		tup.end()
 	}
 }
 
@@ -96,8 +96,8 @@ impl Default for EventBodyQtOwned {
 
 /// Unit struct placeholder for `EventBody.properties`
 ///
-/// AT-SPI2 never reads or writes to `EventBody.properties`.  
-/// `Properties` has the appropriate implementations for `Serialize` and `Deserialize`  
+/// AT-SPI2 never reads or writes to `EventBody.properties`.
+/// `Properties` has the appropriate implementations for `Serialize` and `Deserialize`
 /// to make it serialize as an a valid dictionary and valid bytes deserialize as placeholder.
 #[derive(Debug, Copy, Clone, Type, Default, Deserialize, PartialEq)]
 #[zvariant(signature = "a{sv}")]
@@ -156,7 +156,7 @@ impl Default for EventBodyOwned {
 }
 
 impl Clone for EventBodyOwned {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
@@ -164,10 +164,10 @@ impl Clone for EventBodyOwned {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panic.  
+	/// Then this function panic.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -230,7 +230,7 @@ impl EventBodyBorrowed<'_> {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Chances are slim because none of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].  
+	/// Chances are slim because none of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// See [`zvariant::Value::try_clone`] for more information.
 	pub fn to_fully_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		let owned_any_data = self.any_data.try_to_owned()?;
@@ -246,18 +246,18 @@ impl EventBodyBorrowed<'_> {
 }
 
 impl Clone for EventBodyBorrowed<'_> {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
 	/// If the following conditions are met:
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panic.  
+	/// Then this function panic.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -311,7 +311,7 @@ impl Default for EventBodyQtBorrowed<'_> {
 }
 
 impl Clone for EventBodyQtBorrowed<'_> {
-	/// # Safety  
+	/// # Safety
 	///
 	/// This implementation of [`Clone`] *can panic!* although chances are slim.
 	///
@@ -319,10 +319,10 @@ impl Clone for EventBodyQtBorrowed<'_> {
 	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	///
-	/// Then this function panics.  
+	/// Then this function panics.
 	/// None of the types in [`crate::events`] use [`std::os::fd::OwnedFd`].
 	/// Events on the AT-SPI bus *could, theoretically* send a file descriptor, but nothing in the current
-	/// specification describes that.  
+	/// specification describes that.
 	/// See [`zvariant::Value::try_clone`] for more information.
 	fn clone(&self) -> Self {
 		let cloned_any_data = self.any_data.try_clone().unwrap_or_else(|err| {
@@ -382,7 +382,7 @@ impl From<EventBodyQtOwned> for EventBodyOwned {
 
 /// Common event body that can be either owned or borrowed.
 ///
-/// This is useful for APIs that can return either owned or borrowed event bodies.  
+/// This is useful for APIs that can return either owned or borrowed event bodies.
 /// Having this type allows to be generic over the event body type.
 #[derive(Debug, Clone, PartialEq)]
 pub enum EventBody<'a> {
@@ -449,6 +449,7 @@ impl<'a> EventBody<'_> {
 		}
 	}
 
+	/// The `detail1` field.
 	#[must_use]
 	pub fn detail1(&self) -> i32 {
 		match self {
@@ -457,6 +458,7 @@ impl<'a> EventBody<'_> {
 		}
 	}
 
+	/// The `detail2` field.
 	#[must_use]
 	pub fn detail2(&self) -> i32 {
 		match self {
@@ -844,6 +846,78 @@ mod test {
 	}
 
 	#[test]
+	fn complex_qt_body_as_bytes_deserialize_as_event_body() {
+		let boots = Array::from(vec!["these", "boots", "are", "made", "for", "walking"]);
+		let boots = Value::from(boots);
+		let event = (
+			"and that is what they'll do",
+			1,
+			2,
+			boots.clone(),
+			(":0.0", ObjectPath::from_static_str_unchecked("/")),
+		);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let bytes = zvariant::to_bytes::<(&str, i32, i32, Value, (&str, ObjectPath))>(ctxt, &event)
+			.unwrap();
+
+		let (deserialized, _) = bytes.deserialize::<EventBody>().unwrap();
+
+		assert_eq!(deserialized.kind(), "and that is what they'll do");
+		assert_eq!(deserialized.detail1(), 1);
+		assert_eq!(deserialized.detail2(), 2);
+		assert_eq!(*deserialized.any_data(), boots);
+	}
+
+	#[test]
+	fn complex_qt_body_as_message_deserialize_as_event_body() {
+		let boots = Array::from(vec!["these", "boots", "are", "made", "for", "walking"]);
+		let boots = Value::from(boots);
+		let event = (
+			"and that is what they'll do",
+			1,
+			2,
+			boots.clone(),
+			(":0.0", ObjectPath::from_static_str_unchecked("/")),
+		);
+
+		let msg = zbus::Message::signal("/", "org.a11y.atspi.Object", "StateChange")
+			.unwrap()
+			.build(&event)
+			.unwrap();
+
+		let body = msg.body();
+		let deserialized = body.deserialize_unchecked::<EventBody>().unwrap();
+
+		assert_eq!(deserialized.kind(), "and that is what they'll do");
+		assert_eq!(deserialized.detail1(), 1);
+		assert_eq!(deserialized.detail2(), 2);
+		assert_eq!(*deserialized.any_data(), boots);
+	}
+
+	#[test]
+	fn illegal_body_as_bytes_deserialize_as_event_body() {
+		let boots = Array::from(vec!["these", "boots", "are", "made", "for", "walking"]);
+		let boots = Value::from(boots);
+		let event = (
+			"and that is what they'll do",
+			1,
+			2,
+			4_u32,
+			boots.clone(),
+			(":0.0", ObjectPath::from_static_str_unchecked("/")),
+		);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let bytes = zvariant::to_bytes::<(&str, i32, i32, u32, Value<'_>, (&str, ObjectPath<'_>))>(
+			ctxt, &event,
+		)
+		.unwrap();
+
+		assert!(bytes.deserialize::<EventBody>().is_err());
+	}
+
+	#[test]
 	fn complex_body_deserialize_as_borrowed_event_body() {
 		let boots = Array::from(vec!["these", "boots", "are", "made", "for", "walking"]);
 		let boots = Value::from(boots);
@@ -972,6 +1046,9 @@ mod test {
 
 	#[cfg(test)]
 	mod signatures {
+		use crate::events::EventBodyQtOwned;
+		use zvariant::{signature::Fields, Signature, Type};
+
 		#[test]
 		fn test_event_body_signature_equals_borrowed_event_body_signature() {
 			use super::*;
@@ -981,6 +1058,24 @@ mod test {
 			let owned = EventBodyOwned::SIGNATURE;
 
 			assert_eq!(borrowed, owned);
+		}
+
+		// We have no definition of the Qt event body, so we can't compare the type
+		// to a signature definition in XML.
+		// That is why we keep a copy here.
+		const QSPI_EVENT_SIGNATURE: &Signature = &Signature::static_structure(&[
+			&Signature::Str,
+			&Signature::I32,
+			&Signature::I32,
+			&Signature::Variant,
+			&Signature::Structure(Fields::Static {
+				fields: &[&Signature::Str, &Signature::ObjectPath],
+			}),
+		]);
+
+		#[test]
+		fn check_event_body_qt_signature() {
+			assert_eq!(<EventBodyQtOwned as Type>::SIGNATURE, QSPI_EVENT_SIGNATURE);
 		}
 	}
 }

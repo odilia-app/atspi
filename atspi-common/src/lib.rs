@@ -15,6 +15,11 @@ extern crate static_assertions;
 pub(crate) mod macros;
 
 pub mod action;
+#[cfg(feature = "wrappers")]
+pub use crate::events::event_wrappers::{
+	CacheEvents, DocumentEvents, Event, EventListenerEvents, FocusEvents, KeyboardEvents,
+	MouseEvents, ObjectEvents, TerminalEvents, WindowEvents,
+};
 pub use action::Action;
 pub mod object_match;
 pub use object_match::{MatchType, ObjectMatchRule, SortOrder, TreeTraversalType};
@@ -31,9 +36,7 @@ pub use cache::{CacheItem, LegacyCacheItem};
 pub mod error;
 pub use error::AtspiError;
 pub mod events;
-#[cfg(feature = "wrappers")]
-pub use events::Event;
-pub use events::{BusProperties, EventProperties, EventTypeProperties};
+pub use events::{EventProperties, EventTypeProperties};
 mod role;
 pub use role::Role;
 mod relation_type;

@@ -1,16 +1,18 @@
+#[cfg(feature = "wrappers")]
+use crate::error::AtspiError;
+use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
+#[cfg(feature = "zbus")]
+use crate::EventProperties;
 use crate::{
 	cache::{CacheItem, LegacyCacheItem},
-	events::{BusProperties, ObjectRef},
-	EventProperties,
-};
-#[cfg(feature = "zbus")]
-use crate::{
-	error::AtspiError,
-	events::{MessageConversion, MessageConversionExt},
+	events::ObjectRef,
 };
 use serde::{Deserialize, Serialize};
-use zbus_names::UniqueName;
-use zvariant::ObjectPath;
+#[cfg(feature = "zbus")]
+use zbus::message::{Body as DbusBody, Header};
+
+#[cfg(feature = "zbus")]
+use super::{MessageConversion, MessageConversionExt};
 
 /// Type that contains the `zbus::Message` for meta information and
 /// the [`crate::cache::LegacyCacheItem`]
@@ -22,33 +24,36 @@ pub struct LegacyAddAccessibleEvent {
 	pub node_added: LegacyCacheItem,
 }
 
+impl_event_type_properties_for_event!(LegacyAddAccessibleEvent);
+
 event_test_cases!(LegacyAddAccessibleEvent, Explicit);
 impl_from_dbus_message!(LegacyAddAccessibleEvent, Explicit);
 impl_event_properties!(LegacyAddAccessibleEvent);
 impl_to_dbus_message!(LegacyAddAccessibleEvent);
 
-impl BusProperties for LegacyAddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	LegacyAddAccessibleEvent,
+	"AddAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:add",
+	"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'"
+);
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for LegacyAddAccessibleEvent {
-	type Body = LegacyCacheItem;
+impl MessageConversion<'_> for LegacyAddAccessibleEvent {
+	type Body<'msg> = LegacyCacheItem;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body.deserialize_unchecked::<Self::Body<'_>>()? })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
 
-	fn body(&self) -> Self::Body {
+	fn body(&self) -> Self::Body<'_> {
 		self.node_added.clone()
 	}
 }
@@ -63,34 +68,38 @@ pub struct AddAccessibleEvent {
 	pub node_added: CacheItem,
 }
 
+impl_event_type_properties_for_event!(AddAccessibleEvent);
+
 event_test_cases!(AddAccessibleEvent, Explicit);
 
-impl BusProperties for AddAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Add";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'";
-	const DBUS_MEMBER: &'static str = "AddAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	AddAccessibleEvent,
+	"AddAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:add",
+	"type='signal',interface='org.a11y.atspi.Cache',member='AddAccessible'"
+);
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for AddAccessibleEvent {
-	type Body = CacheItem;
+impl MessageConversion<'_> for AddAccessibleEvent {
+	type Body<'msg> = CacheItem;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_added: body })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_added: body.deserialize_unchecked::<Self::Body<'_>>()? })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
 
-	fn body(&self) -> Self::Body {
+	fn body(&self) -> Self::Body<'_> {
 		self.node_added.clone()
 	}
 }
 
+impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: AddAccessibleEvent, body: CacheItem);
 impl_from_dbus_message!(AddAccessibleEvent, Explicit);
 impl_event_properties!(AddAccessibleEvent);
 impl_to_dbus_message!(AddAccessibleEvent);
@@ -105,33 +114,50 @@ pub struct RemoveAccessibleEvent {
 	pub node_removed: ObjectRef,
 }
 
+impl_event_type_properties_for_event!(RemoveAccessibleEvent);
+
 event_test_cases!(RemoveAccessibleEvent, Explicit);
 
-impl BusProperties for RemoveAccessibleEvent {
-	const REGISTRY_EVENT_STRING: &'static str = "Cache:Remove";
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'";
-	const DBUS_MEMBER: &'static str = "RemoveAccessible";
-	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
-}
+impl_member_interface_registry_string_and_match_rule_for_event!(
+	RemoveAccessibleEvent,
+	"RemoveAccessible",
+	"org.a11y.atspi.Cache",
+	"cache:remove",
+	"type='signal',interface='org.a11y.atspi.Cache',member='RemoveAccessible'"
+);
 
 #[cfg(feature = "zbus")]
-impl MessageConversion for RemoveAccessibleEvent {
-	type Body = ObjectRef;
+impl MessageConversion<'_> for RemoveAccessibleEvent {
+	type Body<'msg> = ObjectRef;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: Self::Body) -> Result<Self, AtspiError> {
-		Ok(Self { item, node_removed: body })
+	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+		Ok(Self { item, node_removed: body.deserialize_unchecked::<Self::Body<'_>>()? })
 	}
-	fn from_message_unchecked(msg: &zbus::Message) -> Result<Self, AtspiError> {
-		let item = msg.try_into()?;
-		let body = msg.body().deserialize()?;
+
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
+		let body = msg.body();
 		Self::from_message_unchecked_parts(item, body)
 	}
-	fn body(&self) -> Self::Body {
+
+	fn body(&self) -> Self::Body<'_> {
 		self.node_removed.clone()
 	}
 }
 
+#[cfg(feature = "zbus")]
+impl MessageConversionExt<'_, LegacyCacheItem> for LegacyAddAccessibleEvent {
+	fn try_from_message(msg: &zbus::Message, hdr: &Header) -> Result<Self, AtspiError> {
+		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_interface(hdr)?;
+		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_member(hdr)?;
+		<LegacyAddAccessibleEvent as MessageConversionExt<crate::LegacyCacheItem>>::validate_body(
+			msg,
+		)?;
+		<LegacyAddAccessibleEvent as MessageConversion>::from_message_unchecked(msg, hdr)
+	}
+}
+
+impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: RemoveAccessibleEvent, body: ObjectRef);
 impl_from_dbus_message!(RemoveAccessibleEvent, Explicit);
 impl_event_properties!(RemoveAccessibleEvent);
 impl_to_dbus_message!(RemoveAccessibleEvent);

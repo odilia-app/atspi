@@ -108,7 +108,8 @@ pub enum RelationType {
 	/// Indicates that this object has one or more errors, the nature of which is
 	/// described in the contents of the target object(s). Objects that have this
 	/// relation type should also contain [`crate::state::State::InvalidEntry`] when their
-	/// `GetState` method is called.  
+	/// `GetState` method is called.
+	///
 	/// Included in upstream [AT-SPI2-CORE](https://gitlab.gnome.org/GNOME/at-spi2-core) since 2.26.
 	ErrorMessage,
 
