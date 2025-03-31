@@ -47,17 +47,14 @@ path    = "./benches/event_parsing_100k.rs"
 [[example]]
 name              = "tree"
 path              = "./examples/bus-tree.rs"
-required-features = ["proxies-tokio", "zbus"]
 
 [[example]]
 name              = "focused-tokio"
 path              = "./examples/focused-tokio.rs"
-required-features = ["atspi_connection/wrappers", "connection-tokio"]
 
 [[example]]
 name              = "focused-async-std"
 path              = "./examples/focused-async-std.rs"
-required-features = ["atspi_connection/wrappers", "connection-async-std"]
 
 [dev-dependencies]
 async-std      = { version = "1.12", default-features = false }

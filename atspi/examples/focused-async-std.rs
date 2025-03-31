@@ -1,4 +1,4 @@
-use atspi::events::object::StateChangedEvent;
+use atspi::{events::object::StateChangedEvent, ObjectEvents};
 use futures_lite::stream::StreamExt;
 use std::{error::Error, pin::pin};
 
