@@ -374,6 +374,44 @@ macro_rules! generic_event_test_case {
 	};
 }
 
+// We decorate the macro with a `#[cfg(test)]` attribute.
+// This prevents Clippy from complaining about the macro not being used.
+// It is being used, but only in test mode.
+//
+/// Tests conversion to and from the `Event` enum.
+///
+/// Obtains a default for the given event struct.
+/// Converts the struct into the `Event` enum, wrapping the struct.
+/// Converts the `Event` enum into the given event struct.
+/// Asserts that the original struct and the converted struct are equal.
+#[cfg(test)]
+macro_rules! event_has_matching_xml_definition {
+	($type:ty) => {
+		#[test]
+		fn event_has_matching_xml_definition() {
+      use zbus_xml;
+				use crate::events::{DBusInterface, DBusMember};
+
+			let fname = match <$type>::DBUS_INTERFACE.split(".").last().expect("Has last section") {
+				"Cache" => "xml/Cache.xml",
+				"Socket" => "xml/Socket.xml",
+				"Registry" => "xml/Registry.xml",
+				_ => "xml/Event.xml",
+			};
+      let reader = std::fs::File::open(fname).expect("Valid file path!");
+      let xml = zbus_xml::Node::from_reader(reader).expect("Valid DBus XML file!");
+      let Some(interface) = xml.interfaces().iter().find(|int| int.name() == <$type>::DBUS_INTERFACE) else {
+          let possible_names: Vec<String> = xml.interfaces().iter().map(|int| int.name().as_str().to_string()).collect();
+          panic!("{} has interface name {}, but it was not found in the list of interfaces defined in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, possible_names);
+      };
+      let Some(_member) = interface.signals().iter().find(|mem| mem.name() == <$type>::DBUS_MEMBER) else {
+          let possible_names: Vec<String> = interface.signals().iter().map(|mem| mem.name().as_str().to_string()).collect();
+          panic!("{} has interface name {} and member name {}, but it was not found in the list of members defined in the corresponding interface in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, <$type>::DBUS_MEMBER, possible_names);
+      };
+		}
+	};
+}
+
 #[cfg(test)]
 macro_rules! zbus_message_qtspi_test_case {
     ($type:ty, Auto) => {
@@ -816,8 +854,9 @@ macro_rules! event_test_cases {
 			assert_eq!(specific_event.sender(), generic_event.sender(), "Senders do not match. hint: {hint}");
 			}
 
-			generic_event_test_case!($ufet);
 			zbus_message_test_case!($ufet, $qt);
+      event_has_matching_xml_definition!($ufet);
+			generic_event_test_case!($ufet);
 		}
 		assert_impl_all!(
 			$ufet: Clone,

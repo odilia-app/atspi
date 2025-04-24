@@ -42,4 +42,5 @@
   tokio-stream      = { version = "0.1", default-features = false, features = [ "time",
   ] }
   tokio-test        = "0.4.2"
+	zbus_xml = "5.0.2"
   zbus              = { workspace = true }
