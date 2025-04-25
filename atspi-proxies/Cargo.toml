@@ -30,6 +30,7 @@ zbus         = { workspace = true }
 [dev-dependencies]
 async-std    = { version = "1", features = ["attributes"] }
 atspi-common = { path = "../atspi-common", version = "0.9.0", features = ["async-std"] }
+atspi-connection = { path = "../atspi-connection", version = "0.9.0", features = ["tokio", "wrappers"] }
 byteorder    = "1.4"
 futures-lite = { version = "2", default-features = false }
 rename-item  = "0.1.0"
