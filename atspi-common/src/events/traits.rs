@@ -49,7 +49,7 @@ assert_obj_safe!(EventTypeProperties);
 assert_obj_safe!(EventProperties);
 
 /// A way to convert a [`zbus::Message`] without checking its interface.
-#[cfg(feature = "zbus")]
+#[cfg(all(feature = "zbus", feature = "wrappers"))]
 pub(crate) trait EventWrapperMessageConversion {
 	/// # Errors
 	/// Will fail if no matching member or body signature is found.
@@ -62,7 +62,7 @@ pub(crate) trait EventWrapperMessageConversion {
 }
 
 // TODO: Document why this can't be `TryFrom<&zbus::Message>`.
-#[cfg(feature = "zbus")]
+#[cfg(all(feature = "zbus", feature = "wrappers"))]
 pub(crate) trait TryFromMessage {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
 	where

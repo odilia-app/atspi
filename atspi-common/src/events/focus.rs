@@ -1,5 +1,5 @@
 use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
-#[cfg(feature = "wrappers")]
+#[cfg(any(feature = "wrappers", feature = "zbus"))]
 use crate::{error::AtspiError, EventProperties};
 
 #[cfg(feature = "zbus")]

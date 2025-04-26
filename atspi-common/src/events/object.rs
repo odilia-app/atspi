@@ -1,6 +1,6 @@
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
-#[cfg(feature = "wrappers")]
+#[cfg(any(feature = "wrappers", feature = "zbus"))]
 use crate::EventProperties;
 use crate::{
 	error::AtspiError,

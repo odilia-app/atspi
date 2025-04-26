@@ -3,7 +3,7 @@ use crate::events::MessageConversion;
 use crate::events::{
 	DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, RegistryEventString,
 };
-#[cfg(feature = "wrappers")]
+#[cfg(any(feature = "wrappers", feature = "zbus"))]
 use crate::{error::AtspiError, EventProperties, ObjectRef};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
