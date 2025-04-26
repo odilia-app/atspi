@@ -11,7 +11,7 @@ name                   = "atspi"
 readme                 = "../README.md"
 repository             = "https://github.com/odilia-app/atspi"
 rust-version.workspace = true
-version                = "0.26.0"
+version                = "0.26.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,8 +21,8 @@ default   = ["async-std"]
 tokio     = ["connection-tokio", "proxies-tokio"]
 
 connection           = []
-connection-async-std = ["atspi-connection/async-std", "connection"]
-connection-tokio     = ["atspi-connection/tokio", "connection"]
+connection-async-std = ["atspi-connection/async-std", "atspi-connection/wrappers", "connection"]
+connection-tokio     = ["atspi-connection/tokio", "atspi-connection/wrappers", "connection"]
 proxies              = []
 proxies-async-std    = ["atspi-proxies/async-std", "proxies"]
 proxies-tokio        = ["atspi-proxies/tokio", "proxies"]
