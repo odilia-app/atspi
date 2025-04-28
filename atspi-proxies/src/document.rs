@@ -30,10 +30,10 @@ pub trait Document {
 	fn get_locale(&self) -> zbus::Result<String>;
 
 	/// CurrentPageNumber property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn current_page_number(&self) -> zbus::Result<i32>;
 
 	/// PageCount property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn page_count(&self) -> zbus::Result<i32>;
 }

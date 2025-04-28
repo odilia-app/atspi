@@ -78,26 +78,26 @@ pub trait Table {
 	fn remove_row_selection(&self, row: i32) -> zbus::Result<bool>;
 
 	/// Caption property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn caption(&self) -> zbus::Result<ObjectRef>;
 
 	/// NColumns property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn ncolumns(&self) -> zbus::Result<i32>;
 
 	/// NRows property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn nrows(&self) -> zbus::Result<i32>;
 
 	/// NSelectedColumns property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn nselected_columns(&self) -> zbus::Result<i32>;
 
 	/// NSelectedRows property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn nselected_rows(&self) -> zbus::Result<i32>;
 
 	/// Summary property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn summary(&self) -> zbus::Result<ObjectRef>;
 }

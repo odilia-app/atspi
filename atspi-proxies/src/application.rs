@@ -86,7 +86,7 @@ pub trait Application {
 	/// using versioned interface names instead.
 	///
 	/// member: "AtspiVersion", type: property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn atspi_version(&self) -> zbus::Result<String>;
 
 	/// Retrieve numerical id of the application.
@@ -117,7 +117,7 @@ pub trait Application {
 	///
 	/// [`embed`]: crate::socket::SocketProxy#method.embed
 	/// [`org.a11y.atspi.Socket`]: crate::socket::SocketProxy
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn id(&self) -> zbus::Result<i32>;
 
 	/// Set ID of the application.
@@ -134,20 +134,20 @@ pub trait Application {
 	/// member: "Id", type: property
 	///
 	/// [`id`]: crate::application::ApplicationProxy#method.id
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
 	/// Retrieves the name of the toolkit used to implement the application's
 	/// user interface.
 	///
 	/// member: "ToolkitName", type: property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn toolkit_name(&self) -> zbus::Result<String>;
 
 	/// Returns the version of the toolkit used to implement the
 	/// application's user interface.
 	///
 	/// member: "Version", type: property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn version(&self) -> zbus::Result<String>;
 }
