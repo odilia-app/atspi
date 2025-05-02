@@ -31,4 +31,8 @@ pub trait Value {
 	/// MinimumValue property
 	#[zbus(property)]
 	fn minimum_value(&self) -> zbus::Result<f64>;
+
+	/// Text property
+	#[zbus(property)]
+	fn text(&self) -> zbus::Result<String>;
 }
