@@ -12,11 +12,11 @@
 use atspi::{
 	connection::set_session_accessibility,
 	proxy::accessible::{AccessibleProxy, ObjectRefExt},
-	zbus::{proxy::CacheProperties, Connection},
 	AccessibilityConnection, Role,
 };
 use futures::future::try_join_all;
 use std::fmt::{self, Display, Formatter};
+use zbus::{proxy::CacheProperties, Connection};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
