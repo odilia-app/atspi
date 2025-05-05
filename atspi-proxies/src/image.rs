@@ -24,10 +24,10 @@ pub trait Image {
 	fn get_image_size(&self) -> zbus::Result<(i32, i32)>;
 
 	/// ImageDescription property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn image_description(&self) -> zbus::Result<String>;
 
 	/// ImageLocale property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn image_locale(&self) -> zbus::Result<String>;
 }

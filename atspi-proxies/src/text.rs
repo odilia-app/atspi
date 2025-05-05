@@ -132,10 +132,10 @@ pub trait Text {
 	) -> zbus::Result<bool>;
 
 	/// CaretOffset property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn caret_offset(&self) -> zbus::Result<i32>;
 
 	/// CharacterCount property
-	#[zbus(property)]
+	#[zbus(property(emits_changed_signal = "false"))]
 	fn character_count(&self) -> zbus::Result<i32>;
 }
