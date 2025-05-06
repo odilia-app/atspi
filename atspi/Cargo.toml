@@ -11,7 +11,7 @@ name                   = "atspi"
 readme                 = "../README.md"
 repository             = "https://github.com/odilia-app/atspi"
 rust-version.workspace = true
-version                = "0.26.1"
+version                = "0.26.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -30,8 +30,8 @@ tracing              = ["atspi-connection/tracing"]
 
 [dependencies]
 atspi-common     = { path = "../atspi-common", version = "0.10.1", default-features = false }
-atspi-connection = { path = "../atspi-connection", version = "0.10.0", default-features = false, optional = true }
-atspi-proxies    = { path = "../atspi-proxies", version = "0.10.0", default-features = false, optional = true }
+atspi-connection = { path = "../atspi-connection", version = "0.10.1", default-features = false, optional = true }
+atspi-proxies    = { path = "../atspi-proxies", version = "0.10.1", default-features = false, optional = true }
 zbus             = { workspace = true, default-features = false, optional = true }
 
 [[bench]]
