@@ -162,11 +162,11 @@ pub trait Accessible {
 	/// a test program may have to recursively get the children to find a specific id.
 	/// This is because accessible objects can be created dynamically, and they do not always
 	/// correspond to a static view of an application's data.
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn accessible_id(&self) -> zbus::Result<String>;
 
 	/// Number of accessible children for the current object.
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn child_count(&self) -> zbus::Result<i32>;
 
 	/// Human-readable, localized description of `self` in more detail.
@@ -180,7 +180,7 @@ pub trait Accessible {
 	/// more detail.
 	///
 	/// [name]: #method.name
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn description(&self) -> zbus::Result<String>;
 
 	/// Unix locale for the current object.
@@ -197,7 +197,7 @@ pub trait Accessible {
 	/// display a document in Spanish ("es").
 	/// In the latter case, a screen reader will want to know that it should switch to
 	/// Spanish while reading the document.
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn locale(&self) -> zbus::Result<String>;
 
 	/// Human-readable, localized, short name for the object.
@@ -212,7 +212,7 @@ pub trait Accessible {
 	/// interface.
 	///
 	/// [`RelationType::LabelledBy`]: crate::common::RelationType::LabelledBy
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn name(&self) -> zbus::Result<String>;
 
 	/// ObjectRef parent object of the current object.
@@ -225,11 +225,11 @@ pub trait Accessible {
 	/// Root object:
 	/// An application must have a single root object, called "/org/a11y/atspi/accessible/root".
 	/// All other objects should have that one as their highest-level ancestor.
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn parent(&self) -> zbus::Result<ObjectRef>;
 
 	/// Help text for the current object.
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn help_text(&self) -> zbus::Result<String>;
 }
 
