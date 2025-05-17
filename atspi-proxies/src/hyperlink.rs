@@ -24,14 +24,14 @@ pub trait Hyperlink {
 	fn is_valid(&self) -> zbus::Result<bool>;
 
 	/// EndIndex property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn end_index(&self) -> zbus::Result<i32>;
 
 	/// NAnchors property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn nanchors(&self) -> zbus::Result<i16>;
 
 	/// StartIndex property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn start_index(&self) -> zbus::Result<i32>;
 }

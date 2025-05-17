@@ -126,6 +126,6 @@ pub trait Action {
 	///
 	///	By convention, if there is more than one action available,
 	/// the first one is considered the "default" action of the object.
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn nactions(&self) -> zbus::Result<i32>;
 }

@@ -24,18 +24,18 @@ pub trait TableCell {
 	fn get_row_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// ColumnSpan property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn column_span(&self) -> zbus::Result<i32>;
 
 	/// Position property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn position(&self) -> zbus::Result<(i32, i32)>;
 
 	/// RowSpan property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn row_span(&self) -> zbus::Result<i32>;
 
 	/// Table property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn table(&self) -> zbus::Result<ObjectRef>;
 }
