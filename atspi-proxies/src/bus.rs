@@ -26,15 +26,15 @@
 )]
 pub trait Status {
 	/// IsEnabled property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn is_enabled(&self) -> zbus::Result<bool>;
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn set_is_enabled(&self, value: bool) -> zbus::Result<()>;
 
 	/// ScreenReaderEnabled property
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn screen_reader_enabled(&self) -> zbus::Result<bool>;
-	#[zbus(property(emits_changed_signal = "false"))]
+	#[zbus(property)]
 	fn set_screen_reader_enabled(&self, value: bool) -> zbus::Result<()>;
 }
 
