@@ -16,15 +16,15 @@ version                = "0.26.3"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-async-std = ["connection-async-std", "proxies-async-std"]
-default   = ["async-std"]
+async-io = ["connection-async-io", "proxies-async-io"]
+default   = ["async-io"]
 tokio     = ["connection-tokio", "proxies-tokio"]
 
 connection           = []
-connection-async-std = ["atspi-connection/async-std", "atspi-connection/wrappers", "connection"]
+connection-async-io = ["atspi-connection/async-io", "atspi-connection/wrappers", "connection"]
 connection-tokio     = ["atspi-connection/tokio", "atspi-connection/wrappers", "connection"]
 proxies              = []
-proxies-async-std    = ["atspi-proxies/async-std", "proxies"]
+proxies-async-io    = ["atspi-proxies/async-io", "proxies"]
 proxies-tokio        = ["atspi-proxies/tokio", "proxies"]
 tracing              = ["atspi-connection/tracing"]
 

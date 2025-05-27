@@ -14,8 +14,8 @@
   # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-  async-std = [ "zbus/async-io" ]
-  default   = [ "async-std", "wrappers" ]
+  async-io = [ "zbus/async-io" ]
+  default   = [ "async-io", "wrappers" ]
   tokio     = [ "zbus/tokio" ]
   wrappers  = [  ]
 

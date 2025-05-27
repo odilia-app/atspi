@@ -14,8 +14,8 @@ version                = "0.10.2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-async-std = ["atspi-common/async-std", "atspi-proxies/async-std", "zbus/async-io"]
-default   = ["async-std", "wrappers"]
+async-io = ["atspi-common/async-io", "atspi-proxies/async-io", "zbus/async-io"]
+default   = ["async-io", "wrappers"]
 tokio     = ["atspi-common/tokio", "atspi-proxies/tokio", "zbus/tokio"]
 tracing   = ["dep:tracing"]
 wrappers  = ["atspi-common/wrappers"]
