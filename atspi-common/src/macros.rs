@@ -1140,7 +1140,6 @@ macro_rules! impl_member_interface_registry_string_and_match_rule_for_event {
 		impl crate::events::RegistryEventString for $target_type {
 			const REGISTRY_EVENT_STRING: &'static str = $registry_str;
 		}
-		impl crate::events::DBusProperties for $target_type {}
 	};
 }
 

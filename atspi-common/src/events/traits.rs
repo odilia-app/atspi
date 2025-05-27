@@ -104,6 +104,11 @@ pub trait RegistryEventString {
 /// A 'alias'-trait that combines all the `DBus` related traits.
 pub trait DBusProperties: DBusMember + DBusInterface + DBusMatchRule + RegistryEventString {}
 
+impl<T> DBusProperties for T where
+	T: DBusMember + DBusInterface + DBusMatchRule + RegistryEventString
+{
+}
+
 #[cfg(feature = "zbus")]
 pub trait MessageConversionExt<'a, B>: 'a + MessageConversion<'a, Body<'a> = B>
 where
