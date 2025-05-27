@@ -18,13 +18,13 @@ use zbus::names::OwnedBusName;
 	default_path = "/org/a11y/atspi/registry"
 )]
 pub trait Registry {
-	/// DeregisterEvent method
+	/// `DeregisterEvent` method
 	fn deregister_event(&self, event: &str) -> zbus::Result<()>;
 
-	/// GetRegisteredEvents method
+	/// `GetRegisteredEvents` method
 	#[zbus(name = "GetRegisteredEvents")]
 	fn registered_events(&self) -> zbus::Result<Vec<(OwnedBusName, String)>>;
 
-	/// RegisterEvent method
+	/// `RegisterEvent` method
 	fn register_event(&self, event: &str) -> zbus::Result<()>;
 }

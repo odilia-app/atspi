@@ -26,7 +26,7 @@ pub trait Collection {
 	///
 	fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
 
-	/// Retrieves a list of objects that match the specified ObjectMatchRule, ordered according to SortOrder and limited by the count parameter.
+	/// Retrieves a list of objects that match the specified `ObjectMatchRule`, ordered according to `SortOrder` and limited by the count parameter.
 	///
 	/// # Arguments
 	///
@@ -35,8 +35,8 @@ pub trait Collection {
 	/// * `count` - The maximum number of results to return, or 0 for no limit.
 	/// * `traverse` - Not supported.
 	///
-	/// [`ObjectMatchRule`]: atspi_common::object_match::ObjectMatchRule
-	/// [`SortOrder`]: atspi_common::SortOrder
+	/// [`ObjectMatchRule`]: [`atspi_common::object_match::ObjectMatchRule`]
+	/// [`SortOrder`]: [`atspi_common::SortOrder`]
 	fn get_matches(
 		&self,
 		rule: ObjectMatchRule,

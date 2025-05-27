@@ -12,27 +12,27 @@
 
 #[zbus::proxy(interface = "org.a11y.atspi.Value", assume_defaults = true)]
 pub trait Value {
-	/// CurrentValue property
+	/// `CurrentValue` property
 	#[zbus(property)]
 	fn current_value(&self) -> zbus::Result<f64>;
 
-	/// Set CurrentValue property
+	/// Set `CurrentValue` property
 	#[zbus(property)]
 	fn set_current_value(&self, value: f64) -> zbus::Result<()>;
 
-	/// MaximumValue property
+	/// `MaximumValue` property
 	#[zbus(property)]
 	fn maximum_value(&self) -> zbus::Result<f64>;
 
-	/// MinimumIncrement property
+	/// `MinimumIncrement` property
 	#[zbus(property)]
 	fn minimum_increment(&self) -> zbus::Result<f64>;
 
-	/// MinimumValue property
+	/// `MinimumValue` property
 	#[zbus(property)]
 	fn minimum_value(&self) -> zbus::Result<f64>;
 
-	/// Text property
+	/// `Text` property
 	#[zbus(property)]
 	fn text(&self) -> zbus::Result<String>;
 }

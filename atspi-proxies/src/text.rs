@@ -16,26 +16,26 @@ use crate::common::{ClipType, CoordType, Granularity};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Text", assume_defaults = true)]
 pub trait Text {
-	/// AddSelection method
+	/// `AddSelection` method
 	fn add_selection(&self, start_offset: i32, end_offset: i32) -> zbus::Result<bool>;
 
-	/// GetAttributeRun method
+	/// `GetAttributeRun` method
 	fn get_attribute_run(
 		&self,
 		offset: i32,
 		include_defaults: bool,
 	) -> zbus::Result<(std::collections::HashMap<String, String>, i32, i32)>;
 
-	/// GetAttributeValue method
+	/// `GetAttributeValue` method
 	fn get_attribute_value(&self, offset: i32, attribute_name: &str) -> zbus::Result<String>;
 
-	/// GetAttributes method
+	/// `GetAttributes` method
 	fn get_attributes(
 		&self,
 		offset: i32,
 	) -> zbus::Result<(std::collections::HashMap<String, String>, i32, i32)>;
 
-	/// GetBoundedRanges method
+	/// `GetBoundedRanges` method
 	fn get_bounded_ranges(
 		&self,
 		x: i32,
@@ -47,29 +47,29 @@ pub trait Text {
 		y_clip_type: ClipType,
 	) -> zbus::Result<Vec<(i32, i32, String, zbus::zvariant::OwnedValue)>>;
 
-	/// GetCharacterAtOffset method
+	/// `GetCharacterAtOffset` method
 	fn get_character_at_offset(&self, offset: i32) -> zbus::Result<i32>;
 
-	/// GetCharacterExtents method
+	/// `GetCharacterExtents` method
 	fn get_character_extents(
 		&self,
 		offset: i32,
 		coord_type: CoordType,
 	) -> zbus::Result<(i32, i32, i32, i32)>;
 
-	/// GetDefaultAttributeSet method
+	/// `GetDefaultAttributeSet` method
 	fn get_default_attribute_set(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
-	/// GetDefaultAttributes method
+	/// `GetDefaultAttributes` method
 	fn get_default_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
-	/// GetNSelections method
+	/// `GetNSelections` method
 	fn get_nselections(&self) -> zbus::Result<i32>;
 
-	/// GetOffsetAtPoint method
+	/// `GetOffsetAtPoint` method
 	fn get_offset_at_point(&self, x: i32, y: i32, coord_type: CoordType) -> zbus::Result<i32>;
 
-	/// GetRangeExtents method
+	/// `GetRangeExtents` method
 	fn get_range_extents(
 		&self,
 		start_offset: i32,
@@ -77,32 +77,32 @@ pub trait Text {
 		coord_type: CoordType,
 	) -> zbus::Result<(i32, i32, i32, i32)>;
 
-	/// GetSelection method
+	/// `GetSelection` method
 	fn get_selection(&self, selection_num: i32) -> zbus::Result<(i32, i32)>;
 
-	/// GetStringAtOffset method
+	/// `GetStringAtOffset` method
 	fn get_string_at_offset(
 		&self,
 		offset: i32,
 		granularity: Granularity,
 	) -> zbus::Result<(String, i32, i32)>;
 
-	/// GetText method
+	/// `GetText` method
 	fn get_text(&self, start_offset: i32, end_offset: i32) -> zbus::Result<String>;
 
-	/// GetTextAfterOffset method
+	/// `GetTextAfterOffset` method
 	fn get_text_after_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
 
-	/// GetTextAtOffset method
+	/// `GetTextAtOffset` method
 	fn get_text_at_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
 
-	/// GetTextBeforeOffset method
+	/// `GetTextBeforeOffset` method
 	fn get_text_before_offset(&self, offset: i32, type_: u32) -> zbus::Result<(String, i32, i32)>;
 
-	/// RemoveSelection method
+	/// `RemoveSelection` method
 	fn remove_selection(&self, selection_num: i32) -> zbus::Result<bool>;
 
-	/// ScrollSubstringTo method
+	/// `ScrollSubstringTo` method
 	fn scroll_substring_to(
 		&self,
 		start_offset: i32,
@@ -110,7 +110,7 @@ pub trait Text {
 		type_: u32,
 	) -> zbus::Result<bool>;
 
-	/// ScrollSubstringToPoint method
+	/// `ScrollSubstringToPoint` method
 	fn scroll_substring_to_point(
 		&self,
 		start_offset: i32,
@@ -120,10 +120,10 @@ pub trait Text {
 		y: i32,
 	) -> zbus::Result<bool>;
 
-	/// SetCaretOffset method
+	/// `SetCaretOffset` method
 	fn set_caret_offset(&self, offset: i32) -> zbus::Result<bool>;
 
-	/// SetSelection method
+	/// `SetSelection` method
 	fn set_selection(
 		&self,
 		selection_num: i32,
@@ -131,11 +131,11 @@ pub trait Text {
 		end_offset: i32,
 	) -> zbus::Result<bool>;
 
-	/// CaretOffset property
+	/// `CaretOffset` property
 	#[zbus(property)]
 	fn caret_offset(&self) -> zbus::Result<i32>;
 
-	/// CharacterCount property
+	/// `CharacterCount` property
 	#[zbus(property)]
 	fn character_count(&self) -> zbus::Result<i32>;
 }

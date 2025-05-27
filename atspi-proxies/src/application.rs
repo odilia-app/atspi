@@ -71,7 +71,7 @@ pub trait Application {
 	///
 	/// See also: [Orca issues: "Plans for per-object locale?"](<https://gitlab.gnome.org/GNOME/orca/-/issues/260>)
 	///
-	/// member: "GetLocale", type: method
+	/// member: `GetLocale`, type: method
 	///
 	/// [`locale`]: crate::accessible::AccessibleProxy#method.locale
 	fn get_locale(&self, lctype: u32) -> zbus::Result<String>;
@@ -85,7 +85,7 @@ pub trait Application {
 	/// that the application supports, but atspi will probably move to
 	/// using versioned interface names instead.
 	///
-	/// member: "AtspiVersion", type: property
+	/// member: `AtspiVersion`, type: property
 	#[zbus(property)]
 	fn atspi_version(&self) -> zbus::Result<String>;
 
@@ -107,13 +107,13 @@ pub trait Application {
 	/// it may turn out that this id is not actually used subsequently.
 	/// This is a remnant of the time when registryd actually had to
 	/// make up identifiers for each application.
-	/// With DBus, however,	it is the bus that assigns unique names to applications that
+	/// With `DBus`, however,	it is the bus that assigns unique names to applications that
 	/// connect to it.
 	///
 	/// Applications or toolkits can remember the `Id` passed when the accessibility
 	/// registry sets this property, and return it back when the property is read.
 	///
-	/// member: "Id", type: property
+	/// member: `Id`, type: property
 	///
 	/// [`embed`]: crate::socket::SocketProxy#method.embed
 	/// [`org.a11y.atspi.Socket`]: crate::socket::SocketProxy
@@ -131,7 +131,7 @@ pub trait Application {
 	///
 	/// See [`id`] for details.
 	///
-	/// member: "Id", type: property
+	/// member: `Id`, type: property
 	///
 	/// [`id`]: crate::application::ApplicationProxy#method.id
 	#[zbus(property)]
@@ -140,14 +140,14 @@ pub trait Application {
 	/// Retrieves the name of the toolkit used to implement the application's
 	/// user interface.
 	///
-	/// member: "ToolkitName", type: property
+	/// member: `ToolkitName`, type: property
 	#[zbus(property)]
 	fn toolkit_name(&self) -> zbus::Result<String>;
 
 	/// Returns the version of the toolkit used to implement the
 	/// application's user interface.
 	///
-	/// member: "Version", type: property
+	/// member: `Version`, type: property
 	#[zbus(property)]
 	fn version(&self) -> zbus::Result<String>;
 }

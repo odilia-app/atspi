@@ -8,10 +8,11 @@ use crate::common::{CacheItem, LegacyCacheItem};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
 pub trait Cache {
-	/// GetItems method
+	/// `GetItems` method
 	fn get_items(&self) -> zbus::Result<Vec<CacheItem>>;
 
-	/// GetItems method to support legacy servers (presumably Qt based applications and at-spi2-registryd)
+	/// `GetItems` method to support legacy servers (old Qt-based applications and old AT-SPI
+	/// registry daemons)
 	#[zbus(name = "GetItems")]
 	fn get_legacy_items(&self) -> zbus::Result<Vec<LegacyCacheItem>>;
 }

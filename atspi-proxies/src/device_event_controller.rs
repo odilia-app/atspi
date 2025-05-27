@@ -74,14 +74,14 @@ pub struct KeyDefinition<'a> {
 	default_service = "org.a11y.atspi.Registry"
 )]
 pub trait DeviceEventController {
-	/// DeregisterDeviceEventListener method
+	/// `DeregisterDeviceEventListener` method
 	fn deregister_device_event_listener(
 		&self,
 		listener: &zbus::zvariant::ObjectPath<'_>,
 		types: EventType,
 	) -> zbus::Result<()>;
 
-	/// DeregisterKeystrokeListener method
+	/// `DeregisterKeystrokeListener` method
 	fn deregister_keystroke_listener(
 		&self,
 		listener: &zbus::zvariant::ObjectPath<'_>,
@@ -90,7 +90,7 @@ pub trait DeviceEventController {
 		type_: EventType,
 	) -> zbus::Result<()>;
 
-	/// GenerateKeyboardEvent method
+	/// `GenerateKeyboardEvent` method
 	fn generate_keyboard_event(
 		&self,
 		keycode: i32,
@@ -98,23 +98,23 @@ pub trait DeviceEventController {
 		type_: KeySynthType,
 	) -> zbus::Result<()>;
 
-	/// GenerateMouseEvent method
+	/// `GenerateMouseEvent` method
 	fn generate_mouse_event(&self, x: i32, y: i32, event_name: &str) -> zbus::Result<()>;
 
-	/// NotifyListenersAsync method
+	/// `NotifyListenersAsync` method
 	fn notify_listeners_async(&self, event: &DeviceEvent<'_>) -> zbus::Result<()>;
 
-	/// NotifyListenersSync method
+	/// `NotifyListenersSync` method
 	fn notify_listeners_sync(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;
 
-	/// RegisterDeviceEventListener method
+	/// `RegisterDeviceEventListener` method
 	fn register_device_event_listener(
 		&self,
 		listener: &zbus::zvariant::ObjectPath<'_>,
 		types: EventType,
 	) -> zbus::Result<bool>;
 
-	/// RegisterKeystrokeListener method
+	/// `RegisterKeystrokeListener` method
 	fn register_keystroke_listener(
 		&self,
 		listener: &zbus::zvariant::ObjectPath<'_>,
