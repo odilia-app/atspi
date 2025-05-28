@@ -94,10 +94,10 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt -y install at-spi2-core systemd
+      - name: Run Tests (async-io)
+        run: cargo test --workspace --no-default-features -- --nocapture
       - name: Run Tests (tokio)
         run: cargo test --workspace --no-default-features --features=tokio -- --nocapture
-      - name: Run Tests (async-std)
-        run: cargo test --workspace --no-default-features --features=async-std -- --nocapture
   rustfmt:
     runs-on: ubuntu-latest
     steps:
