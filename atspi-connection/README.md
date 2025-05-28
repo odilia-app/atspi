@@ -7,3 +7,8 @@ This crate uses the the following crates to support its various functions:
 
 This is essentially a client-facing library where you can use the `AccessibilityConnection` structure to get streams of AT-SPI events coming from a Linux system.
 See the examples folder and documentation on how to use this library.
+
+## Feature Flags
+
+- `default`: none
+- `tracing`: enable support for the `tracing` crate
