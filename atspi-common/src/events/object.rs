@@ -15,6 +15,19 @@ use std::hash::Hash;
 use zbus::message::{Body as DbusBody, Header};
 use zvariant::{OwnedValue, Value};
 
+const ACCESSIBLE_NAME_PROPERTY_NAME: &str = "accessible-name";
+const ACCESSIBLE_DESCRIPTION_PROPERTY_NAME: &str = "accessible-description";
+const ACCESSIBLE_HELP_TEXT_PROPERTY_NAME: &str = "accessible-help-text";
+const ACCESSIBLE_PARENT_PROPERTY_NAME: &str = "accessible-parent";
+const ACCESSIBLE_ROLE_PROPERTY_NAME: &str = "accessible-role";
+const ACCESSIBLE_TABLE_CAPTION_PROPERTY_NAME: &str = "accessible-table-caption";
+const ACCESSIBLE_TABLE_COLUMN_DESCRIPTION_PROPERTY_NAME: &str =
+	"accessible-table-column-description";
+const ACCESSIBLE_TABLE_COLUMN_HEADER_PROPERTY_NAME: &str = "accessible-table-column-header";
+const ACCESSIBLE_TABLE_ROW_DESCRIPTION_PROPERTY_NAME: &str = "accessible-table-row-description";
+const ACCESSIBLE_TABLE_ROW_HEADER_PROPERTY_NAME: &str = "accessible-table-row-header";
+const ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME: &str = "accessible-table-summary";
+
 /// The `org.a11y.atspi.Event.Object:PropertyChange` event.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
@@ -62,6 +75,7 @@ pub enum Property {
 	TableRowDescription(String),
 	TableRowHeader(String),
 	TableSummary(String),
+	HelpText(String),
 	Other((String, OwnedValue)),
 }
 
@@ -86,6 +100,7 @@ impl Clone for Property {
 				Self::TableRowHeader(table_row_header.clone())
 			}
 			Property::TableSummary(table_summary) => Self::TableSummary(table_summary.clone()),
+      Property::HelpText(help_text) => Self::HelpText(help_text.clone()),
 			Property::Other((property, value)) => Self::Other((
 				property.clone(),
 				value
@@ -109,17 +124,17 @@ impl TryFrom<EventBody<'_>> for Property {
 		let property = body.kind();
 
 		match property {
-			"accessible-name" => Ok(Self::Name(
+			a if a == ACCESSIBLE_NAME_PROPERTY_NAME => Ok(Self::Name(
 				body.take_any_data()
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
 			)),
-			"accessible-description" => Ok(Self::Description(
+			a if a == ACCESSIBLE_DESCRIPTION_PROPERTY_NAME => Ok(Self::Description(
 				body.take_any_data()
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
 			)),
-			"accessible-role" => Ok(Self::Role({
+			a if a == ACCESSIBLE_ROLE_PROPERTY_NAME => Ok(Self::Role({
 				let role_int: u32 = body
 					.any_data()
 					.try_into()
@@ -128,40 +143,49 @@ impl TryFrom<EventBody<'_>> for Property {
 					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
 				role
 			})),
-			"accessible-parent" => Ok(Self::Parent(
+			a if a == ACCESSIBLE_PARENT_PROPERTY_NAME => Ok(Self::Parent(
 				body.take_any_data()
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
 			)),
-			"accessible-table-caption" => Ok(Self::TableCaption(
+			a if a == ACCESSIBLE_TABLE_CAPTION_PROPERTY_NAME => Ok(Self::TableCaption(
 				body.take_any_data()
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
 			)),
-			"table-column-description" => Ok(Self::TableColumnDescription(
-				body.take_any_data()
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-column-description"))?,
-			)),
-			"table-column-header" => Ok(Self::TableColumnHeader(
+			a if a == ACCESSIBLE_TABLE_COLUMN_DESCRIPTION_PROPERTY_NAME => {
+				Ok(Self::TableColumnDescription(
+					body.take_any_data()
+						.try_into()
+						.map_err(|_| AtspiError::ParseError("table-column-description"))?,
+				))
+			}
+			a if a == ACCESSIBLE_TABLE_COLUMN_HEADER_PROPERTY_NAME => Ok(Self::TableColumnHeader(
 				body.take_any_data()
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
 			)),
-			"table-row-description" => Ok(Self::TableRowDescription(
-				body.take_any_data()
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-row-description"))?,
-			)),
-			"table-row-header" => Ok(Self::TableRowHeader(
+			a if a == ACCESSIBLE_TABLE_ROW_DESCRIPTION_PROPERTY_NAME => {
+				Ok(Self::TableRowDescription(
+					body.take_any_data()
+						.try_into()
+						.map_err(|_| AtspiError::ParseError("table-row-description"))?,
+				))
+			}
+			a if a == ACCESSIBLE_TABLE_ROW_HEADER_PROPERTY_NAME => Ok(Self::TableRowHeader(
 				body.take_any_data()
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
 			)),
-			"table-summary" => Ok(Self::TableSummary(
+			a if a == ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME => Ok(Self::TableSummary(
 				body.take_any_data()
 					.try_into()
 					.map_err(|_| AtspiError::ParseError("table-summary"))?,
+			)),
+			a if a == ACCESSIBLE_HELP_TEXT_PROPERTY_NAME => Ok(Self::HelpText(
+				body.take_any_data()
+					.try_into()
+					.map_err(|_| AtspiError::ParseError("help-text"))?,
 			)),
 			_ => Ok(Self::Other((property.to_string(), body.take_any_data()))),
 		}
@@ -185,10 +209,87 @@ impl From<Property> for OwnedValue {
 			}
 			Property::TableRowHeader(table_row_header) => Value::from(table_row_header),
 			Property::TableSummary(table_summary) => Value::from(table_summary),
+			Property::HelpText(help_text) => Value::from(help_text),
 			Property::Other((_, value)) => value.into(),
 		};
 		value.try_into().expect("Should succeed as there are no borrowed file descriptors involved that could, potentially, exceed the open file limit when converted to OwnedValue")
 	}
+}
+
+#[cfg(test)]
+mod test_property {
+	use crate::events::object::{Property, PropertyChangeEvent};
+	use crate::events::{EventBody, EventBodyOwned};
+	use crate::{ObjectRef, Role};
+	macro_rules! property_subtype_test {
+		($name:ident, $key:expr, $prop:path, $val:expr) => {
+			#[test]
+			fn $name() {
+				let prop = $prop($val);
+				let prop_ev = PropertyChangeEvent {
+					item: ObjectRef::default(),
+					property: $key.to_string(),
+					value: prop.clone(),
+				};
+				let ev_body: EventBodyOwned = prop_ev.try_into().expect("Valid event body!");
+				let ev: EventBody<'_> = ev_body.into();
+				let prop2: Property = ev.try_into().expect("Valid Property value");
+				assert_eq!(prop, prop2);
+			}
+		};
+	}
+	property_subtype_test!(
+		test_prop_type_desc,
+		"accessible-description",
+		Property::Description,
+		"Accessible description text here!".to_string()
+	);
+	property_subtype_test!(
+		test_prop_type_name,
+		"accessible-name",
+		Property::Name,
+		"Accessible name here!".to_string()
+	);
+	property_subtype_test!(test_prop_type_role, "accessible-role", Property::Role, Role::Invalid);
+	property_subtype_test!(
+		test_prop_type_parent,
+		"accessible-parent",
+		Property::Parent,
+		ObjectRef {
+			name: ":420.69".try_into().unwrap(),
+			path: "/fake/a11y/addr".try_into().unwrap()
+		}
+	);
+	property_subtype_test!(
+		test_prop_type_table_caption,
+		"accessible-table-caption",
+		Property::TableCaption,
+		"Accessible table description here".to_string()
+	);
+	property_subtype_test!(
+		test_prop_type_table_cd,
+		"accessible-table-column-description",
+		Property::TableColumnDescription,
+		"Accessible table column description here!".to_string()
+	);
+	property_subtype_test!(
+		test_prop_type_table_ch,
+		"accessible-table-column-header",
+		Property::TableColumnHeader,
+		"Accessible table column header here!".to_string()
+	);
+	property_subtype_test!(
+		test_prop_type_table_rd,
+		"accessible-table-row-description",
+		Property::TableRowDescription,
+		"Accessible table row description here!".to_string()
+	);
+	property_subtype_test!(
+		test_prop_type_table_rh,
+		"accessible-table-row-header",
+		Property::TableRowHeader,
+		"Accessible table row header here!".to_string()
+	);
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
