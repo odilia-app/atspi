@@ -16,6 +16,10 @@ version                = "0.11.0"
   publish = true
   release = true
 
+[features]
+default   = ["wrappers"]
+wrappers  = []
+
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.11.0" }
 serde        = { version = "^1.0", default-features = false, features = ["derive"] }
