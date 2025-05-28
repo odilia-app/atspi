@@ -14,8 +14,8 @@
   # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-	zbus = [ "zbus/async-io" ]
-  default   = [ "zbus" ]
+	zbus = [ "dep:zbus" ]
+  default   = [ "zbus", "wrappers" ]
   wrappers  = [  ]
 
 [dependencies]
