@@ -5,8 +5,6 @@ use crate::events::registry::{EventListenerDeregisteredEvent, EventListenerRegis
 use crate::events::traits::{EventWrapperMessageConversion, TryFromMessage};
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
-#[cfg(feature = "zbus")]
-use crate::{CacheItem, LegacyCacheItem, events::DBusMember};
 use crate::{
 	error::AtspiError,
 	events::{
@@ -42,6 +40,8 @@ use crate::{
 	},
 	EventProperties,
 };
+#[cfg(feature = "zbus")]
+use crate::{events::DBusMember, CacheItem, LegacyCacheItem};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::Header;
