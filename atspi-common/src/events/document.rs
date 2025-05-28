@@ -1,9 +1,11 @@
 use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
-#[cfg(any(feature = "wrappers", feature = "zbus"))]
-use crate::{error::AtspiError, EventProperties};
+#[cfg(feature = "zbus")]
+use crate::EventProperties;
 
 #[cfg(feature = "zbus")]
 use zbus::message::Header;
+#[cfg(feature = "zbus")]
+use crate::AtspiError;
 
 /// An event triggered by the completion of a document load action.
 /// For example: a web page has finished loading its initial payload, or

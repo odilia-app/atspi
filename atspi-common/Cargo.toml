@@ -14,16 +14,15 @@
   # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-  async-io = [ "zbus/async-io" ]
-  default   = [ "async-io", "wrappers" ]
-  tokio     = [ "zbus/tokio" ]
+	zbus = [ "zbus/async-io" ]
+  default   = [ "zbus" ]
   wrappers  = [  ]
 
 [dependencies]
   enumflags2           = "0.7.7"
   serde                = "1.0"
   static_assertions    = "1.1.0"
-  zbus                 = { workspace = true, optional = true, default-features = false }
+  zbus                 = { workspace = true, optional = true }
   zbus-lockstep        = { version = "0.5.0" }
   zbus-lockstep-macros = { version = "0.5.0" }
   zbus_names           = "4.0"
