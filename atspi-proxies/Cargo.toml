@@ -17,19 +17,17 @@ version                = "0.10.2"
   release = true
 
 [features]
-async-io = ["atspi-common/async-io", "zbus/async-io"]
-default   = ["async-io", "wrappers"]
-tokio     = ["atspi-common/tokio", "zbus/tokio"]
+default   = ["wrappers"]
 wrappers  = []
 
 [dependencies]
-atspi-common = { path = "../atspi-common", version = "0.10.1", default-features = false }
+atspi-common = { path = "../atspi-common", version = "0.10.1" }
 serde        = { version = "^1.0", default-features = false, features = ["derive"] }
 zbus         = { workspace = true }
 
 [dev-dependencies]
 async-std    = { version = "1", features = ["attributes"] }
-atspi-common = { path = "../atspi-common", version = "0.10.1", features = ["async-io"] }
+atspi-common = { path = "../atspi-common", version = "0.10.1" }
 byteorder    = "1.4"
 futures-lite = { version = "2", default-features = false }
 rename-item  = "0.1.0"

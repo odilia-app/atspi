@@ -16,23 +16,17 @@ version                = "0.26.3"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-async-io = ["connection-async-io", "proxies-async-io"]
-default   = ["async-io"]
-tokio     = ["connection-tokio", "proxies-tokio"]
-
-connection           = []
-connection-async-io = ["atspi-connection/async-io", "atspi-connection/wrappers", "connection"]
-connection-tokio     = ["atspi-connection/tokio", "atspi-connection/wrappers", "connection"]
-proxies              = []
-proxies-async-io    = ["atspi-proxies/async-io", "proxies"]
-proxies-tokio        = ["atspi-proxies/tokio", "proxies"]
+default = ["proxies", "connection"]
+proxies = ["dep:atspi-proxies"]
+connection = ["dep:atspi-connection"]
+tokio     = ["zbus/tokio"]
 tracing              = ["atspi-connection/tracing"]
 
 [dependencies]
-atspi-common     = { path = "../atspi-common", version = "0.10.1", default-features = false }
-atspi-connection = { path = "../atspi-connection", version = "0.10.2", default-features = false, optional = true }
-atspi-proxies    = { path = "../atspi-proxies", version = "0.10.2", default-features = false, optional = true }
-zbus             = { workspace = true, default-features = false, optional = true }
+atspi-common     = { path = "../atspi-common", version = "0.10.1" }
+atspi-connection = { path = "../atspi-connection", version = "0.10.2", optional = true }
+atspi-proxies    = { path = "../atspi-proxies", version = "0.10.2", optional = true }
+zbus             = { workspace = true, optional = true }
 
 [[bench]]
 harness = false

@@ -14,15 +14,13 @@ version                = "0.10.2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-async-io = ["atspi-common/async-io", "atspi-proxies/async-io", "zbus/async-io"]
-default   = ["async-io", "wrappers"]
-tokio     = ["atspi-common/tokio", "atspi-proxies/tokio", "zbus/tokio"]
+default   = ["wrappers"]
 tracing   = ["dep:tracing"]
 wrappers  = ["atspi-common/wrappers"]
 
 [dependencies]
-atspi-common   = { path = "../atspi-common/", version = "0.10.1", default-features = false, features = ["wrappers"] }
-atspi-proxies  = { path = "../atspi-proxies/", version = "0.10.2", default-features = false }
+atspi-common   = { path = "../atspi-common/", version = "0.10.1", features = ["wrappers"] }
+atspi-proxies  = { path = "../atspi-proxies/", version = "0.10.2" }
 futures-lite   = { version = "2", default-features = false }
 tracing        = { optional = true, workspace = true }
 zbus.workspace = true
