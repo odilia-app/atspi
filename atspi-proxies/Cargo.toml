@@ -10,7 +10,7 @@ name                   = "atspi-proxies"
 readme                 = "README.md"
 repository             = "https://github.com/odilia-app/atspi"
 rust-version.workspace = true
-version                = "0.10.2"
+version                = "0.11.0"
 
   [package.metadata.release]
   publish = true
@@ -21,13 +21,13 @@ default   = ["wrappers"]
 wrappers  = []
 
 [dependencies]
-atspi-common = { path = "../atspi-common", version = "0.10.1" }
+atspi-common = { path = "../atspi-common", version = "0.11.0" }
 serde        = { version = "^1.0", default-features = false, features = ["derive"] }
 zbus         = { workspace = true }
 
 [dev-dependencies]
 async-std    = { version = "1", features = ["attributes"] }
-atspi-common = { path = "../atspi-common", version = "0.10.1" }
+atspi-common = { path = "../atspi-common", version = "0.11.0" }
 byteorder    = "1.4"
 futures-lite = { version = "2", default-features = false }
 rename-item  = "0.1.0"
