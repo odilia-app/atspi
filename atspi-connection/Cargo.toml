@@ -14,9 +14,8 @@ version                = "0.11.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default   = ["wrappers"]
+default = []
 tracing   = ["dep:tracing"]
-wrappers  = ["atspi-common/wrappers"]
 
 [dependencies]
 atspi-common   = { path = "../atspi-common/", version = "0.11.0", features = ["wrappers"] }
