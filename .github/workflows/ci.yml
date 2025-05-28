@@ -66,14 +66,8 @@ jobs:
           components: clippy
           toolchain: nightly
       - uses: taiki-e/install-action@cargo-hack
-      - name: Clippy hack (atspi-common)
-        run: cargo hack --feature-powerset clippy --tests --no-deps -p atspi-common -- -D warnings
-      - name: Clippy hack (atspi-proxies)
-        run: cargo hack --feature-powerset --at-least-one-of tokio,async-io clippy --tests --no-deps -p atspi-proxies -- -D warnings
-      - name: Clippy hack (atspi-connection)
-        run: cargo hack --feature-powerset --at-least-one-of tokio,async-io clippy --tests --no-deps -p atspi-connection -- -D warnings
-      - name: Clippy hack (atspi)
-        run: cargo hack --feature-powerset --at-least-one-of tokio,async-io clippy --tests --no-deps -p atspi -- -D warnings
+      - name: Clippy hack
+        run: cargo hack --feature-powerset --workspace clippy --tests --no-deps -- -D warnings
   tests:
     runs-on: ubuntu-latest
     needs: [clippy, no-unused-dependencies]
