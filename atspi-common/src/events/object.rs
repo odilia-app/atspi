@@ -124,68 +124,64 @@ impl TryFrom<EventBody<'_>> for Property {
 		let property = body.kind();
 
 		match property {
-			a if a == ACCESSIBLE_NAME_PROPERTY_NAME => Ok(Self::Name(
+			ACCESSIBLE_NAME_PROPERTY_NAME => Ok(Self::Name(
 				body.take_any_data()
 					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-name"))?,
+					.map_err(|_| AtspiError::ParseError(ACCESSIBLE_NAME_PROPERTY_NAME))?,
 			)),
-			a if a == ACCESSIBLE_DESCRIPTION_PROPERTY_NAME => Ok(Self::Description(
+			ACCESSIBLE_DESCRIPTION_PROPERTY_NAME => Ok(Self::Description(
 				body.take_any_data()
 					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-description"))?,
+					.map_err(|_| AtspiError::ParseError(ACCESSIBLE_DESCRIPTION_PROPERTY_NAME))?,
 			)),
-			a if a == ACCESSIBLE_ROLE_PROPERTY_NAME => Ok(Self::Role({
+			ACCESSIBLE_ROLE_PROPERTY_NAME => Ok(Self::Role({
 				let role_int: u32 = body
 					.any_data()
 					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
+					.map_err(|_| AtspiError::ParseError(ACCESSIBLE_ROLE_PROPERTY_NAME))?;
 				let role: crate::Role = crate::Role::try_from(role_int)
 					.map_err(|_| AtspiError::ParseError("accessible-role"))?;
 				role
 			})),
-			a if a == ACCESSIBLE_PARENT_PROPERTY_NAME => Ok(Self::Parent(
+			ACCESSIBLE_PARENT_PROPERTY_NAME => Ok(Self::Parent(
 				body.take_any_data()
 					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-parent"))?,
+					.map_err(|_| AtspiError::ParseError(ACCESSIBLE_PARENT_PROPERTY_NAME))?,
 			)),
-			a if a == ACCESSIBLE_TABLE_CAPTION_PROPERTY_NAME => Ok(Self::TableCaption(
+			ACCESSIBLE_TABLE_CAPTION_PROPERTY_NAME => Ok(Self::TableCaption(
 				body.take_any_data()
 					.try_into()
-					.map_err(|_| AtspiError::ParseError("accessible-table-caption"))?,
+					.map_err(|_| AtspiError::ParseError(ACCESSIBLE_TABLE_CAPTION_PROPERTY_NAME))?,
 			)),
-			a if a == ACCESSIBLE_TABLE_COLUMN_DESCRIPTION_PROPERTY_NAME => {
-				Ok(Self::TableColumnDescription(
-					body.take_any_data()
-						.try_into()
-						.map_err(|_| AtspiError::ParseError("table-column-description"))?,
-				))
+			ACCESSIBLE_TABLE_COLUMN_DESCRIPTION_PROPERTY_NAME => {
+				Ok(Self::TableColumnDescription(body.take_any_data().try_into().map_err(|_| {
+					AtspiError::ParseError(ACCESSIBLE_TABLE_COLUMN_DESCRIPTION_PROPERTY_NAME)
+				})?))
 			}
-			a if a == ACCESSIBLE_TABLE_COLUMN_HEADER_PROPERTY_NAME => Ok(Self::TableColumnHeader(
-				body.take_any_data()
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-column-header"))?,
-			)),
-			a if a == ACCESSIBLE_TABLE_ROW_DESCRIPTION_PROPERTY_NAME => {
-				Ok(Self::TableRowDescription(
-					body.take_any_data()
-						.try_into()
-						.map_err(|_| AtspiError::ParseError("table-row-description"))?,
-				))
+			ACCESSIBLE_TABLE_COLUMN_HEADER_PROPERTY_NAME => {
+				Ok(Self::TableColumnHeader(body.take_any_data().try_into().map_err(|_| {
+					AtspiError::ParseError(ACCESSIBLE_TABLE_COLUMN_HEADER_PROPERTY_NAME)
+				})?))
 			}
-			a if a == ACCESSIBLE_TABLE_ROW_HEADER_PROPERTY_NAME => Ok(Self::TableRowHeader(
+			ACCESSIBLE_TABLE_ROW_DESCRIPTION_PROPERTY_NAME => {
+				Ok(Self::TableRowDescription(body.take_any_data().try_into().map_err(|_| {
+					AtspiError::ParseError(ACCESSIBLE_TABLE_ROW_DESCRIPTION_PROPERTY_NAME)
+				})?))
+			}
+			ACCESSIBLE_TABLE_ROW_HEADER_PROPERTY_NAME => {
+				Ok(Self::TableRowHeader(body.take_any_data().try_into().map_err(|_| {
+					AtspiError::ParseError(ACCESSIBLE_TABLE_ROW_HEADER_PROPERTY_NAME)
+				})?))
+			}
+			ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME => Ok(Self::TableSummary(
 				body.take_any_data()
 					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-row-header"))?,
+					.map_err(|_| AtspiError::ParseError(ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME))?,
 			)),
-			a if a == ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME => Ok(Self::TableSummary(
+			ACCESSIBLE_HELP_TEXT_PROPERTY_NAME => Ok(Self::HelpText(
 				body.take_any_data()
 					.try_into()
-					.map_err(|_| AtspiError::ParseError("table-summary"))?,
-			)),
-			a if a == ACCESSIBLE_HELP_TEXT_PROPERTY_NAME => Ok(Self::HelpText(
-				body.take_any_data()
-					.try_into()
-					.map_err(|_| AtspiError::ParseError("help-text"))?,
+					.map_err(|_| AtspiError::ParseError(ACCESSIBLE_HELP_TEXT_PROPERTY_NAME))?,
 			)),
 			_ => Ok(Self::Other((property.to_string(), body.take_any_data()))),
 		}
@@ -289,6 +285,12 @@ mod test_property {
 		"accessible-table-row-header",
 		Property::TableRowHeader,
 		"Accessible table row header here!".to_string()
+	);
+	property_subtype_test!(
+		test_prop_help_text,
+		"accessible-help-text",
+		Property::HelpText,
+		"Accessible help text here!".to_string()
 	);
 }
 
