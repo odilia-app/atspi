@@ -65,8 +65,9 @@ jobs:
         with:
           components: clippy
           toolchain: nightly
-      - name: Clippy
-        run: cargo clippy --tests --workspace --no-deps -- -D warnings
+      - uses: taiki-e/install-action@cargo-hack
+      - name: Clippy hack
+        run: cargo hack --feature-powerset --workspace clippy --tests --no-deps -- -D warnings
   tests:
     runs-on: ubuntu-latest
     needs: [clippy, no-unused-dependencies]
@@ -93,10 +94,10 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt -y install at-spi2-core systemd
+      - name: Run Tests (async-io)
+        run: cargo test --workspace --no-default-features -- --nocapture
       - name: Run Tests (tokio)
         run: cargo test --workspace --no-default-features --features=tokio -- --nocapture
-      - name: Run Tests (async-std)
-        run: cargo test --workspace --no-default-features --features=async-std -- --nocapture
   rustfmt:
     runs-on: ubuntu-latest
     steps:

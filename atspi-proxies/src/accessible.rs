@@ -29,8 +29,8 @@ pub trait Accessible {
 	/// guaranteed to be persistent for the lifetime of the application.
 	/// All other objects in the accessibility hierarchy may be created and destroyed dynamically.
 	///
-	/// [`ObjectRef`]: ../crate::common::events::ObjectRef
-	/// [`Application`]: crate::application::ApplicationProxy
+	/// [`ObjectRef`]: [`crate::common::events::ObjectRef`]
+	/// [`Application`]: [`crate::application::ApplicationProxy`]
 	fn get_application(&self) -> zbus::Result<ObjectRef>;
 
 	/// Gets a list of name/value pairs of attributes or annotations for this object.
@@ -39,8 +39,8 @@ pub trait Accessible {
 	/// For	typographic, textual, or textually-semantic attributes,
 	/// see [`TextProxy`]'s [`get_attributes`] method instead.
 	///
-	/// [`TextProxy`]: crate::text::TextProxy
-	/// [`get_attributes`]: crate::text::TextProxy#method.get_attributes
+	/// [`TextProxy`]: [`crate::text::TextProxy`]
+	/// [`get_attributes`]: [`crate::text::TextProxy#method.get_attributes`]
 	fn get_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
 	/// Retrieve child by index (starting from 0),
@@ -53,7 +53,7 @@ pub trait Accessible {
 	/// GTK4 returns an error, while atk-adaptor (e.g. Gtk3) returns the
 	/// null object path "/org/a11y/atspi/null".
 	///
-	/// Documentation advises implementors to return a DBus Error when the index is
+	/// Documentation advises implementors to return a `DBus` Error when the index is
 	/// out of range, to "keep the type system gods happy".
 	///
 	/// [`get_children`]: #method.get_children
@@ -68,7 +68,7 @@ pub trait Accessible {
 	/// On the [`Accessible`] interface of `org.a11y.atspi.Registry`, the registry daemon, this method retrieves a list
 	/// of all accessible applications' root objects on the bus.
 	///
-	/// [`Accessible`]: crate::accessible::AccessibleProxy
+	/// [`Accessible`]: [`crate::accessible::AccessibleProxy`]
 	fn get_children(&self) -> zbus::Result<Vec<ObjectRef>>;
 
 	/// This object resides in its parent's list of children.
@@ -79,7 +79,7 @@ pub trait Accessible {
 	fn get_index_in_parent(&self) -> zbus::Result<i32>;
 
 	/// Returns an [`InterfaceSet`] accessible interface names supported by the `self` object.
-	/// [`InterfaceSet`]: crate::common::InterfaceSet
+	/// [`InterfaceSet`]: [`crate::common::InterfaceSet`]
 	fn get_interfaces(&self) -> zbus::Result<InterfaceSet>;
 
 	/// Gets a `String` corresponding to the name of the role played by an object,
@@ -113,11 +113,11 @@ pub trait Accessible {
 	/// and/or the other UI components that are directly affected by user interactions with the valuator.
 	/// Common examples include the association of scrollbars with the viewport or panel that they control.
 	///
-	/// [`RelationType`]: crate::common::RelationType
-	/// [`RelationType::LabelledBy`]: crate::common::RelationType::LabelledBy
-	/// [`RelationType::ControllerFor`]: crate::common::RelationType::ControllerFor
+	/// [`RelationType`]: [`crate::common::RelationType`]
+	/// [`RelationType::LabelledBy`]: [`crate::common::RelationType::LabelledBy`]
+	/// [`RelationType::ControllerFor`]: [`crate::common::RelationType::ControllerFor`]
 	/// [`name`]: #method.name
-	/// [`Accessible`]: ../crate::common::events::Accessible
+	/// [`Accessible`]: [`crate::common::events::Accessible`]
 	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<ObjectRef>)>>;
 
 	/// Gets the [`Role`] that the current accessible object represents.
@@ -129,8 +129,8 @@ pub trait Accessible {
 	/// (appears unpressed; presses	when acted upon; invokes a certain action
 	/// when pressed) can expose an	[`Role::Button`] role.
 	///
-	/// [`Role::Button`]: crate::common::Role::Button
-	/// [`Role`]: crate::common::Role
+	/// [`Role::Button`]: [`crate::common::Role::Button`]
+	/// [`Role`]: [`crate::common::Role`]
 	fn get_role(&self) -> zbus::Result<Role>;
 
 	/// Gets a `String` corresponding to the name of the role played by an object,
@@ -149,14 +149,14 @@ pub trait Accessible {
 	fn get_role_name(&self) -> zbus::Result<String>;
 
 	/// Method to retrieve the [`StateSet`] of states currently held by `self`.
-	/// [`StateSet`]: crate::common::StateSet
+	/// [`StateSet`]: [`crate::common::StateSet`]
 	fn get_state(&self) -> zbus::Result<StateSet>;
 
 	/// Application-specific identifier for the current object.
 	///
 	/// A special id given to an object.
 	/// Accessible application developers can use this to give a special id to an object
-	/// to use in tests, for example, "my_widget".
+	/// to use in tests, for example, "`my_widget`".
 	///
 	/// Note that there is no way to directly find an object by its id;
 	/// a test program may have to recursively get the children to find a specific id.
@@ -185,7 +185,7 @@ pub trait Accessible {
 
 	/// Unix locale for the current object.
 	///
-	/// This is a string in the form of "language_territory.codeset".
+	/// This is a string in the form of "`language_territory.codeset`".
 	/// For example, "en_US.UTF-8" or "de_DE.UTF-8".
 	///
 	/// For an application, this may be the locale for the language that the application
@@ -211,11 +211,11 @@ pub trait Accessible {
 	/// slider had a `LabeledBy` relation to corresponding labels visible in the user
 	/// interface.
 	///
-	/// [`RelationType::LabelledBy`]: crate::common::RelationType::LabelledBy
+	/// [`RelationType::LabelledBy`]: [`crate::common::RelationType::LabelledBy`]
 	#[zbus(property)]
 	fn name(&self) -> zbus::Result<String>;
 
-	/// ObjectRef parent object of the current object.
+	/// `ObjectRef` parent object of the current object.
 	///
 	/// Null parent:
 	/// If the object has no parent (e.g. the application's root object is being queried),

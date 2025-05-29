@@ -14,90 +14,90 @@ use crate::common::ObjectRef;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Table", assume_defaults = true)]
 pub trait Table {
-	/// AddColumnSelection method
+	/// `AddColumnSelection` method
 	fn add_column_selection(&self, column: i32) -> zbus::Result<bool>;
 
-	/// AddRowSelection method
+	/// `AddRowSelection` method
 	fn add_row_selection(&self, row: i32) -> zbus::Result<bool>;
 
-	/// GetAccessibleAt method
+	/// `GetAccessibleAt` method
 	fn get_accessible_at(&self, row: i32, column: i32) -> zbus::Result<ObjectRef>;
 
-	/// GetColumnAtIndex method
+	/// `GetColumnAtIndex` method
 	fn get_column_at_index(&self, index: i32) -> zbus::Result<i32>;
 
-	/// GetColumnDescription method
+	/// `GetColumnDescription` method
 	fn get_column_description(&self, column: i32) -> zbus::Result<String>;
 
-	/// GetColumnExtentAt method
+	/// `GetColumnExtentAt` method
 	fn get_column_extent_at(&self, row: i32, column: i32) -> zbus::Result<i32>;
 
-	/// GetColumnHeader method
+	/// `GetColumnHeader` method
 	fn get_column_header(&self, column: i32) -> zbus::Result<ObjectRef>;
 
-	/// GetIndexAt method
+	/// `GetIndexAt` method
 	fn get_index_at(&self, row: i32, column: i32) -> zbus::Result<i32>;
 
-	/// GetRowAtIndex method
+	/// `GetRowAtIndex` method
 	fn get_row_at_index(&self, index: i32) -> zbus::Result<i32>;
 
-	/// GetRowColumnExtentsAtIndex method
+	/// `GetRowColumnExtentsAtIndex` method
 	fn get_row_column_extents_at_index(
 		&self,
 		index: i32,
 	) -> zbus::Result<(bool, i32, i32, i32, i32, bool)>;
 
-	/// GetRowDescription method
+	/// `GetRowDescription` method
 	fn get_row_description(&self, row: i32) -> zbus::Result<String>;
 
-	/// GetRowExtentAt method
+	/// `GetRowExtentAt` method
 	fn get_row_extent_at(&self, row: i32, column: i32) -> zbus::Result<i32>;
 
-	/// GetRowHeader method
+	/// `GetRowHeader` method
 	fn get_row_header(&self, row: i32) -> zbus::Result<ObjectRef>;
 
-	/// GetSelectedColumns method
+	/// `GetSelectedColumns` method
 	fn get_selected_columns(&self) -> zbus::Result<Vec<i32>>;
 
-	/// GetSelectedRows method
+	/// `GetSelectedRows` method
 	fn get_selected_rows(&self) -> zbus::Result<Vec<i32>>;
 
-	/// IsColumnSelected method
+	/// `IsColumnSelected` method
 	fn is_column_selected(&self, column: i32) -> zbus::Result<bool>;
 
-	/// IsRowSelected method
+	/// `IsRowSelected` method
 	fn is_row_selected(&self, row: i32) -> zbus::Result<bool>;
 
-	/// IsSelected method
+	/// `IsSelected` method
 	fn is_selected(&self, row: i32, column: i32) -> zbus::Result<bool>;
 
-	/// RemoveColumnSelection method
+	/// `RemoveColumnSelection` method
 	fn remove_column_selection(&self, column: i32) -> zbus::Result<bool>;
 
-	/// RemoveRowSelection method
+	/// `RemoveRowSelection` method
 	fn remove_row_selection(&self, row: i32) -> zbus::Result<bool>;
 
-	/// Caption property
+	/// `Caption` property
 	#[zbus(property)]
 	fn caption(&self) -> zbus::Result<ObjectRef>;
 
-	/// NColumns property
+	/// `NColumns` property
 	#[zbus(property)]
 	fn ncolumns(&self) -> zbus::Result<i32>;
 
-	/// NRows property
+	/// `NRows` property
 	#[zbus(property)]
 	fn nrows(&self) -> zbus::Result<i32>;
 
-	/// NSelectedColumns property
+	/// `NSelectedColumns` property
 	#[zbus(property)]
 	fn nselected_columns(&self) -> zbus::Result<i32>;
 
-	/// NSelectedRows property
+	/// `NSelectedRows` property
 	#[zbus(property)]
 	fn nselected_rows(&self) -> zbus::Result<i32>;
 
-	/// Summary property
+	/// `Summary` property
 	#[zbus(property)]
 	fn summary(&self) -> zbus::Result<ObjectRef>;
 }

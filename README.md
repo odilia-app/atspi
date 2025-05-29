@@ -23,7 +23,14 @@ This crate makes use of the
 We use the asynchronous zbus API, so to use atspi, you will need to run an async executer like
 [tokio](https://crates.io/crates/tokio) or
 [async-std](https://crates.io/crates/async-std).
-The `async-io` and `tokio` features are exposed and will be passed through to zbus.
+
+## Feature Flags
+
+- `default`: `proxies`, `connection`.
+- `proxies`: enable re-export of the `atspi-proxies` crate; this allows you to directly communicate with DBus.
+- `connection`: enable re-export of the `atspi-connection` crate; this gives some nice abstractions over DBus when receiving only. `proxies` will still be needed to query information actively.
+- `tokio`: enable support for the `tokio` runtime; other runtimes can be used without an integration feature.
+- `tracing`: enable support for the `tracing` logger.
 
 ## D-Bus type validation
 

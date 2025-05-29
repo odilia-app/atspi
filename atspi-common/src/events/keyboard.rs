@@ -1,13 +1,13 @@
-#[cfg(any(feature = "wrappers", feature = "zbus"))]
+#[cfg(feature = "zbus")]
 use super::event_body::EventBody;
+#[cfg(feature = "zbus")]
+use crate::error::AtspiError;
 use crate::events::{
 	DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString,
 };
-#[cfg(any(feature = "wrappers", feature = "zbus"))]
-use crate::{error::AtspiError, EventProperties};
 
 #[cfg(feature = "zbus")]
-use crate::{events::MessageConversion, ObjectRef};
+use crate::{events::MessageConversion, EventProperties, ObjectRef};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 

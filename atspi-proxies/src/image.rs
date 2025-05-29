@@ -14,20 +14,20 @@ use crate::CoordType;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Image", assume_defaults = true)]
 pub trait Image {
-	/// GetImageExtents method
+	/// `GetImageExtents` method
 	fn get_image_extents(&self, coord_type: CoordType) -> zbus::Result<(i32, i32, i32, i32)>;
 
-	/// GetImagePosition method
+	/// `GetImagePosition` method
 	fn get_image_position(&self, coord_type: CoordType) -> zbus::Result<(i32, i32)>;
 
-	/// GetImageSize method
+	/// `GetImageSize` method
 	fn get_image_size(&self) -> zbus::Result<(i32, i32)>;
 
-	/// ImageDescription property
+	/// `ImageDescription` property
 	#[zbus(property)]
 	fn image_description(&self) -> zbus::Result<String>;
 
-	/// ImageLocale property
+	/// `ImageLocale` property
 	#[zbus(property)]
 	fn image_locale(&self) -> zbus::Result<String>;
 }

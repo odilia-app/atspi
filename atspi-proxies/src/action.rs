@@ -54,7 +54,7 @@ pub trait Action {
 	///
 	/// This is equivalent to using the methods [`get_localized_name`],
 	/// [`get_description`] and	[`get_key_binding`] for each action,
-	/// but with a single call and thus less DBus traffic.
+	/// but with a single call and thus less `DBus` traffic.
 	///
 	///	By convention, if there is more than one action available,
 	/// the first one is considered the "default" action of the object.

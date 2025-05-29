@@ -4,9 +4,6 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
 #![allow(clippy::multiple_crate_versions)]
 
-#[cfg(all(not(feature = "async-std"), not(feature = "tokio")))]
-compile_error!("You must specify at least one of the `async-std` or `tokio` features.");
-
 pub use atspi_common as common;
 
 pub mod accessible;

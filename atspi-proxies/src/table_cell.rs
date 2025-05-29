@@ -14,28 +14,28 @@ use crate::common::ObjectRef;
 
 #[zbus::proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 pub trait TableCell {
-	/// GetColumnHeaderCells method
+	/// `GetColumnHeaderCells` method
 	fn get_column_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
 
-	/// GetRowColumnSpan method
+	/// `GetRowColumnSpan` method
 	fn get_row_column_span(&self) -> zbus::Result<(bool, i32, i32, i32, i32)>;
 
-	/// GetRowHeaderCells method
+	/// `GetRowHeaderCells` method
 	fn get_row_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
 
-	/// ColumnSpan property
+	/// `ColumnSpan` property
 	#[zbus(property)]
 	fn column_span(&self) -> zbus::Result<i32>;
 
-	/// Position property
+	/// `Position` property
 	#[zbus(property)]
 	fn position(&self) -> zbus::Result<(i32, i32)>;
 
-	/// RowSpan property
+	/// `RowSpan` property
 	#[zbus(property)]
 	fn row_span(&self) -> zbus::Result<i32>;
 
-	/// Table property
+	/// `Table` property
 	#[zbus(property)]
 	fn table(&self) -> zbus::Result<ObjectRef>;
 }

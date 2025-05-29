@@ -14,28 +14,28 @@ use crate::common::ObjectRef;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
 pub trait Selection {
-	/// ClearSelection method
+	/// `ClearSelection` method
 	fn clear_selection(&self) -> zbus::Result<bool>;
 
-	/// DeselectChild method
+	/// `DeselectChild` method
 	fn deselect_child(&self, child_index: i32) -> zbus::Result<bool>;
 
-	/// DeselectSelectedChild method
+	/// `DeselectSelectedChild` method
 	fn deselect_selected_child(&self, selected_child_index: i32) -> zbus::Result<bool>;
 
-	/// GetSelectedChild method
+	/// `GetSelectedChild` method
 	fn get_selected_child(&self, selected_child_index: i32) -> zbus::Result<ObjectRef>;
 
-	/// IsChildSelected method
+	/// `IsChildSelected` method
 	fn is_child_selected(&self, child_index: i32) -> zbus::Result<bool>;
 
-	/// SelectAll method
+	/// `SelectAll` method
 	fn select_all(&self) -> zbus::Result<bool>;
 
-	/// SelectChild method
+	/// `SelectChild` method
 	fn select_child(&self, child_index: i32) -> zbus::Result<bool>;
 
-	/// NSelectedChildren property
+	/// `NSelectedChildren` property
 	#[zbus(property)]
 	fn nselected_children(&self) -> zbus::Result<i32>;
 }

@@ -25,13 +25,13 @@
 	default_path = "/org/a11y/bus"
 )]
 pub trait Status {
-	/// IsEnabled property
+	/// `IsEnabled` property
 	#[zbus(property)]
 	fn is_enabled(&self) -> zbus::Result<bool>;
 	#[zbus(property)]
 	fn set_is_enabled(&self, value: bool) -> zbus::Result<()>;
 
-	/// ScreenReaderEnabled property
+	/// `ScreenReaderEnabled` property
 	#[zbus(property)]
 	fn screen_reader_enabled(&self) -> zbus::Result<bool>;
 	#[zbus(property)]
@@ -44,6 +44,6 @@ pub trait Status {
 	default_path = "/org/a11y/bus"
 )]
 pub trait Bus {
-	/// GetAddress method
+	/// `GetAddress` method
 	fn get_address(&self) -> zbus::Result<String>;
 }

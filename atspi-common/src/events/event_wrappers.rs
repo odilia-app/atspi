@@ -5,7 +5,6 @@ use crate::events::registry::{EventListenerDeregisteredEvent, EventListenerRegis
 use crate::events::traits::{EventWrapperMessageConversion, TryFromMessage};
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
-use crate::CacheItem;
 use crate::{
 	error::AtspiError,
 	events::{
@@ -37,15 +36,19 @@ use crate::{
 			PropertyChangeEvent as WindowPropertyChangeEvent, RaiseEvent, ReparentEvent,
 			ResizeEvent, RestoreEvent, RestyleEvent, ShadeEvent, UUshadeEvent,
 		},
-		DBusInterface, DBusMatchRule, DBusMember, EventTypeProperties, RegistryEventString,
+		DBusInterface, DBusMatchRule, EventTypeProperties, RegistryEventString,
 	},
-	EventProperties, LegacyCacheItem,
+	EventProperties,
 };
+#[cfg(feature = "zbus")]
+use crate::{events::DBusMember, CacheItem, LegacyCacheItem};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::Header;
 use zbus_names::UniqueName;
-use zvariant::{ObjectPath, Type};
+use zvariant::ObjectPath;
+#[cfg(feature = "zbus")]
+use zvariant::Type;
 
 impl_from_user_facing_event_for_interface_event_enum!(
 	EventListenerRegisteredEvent,
