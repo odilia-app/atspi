@@ -10,4 +10,4 @@ Please use the internal documentation to learn how to use these data structures.
 
 - `default`: `zbus`, `wrappers`
 - `zbus`: include support for serializing/deserializing from `zbus::Message`s over DBus.
-- `wrappers`: contianer enum types that group events by AT-SPI interface, as well an `Event` wrapper that contains any possible event.
+- `wrappers`: container enum types that group events by AT-SPI interface, as well as `Event` wrapper that contains any possible event.
