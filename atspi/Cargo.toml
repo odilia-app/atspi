@@ -51,7 +51,7 @@ name              = "focused-async-std"
 path              = "./examples/focused-async-std.rs"
 
 [dev-dependencies]
-async-std      = { version = "1.12", default-features = false }
+async-std      = { version = "1.12", features = ["attributes"] }
 atspi          = { path = "." }
 # TOOD: pinned due to MSRV 1.77.2 policy; this can be lifted when we bump.
 criterion      = "=0.5.0"

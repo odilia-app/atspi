@@ -161,12 +161,12 @@ async fn main() -> Result<()> {
 	let now = std::time::Instant::now();
 	let tree = A11yNode::from_accessible_proxy(registry).await?;
 	let elapsed = now.elapsed();
-	println!("Elapsed time: {:?}", elapsed);
+	println!("Elapsed time: {elapsed:?}");
 
 	println!("\nPress 'Enter' to print the tree...");
 	let _ = std::io::stdin().read_line(&mut String::new());
 
-	println!("{}", tree);
+	println!("{tree}");
 
 	Ok(())
 }
