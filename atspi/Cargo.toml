@@ -17,6 +17,7 @@ version                = "0.27.0"
 
 [features]
 default = ["proxies", "connection"]
+wrappers = ["atspi-common/wrappers"]
 proxies = ["dep:atspi-proxies"]
 connection = ["dep:atspi-connection"]
 tokio     = ["zbus/tokio"]
