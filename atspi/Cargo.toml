@@ -16,7 +16,7 @@ version                = "0.27.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["proxies", "connection"]
+default = ["proxies", "connection", "wrappers"]
 wrappers = ["atspi-common/wrappers"]
 proxies = ["dep:atspi-proxies"]
 connection = ["dep:atspi-connection"]
