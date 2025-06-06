@@ -43,6 +43,10 @@ name              = "tree"
 path              = "./examples/bus-tree.rs"
 
 [[example]]
+name              = "doc-info-tree"
+path              = "./examples/doc-info-tree.rs"
+
+[[example]]
 name              = "focused-tokio"
 path              = "./examples/focused-tokio.rs"
 
