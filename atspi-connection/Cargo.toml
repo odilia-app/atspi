@@ -15,8 +15,9 @@ version                = "0.11.0"
 
 [features]
 default = ["wrappers"]
-wrappers = ["atspi-common/wrappers", "dep:futures-lite"]
+p2p = ["zbus/p2p"]
 tracing   = ["dep:tracing"]
+wrappers = ["atspi-common/wrappers", "dep:futures-lite"]
 
 [dependencies]
 atspi-common   = { path = "../atspi-common/", version = "0.11.0", default-features = false, features = ["zbus"] }
