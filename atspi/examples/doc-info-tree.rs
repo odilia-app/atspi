@@ -18,6 +18,10 @@ use std::error::Error;
 use tokio_stream::StreamExt;
 use zbus::Connection;
 
+// A type alias for the future returned by recursive_print_children
+type BoxedFuture<'a> =
+	std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), Box<dyn Error>>> + Send + 'a>>;
+
 /// recursively print the children of an accessible object
 /// along with some useful information like their name and
 /// coordinates
@@ -25,7 +29,7 @@ fn recursive_print_children<'a>(
 	proxy: &'a AccessibleProxy<'a>,
 	conn: &'a Connection,
 	indent: usize,
-) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), Box<dyn Error>>> + Send + 'a>> {
+) -> BoxedFuture<'a> {
 	Box::pin(async move {
 		for child in proxy.get_children().await?.iter() {
 			let child_proxy = child.as_accessible_proxy(conn).await?;
