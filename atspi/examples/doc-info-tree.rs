@@ -67,15 +67,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 						Ok(proxy) => {
 							if let Err(err) = recursive_print_children(&proxy, &conn_clone, 0).await
 							{
-								eprintln!("Error: {}", err);
+								eprintln!("Error: {err}");
 							}
 						}
-						Err(err) => eprintln!("Error creating proxy: {}", err),
+						Err(err) => eprintln!("Error creating proxy: {err}"),
 					}
 				});
 			}
 			Ok(_) => {}
-			Err(err) => println!("Error: {}", err),
+			Err(err) => println!("Error: {err}"),
 		}
 	}
 	Ok(())
