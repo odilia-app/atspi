@@ -51,6 +51,10 @@ path              = "./examples/focused-tokio.rs"
 name              = "focused-async-std"
 path              = "./examples/focused-async-std.rs"
 
+[[example]]
+name              = "selected-text"
+path              = "./examples/selected-text.rs"
+
 [dev-dependencies]
 async-std      = { version = "1.12", features = ["attributes"] }
 atspi          = { path = "." }
