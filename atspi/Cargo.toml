@@ -63,7 +63,7 @@ path = "./examples/selected-text.rs"
 async-std      = { version = "1.13", features = ["attributes"] }
 atspi          = { path = "." }
 # TOOD: pinned due to MSRV 1.77.2 policy; this can be lifted when we bump.
-criterion      = "=0.5.0"
+criterion = "=0.5.0"
 half = "=2.4.0"
 fastrand       = "2.3"
 futures        = { version = "0.3", default-features = false, features = ["alloc"] }
