@@ -1,9 +1,7 @@
-//! This example demonstrates how to construct a tree of accessible objects on the accessibility-bus.
-//!
-//! "This example requires the  `proxies-tokio`, `tokio` and `zbus` features to be enabled:
+//! This example demonstrates the advantage of P2P connections can offer
 //!
 //! ```sh
-//! cargo run --example bus-tree --features zbus,proxies-tokio,tokio
+//! cargo run --example p2p-tree
 //! ```
 //! Authors:
 //!    Luuk van der Duim,
@@ -15,18 +13,19 @@ use atspi::{
 	AccessibilityConnection, Role,
 };
 use atspi_connection::P2P;
-use futures::future::try_join_all;
+use futures::future::{join_all, try_join_all};
 use std::fmt::{self, Display, Formatter};
 use zbus::{proxy::CacheProperties, Connection};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const ACCESSIBLE_ROOT_PATH: &str = "/org/a11y/atspi/accessible/root";
+const REGISTRY_PATH: &str = "/org/a11y/atspi/accessible/root";
+const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct A11yNode {
-	role: Role,
+	role: Option<Role>,
 	children: Vec<A11yNode>,
 }
 
@@ -67,7 +66,11 @@ impl A11yNode {
 		}
 
 		// two horizontal chars to mimic `tree`
-		writeln!(f, "{}{} {}", style.horizontal, style.horizontal, self.role)?;
+		let role_string = self
+			.role
+			.map_or_else(|| "error".to_string(), |r| r.to_string())
+			.to_string();
+		writeln!(f, "{}{} {}", style.horizontal, style.horizontal, role_string)?;
 
 		for (i, child) in self.children.iter().enumerate() {
 			prefix.push(i == self.children.len() - 1);
@@ -161,18 +164,18 @@ impl A11yNode {
 async fn get_registry_accessible<'a>(conn: &Connection) -> Result<AccessibleProxy<'a>> {
 	let registry = AccessibleProxy::builder(conn)
 		.destination(REGISTRY_DEST)?
-		.path(ACCESSIBLE_ROOT_PATH)?
+		.path(REGISTRY_PATH)?
+		.interface(ACCCESSIBLE_INTERFACE)?
 		.cache_properties(CacheProperties::No)
 		.build()
 		.await?;
 
 	Ok(registry)
 }
-
 #[tokio::main]
 async fn main() -> Result<()> {
 	set_session_accessibility(true).await?;
-	println!("Starting a11y-bus tree example...");
+
 	let a11y = AccessibilityConnection::new().await?;
 	let conn = a11y.connection();
 	let registry = get_registry_accessible(conn).await?;
@@ -184,25 +187,26 @@ async fn main() -> Result<()> {
 	let now = std::time::Instant::now();
 	let _tree = A11yNode::from_accessible_proxy(registry.clone()).await?;
 	let elapsed = now.elapsed();
-	println!("Elapsed time non-p2p: {elapsed:?}");
+	println!("Elapsed time non-p2p: {elapsed:.2?}");
 
 	println!("Building tree (P2P)...");
 	let now = std::time::Instant::now();
 	let accessible_children = registry.get_children().await?;
+	println!("Number of accessible children: {}", accessible_children.len());
 
-	let root_role = Role::try_from(65)?;
-	let mut children_nodes: Vec<A11yNode> = Vec::with_capacity(accessible_children.len());
+	let mut children_nodes: Vec<A11yNode> = Vec::new();
 
 	for obj in accessible_children {
+		println!("Processing object: {}", &obj.name);
 		let proxy = a11y.object_as_accessible(&obj).await?;
 		let node = A11yNode::from_accessible_proxy(proxy).await?;
 		children_nodes.push(node);
 	}
 
-	let _root_node = A11yNode { role: root_role, children: children_nodes };
+	let _root_node = A11yNode { role: None, children: children_nodes };
 
 	let elapsed = now.elapsed();
-	println!("Elapsed time p2p: {elapsed:?}");
+	println!("Elapsed time p2p: {elapsed:.2?}");
 
 	Ok(())
 }
