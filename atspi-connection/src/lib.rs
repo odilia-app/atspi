@@ -41,6 +41,7 @@ use zbus::{message::Type as MessageType, MessageStream};
 pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
 
 /// A connection to the at-spi bus
+#[derive(Debug)]
 pub struct AccessibilityConnection {
 	registry: RegistryProxy<'static>,
 	dbus_proxy: DBusProxy<'static>,
@@ -116,7 +117,7 @@ impl AccessibilityConnection {
 
 		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
 		let registry = RegistryProxy::new(&bus).await?;
-		let dbus_proxy = DBusProxy::new(registry.inner().connection()).await?;
+		let dbus_proxy = DBusProxy::new(&bus).await?;
 
 		#[cfg(not(feature = "p2p"))]
 		return Ok(Self { registry, dbus_proxy });

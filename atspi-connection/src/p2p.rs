@@ -130,7 +130,7 @@ impl Peer {
 	///
 	/// # Errors
 	/// In case of an invalid connection or object path.
-	pub async fn as_accessible_proxy(&'_ self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy> {
+	pub async fn as_accessible_proxy(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
 		AccessibleProxy::builder(&self.p2p_connection)
 			.path(obj.path.clone())?
 			.cache_properties(zbus::proxy::CacheProperties::No)
@@ -143,10 +143,12 @@ impl Peer {
 /// Trait for P2P connection handling.
 pub trait P2P {
 	/// Retrrieve list of peers that are currently connected.
-	async fn initial_peers(conn: &zbus::Connection) -> AtspiResult<Arc<Mutex<Vec<Peer>>>>;
+	fn initial_peers(
+		conn: &zbus::Connection,
+	) -> impl std::future::Future<Output = AtspiResult<Arc<Mutex<Vec<Peer>>>>>;
 
 	/// Returns a `Peer` for the given bus name.
-	async fn get_peer(&self, bus_name: &BusName) -> Option<Peer>;
+	fn get_peer(&self, bus_name: &BusName) -> impl std::future::Future<Output = Option<Peer>>;
 
 	/// Spawns a task to continuously update the `Peers`.
 	fn spawn_peer_listener_task(
@@ -157,11 +159,17 @@ pub trait P2P {
 
 	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
-	async fn object_as_accessible(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy>;
+	fn object_as_accessible(
+		&self,
+		obj: &ObjectRef,
+	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy>>;
 
 	/// Returns an `AccessibleProxy` with a P2P connection for the given bus name if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
-	async fn bus_name_as_root_accessible(&self, name: &BusName) -> AtspiResult<AccessibleProxy>;
+	fn bus_name_as_root_accessible(
+		&self,
+		name: &BusName,
+	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy>>;
 }
 
 impl P2P for crate::AccessibilityConnection {
@@ -169,6 +177,8 @@ impl P2P for crate::AccessibilityConnection {
 		let peers = Arc::new(Mutex::new(Vec::new()));
 
 		let reg_accessible = AccessibleProxy::builder(conn)
+			.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
+			.destination("org.a11y.atspi.Registry")?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await?;
@@ -221,17 +231,17 @@ impl P2P for crate::AccessibilityConnection {
 			.spawn(async move {
 				let mut name_acquired_stream = match dbus_proxy.receive_name_acquired().await {
 					Ok(stream) => stream,
-					Err(err) => {
+					Err(_err) => {
 						#[cfg(feature = "tracing")]
-						warn!("Failed to get DBusProxy `NameAcquired` stream: {}", err);
+						warn!("Failed to get DBusProxy `NameAcquired` stream: {}", _err);
 						return;
 					}
 				};
 				let mut name_lost_stream = match dbus_proxy.receive_name_lost().await {
 					Ok(stream) => stream,
-					Err(err) => {
+					Err(_err) => {
 						#[cfg(feature = "tracing")]
-						warn!("Failed to get DBusProxy `NameLost` stream: {}", err);
+						warn!("Failed to get DBusProxy `NameLost` stream: {}", _err);
 						return;
 					}
 				};
@@ -253,9 +263,9 @@ impl P2P for crate::AccessibilityConnection {
 								let mut peers_lock = peers.lock().await;
 								peers_lock.push(peer);
 							}
-							Err(e) => {
+							Err(_err) => {
 								#[cfg(feature = "tracing")]
-								tracing::warn!("Failed to create peer from bus name: {}", e);
+								tracing::warn!("Failed to create peer from bus name: {}", _err);
 							}
 						}
 					}
@@ -278,7 +288,7 @@ impl P2P for crate::AccessibilityConnection {
 
 	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
-	async fn object_as_accessible(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy> {
+	async fn object_as_accessible(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
 		// Look up peer by bus name
 		let lookup = self
 			.peers
@@ -313,7 +323,7 @@ impl P2P for crate::AccessibilityConnection {
 	async fn bus_name_as_root_accessible(
 		&'_ self,
 		name: &BusName<'_>,
-	) -> AtspiResult<AccessibleProxy> {
+	) -> AtspiResult<AccessibleProxy<'_>> {
 		// Look up peer by bus name
 		let lookup = self
 			.peers
