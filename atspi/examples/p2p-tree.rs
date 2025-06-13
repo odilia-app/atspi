@@ -20,8 +20,7 @@ use zbus::{proxy::CacheProperties, Connection};
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const REGISTRY_PATH: &str = "/org/a11y/atspi/accessible/root";
-const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
+const ROOT_ACCESSIBLE_PATH: &str = "/org/a11y/atspi/accessible/root";
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct A11yNode {
@@ -164,8 +163,7 @@ impl A11yNode {
 async fn get_registry_accessible<'a>(conn: &Connection) -> Result<AccessibleProxy<'a>> {
 	let registry = AccessibleProxy::builder(conn)
 		.destination(REGISTRY_DEST)?
-		.path(REGISTRY_PATH)?
-		.interface(ACCCESSIBLE_INTERFACE)?
+		.path(ROOT_ACCESSIBLE_PATH)?
 		.cache_properties(CacheProperties::No)
 		.build()
 		.await?;
@@ -192,12 +190,18 @@ async fn main() -> Result<()> {
 	println!("Building tree (P2P)...");
 	let now = std::time::Instant::now();
 	let accessible_children = registry.get_children().await?;
-	println!("Number of accessible children: {}", accessible_children.len());
+	println!("Number of accessible children: {}", &accessible_children.len());
 
 	let mut children_nodes: Vec<A11yNode> = Vec::new();
 
+	// list of p2p peers in the connection
+	let p2p_peers = a11y.peers().await?;
+	for peer in p2p_peers {
+		println!("P2P peer: {}", peer.bus_name());
+	}
+
 	for obj in accessible_children {
-		println!("Processing object: {}", &obj.name);
+		println!("Processing name: {}, {}", &obj.name, &obj.path);
 		let proxy = a11y.object_as_accessible(&obj).await?;
 		let node = A11yNode::from_accessible_proxy(proxy).await?;
 		children_nodes.push(node);
