@@ -21,9 +21,6 @@ pub enum AtspiError {
 	/// When an interface is not available.
 	InterfaceNotAvailable(&'static str),
 
-	/// When the socket path is invalid.
-	InvalidSocketPath,
-
 	/// To indicate a match or equality test on a signal body signature failed.
 	SignatureMatch(String),
 
@@ -138,7 +135,6 @@ impl std::fmt::Display for AtspiError {
 				f.write_str("Integer conversion error: ")?;
 				e.fmt(f)
 			}
-			Self::InvalidSocketPath => f.write_str("Invalid socket path."),
 			Self::MissingName => f.write_str("Missing name for a bus."),
 			Self::Infallible => {
 				f.write_str("Infallible; only to trick the compiler. This should never happen.")
