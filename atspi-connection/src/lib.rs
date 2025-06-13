@@ -344,6 +344,16 @@ impl AccessibilityConnection {
 		.build(&event.body())?;
 		Ok(conn.send(&new_message).await?)
 	}
+
+	/// Get the list of peers
+	///
+	/// # Errors
+	/// This will return an error if the peers cannot be retrieved from behind the mutex.
+	#[cfg(feature = "p2p")]
+	pub async fn peers(&self) -> Result<Vec<Peer>, AtspiError> {
+		let peers = self.peers.lock().await;
+		Ok(peers.clone())
+	}
 }
 
 impl Deref for AccessibilityConnection {
