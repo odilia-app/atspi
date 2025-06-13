@@ -305,13 +305,6 @@ impl ObjectRefExt for ObjectRef {
 	}
 }
 
-impl PartialEq for AccessibleProxy<'_> {
-	fn eq<'a>(&self, other: &Self) -> bool {
-		self.inner().path() == other.inner().path()
-	}
-}
-impl Eq for AccessibleProxy<'_> {}
-
 #[cfg(test)]
 mod tests {
 	use crate::accessible::Role;
