@@ -9,14 +9,14 @@ use atspi_proxies::{
 	proxy_ext::ProxyExt,
 };
 use futures_lite::stream::StreamExt;
-use std::os::unix::net::UnixStream;
-use std::path::PathBuf;
 use std::sync::Arc;
 use zbus::{
+	conn::Builder,
 	fdo::DBusProxy,
 	names::{BusName, OwnedBusName},
 	proxy::CacheProperties,
 	zvariant::ObjectPath,
+	Address,
 };
 
 #[cfg(feature = "tracing")]
@@ -24,7 +24,6 @@ use tracing::warn;
 
 use crate::AtspiResult;
 
-const UNIX_SOCKET_PATH_PREFIX: &str = "unix:path=";
 const ACCESSIBLE_ROOT_OBJECT_PATH: &str = "/org/a11y/atspi/accessible/root";
 const REGISTRY_WELL_KNOWN_NAME: &str = "org.a11y.atspi.Registry";
 
@@ -32,32 +31,25 @@ const REGISTRY_WELL_KNOWN_NAME: &str = "org.a11y.atspi.Registry";
 #[derive(Clone, Debug)]
 pub struct Peer {
 	bus_name: OwnedBusName,
-	socket_path: PathBuf,
+	socket_address: Address,
 	p2p_connection: zbus::Connection,
 }
 
 impl Peer {
 	/// Creates a new `Peer` with the given bus name and socket path.
-	pub(crate) async fn try_new<B, S>(bus_name: B, socket_path: S) -> Result<Self, AtspiError>
+	pub(crate) async fn try_new<B, S>(bus_name: B, socket: S) -> Result<Self, AtspiError>
 	where
 		B: Into<OwnedBusName>,
-		S: Into<PathBuf>,
+		S: TryInto<Address>,
 	{
+		let socket_address = socket
+			.try_into()
+			.map_err(|_| AtspiError::ParseError("Bus address string did not parse"))?;
 		let bus_name: OwnedBusName = bus_name.into();
-		let socket_path: PathBuf = socket_path.into();
 
-		if socket_path.as_os_str().is_empty() {
-			return Err(AtspiError::InvalidSocketPath);
-		}
+		let p2p_connection = Builder::address(socket_address.clone())?.p2p().build().await?;
 
-		let unix_stream = UnixStream::connect(&socket_path)?;
-
-		let p2p_connection = zbus::connection::Builder::unix_stream(unix_stream)
-			.p2p()
-			.build()
-			.await?;
-
-		Ok(Peer { bus_name, socket_path, p2p_connection })
+		Ok(Peer { bus_name, socket_address, p2p_connection })
 	}
 
 	/// Returns the bus name of the peer.
@@ -68,8 +60,8 @@ impl Peer {
 
 	/// Returns the socket path of the peer.
 	#[must_use]
-	pub fn socket_path(&self) -> &PathBuf {
-		&self.socket_path
+	pub fn socket_address(&self) -> &Address {
+		&self.socket_address
 	}
 
 	/// Returns the zbus connection for the peer.
@@ -80,7 +72,6 @@ impl Peer {
 	/// Try to create a new `Peer` from a bus name.
 	///
 	/// # Errors
-	/// If the appliocation (bus name) does not implement the `Application` interface,
 	/// or when it does not support `get_application_bus_address`.\
 	/// A non-existent bus name will also return an error.
 	pub async fn try_from_bus_name(
@@ -95,11 +86,7 @@ impl Peer {
 			.await?;
 
 		let socket_path = application_proxy.get_application_bus_address().await?;
-		let socket_path = socket_path
-			.strip_prefix(UNIX_SOCKET_PATH_PREFIX)
-			.ok_or(AtspiError::InvalidSocketPath)?;
-
-		Self::try_new(bus_name, socket_path).await
+		Self::try_new(bus_name, socket_path.as_str()).await
 	}
 
 	/// Returns a `Proxies` object, to access the proxies of the peer.
@@ -200,24 +187,12 @@ impl P2P for crate::AccessibilityConnection {
 			// Get the application bus address
 
 			if let Ok(address) = application_proxy.get_application_bus_address().await {
-				let Some(address) = address.strip_prefix(UNIX_SOCKET_PATH_PREFIX) else {
-					#[cfg(feature = "tracing")]
-					tracing::warn!(
-						"Skipping peer with non-matching Unix socket path prefix: {}, expected: {}",
-						address,
-						UNIX_SOCKET_PATH_PREFIX
-					);
-					eprintln!("Skipping peer with non-matching Unix socket path prefix: {address}, expected: {UNIX_SOCKET_PATH_PREFIX}" );
-					continue; // Skip if the address is not a valid Unix socket path
-				};
-
 				let bus_name = BusName::from(child.name);
+				let peer = Peer::try_new(bus_name, address.as_str()).await?;
 
-				let peer = Peer::try_new(bus_name, address).await?;
 				println!(
 					"Found P2P peer: \"{}\", with path: \"{}\"",
-					&peer.bus_name,
-					&peer.socket_path.as_os_str().to_string_lossy()
+					&peer.bus_name, &peer.socket_address
 				);
 				peers.push(peer);
 			}
