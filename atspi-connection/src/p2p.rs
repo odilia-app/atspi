@@ -15,6 +15,7 @@ use std::sync::Arc;
 use zbus::{
 	fdo::DBusProxy,
 	names::{BusName, OwnedBusName},
+	proxy::CacheProperties,
 	zvariant::ObjectPath,
 };
 
@@ -25,8 +26,9 @@ use crate::AtspiResult;
 
 const UNIX_SOCKET_PATH_PREFIX: &str = "unix:path=";
 const ACCESSIBLE_ROOT_OBJECT_PATH: &str = "/org/a11y/atspi/accessible/root";
+const REGISTRY_WELL_KNOWN_NAME: &str = "org.a11y.atspi.Registry";
 
-/// Represents a peer with the name and path for a P2P connection.
+/// Represents a peer with the name, path and connection for the P2P peer.
 #[derive(Clone, Debug)]
 pub struct Peer {
 	bus_name: OwnedBusName,
@@ -43,6 +45,10 @@ impl Peer {
 	{
 		let bus_name: OwnedBusName = bus_name.into();
 		let socket_path: PathBuf = socket_path.into();
+
+		if socket_path.as_os_str().is_empty() {
+			return Err(AtspiError::InvalidSocketPath);
+		}
 
 		let unix_stream = UnixStream::connect(&socket_path)?;
 
@@ -170,54 +176,54 @@ pub trait P2P {
 		&self,
 		name: &BusName,
 	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy>>;
+
+	/// Return a list of peers that are currently connected.
+	fn peers(&self) -> impl std::future::Future<Output = AtspiResult<Vec<Peer>>>;
 }
 
 impl P2P for crate::AccessibilityConnection {
 	async fn initial_peers(conn: &zbus::Connection) -> AtspiResult<Arc<Mutex<Vec<Peer>>>> {
-		let peers = Arc::new(Mutex::new(Vec::new()));
-
 		let reg_accessible = AccessibleProxy::builder(conn)
 			.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
-			.destination("org.a11y.atspi.Registry")?
-			.cache_properties(zbus::proxy::CacheProperties::No)
+			.destination(REGISTRY_WELL_KNOWN_NAME)?
+			.cache_properties(CacheProperties::No)
 			.build()
 			.await?;
 
 		let children = reg_accessible.get_children().await?;
+		let mut peers = Vec::with_capacity(children.len());
 
 		for child in children {
-			let application_proxy = child
-				.as_accessible_proxy(conn)
-				.await?
-				.proxies()
-				.await?
-				.application()
-				.await;
-
-			let Ok(application_proxy) = application_proxy else {
-				#[cfg(feature = "tracing")]
-				tracing::warn!(
-					"Skipping child that does not appear to implement the `Application` interface: {:?}",
-					child
-				);
-				continue; // Skip if the child is not an ApplicationProxy
-			};
+			let accessible_proxy = child.as_accessible_proxy(conn).await?;
+			let proxies = accessible_proxy.proxies().await?;
+			let application_proxy = proxies.application().await?;
+			// Get the application bus address
 
 			if let Ok(address) = application_proxy.get_application_bus_address().await {
 				let Some(address) = address.strip_prefix(UNIX_SOCKET_PATH_PREFIX) else {
 					#[cfg(feature = "tracing")]
-					tracing::warn!("Skipping peer with non-matching Unix socket path prefix: {address}, expected: {UNIX_SOCKET_PATH_PREFIX}" );
+					tracing::warn!(
+						"Skipping peer with non-matching Unix socket path prefix: {}, expected: {}",
+						address,
+						UNIX_SOCKET_PATH_PREFIX
+					);
+					eprintln!("Skipping peer with non-matching Unix socket path prefix: {address}, expected: {UNIX_SOCKET_PATH_PREFIX}" );
 					continue; // Skip if the address is not a valid Unix socket path
 				};
 
 				let bus_name = BusName::from(child.name);
 
 				let peer = Peer::try_new(bus_name, address).await?;
-				peers.lock().await.push(peer);
+				println!(
+					"Found P2P peer: \"{}\", with path: \"{}\"",
+					&peer.bus_name,
+					&peer.socket_path.as_os_str().to_string_lossy()
+				);
+				peers.push(peer);
 			}
 		}
 
-		Ok(peers)
+		Ok(Arc::new(Mutex::new(peers)))
 	}
 
 	fn spawn_peer_listener_task(
@@ -299,10 +305,10 @@ impl P2P for crate::AccessibilityConnection {
 			.cloned();
 
 		if let Some(peer) = lookup {
-			// If a peer is found, create an AccessibleProxy with a P2P connection
+			// If a peer is found, create an `AccessibleProxy` with a P2P connection
 			AccessibleProxy::builder(peer.connection())
 				.path(obj.path.clone())?
-				.cache_properties(zbus::proxy::CacheProperties::No)
+				.cache_properties(CacheProperties::No)
 				.build()
 				.await
 				.map_err(Into::into)
@@ -311,7 +317,7 @@ impl P2P for crate::AccessibilityConnection {
 			let conn = self.connection();
 			AccessibleProxy::builder(conn)
 				.path(obj.path.clone())?
-				.cache_properties(zbus::proxy::CacheProperties::No)
+				.cache_properties(CacheProperties::No)
 				.build()
 				.await
 				.map_err(Into::into)
@@ -346,7 +352,7 @@ impl P2P for crate::AccessibilityConnection {
 			let conn = self.connection();
 			AccessibleProxy::builder(conn)
 				.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
-				.cache_properties(zbus::proxy::CacheProperties::No)
+				.cache_properties(CacheProperties::No)
 				.build()
 				.await
 				.map_err(Into::into)
@@ -357,5 +363,14 @@ impl P2P for crate::AccessibilityConnection {
 		let peers = self.peers.lock().await;
 
 		peers.iter().find(|peer| &peer.bus_name == bus_name).cloned()
+	}
+
+	/// Get the list of peers
+	///
+	/// # Errors
+	/// This will return an error if the peers cannot be retrieved from behind the mutex.
+	async fn peers(&self) -> AtspiResult<Vec<Peer>> {
+		let peers = self.peers.lock().await;
+		Ok(peers.clone())
 	}
 }
