@@ -14,7 +14,7 @@ use atspi::{
 	proxy::accessible::{AccessibleProxy, ObjectRefExt},
 	AccessibilityConnection, Role,
 };
-use futures::future::try_join_all;
+use futures::future::{join_all, try_join_all};
 use std::fmt::{self, Display, Formatter};
 use zbus::{proxy::CacheProperties, Connection};
 
@@ -24,9 +24,9 @@ const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
 const REGISTRY_PATH: &str = "/org/a11y/atspi/accessible/root";
 const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct A11yNode {
-	role: Role,
+	role: Option<Role>,
 	children: Vec<A11yNode>,
 }
 
@@ -67,7 +67,11 @@ impl A11yNode {
 		}
 
 		// two horizontal chars to mimic `tree`
-		writeln!(f, "{}{} {}", style.horizontal, style.horizontal, self.role)?;
+		let role_string = self
+			.role
+			.map_or_else(|| "error".to_string(), |r| r.to_string())
+			.to_string();
+		writeln!(f, "{}{} {}", style.horizontal, style.horizontal, role_string)?;
 
 		for (i, child) in self.children.iter().enumerate() {
 			prefix.push(i == self.children.len() - 1);
@@ -80,7 +84,7 @@ impl A11yNode {
 }
 
 impl A11yNode {
-	async fn from_accessible_proxy(ap: AccessibleProxy<'_>) -> Result<Self> {
+	async fn from_accessible_proxy(ap: AccessibleProxy<'_>) -> Result<A11yNode> {
 		let connection = ap.inner().connection().clone();
 		// Contains the processed `A11yNode`'s.
 		let mut nodes: Vec<A11yNode> = Vec::new();
@@ -90,12 +94,35 @@ impl A11yNode {
 
 		// If the stack has an `AccessibleProxy`, we take the last.
 		while let Some(ap) = stack.pop() {
-			// Prevent obects with huge child counts from stalling the program.
-			if ap.child_count().await? > 65536 {
+			let destination = ap.inner().destination();
+			let mut node_name = format!("node: Unknown node on {destination}");
+			if let Ok(name) = ap.name().await {
+				node_name = format!("node: {name} on {destination}");
+			}
+
+			let child_objects = ap.get_children().await;
+			let child_objects = match child_objects {
+				// Ok can also be an empty vector, which is fine.
+				Ok(children) => children,
+				Err(e) => {
+					eprintln!(
+						"Error getting children of {node_name}: {e} -- continuing with next node."
+					);
+					continue;
+				}
+			};
+
+			if child_objects.is_empty() {
+				// If there are no children, we can get the role and continue.
+				let role = ap.get_role().await.ok();
+
+				// Create a node with the role and no children.
+				nodes.push(A11yNode { role, children: Vec::new() });
 				continue;
 			}
 
-			let child_objects = ap.get_children().await?;
+			// Very likely to succeed because the error can only happen if the property cache is enabled,
+			// which we disable in `into_accessible_proxy`.
 			let mut children_proxies = try_join_all(
 				child_objects
 					.into_iter()
@@ -103,15 +130,16 @@ impl A11yNode {
 			)
 			.await?;
 
-			let roles = try_join_all(children_proxies.iter().map(|child| child.get_role())).await?;
+			let roles = join_all(children_proxies.iter().map(|child| child.get_role())).await;
 			stack.append(&mut children_proxies);
-
+			// Now we have the role results of the child nodes, we can create `A11yNode`s for them.
 			let children = roles
 				.into_iter()
-				.map(|role| A11yNode { role, children: Vec::new() })
+				.map(|role| A11yNode { role: role.ok(), children: Vec::new() })
 				.collect::<Vec<_>>();
 
-			let role = ap.get_role().await?;
+			// Finaly get this node's role and create an `A11yNode` with it.
+			let role = ap.get_role().await.ok();
 			nodes.push(A11yNode { role, children });
 		}
 
@@ -161,7 +189,7 @@ async fn main() -> Result<()> {
 	let now = std::time::Instant::now();
 	let tree = A11yNode::from_accessible_proxy(registry).await?;
 	let elapsed = now.elapsed();
-	println!("Elapsed time: {elapsed:?}");
+	println!("Elapsed time: {elapsed:.2?}");
 
 	println!("\nPress 'Enter' to print the tree...");
 	let _ = std::io::stdin().read_line(&mut String::new());
