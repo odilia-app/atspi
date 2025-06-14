@@ -40,12 +40,12 @@ name    = "event_parsing_100k"
 path    = "./benches/event_parsing_100k.rs"
 
 [[example]]
-name              = "tree"
-path              = "./examples/bus-tree.rs"
+name              = "accessible-counts"
+path              = "./examples/accessible-counts.rs"
 
 [[example]]
-name              = "doc-info-tree"
-path              = "./examples/doc-info-tree.rs"
+name              = "tree"
+path              = "./examples/bus-tree.rs"
 
 [[example]]
 name              = "focused-tokio"
