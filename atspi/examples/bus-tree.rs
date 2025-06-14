@@ -16,13 +16,9 @@ use atspi::{
 };
 use futures::future::{join_all, try_join_all};
 use std::fmt::{self, Display, Formatter};
-use zbus::{proxy::CacheProperties, Connection};
+use zbus::proxy::CacheProperties;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const REGISTRY_PATH: &str = "/org/a11y/atspi/accessible/root";
-const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct A11yNode {
@@ -162,25 +158,12 @@ impl A11yNode {
 	}
 }
 
-async fn get_registry_accessible<'a>(conn: &Connection) -> Result<AccessibleProxy<'a>> {
-	let registry = AccessibleProxy::builder(conn)
-		.destination(REGISTRY_DEST)?
-		.path(REGISTRY_PATH)?
-		.interface(ACCCESSIBLE_INTERFACE)?
-		.cache_properties(CacheProperties::No)
-		.build()
-		.await?;
-
-	Ok(registry)
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
 	set_session_accessibility(true).await?;
 	let a11y = AccessibilityConnection::new().await?;
 
-	let conn = a11y.connection();
-	let registry = get_registry_accessible(conn).await?;
+	let registry = a11y.get_registry_root(CacheProperties::No).await?;
 
 	let no_children = registry.child_count().await?;
 	println!("Number of accessible applications on the a11y-bus: {no_children}");
