@@ -8,12 +8,11 @@
 //!    Tait Hoyem
 
 use atspi::{
-	connection::set_session_accessibility,
-	proxy::accessible::{AccessibleProxy, ObjectRefExt},
+	connection::set_session_accessibility, proxy::accessible::AccessibleProxy,
 	AccessibilityConnection, Role,
 };
 use atspi_connection::P2P;
-use futures::future::{join_all, try_join_all};
+use futures::future::join_all;
 use std::fmt::{self, Display, Formatter};
 use zbus::{proxy::CacheProperties, Connection};
 
@@ -82,8 +81,10 @@ impl A11yNode {
 }
 
 impl A11yNode {
-	async fn from_accessible_proxy(ap: AccessibleProxy<'_>) -> Result<A11yNode> {
-		let connection = ap.inner().connection().clone();
+	async fn from_accessible_proxy(
+		ap: AccessibleProxy<'_>,
+		a11y: &AccessibilityConnection,
+	) -> Result<A11yNode> {
 		// Contains the processed `A11yNode`'s.
 		let mut nodes: Vec<A11yNode> = Vec::new();
 
@@ -92,13 +93,24 @@ impl A11yNode {
 
 		// If the stack has an `AccessibleProxy`, we take the last.
 		while let Some(ap) = stack.pop() {
-			let destination = ap.inner().destination();
-			let mut node_name = format!("node: Unknown node on {destination}");
-			if let Ok(name) = ap.name().await {
-				node_name = format!("node: {name} on {destination}");
-			}
+			let name = ap.name().await;
+			let bus_name = ap.inner().destination();
+
+			let node_name = {
+				match name {
+					Ok(name) => format!("node: {name} on {bus_name}"),
+					Err(e) => {
+						eprintln!(
+							"Error getting name for {}: {e} -- continuing with next node.",
+							ap.inner().path()
+						);
+						format!("node: \"Unknown name\" on {bus_name}")
+					}
+				}
+			};
 
 			let child_objects = ap.get_children().await;
+
 			let child_objects = match child_objects {
 				// Ok can also be an empty vector, which is fine.
 				Ok(children) => children,
@@ -110,6 +122,12 @@ impl A11yNode {
 				}
 			};
 
+			let child_count = child_objects.len();
+			if child_count > 65536 {
+				eprintln!("Error: Child count on {node_name} exceeds 65536, (has {child_count}).");
+				return Err("Child count exceeds limit".into());
+			}
+
 			if child_objects.is_empty() {
 				// If there are no children, we can get the role and continue.
 				let role = ap.get_role().await.ok();
@@ -119,17 +137,23 @@ impl A11yNode {
 				continue;
 			}
 
-			// Very likely to succeed because the error can only happen if the property cache is enabled,
-			// which we disable in `into_accessible_proxy`.
-			let mut children_proxies = try_join_all(
-				child_objects
-					.into_iter()
-					.map(|child| child.into_accessible_proxy(&connection)),
-			)
-			.await?;
+			let mut children_proxies: Vec<AccessibleProxy> = Vec::with_capacity(child_count);
+			for child in child_objects.into_iter() {
+				match a11y.object_as_accessible(&child).await {
+					Ok(proxy) => children_proxies.push(proxy),
+					Err(_err) => {
+						#[cfg(feature = "tracing")]
+						tracing::debug!(
+							"Failed to get accessible proxy for child: {}",
+							&child.name
+						);
+					}
+				}
+			}
 
 			let roles = join_all(children_proxies.iter().map(|child| child.get_role())).await;
 			stack.append(&mut children_proxies);
+
 			// Now we have the role results of the child nodes, we can create `A11yNode`s for them.
 			let children = roles
 				.into_iter()
@@ -181,36 +205,11 @@ async fn main() -> Result<()> {
 	let no_children = registry.child_count().await?;
 	println!("Number of accessible applications on the a11y-bus: {no_children}");
 
-	println!("Building tree (non-P2P)...");
-	let now = std::time::Instant::now();
-	let _tree = A11yNode::from_accessible_proxy(registry.clone()).await?;
-	let elapsed = now.elapsed();
-	println!("Elapsed time non-p2p: {elapsed:.2?}");
-
 	println!("Building tree (P2P)...");
 	let now = std::time::Instant::now();
-	let accessible_children = registry.get_children().await?;
-	println!("Number of accessible children: {}", &accessible_children.len());
-
-	let mut children_nodes: Vec<A11yNode> = Vec::new();
-
-	// list of p2p peers in the connection
-	let p2p_peers = a11y.peers().await?;
-	for peer in p2p_peers {
-		println!("P2P peer: {}", peer.bus_name());
-	}
-
-	for obj in accessible_children {
-		println!("Processing name: {}, {}", &obj.name, &obj.path);
-		let proxy = a11y.object_as_accessible(&obj).await?;
-		let node = A11yNode::from_accessible_proxy(proxy).await?;
-		children_nodes.push(node);
-	}
-
-	let _root_node = A11yNode { role: None, children: children_nodes };
-
+	let _tree = A11yNode::from_accessible_proxy(registry.clone(), &a11y).await?;
 	let elapsed = now.elapsed();
-	println!("Elapsed time p2p: {elapsed:.2?}");
+	println!("Tree built in {elapsed:.2?} using P2P connections.");
 
 	Ok(())
 }
