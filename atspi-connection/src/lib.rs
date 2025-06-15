@@ -332,7 +332,7 @@ impl AccessibilityConnection {
 	/// use zbus::proxy::CacheProperties;
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi_connection::AccessibilityConnection::new().await.unwrap();
-	/// let root = connection.get_registry_root(CacheProperties::No).await.unwrap();
+	/// let root = connection.root_accessible_on_registry().await.unwrap();
 	/// # });
 	/// ```
 	/// # Errors
