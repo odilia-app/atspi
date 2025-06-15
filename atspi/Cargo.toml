@@ -40,6 +40,10 @@ name    = "event_parsing_100k"
 path    = "./benches/event_parsing_100k.rs"
 
 [[example]]
+name              = "accessible-counts"
+path              = "./examples/accessible-counts.rs"
+
+[[example]]
 name              = "tree"
 path              = "./examples/bus-tree.rs"
 
