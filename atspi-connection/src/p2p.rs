@@ -135,7 +135,7 @@ impl Peer {
 
 /// Trait for P2P connection handling.
 pub trait P2P {
-	/// Retrrieve list of peers that are currently connected.
+	/// Assemble list of initial peers that support P2P connections.
 	fn initial_peers(
 		conn: &zbus::Connection,
 	) -> impl std::future::Future<Output = AtspiResult<Arc<Mutex<Vec<Peer>>>>>;
@@ -143,7 +143,7 @@ pub trait P2P {
 	/// Returns a `Peer` for the given bus name.
 	fn get_peer(&self, bus_name: &BusName) -> impl std::future::Future<Output = Option<Peer>>;
 
-	/// Spawns a task to continuously update the `Peers`.
+	/// An associated function that spawns a task to continuously update the list of `Peers`.
 	fn spawn_peer_listener_task(
 		conn: &zbus::Connection,
 		dbus_proxy: DBusProxy<'_>,
@@ -153,16 +153,16 @@ pub trait P2P {
 	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
 	fn object_as_accessible(
-		&self,
+		&'_ self,
 		obj: &ObjectRef,
-	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy>>;
+	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy<'_>>>;
 
 	/// Returns an `AccessibleProxy` with a P2P connection for the given bus name if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
 	fn bus_name_as_root_accessible(
-		&self,
+		&'_ self,
 		name: &BusName,
-	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy>>;
+	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy<'_>>>;
 
 	/// Return a list of peers that are currently connected.
 	fn peers(&self) -> impl std::future::Future<Output = AtspiResult<Vec<Peer>>>;
@@ -184,16 +184,20 @@ impl P2P for crate::AccessibilityConnection {
 			let accessible_proxy = child.as_accessible_proxy(conn).await?;
 			let proxies = accessible_proxy.proxies().await?;
 			let application_proxy = proxies.application().await?;
-			// Get the application bus address
 
+			// Get the application bus address
 			if let Ok(address) = application_proxy.get_application_bus_address().await {
 				let bus_name = BusName::from(child.name);
-				let peer = Peer::try_new(bus_name, address.as_str()).await?;
 
-				println!(
-					"Found P2P peer: \"{}\", with path: \"{}\"",
-					&peer.bus_name, &peer.socket_address
+				// We depend on the implementation of `ObjectRef` having `OwnedUniqueName` as the
+				// bus name, so we can later safely compare it to a `UniqueName`.
+				// Cost of the assertion is at startup, so it should not affect performance.
+				assert!(
+					matches!(bus_name, BusName::Unique(_)),
+					"Expected bus name to be a unique name, ObjectRef implementation changed: {bus_name}"
 				);
+
+				let peer = Peer::try_new(bus_name, address.as_str()).await?;
 				peers.push(peer);
 			}
 		}
@@ -228,39 +232,56 @@ impl P2P for crate::AccessibilityConnection {
 				};
 
 				loop {
-					// Handle both separately
-					if let Some(name_acquired) = name_acquired_stream.next().await {
-						let Ok(args) = name_acquired.args() else {
-							#[cfg(feature = "tracing")]
-							tracing::warn!("Received name acquired event without bus name");
-							continue;
-						};
-
-						let bus_name = args.name().clone();
-
-						let peer = Peer::try_from_bus_name(bus_name, conn).await;
-						match peer {
-							Ok(peer) => {
-								let mut peers_lock = peers.lock().await;
-								peers_lock.push(peer);
-							}
-							Err(_err) => {
+					// Handle `NameAcquired` and `NameLost` streams separately
+					match name_acquired_stream.next().await {
+						Some(name_acquired) => {
+							let Ok(args) = name_acquired.args() else {
 								#[cfg(feature = "tracing")]
-								tracing::warn!("Failed to create peer from bus name: {}", _err);
+								tracing::warn!("Received name acquired event without bus name");
+								continue;
+							};
+
+							let bus_name = args.name().clone();
+
+							let peer = Peer::try_from_bus_name(bus_name, conn).await;
+							match peer {
+								Ok(peer) => {
+									let mut peers_lock = peers.lock().await;
+									peers_lock.push(peer);
+								}
+								Err(_err) => {
+									#[cfg(feature = "tracing")]
+									tracing::warn!("Failed to create peer from bus name: {}", _err);
+								}
 							}
+						}
+						None => {
+							// If the stream is terminated, break the loop
+							#[cfg(feature = "tracing")]
+							tracing::debug!("NameAcquired stream ended");
+							break;
 						}
 					}
 
-					if let Some(name_lost) = name_lost_stream.next().await {
-						let Ok(args) = name_lost.args() else {
-							#[cfg(feature = "tracing")]
-							tracing::warn!("Received name lost event without bus name");
-							continue;
-						};
+					match name_lost_stream.next().await {
+						Some(name_lost) => {
+							let Ok(args) = name_lost.args() else {
+								#[cfg(feature = "tracing")]
+								tracing::warn!("Received name lost event without bus name");
+								continue;
+							};
 
-						let bus_name = args.name().clone();
-						let mut peers_lock = peers.lock().await;
-						peers_lock.retain(|peer| peer.bus_name != bus_name);
+							let bus_name = args.name().clone();
+							let mut peers_lock = peers.lock().await;
+							peers_lock.retain(|peer| peer.bus_name != bus_name);
+						}
+						None => {
+							#[cfg(feature = "tracing")]
+							tracing::warn!(
+							"NameAcquired or NameLost stream terminated, stopping listener task"
+							);
+							break;
+						}
 					}
 				}
 			})
@@ -276,7 +297,12 @@ impl P2P for crate::AccessibilityConnection {
 			.lock()
 			.await
 			.iter()
-			.find(|peer| peer.bus_name == BusName::from(obj.name.clone()))
+			// If the stored bus name is created from an `ObjectRef`, which carries an `OwnedUserName`,
+			// We don't need to take RHS Well-KnownName into consideration.
+			.find(|peer| {
+				let BusName::Unique(lhs) = &*peer.bus_name else { return false };
+				*lhs == obj.name
+			})
 			.cloned();
 
 		if let Some(peer) = lookup {
