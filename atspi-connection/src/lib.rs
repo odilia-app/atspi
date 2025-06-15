@@ -333,6 +333,8 @@ impl AccessibilityConnection {
 	/// # tokio_test::block_on(async {
 	/// let connection = atspi_connection::AccessibilityConnection::new().await.unwrap();
 	/// let root = connection.root_accessible_on_registry().await.unwrap();
+	/// let children = root.get_children().await;
+	/// assert!(children.is_ok());
 	/// # });
 	/// ```
 	/// # Errors
