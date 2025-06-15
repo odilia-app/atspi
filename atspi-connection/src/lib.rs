@@ -14,6 +14,7 @@ use atspi_common::{
 use atspi_common::events::Event;
 
 use atspi_proxies::{
+	accessible::AccessibleProxy,
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
@@ -22,7 +23,7 @@ use common::events::{DBusMatchRule, MessageConversion, RegistryEventString};
 #[cfg(feature = "wrappers")]
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{fdo::DBusProxy, Address, MatchRule};
+use zbus::{fdo::DBusProxy, proxy::CacheProperties, Address, MatchRule};
 #[cfg(feature = "wrappers")]
 use zbus::{message::Type as MessageType, MessageStream};
 
@@ -34,6 +35,10 @@ pub struct AccessibilityConnection {
 	registry: RegistryProxy<'static>,
 	dbus_proxy: DBusProxy<'static>,
 }
+
+const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
+const ROOT_OBJECT_PATH: &str = "/org/a11y/atspi/accessible/root";
+const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
 
 impl AccessibilityConnection {
 	/// Open a new connection to the bus
@@ -314,6 +319,40 @@ impl AccessibilityConnection {
 		// this re-encodes the entire body; it's not great..., but you can't replace a sender once a message a created.
 		.build(&event.body())?;
 		Ok(conn.send(&new_message).await?)
+	}
+
+	/// Get the root accessible object from the atspi registry;
+	/// This semantically represents the root of the accessibility tree
+	/// and can be used for tree traversals.
+	///
+	/// It may be called like so:
+	///
+	/// ```rust
+	/// use atspi_connection::AccessibilityConnection;
+	/// use zbus::proxy::CacheProperties;
+	/// # tokio_test::block_on(async {
+	/// let connection = atspi_connection::AccessibilityConnection::new().await.unwrap();
+	/// let root = connection.root_accessible_on_registry().await.unwrap();
+	/// let children = root.get_children().await;
+	/// assert!(children.is_ok());
+	/// # });
+	/// ```
+	/// # Errors
+	///
+	/// This will fail if a dbus connection cannot be established when trying to
+	/// connect to the registry
+	pub async fn root_accessible_on_registry(&self) -> Result<AccessibleProxy<'_>, AtspiError> {
+		let registry = AccessibleProxy::builder(self.connection())
+			.destination(REGISTRY_DEST)?
+			.path(ROOT_OBJECT_PATH)?
+			.interface(ACCCESSIBLE_INTERFACE)?
+			// registry has an incomplete implementation of the DBus interface
+			// and therefore cannot be cached; thus we always disable caching it
+			.cache_properties(CacheProperties::No)
+			.build()
+			.await?;
+
+		Ok(registry)
 	}
 }
 
