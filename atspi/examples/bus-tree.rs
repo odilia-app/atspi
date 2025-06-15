@@ -16,7 +16,6 @@ use atspi::{
 };
 use futures::future::{join_all, try_join_all};
 use std::fmt::{self, Display, Formatter};
-use zbus::proxy::CacheProperties;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -163,7 +162,7 @@ async fn main() -> Result<()> {
 	set_session_accessibility(true).await?;
 	let a11y = AccessibilityConnection::new().await?;
 
-	let registry = a11y.get_registry_root(CacheProperties::No).await?;
+	let registry = a11y.root_accessible_on_registry().await?;
 
 	let no_children = registry.child_count().await?;
 	println!("Number of accessible applications on the a11y-bus: {no_children}");

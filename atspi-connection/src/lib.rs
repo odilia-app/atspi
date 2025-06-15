@@ -37,7 +37,7 @@ pub struct AccessibilityConnection {
 }
 
 const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const REGISTRY_PATH: &str = "/org/a11y/atspi/accessible/root";
+const ROOT_OBJECT_PATH: &str = "/org/a11y/atspi/accessible/root";
 const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
 
 impl AccessibilityConnection {
@@ -339,15 +339,14 @@ impl AccessibilityConnection {
 	///
 	/// This will fail if a dbus connection cannot be established when trying to
 	/// connect to the registry
-	pub async fn get_registry_root(
-		&self,
-		cache_properties: CacheProperties,
-	) -> Result<AccessibleProxy<'_>, AtspiError> {
+	pub async fn root_accessible_on_registry(&self) -> Result<AccessibleProxy<'_>, AtspiError> {
 		let registry = AccessibleProxy::builder(self.connection())
 			.destination(REGISTRY_DEST)?
-			.path(REGISTRY_PATH)?
+			.path(ROOT_OBJECT_PATH)?
 			.interface(ACCCESSIBLE_INTERFACE)?
-			.cache_properties(cache_properties)
+			// registry has an incomplete implementation of the DBus interface
+			// and therefore cannot be cached; thus we always disable caching it
+			.cache_properties(CacheProperties::No)
 			.build()
 			.await?;
 
