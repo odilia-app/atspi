@@ -85,85 +85,97 @@ impl A11yNode {
 		ap: AccessibleProxy<'_>,
 		a11y: &AccessibilityConnection,
 	) -> Result<A11yNode> {
-		// Contains the processed `A11yNode`'s.
+		// The nodes list gets populated with two kinds of nodes:
+		// 1. Nodes with children, which have no children of themselves yet.
+		// 2. Leaf nodes, which have no children.
 		let mut nodes: Vec<A11yNode> = Vec::new();
 
-		// Contains the `AccessibleProxy` yet to be processed.
+		// Contains the `AccessibleProxy`s.
+		// Contains the source for the next iterations of work.
+		// Initialized with the root `AccessibleProxy`.
 		let mut stack: Vec<AccessibleProxy> = vec![ap];
 
 		// If the stack has an `AccessibleProxy`, we take the last.
 		while let Some(ap) = stack.pop() {
-			let name = ap.name().await;
 			let bus_name = ap.inner().destination();
-
-			let node_name = {
-				match name {
-					Ok(name) => format!("node: {name} on {bus_name}"),
-					Err(e) => {
-						eprintln!(
-							"Error getting name for {}: {e} -- continuing with next node.",
-							ap.inner().path()
-						);
-						format!("node: \"Unknown name\" on {bus_name}")
-					}
-				}
+			let node_name = match ap.name().await {
+				Ok(name) => format!("node: {name} on {bus_name}"),
+				Err(_) => format!("node: \"Unknown name\" on {bus_name}"),
 			};
 
-			let child_objects = ap.get_children().await;
-
-			let child_objects = match child_objects {
-				// Ok can also be an empty vector, which is fine.
-				Ok(children) => children,
-				Err(e) => {
-					eprintln!(
-						"Error getting children of {node_name}: {e} -- continuing with next node."
-					);
-					continue;
-				}
-			};
-
-			let child_count = child_objects.len();
-			if child_count > 65536 {
-				eprintln!("Error: Child count on {node_name} exceeds 65536, (has {child_count}).");
-				return Err("Child count exceeds limit".into());
-			}
-
-			if child_objects.is_empty() {
-				// If there are no children, we can get the role and continue.
-				let role = ap.get_role().await.ok();
-
-				// Create a node with the role and no children.
-				nodes.push(A11yNode { role, children: Vec::new() });
-				continue;
-			}
-
-			let mut children_proxies: Vec<AccessibleProxy> = Vec::with_capacity(child_count);
-			for child in child_objects.into_iter() {
-				match a11y.object_as_accessible(&child).await {
-					Ok(proxy) => children_proxies.push(proxy),
-					Err(_err) => {
-						#[cfg(feature = "tracing")]
-						tracing::debug!(
-							"Failed to get accessible proxy for child: {}",
-							&child.name
-						);
-					}
-				}
-			}
-
-			let roles = join_all(children_proxies.iter().map(|child| child.get_role())).await;
-			stack.append(&mut children_proxies);
-
-			// Now we have the role results of the child nodes, we can create `A11yNode`s for them.
-			let children = roles
-				.into_iter()
-				.map(|role| A11yNode { role: role.ok(), children: Vec::new() })
-				.collect::<Vec<_>>();
-
-			// Finaly get this node's role and create an `A11yNode` with it.
 			let role = ap.get_role().await.ok();
-			nodes.push(A11yNode { role, children });
+
+			match ap.get_children().await {
+				Err(e) => {
+					eprintln!("Error obtaining children: {node_name}: {e} - continuing.");
+
+					// You would probably want to encode in the `A11yNode` that this node has an error condition with its children.
+					// For this example, we just create a node without children.
+
+					nodes.push(A11yNode { role, children: Vec::new() });
+				}
+
+				Ok(children) if children.is_empty() => {
+					nodes.push(A11yNode { role, children: Vec::new() });
+				}
+
+				Ok(children) if children.len() > 65536 => {
+					eprintln!("Warning: {node_name} exceeds 65536 children, creating empty node.");
+
+					// If the number of children exceeds 65536:
+					// create a node without children.
+					// (We need to create a node because we might be a child of an earlier node.)
+
+					// Note: One could also design `A11yNode` to encode this error condition.
+
+					nodes.push(A11yNode { role, children: Vec::new() });
+				}
+
+				Ok(children) => {
+					let mut children_proxies: Vec<AccessibleProxy> =
+						Vec::with_capacity(children.len());
+
+					for child in children.into_iter() {
+						match a11y.object_as_accessible(&child).await {
+							Ok(proxy) => children_proxies.push(proxy),
+							Err(e) => {
+								// A problem with the `trait P2P` method `object_as_accessible`
+								// we should be able to create an `AccessibleProxy` for this object.
+								return Err(format!(
+									"Error creating AccessibleProxy for {node_name}: {e}"
+								)
+								.into());
+							}
+						}
+					}
+
+					// We create as-many role _results_ as there are child proxies.
+					let role_results =
+						join_all(children_proxies.iter().map(|child| child.get_role())).await;
+
+					debug_assert_eq!(
+						role_results.len(),
+						children_proxies.len(),
+						"Role results length does not match children proxies length"
+					);
+
+					stack.append(&mut children_proxies);
+
+					let children = role_results
+						.into_iter()
+						.map(|role| A11yNode { role: role.ok(), children: Vec::new() })
+						.collect::<Vec<_>>();
+
+					nodes.push(A11yNode { role, children });
+				}
+			};
 		}
+
+		// The nodes list now gets 'unwound' LIFO order.
+		// The first nodes popped are leaves, these are pushed onto the `fold_stack`.
+		// When we encounter a node with children, we pop the required number of nodes from the `fold_stack`
+		// and assign them as children to the node.
+		// This way we build the tree from the bottom up, folding in the leaf nodes as we go.
 
 		let mut fold_stack: Vec<A11yNode> = Vec::with_capacity(nodes.len());
 
@@ -182,6 +194,14 @@ impl A11yNode {
 
 		fold_stack.pop().ok_or("No root node built".into())
 	}
+
+	fn node_count(&self) -> usize {
+		let mut count = 1; // Count this node
+		for child in &self.children {
+			count += child.node_count();
+		}
+		count
+	}
 }
 
 async fn get_registry_accessible<'a>(conn: &Connection) -> Result<AccessibleProxy<'a>> {
@@ -194,6 +214,7 @@ async fn get_registry_accessible<'a>(conn: &Connection) -> Result<AccessibleProx
 
 	Ok(registry)
 }
+
 #[tokio::main]
 async fn main() -> Result<()> {
 	set_session_accessibility(true).await?;
@@ -209,7 +230,8 @@ async fn main() -> Result<()> {
 	let now = std::time::Instant::now();
 	let _tree = A11yNode::from_accessible_proxy(registry.clone(), &a11y).await?;
 	let elapsed = now.elapsed();
-	println!("Tree built in {elapsed:.2?} using P2P connections.");
+
+	println!("Built tree with {} nodes in {:.2?}", _tree.node_count(), elapsed);
 
 	Ok(())
 }
