@@ -41,7 +41,7 @@ use zbus::{message::Type as MessageType, MessageStream};
 pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
 
 /// A connection to the at-spi bus
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct AccessibilityConnection {
 	registry: RegistryProxy<'static>,
 	dbus_proxy: DBusProxy<'static>,
