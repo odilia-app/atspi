@@ -14,15 +14,9 @@ version                = "0.11.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["p2p", "wrappers"]
-p2p = [
-    "dep:async-executor",
-    "dep:async-lock",
-    "dep:async-net",
-    "dep:async-task",
-    "zbus/p2p",
-]
-tracing = ["dep:tracing"]
+default  = ["p2p", "wrappers"]
+p2p      = ["dep:async-executor", "dep:async-lock", "dep:async-net", "zbus/p2p"]
+tracing  = ["dep:tracing"]
 wrappers = ["atspi-common/wrappers", "dep:futures-lite"]
 
 [dependencies]
@@ -30,6 +24,9 @@ atspi-common   = { path = "../atspi-common/", version = "0.11.0", default-featur
 atspi-proxies  = { path = "../atspi-proxies/", version = "0.11.0" }
 futures-lite   = { version = "2.6.0", default-features = false, optional = true }
 tracing        = { optional = true, workspace = true }
+async-lock = { version = "3.4.0", optional = true }
+async-net = { version = "2.0.0", optional = true }
+async-executor = { version = "1.13.2", optional = true }
 zbus.workspace = true
 
 [dev-dependencies]
