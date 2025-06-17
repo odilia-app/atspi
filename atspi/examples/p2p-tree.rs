@@ -267,7 +267,7 @@ async fn main() -> Result<()> {
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$}",
 		"D-Bus operation", "Node count", "Time (ms)"
 	);
-	let table_divider = format!("{}", "-".repeat(DESC_WIDTH + NODE_COUNT_WIDTH + TIME_WIDTH + 2));
+	let table_divider = "-".repeat(DESC_WIDTH + NODE_COUNT_WIDTH + TIME_WIDTH + 2).to_string();
 
 	// Building tree (bus)
 	let now = std::time::Instant::now();
