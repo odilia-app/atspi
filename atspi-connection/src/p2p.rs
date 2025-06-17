@@ -141,20 +141,8 @@ impl Peer {
 
 /// Trait for P2P connection handling.
 pub trait P2P {
-	/// Assemble list of initial peers that support P2P connections.
-	fn initial_peers(
-		conn: &zbus::Connection,
-	) -> impl std::future::Future<Output = AtspiResult<Arc<Mutex<Vec<Peer>>>>>;
-
 	/// Returns a `Peer` for the given bus name.
 	fn get_peer(&self, bus_name: &BusName) -> impl std::future::Future<Output = Option<Peer>>;
-
-	/// An associated function that spawns a task to continuously update the list of `Peers`.
-	fn spawn_peer_listener_task(
-		conn: &zbus::Connection,
-		dbus_proxy: DBusProxy<'_>,
-		peers: Arc<Mutex<Vec<Peer>>>,
-	);
 
 	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
@@ -174,7 +162,7 @@ pub trait P2P {
 	fn peers(&self) -> impl std::future::Future<Output = Vec<Peer>>;
 }
 
-impl P2P for crate::AccessibilityConnection {
+impl crate::AccessibilityConnection {
 	/// Returns an `Arc<Mutex<Vec<Peer>>>` containing the initial peers that support P2P connections.
 	///
 	/// # Note
@@ -185,7 +173,9 @@ impl P2P for crate::AccessibilityConnection {
 	/// - the `AccessibleProxy` to the registry cannot be created.
 	/// - the registry returns an error when querying for children.
 	/// - for any child, the `AccessibleProxy` cannot be created or the `ApplicationProxy` cannot be created.
-	async fn initial_peers(conn: &zbus::Connection) -> AtspiResult<Arc<Mutex<Vec<Peer>>>> {
+	pub(crate) async fn initial_peers(
+		conn: &zbus::Connection,
+	) -> AtspiResult<Arc<Mutex<Vec<Peer>>>> {
 		let reg_accessible = AccessibleProxy::builder(conn)
 			.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
 			.destination(REGISTRY_WELL_KNOWN_NAME)?
@@ -221,14 +211,14 @@ impl P2P for crate::AccessibilityConnection {
 		Ok(Arc::new(Mutex::new(peers)))
 	}
 
-	/// Spawns a task to listen for new peers.
+	/// Spawns a task to listen for  peer mutations.
 	///
 	/// # Async executor
 	/// This function uses the `async_executor::Executor` to spawn a task that listens for `NameAcquired` and `NameLost` signals on the `DBus`.
 	///
 	/// # Note
 	/// This function is called internally by `AccessibilityConnection::new()`.
-	fn spawn_peer_listener_task(
+	pub(crate) fn spawn_peer_listener_task(
 		conn: &zbus::Connection,
 		dbus_proxy: DBusProxy<'_>,
 		peers: Arc<Mutex<Vec<Peer>>>,
@@ -309,6 +299,31 @@ impl P2P for crate::AccessibilityConnection {
 				}
 			})
 			.detach();
+	}
+}
+
+impl P2P for crate::AccessibilityConnection {
+	/// Returns a [`Peer`] by its bus name.
+	///
+	/// # Note
+	/// Bus names are initialized from `ObjectRef` names, which are `OwnedUniqueName`s.
+	/// This means that the bus name should be a unique name, not a well-known name.
+	///
+	/// # Examples
+	/// ```no_run
+	/// # use atspi::AccessibilityConnection;
+	/// # use atspi::BusName;
+	/// # use atspi::AtspiResult;
+	/// # use atspi::p2p::Peer;
+	/// let conn = AccessibilityConnection::new().await?;
+	/// let bus_name = BusName::from(":1.42");
+	/// let peer: Option<Peer> = conn.get_peer(&bus_name).await;
+	/// # Ok::<(), AtspiResult>(())
+	/// ```
+	async fn get_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+		let peers = self.peers.lock().await;
+
+		peers.iter().find(|peer| &peer.bus_name == bus_name).cloned()
 	}
 
 	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
@@ -419,29 +434,6 @@ impl P2P for crate::AccessibilityConnection {
 				.await
 				.map_err(Into::into)
 		}
-	}
-
-	/// Returns a [`Peer`] by its bus name.
-	///
-	/// # Note
-	/// Bus names are initialized from `ObjectRef` names, which are `OwnedUniqueName`s.
-	/// This means that the bus name should be a unique name, not a well-known name.
-	///
-	/// # Examples
-	/// ```no_run
-	/// # use atspi::AccessibilityConnection;
-	/// # use atspi::BusName;
-	/// # use atspi::AtspiResult;
-	/// # use atspi::p2p::Peer;
-	/// let conn = AccessibilityConnection::new().await?;
-	/// let bus_name = BusName::from(":1.42");
-	/// let peer: Option<Peer> = conn.get_peer(&bus_name).await;
-	/// # Ok::<(), AtspiResult>(())
-	/// ```
-	async fn get_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
-		let peers = self.peers.lock().await;
-
-		peers.iter().find(|peer| &peer.bus_name == bus_name).cloned()
 	}
 
 	/// Get a snapshot of currently connected peers.
