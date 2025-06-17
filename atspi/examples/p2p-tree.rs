@@ -263,17 +263,17 @@ async fn main() -> Result<()> {
 	const TIME_WIDTH: usize = 10;
 
 	println!();
-	println!(
+	let table_header = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$}",
 		"D-Bus operation", "Node count", "Time (ms)"
 	);
-	println!("{}", "-".repeat(DESC_WIDTH + NODE_COUNT_WIDTH + TIME_WIDTH + 2));
+	let table_divider = format!("{}", "-".repeat(DESC_WIDTH + NODE_COUNT_WIDTH + TIME_WIDTH + 2));
 
 	// Building tree (bus)
 	let now = std::time::Instant::now();
 	let _tree_bus = A11yNode::from_accessible_proxy_bus(registry.clone()).await?;
 	let bus_elapsed = now.elapsed();
-	println!(
+	let bus_tree_line = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$.2?}",
 		"Building tree (bus)",
 		_tree_bus.node_count(), // Count of nodes in the tree
@@ -284,7 +284,7 @@ async fn main() -> Result<()> {
 	let now = std::time::Instant::now();
 	let _tree_p2p = A11yNode::from_accessible_proxy(registry.clone(), &a11y).await?;
 	let p2p_elapsed = now.elapsed();
-	println!(
+	let p2p_tree_line = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$.2?}",
 		"Building tree (P2P)",
 		_tree_p2p.node_count(),
@@ -317,20 +317,28 @@ async fn main() -> Result<()> {
 	}
 	let _tree_par = A11yNode { role: registry_role, children };
 	let p2p_par_elapsed = now.elapsed();
-	println!(
+	let p2p_par_line = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$.2?}",
 		"Building tree (P2P parallel)",
 		_tree_par.node_count(),
 		p2p_par_elapsed.as_secs_f64() * 1000.0
 	);
 
-	println!("{}", "-".repeat(DESC_WIDTH + NODE_COUNT_WIDTH + TIME_WIDTH + 2));
+	// Print the table header
+	println!("{table_header}");
+	println!("{table_divider}");
+	// Print the table rows
+	println!("{bus_tree_line}");
+	println!("{p2p_tree_line}");
+	println!("{p2p_par_line}");
+	// Print the table divider again
+	println!("{table_divider}");
 
 	// Print speedup with bus as baseline
 	let bus_speedup = bus_elapsed.as_secs_f64() / p2p_elapsed.as_secs_f64();
 	let par_speedup = bus_elapsed.as_secs_f64() / p2p_par_elapsed.as_secs_f64();
-	println!("{:<DESC_WIDTH$} {:<TIME_WIDTH$.2}x", "Speedup (p2p vs bus)", bus_speedup);
-	println!("{:<DESC_WIDTH$} {:<TIME_WIDTH$.2}x", "Speedup (p2p-par vs bus)", par_speedup);
+	println!("{:<DESC_WIDTH$} {:.2}x", "Speedup (p2p vs bus)", bus_speedup);
+	println!("{:<DESC_WIDTH$} {:.2}x", "Speedup (p2p-par vs bus)", par_speedup);
 
 	Ok(())
 }
