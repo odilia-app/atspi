@@ -71,7 +71,7 @@ impl Default for PropertyChangeEvent {
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[non_exhaustive]
 pub enum Property {
-	/// Accessible name (usually alternative text via [`aria-label`](https://www.w3.org/TR/wai-aria/#aria-label).
+	/// Name of the element; this can either be the text of a simple UI element like a [`crate::Role::Button`], but it could also be alternative text via [`aria-label`](https://www.w3.org/TR/wai-aria/#aria-label).
 	Name(String),
 	/// The extended description of an item (usually via [`aria-describedby`](https://www.w3.org/TR/wai-aria/#aria-describedby)).
 	Description(String),
@@ -79,17 +79,21 @@ pub enum Property {
 	Role(crate::Role),
 	/// Parent of the item in a hierarchical tree.
 	Parent(ObjectRef),
-	/// "table-caption"
+	/// A description of the table as a whole: in HTML this is achieved via the
+	/// `<table><caption>VALUE_HERE</caption>...</table>` pattern
 	TableCaption(String),
-	/// "table-column-description"
+	/// Similar to [`Self::TableColumnHeader`] except it's the attached description instead of the
+	/// data in the header.
 	TableColumnDescription(String),
-	/// "table-column-header" (in HTML this is accomplished with the use of `<th>` in an aligned column with a given `<td>` cell element)
+	/// A column header: in HTML this is accomplished with the use of `<th>` in an aligned column with a given `<td>` cell element
 	TableColumnHeader(String),
-	/// "table-row-description"
+	/// Similar to [`Self::TableRowHeader`] except it's the attached description instead of the
+	/// data in the header.
 	TableRowDescription(String),
-	/// "table-row-header" (in HTML this is accomplished with the use of `<th>` at the beginning of a `<tr>`)
+	/// Row header: in HTML this is accomplished with the use of `<th scope="row">` at the beginning of a `<tr>`
 	TableRowHeader(String),
-	/// "table-summary"
+	/// The table summary is a shorter description of the table. In HTML this would be accomplished
+	/// with the [figure/figcaption pattern](https://www.w3.org/WAI/tutorials/tables/caption-summary/#using-the-figure-element-to-mark-up-a-table-summary)
 	TableSummary(String),
 	/// The attached help text of the item.
 	HelpText(String),
