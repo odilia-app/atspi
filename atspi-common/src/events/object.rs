@@ -379,7 +379,7 @@ mod i32_bool_conversion {
 	}
 }
 
-/// A child of an [`crate::ObjectRef`] has been added or removed.
+/// A child of `item` has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -537,7 +537,7 @@ pub struct TextSelectionChangedEvent {
 
 impl_event_type_properties_for_event!(TextSelectionChangedEvent);
 
-/// Text has changed within an [`crate::ObjectRef`].
+/// Text has changed within the UI element `item`.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
