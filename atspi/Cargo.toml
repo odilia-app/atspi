@@ -39,6 +39,11 @@ harness = false
 name    = "event_parsing_100k"
 path    = "./benches/event_parsing_100k.rs"
 
+
+[[example]]
+name              = "text-under-mouse"
+path              = "./examples/text-under-mouse.rs"
+
 [[example]]
 name              = "tree"
 path              = "./examples/bus-tree.rs"
