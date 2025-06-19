@@ -1,4 +1,4 @@
-//! This example demonstrates how to get the currently selected text.
+//! This example prints out the text under the mouse cursor
 //!
 //! ```sh
 //! cargo run --example text-under-mouse
@@ -18,6 +18,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let conn = atspi.connection();
 	set_session_accessibility(true).await?;
 	atspi.register_event::<MouseEvents>().await?;
+
+	let root_component = atspi
+		.root_accessible_on_registry()
+		.await?
+		.proxies()
+		.await?
+		.component()
+		.await?;
 
 	let mut events = atspi.event_stream();
 
@@ -40,39 +48,37 @@ async fn main() -> Result<(), Box<dyn Error>> {
 			_ => continue,
 		};
 
-		let proxy = mouse_abs_ev.item.into_accessible_proxy(conn).await?;
-
-		let proxy_result = proxy.proxies().await;
-
-		let component = match proxy_result {
-			Ok(comp) => comp.component().await?,
-			Err(err) => {
-				eprintln!("Error: {err}");
-				continue;
-			}
-		};
-
-		let accessible = component
+		let hovered_accessible = root_component
 			.get_accessible_at_point(mouse_abs_ev.x, mouse_abs_ev.y, atspi::CoordType::Screen)
 			.await?;
 
-		let text_proxy_result = accessible.into_accessible_proxy(conn).await?.proxies().await;
+		let proxy_result = hovered_accessible.into_accessible_proxy(conn).await?.proxies().await;
 
-		let associated_text_proxy = match text_proxy_result {
-			Ok(proxy) => proxy.text().await?,
+		let text_proxy_result = match proxy_result {
+			Ok(proxy) => proxy.text().await,
 			Err(err) => {
 				eprintln!("Error: {err}");
 				continue;
 			}
 		};
 
-		let offset = associated_text_proxy
-			.get_offset_at_point(mouse_abs_ev.x, mouse_abs_ev.y, atspi::CoordType::Screen)
-			.await?;
+		let text_proxy = match text_proxy_result {
+			Ok(proxy) => proxy,
+			Err(err) => {
+				eprintln!("Error: {err}");
+				continue;
+			}
+		};
 
-		let text = associated_text_proxy.get_text(0, offset).await?;
+		let text = match text_proxy.get_text(0, std::i32::MAX).await {
+			Ok(text) => text,
+			Err(err) => {
+				eprintln!("Error: {err}");
+				continue;
+			}
+		};
 
-		println!("{text}");
+		println!("Hovered text: {text}");
 	}
 	Ok(())
 }
