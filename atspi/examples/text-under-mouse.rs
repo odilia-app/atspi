@@ -70,7 +70,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 			}
 		};
 
-		let text = match text_proxy.get_text(0, std::i32::MAX).await {
+		let text = match text_proxy.get_text(0, i32::MAX).await {
 			Ok(text) => text,
 			Err(err) => {
 				eprintln!("Error: {err}");
