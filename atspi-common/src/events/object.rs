@@ -32,12 +32,12 @@ const ACCESSIBLE_TABLE_ROW_DESCRIPTION_PROPERTY_NAME: &str = "accessible-table-r
 const ACCESSIBLE_TABLE_ROW_HEADER_PROPERTY_NAME: &str = "accessible-table-row-header";
 const ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME: &str = "accessible-table-summary";
 
-/// An event representing a property change of item `item` with a key `property` and value `value`.
+/// An event representing a property change on UI item `item` with new value `value`.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// The name (key) of the property.
+	/// The name of the property.
 	// TODO: this is not necessary since the string is encoded in the `Property` type.
 	pub property: String,
 	/// The value of the property.
@@ -77,7 +77,7 @@ pub enum Property {
 	Description(String),
 	/// The [ARIA role](https://www.w3.org/TR/wai-aria/#roles) of a given item.
 	Role(crate::Role),
-	/// Parent of the item in a hirechical tree.
+	/// Parent of the item in a hierarchical tree.
 	Parent(ObjectRef),
 	/// "table-caption"
 	TableCaption(String),
@@ -93,7 +93,7 @@ pub enum Property {
 	TableSummary(String),
 	/// The attached help text of the item.
 	HelpText(String),
-	/// Any other attribute not explicitly layed out above.
+	/// Any other attribute not explicitly laid out above.
 	Other((String, OwnedValue)),
 }
 
@@ -312,7 +312,7 @@ mod test_property {
 	);
 }
 
-/// An event triggered when the visual bounds for an item has changed.
+/// An event triggered when the visual bounds for an item have changed.
 /// This usually happens either:
 ///
 /// 1. due to a re-draw on a window whose size has changed and dynamically adjusted said item's visual size, or
@@ -420,13 +420,13 @@ pub struct ModelChangedEvent {
 impl_event_type_properties_for_event!(ModelChangedEvent);
 
 /// An event fired when the focus has moved within a tree.
-/// The parent: `item` and child: `child` are both referenced for convenience.
+/// The parent: `item` and descendant (may not be a direct child): `descebdant` are both referenced for convenience.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	/// The child which is the new active descendant.
-	pub child: ObjectRef,
+	/// The descendant which is now the active one.
+	pub descendant: ObjectRef,
 }
 
 impl_event_type_properties_for_event!(ActiveDescendantChangedEvent);
@@ -719,7 +719,7 @@ impl MessageConversion<'_> for ActiveDescendantChangedEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, child: body.take_any_data().try_into()? })
+		Ok(Self { item, descendant: body.take_any_data().try_into()? })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -1053,9 +1053,9 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
 			// Only way to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
-			any_data: Value::from(event.child)
+			any_data: Value::from(event.descendant)
 				.try_to_owned()
-				.expect("Failed to convert child to OwnedValue"),
+				.expect("Failed to convert descendant to OwnedValue"),
 			..Default::default()
 		}
 	}
