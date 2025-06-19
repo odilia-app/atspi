@@ -45,6 +45,10 @@ name              = "text-under-mouse"
 path              = "./examples/text-under-mouse.rs"
 
 [[example]]
+name              = "accessible-counts"
+path              = "./examples/accessible-counts.rs"
+
+[[example]]
 name              = "tree"
 path              = "./examples/bus-tree.rs"
 
