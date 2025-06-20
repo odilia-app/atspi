@@ -8,9 +8,35 @@
 
 use atspi::MouseEvents;
 use atspi_connection::set_session_accessibility;
-use atspi_proxies::{accessible::ObjectRefExt, proxy_ext::ProxyExt};
+use atspi_proxies::{
+	accessible::{AccessibleProxy, ObjectRefExt},
+	proxy_ext::ProxyExt,
+};
 use futures_lite::stream::StreamExt;
 use std::error::Error;
+
+async fn get_text_in_app<'a>(
+	app: &'a AccessibleProxy<'a>,
+	conn: &'a zbus::Connection,
+	x: i32,
+	y: i32,
+) -> Result<String, Box<dyn Error>> {
+	Ok(app
+		.proxies()
+		.await?
+		.component()
+		.await?
+		.get_accessible_at_point(x, y, atspi::CoordType::Screen)
+		.await?
+		.as_accessible_proxy(conn)
+		.await?
+		.proxies()
+		.await?
+		.text()
+		.await?
+		.get_text(0, i32::MAX)
+		.await?)
+}
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -19,13 +45,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	set_session_accessibility(true).await?;
 	atspi.register_event::<MouseEvents>().await?;
 
-	let root_component = atspi
-		.root_accessible_on_registry()
-		.await?
-		.proxies()
-		.await?
-		.component()
-		.await?;
+	let apps = atspi.root_accessible_on_registry().await?.get_children().await?;
 
 	let mut events = atspi.event_stream();
 
@@ -48,37 +68,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
 			_ => continue,
 		};
 
-		let hovered_accessible = root_component
-			.get_accessible_at_point(mouse_abs_ev.x, mouse_abs_ev.y, atspi::CoordType::Screen)
-			.await?;
-
-		let proxy_result = hovered_accessible.into_accessible_proxy(conn).await?.proxies().await;
-
-		let text_proxy_result = match proxy_result {
-			Ok(proxy) => proxy.text().await,
-			Err(err) => {
-				eprintln!("Error: {err}");
-				continue;
+		for app in apps.iter() {
+			let app = app.clone().into_accessible_proxy(conn).await?;
+			match get_text_in_app(&app, conn, mouse_abs_ev.x, mouse_abs_ev.y).await {
+				Ok(text) => {
+					println!("Hovered text: {text}");
+				}
+				Err(err) => {
+					eprintln!("Error: {err}");
+				}
 			}
-		};
-
-		let text_proxy = match text_proxy_result {
-			Ok(proxy) => proxy,
-			Err(err) => {
-				eprintln!("Error: {err}");
-				continue;
-			}
-		};
-
-		let text = match text_proxy.get_text(0, i32::MAX).await {
-			Ok(text) => text,
-			Err(err) => {
-				eprintln!("Error: {err}");
-				continue;
-			}
-		};
-
-		println!("Hovered text: {text}");
+		}
 	}
 	Ok(())
 }
