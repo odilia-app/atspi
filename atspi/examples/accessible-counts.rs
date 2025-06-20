@@ -8,32 +8,10 @@
 //! Authors:
 //!    Colton Loftus
 use atspi::connection::set_session_accessibility;
-use atspi::proxy::accessible::{AccessibleProxy, ObjectRefExt};
+use atspi::proxy::accessible::ObjectRefExt;
 use futures::future::try_join_all;
 use std::collections::{hash_map, HashMap};
 use std::error::Error;
-use zbus::proxy::CacheProperties;
-use zbus::Connection;
-
-// We use the top level atspi Registry to get the root of
-// the accessiblity tree of the desktop
-const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const REGISTRY_PATH: &str = "/org/a11y/atspi/accessible/root";
-const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
-
-async fn get_registry_accessible<'a>(
-	conn: &Connection,
-) -> Result<AccessibleProxy<'a>, Box<dyn Error>> {
-	let registry = AccessibleProxy::builder(conn)
-		.destination(REGISTRY_DEST)?
-		.path(REGISTRY_PATH)?
-		.interface(ACCCESSIBLE_INTERFACE)?
-		.cache_properties(CacheProperties::No)
-		.build()
-		.await?;
-
-	Ok(registry)
-}
 
 #[tokio::main]
 async fn main() -> std::result::Result<(), Box<dyn Error>> {
@@ -41,7 +19,7 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 	let conn = atspi.connection();
 	set_session_accessibility(true).await?;
 
-	let root = get_registry_accessible(conn).await?;
+	let root = atspi.root_accessible_on_registry().await?;
 
 	// we have to use a hashmap to map the id to the natural
 	// language name since the get_application method on the
