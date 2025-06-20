@@ -383,7 +383,7 @@ impl AccessibilityConnection {
 
 		Ok(registry)
 	}
-	
+
 	/// Get the list of peers
 	///
 	/// # Errors
