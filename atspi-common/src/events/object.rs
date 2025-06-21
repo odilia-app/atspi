@@ -545,15 +545,15 @@ pub struct TextChangedEvent {
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// starting index of the insertion/deletion
-  /// 
-  /// NOTE: This gives the Unicode index (not the byte index). I.e., it groups unicode sequences
-  /// into one character.
-  /// Always use the appropriate insertion methods to deal with this, i.e., do not use
-  /// [`std::String::insert_str`].
+	///
+	/// NOTE: This gives the Unicode index (not the byte index). I.e., it groups unicode sequences
+	/// into one character.
+	/// Always use the appropriate insertion methods to deal with this, i.e., do not use
+	/// [`String::insert_str`].
 	pub start_pos: i32,
 	/// length of the insertion/deletion
-  ///
-  /// NOTE: This gives the unicode length (not the byte length).
+	///
+	/// NOTE: This gives the unicode length (not the byte length).
 	pub length: i32,
 	/// the text being inserted/deleted
 	pub text: String,
@@ -578,11 +578,11 @@ pub struct TextCaretMovedEvent {
 	/// The object on which the caret has been moved on.
 	pub item: crate::events::ObjectRef,
 	/// New position of the caret.
-  /// NOTE: this provide the Unicode index (not the byte index) and therefore when referencing
-  /// locations in a string, you should be using the [`std::str::Chars`] iterator, and not use
-  /// anything like [`std::String::get`] (as this uses the byte index).
-  ///
-  /// See also: [`TextChangedEvent`].
+	/// NOTE: this provide the Unicode index (not the byte index) and therefore when referencing
+	/// locations in a string, you should be using the [`std::str::Chars`] iterator, and not use
+	/// anything like [`str::get`] (as this uses the byte index).
+	///
+	/// See also: [`TextChangedEvent`].
 	pub position: i32,
 }
 
