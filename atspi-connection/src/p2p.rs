@@ -36,6 +36,366 @@ pub struct Peer {
 	p2p_connection: zbus::Connection,
 }
 
+// A trait is needed to extend functionality on `BusName` for P2P address lookup.
+pub(crate) trait BusNameExt {
+	/// Looks up a `BusName`'s P2P address, if available.
+	async fn get_p2p_address(&self, conn: &zbus::Connection) -> AtspiResult<Address>;
+}
+
+impl BusNameExt for BusName<'_> {
+	async fn get_p2p_address(&self, conn: &zbus::Connection) -> AtspiResult<Address> {
+		let application_proxy = application::ApplicationProxy::builder(conn)
+			.destination(self)?
+			.cache_properties(CacheProperties::No)
+			.build()
+			.await?;
+
+		application_proxy
+			.get_application_bus_address()
+			.await
+			.map_err(|e| {
+				AtspiError::Owned(format!(
+					"Failed to get application bus address for {}: {e}",
+					&self
+				))
+			})
+			.and_then(|address| {
+				Address::try_from(address.as_str())
+					.map_err(|_| AtspiError::ParseError("Invalid address string"))
+			})
+	}
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct Peers {
+	peers: Arc<Mutex<Vec<Peer>>>,
+}
+
+impl Peers {
+	/// Returns a `Peers` containing the initial peers that support P2P connections.
+	///
+	/// # Note
+	/// Intended for internal use with `AccessibilityConnection::new()`.
+	///
+	/// # Errors
+	/// This function can return an error in the following cases:
+	/// - the `AccessibleProxy` to the registry cannot be created.
+	/// - the registry returns an error when querying for children.
+	/// - for any child, the `AccessibleProxy` cannot be created or the `ApplicationProxy` cannot be created.
+	pub(crate) async fn initialize_peers(conn: &zbus::Connection) -> AtspiResult<Self> {
+		let reg_accessible = AccessibleProxy::builder(conn)
+			.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
+			.destination(REGISTRY_WELL_KNOWN_NAME)?
+			.cache_properties(CacheProperties::No)
+			.build()
+			.await?;
+
+		let accessible_applications = reg_accessible.get_children().await?;
+		let mut peers = Vec::with_capacity(accessible_applications.len());
+
+		for app in accessible_applications {
+			let accessible_proxy = app.as_accessible_proxy(conn).await?;
+			let proxies = accessible_proxy.proxies().await?;
+			let application_proxy = proxies.application().await?;
+
+			// Get the application bus address
+			// aka: Does the application support P2P connections?
+			if let Ok(address) = application_proxy.get_application_bus_address().await {
+				let bus_name = BusName::from(app.name);
+				let peer = Peer::try_new(bus_name, address.as_str(), conn).await?;
+				peers.push(peer);
+			}
+		}
+
+		Ok(Peers { peers: Arc::new(Mutex::new(peers)) })
+	}
+
+	/// Returns a [`Peer`] by its bus name.
+	///
+	/// # Note
+	/// Bus names are initialized from `ObjectRef` names, which are `OwnedUniqueName`s.
+	/// This means that the bus name should be a unique name, not a well-known name.
+	///
+	/// # Examples
+	/// ```rust
+	/// # use tokio;
+	/// # use atspi::AccessibilityConnection;
+	/// # use atspi::BusName;
+	/// # use atspi::AtspiResult;
+	/// # use atspi-connection::p2p::Peer;
+	/// #[tokio::main]
+	/// async fn main() -> AtspiResult<()> {
+	/// let conn = AccessibilityConnection::new()?;
+	/// let bus_name = BusName::from(":1.4242");
+	/// let peer: Option<Peer> = conn.get_peer(&bus_name).await;
+	/// # assert!(peer.is_none(), "Peer should not be found");
+	/// # Ok::<(), AtspiResult>(())
+	/// }
+	/// ```
+	pub async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+		let peers = self.peers.lock().await;
+
+		let matched = match bus_name {
+			BusName::Unique(unique_name) => {
+				peers.iter().find(|peer| peer.unique_name() == unique_name)
+			}
+			BusName::WellKnown(well_known_name) => {
+				let owned_well_known_name = OwnedWellKnownName::from(well_known_name.clone());
+				peers
+					.iter()
+					.find(|peer| peer.well_known_name() == Some(&owned_well_known_name))
+			}
+		};
+		matched.cloned()
+	}
+
+	/// Returns the inner `Arc<Mutex<Vec<Peer>>>`.
+	pub(crate) fn inner(&self) -> Arc<Mutex<Vec<Peer>>> {
+		self.peers.clone()
+	}
+
+	/// Inserts a new `Peer` into the list of peers.
+	async fn insert_unique(
+		&self,
+		unique_name: OwnedUniqueName,
+		conn: &zbus::Connection,
+	) -> AtspiResult<()> {
+		let bus_name = BusName::Unique(unique_name.as_ref());
+		let address = bus_name.get_p2p_address(conn).await?;
+		let p2p_connection = Builder::address(address.clone())?.p2p().build().await?;
+
+		let peer =
+			Peer { unique_name, well_known_name: None, socket_address: address, p2p_connection };
+
+		self.peers.lock().await.push(peer);
+		Ok(())
+	}
+
+	/// Removes a `Peer` from the list of peers by its unique name.
+	async fn remove_unique(&self, unique_name: &OwnedUniqueName) -> AtspiResult<()> {
+		let mut peers = self.peers.lock().await;
+		peers.retain(|peer| peer.unique_name() != unique_name);
+		Ok(())
+	}
+
+	/// Inserts a new `Peer` with a well-known name into the list of peers.
+	async fn insert_well_known(
+		&self,
+		well_known_name: OwnedWellKnownName,
+		name_owner: OwnedUniqueName,
+		conn: &zbus::Connection,
+	) -> AtspiResult<()> {
+		let bus_name = BusName::WellKnown(well_known_name.inner().clone());
+		let address = bus_name.get_p2p_address(conn).await?;
+		let p2p_connection = Builder::address(address.clone())?.p2p().build().await?;
+
+		let peer = Peer {
+			unique_name: name_owner,
+			well_known_name: Some(well_known_name),
+			socket_address: address,
+			p2p_connection,
+		};
+
+		self.peers.lock().await.push(peer);
+		Ok(())
+	}
+
+	/// Removes a `Peer` with a well-known name from the list of peers.
+	async fn remove_well_known(
+		&self,
+		well_known_name: &OwnedWellKnownName,
+		name_owner: &OwnedUniqueName,
+	) -> AtspiResult<()> {
+		let mut peers = self.peers.lock().await;
+		peers.retain(|peer| {
+			!(peer.well_known_name() == Some(well_known_name) && peer.unique_name() == name_owner)
+		});
+		Ok(())
+	}
+
+	/// Update a `Peer` with a new owner of it's well-known name in the list of peers.
+	async fn update_well_known_owner(
+		&self,
+		well_known_name: OwnedWellKnownName,
+		old_name_owner: OwnedUniqueName,
+		new_name_owner: OwnedUniqueName,
+		conn: &zbus::Connection,
+	) -> AtspiResult<()> {
+		let address = BusName::from(new_name_owner.clone()).get_p2p_address(conn).await?;
+		let p2p_connection = Builder::address(address.clone())?.p2p().build().await?;
+
+		let peer = Peer {
+			unique_name: new_name_owner,
+			well_known_name: Some(well_known_name.clone()),
+			socket_address: address,
+			p2p_connection,
+		};
+
+		let mut peers = self.peers.lock().await;
+		if let Some(existing_peer) = peers.iter_mut().find(|p| {
+			p.well_known_name() == Some(&well_known_name) && p.unique_name() == &old_name_owner
+		}) {
+			*existing_peer = peer;
+		} else {
+			return Err(AtspiError::Owned(format!("Owner swap failed: well-known name {well_known_name} with owner: {old_name_owner} not found")));
+		}
+		Ok(())
+	}
+
+	/// Spawns a task which listens for  peer mutations.
+	///
+	/// This task listens for `NameOwnerChanged` signals and updates the list of peers accordingly.
+	///
+	/// # Async executor
+	/// This function uses the `async_executor::Executor` to spawn a task that listens for `NameAcquired` and `NameLost` signals on the `DBus`.
+	///
+	/// # Note
+	/// This function is called internally by `AccessibilityConnection::new()`.
+	pub(crate) fn spawn_peer_listener_task(
+		&self,
+		conn: &zbus::Connection,
+		dbus_proxy: DBusProxy<'_>,
+	) {
+		let executor = Executor::new();
+
+		executor
+			.spawn(async move {
+				let mut name_owner_changed_stream = match dbus_proxy.receive_name_owner_changed().await {
+					Ok(stream) => stream,
+					Err(_err) => {
+						#[cfg(feature = "tracing")]
+						warn!("Failed to get DBusProxy `NameOwnerChanged` stream: {}", _err);
+						return;
+					}
+				};
+
+				while let Some(name_owner_event) = name_owner_changed_stream.next().await {
+					let Ok(args) = name_owner_event.args() else {
+						#[cfg(feature = "tracing")]
+						warn!("Received name owner changed event without args, skipping.");
+						continue;
+					};
+					let name = args.name().clone();
+					let new = args.new_owner().clone();
+					let old = args.old_owner().clone();
+
+					// `NameOwnerChanged` table (U = Unique, W = Well-Known):
+					// | Name | Old Owner | New Owner | Operation |
+					// |------|-----------|-----------|----------|
+					// |   U  |   None    |  Some(U)  |  Add     |
+					// |   U  |   Some(U) |    None   |  Remove  |
+					// |   W  |   None    |  Some(U)  |  Add     |
+					// |   W  |   Some(U) |    None   |  Remove  |
+					// |   W  |   Some(U) |  Some(U)  |  Replace |
+
+					match name {
+						BusName::Unique(unique_name) => {
+							// `zvariant:Optional` has deref target `Option`.
+							match (&*old, &*new) {
+								// Application appeared on the bus.
+								(None, Some(new_owner)) => {
+									debug_assert_eq!(new_owner, &unique_name, "When a name appears on the bus, the new owner must be the unique name itself.");
+									let _result = self.insert_unique(OwnedUniqueName::from(unique_name), conn).await;
+
+									#[cfg(feature = "tracing")]
+									_result.unwrap_or_else(|err| {
+										warn!("Failed to insert unique name: {unique_name}: {err}");
+									});
+								}
+								// Unique name left the bus.
+								(Some(old), None) => {
+									debug_assert!(old == &unique_name, "When a unique name is removed from the bus, the old owner must be the unique name itself.");
+
+									let _result = self.remove_unique(&OwnedUniqueName::from(unique_name)).await;
+
+									#[cfg(feature = "tracing")]
+									_result.unwrap_or_else(|err| {
+										warn!("Failed to remove unique name: {unique_name}: {err}");
+									});
+								}
+
+								// Unknown combination.
+								(_, _) => {
+									#[cfg(feature = "tracing")]
+									debug!("Received `NameOwnerChanged`, unique name: {unique_name}, with undefined argument combination.");
+								}
+							}
+						}
+						BusName::WellKnown(well_known_name) => {
+							match (&*old, &*new) {
+								// Unknown mutatuion. Well-known names should always have at least a new or old owner.
+								(None, None) => {
+									#[cfg(feature = "tracing")]
+									debug!("Received `NameOwnerChanged` event with no old or new owner for well-known name: {}", well_known_name);
+								}
+
+								// Well-known name appeared on the bus.
+								(None, Some(new_owner_unique_name)) => {
+									// We need to find the peer by its well-known name and new owner unique name.
+									let well_known_name = OwnedWellKnownName::from(well_known_name);
+									let new_owner_unique_name = OwnedUniqueName::from(new_owner_unique_name.to_owned());
+
+									let _result = self.insert_well_known(well_known_name, new_owner_unique_name, conn).await;
+
+									#[cfg(feature = "tracing")]
+									_result.unwrap_or_else(|err| {
+										warn!("Failed to insert well-known name: {} - {}", well_known_name, err);
+									});
+								}
+
+								// Well-known name appeared on the bus.
+								(Some(old_owner_unique_name), None) => {
+									let well_known_name = OwnedWellKnownName::from(well_known_name);
+									let old_owner_unique_name = OwnedUniqueName::from(old_owner_unique_name.to_owned());
+
+									let _result = self.remove_well_known(&well_known_name, &old_owner_unique_name).await;
+
+									#[cfg(feature = "tracing")]
+									_result.unwrap_or_else(|err| {
+										warn!("Failed to remove well-known name: {} - {}", well_known_name, err);
+									});
+								},
+
+								// Well-known name received a new owner on the bus.
+								(Some(old_owner_unique_name), Some(new_owner_unique_name)) => {
+									let well_known_name = OwnedWellKnownName::from(well_known_name);
+									let old_owner_unique_name = OwnedUniqueName::from(old_owner_unique_name.to_owned());
+									let new_owner_unique_name = OwnedUniqueName::from(new_owner_unique_name.to_owned());
+									let _result = self.update_well_known_owner(
+										well_known_name,
+										old_owner_unique_name,
+										new_owner_unique_name,
+										conn,
+									).await;
+
+									#[cfg(feature = "tracing")]
+									_result.unwrap_or_else(|err| warn!(
+										"Failed to replace well known name {well_known_name} with old owner: {old_owner_unique_name} and new owner: {new_owner_unique_name}: {err}"
+									));
+								}
+							}
+						}
+					}
+				}
+
+				// Handle the case where the stream is closed
+				#[cfg(feature = "tracing")]
+				warn!("Peer listener task stopped, no more events will be processed.");
+				self.clear().await;
+			})
+			.detach();
+	}
+
+	/// Clears the list of peers.
+	///
+	/// # Note
+	/// This is used to reset the list of peers when the D-Bus connection is lost.
+	async fn clear(&self) {
+		let mut peers = self.peers.lock().await;
+		peers.clear();
+	}
+}
+
 impl Peer {
 	/// Creates a new `Peer` with the given bus name and socket path.
 	///
@@ -207,9 +567,6 @@ impl Peer {
 
 /// Trait for P2P connection handling.
 pub trait P2P {
-	/// Returns a `Peer` for the given bus name.
-	fn get_peer(&self, bus_name: &BusName) -> impl std::future::Future<Output = Option<Peer>>;
-
 	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
 	fn object_as_accessible(
@@ -226,320 +583,12 @@ pub trait P2P {
 
 	/// Return a list of peers that are currently connected.
 	fn peers(&self) -> impl std::future::Future<Output = Vec<Peer>>;
-}
 
-impl crate::AccessibilityConnection {
-	/// Returns an `Arc<Mutex<Vec<Peer>>>` containing the initial peers that support P2P connections.
-	///
-	/// # Note
-	/// Intended for internal use with `AccessibilityConnection::new()`.
-	///
-	/// # Errors
-	/// This function can return an error in the following cases:
-	/// - the `AccessibleProxy` to the registry cannot be created.
-	/// - the registry returns an error when querying for children.
-	/// - for any child, the `AccessibleProxy` cannot be created or the `ApplicationProxy` cannot be created.
-	pub(crate) async fn initial_peers(
-		conn: &zbus::Connection,
-	) -> AtspiResult<Arc<Mutex<Vec<Peer>>>> {
-		let reg_accessible = AccessibleProxy::builder(conn)
-			.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
-			.destination(REGISTRY_WELL_KNOWN_NAME)?
-			.cache_properties(CacheProperties::No)
-			.build()
-			.await?;
-
-		let children = reg_accessible.get_children().await?;
-		let mut peers = Vec::with_capacity(children.len());
-
-		for child in children {
-			let accessible_proxy = child.as_accessible_proxy(conn).await?;
-			let proxies = accessible_proxy.proxies().await?;
-			let application_proxy = proxies.application().await?;
-
-			// Get the application bus address
-			if let Ok(address) = application_proxy.get_application_bus_address().await {
-				let bus_name = BusName::from(child.name);
-				let peer = Peer::try_new(bus_name, address.as_str(), conn).await?;
-				peers.push(peer);
-			}
-		}
-
-		Ok(Arc::new(Mutex::new(peers)))
-	}
-
-	/// Spawns a task to listen for  peer mutations.
-	///
-	/// # Async executor
-	/// This function uses the `async_executor::Executor` to spawn a task that listens for `NameAcquired` and `NameLost` signals on the `DBus`.
-	///
-	/// # Note
-	/// This function is called internally by `AccessibilityConnection::new()`.
-	// TODO: Address the clippy warning about too many lines.
-	#[allow(clippy::too_many_lines)]
-	pub(crate) fn spawn_peer_listener_task(
-		conn: &zbus::Connection,
-		dbus_proxy: DBusProxy<'_>,
-		peers: Arc<Mutex<Vec<Peer>>>,
-	) {
-		let executor = Executor::new();
-
-		executor
-			.spawn(async move {
-				let mut peer_mutations = match dbus_proxy.receive_name_owner_changed().await {
-					Ok(stream) => stream,
-					Err(_err) => {
-						#[cfg(feature = "tracing")]
-						warn!("Failed to get DBusProxy `NameOwnerChanged` stream: {}", _err);
-						return;
-					}
-				};
-
-				while let Some(name_owner_event) = peer_mutations.next().await {
-					let Ok(mutation) = name_owner_event.args() else {
-						#[cfg(feature = "tracing")]
-						warn!("Received name owner changed event without args, skipping.");
-						continue;
-					};
-					let name = mutation.name().clone();
-					let new = mutation.new_owner().clone();
-					let old = mutation.old_owner().clone();
-
-					// `NameOwnerChanged` table (U = Unique, W = Well-Known):
-					// | Name | Old Owner | New Owner | Operation |
-					// |------|-----------|-----------|----------|
-					// |   U  |   None    |  Some(U)  |  Add     |
-					// |   U  |   Some(U) |    None   |  Remove  |
-					// |   W  |   None    |  Some(U)  |  Add     |
-					// |   W  |   Some(U) |    None   |  Remove  |
-					// |   W  |   Some(U) |  Some(U)  |  Replace |
-
-					match name {
-						BusName::Unique(unique_name) => {
-							// `zvariant:Optional` has deref target `Option`.
-							match (&*old, &*new) {
-								// Application appeared on the bus.
-								(None, Some(new_owner)) => {
-									debug_assert!(new_owner == &unique_name, "When a name appears on the bus, the new owner must be the unique name itself.");
-
-									let bus_name = BusName::Unique(unique_name.clone());
-									let Ok(address) = get_address(bus_name, conn).await else {
-										// Most likely the application does not support p2p connections.
-										#[cfg(feature = "tracing")]
-										info!("Failed to get address for unique name: {}", unique_name);
-										continue;
-									};
-
-									let Ok(p2p_connection_builder) = Builder::address(address.clone()) else {
-										// Most likely the application does not support p2p connections.
-										#[cfg(feature = "tracing")]
-										info!("Failed to create p2p connection for unique name: {}", unique_name);
-										continue;
-									};
-
-									let p2p_connection = match p2p_connection_builder.p2p().build().await {
-										Ok(conn) => conn,
-										Err(_err) => {
-											#[cfg(feature = "tracing")]
-											warn!("Failed to create p2p connection for unique name {}: {}", unique_name, _err);
-											continue;
-										}
-									};
-
-									let unique_name = OwnedUniqueName::from(unique_name);
-									let peer = Peer {
-										unique_name,
-										well_known_name: None,
-										socket_address: address,
-										p2p_connection,
-									};
-
-									let mut peers_lock = peers.lock().await;
-									// Add the new peer to the list.
-									peers_lock.push(peer);
-								}
-								// Unique name left the bus.
-								(Some(old), None) => {
-									debug_assert!(old == &unique_name, "When a unique name is removed from the bus, the old owner must be the unique name itself.");
-									let unique_name = OwnedUniqueName::from(unique_name);
-									let mut peers_lock = peers.lock().await;
-									peers_lock.retain(|p| *p.unique_name() != unique_name);
-								}
-								// Unknown combination.
-								(Some(_), Some(_)) => {
-									#[cfg(feature = "tracing")]
-									debug!("Received `NameOwnerChanged` event with both old and new owner for unique name: {}", unique_name);
-								}
-								// Unknown combination.
-								(None, None) => {
-									#[cfg(feature = "tracing")]
-									debug!("Received `NameOwnerChanged` event with no old or new owner for unique name: {}", unique_name);
-								}
-							}
-						}
-						BusName::WellKnown(well_known_name) => {
-							match (&*old, &*new) {
-								// Unknown mutatuion. Well-known names should always have at least a new or old owner.
-								(None, None) => {
-									#[cfg(feature = "tracing")]
-									debug!("Received `NameOwnerChanged` event with no old or new owner for well-known name: {}", well_known_name);
-								}
-								// Well-known name appeared on the bus.
-								(None, Some(new_owner_unique_name)) => {
-									let bus_name = BusName::WellKnown(well_known_name.clone());
-									let Ok(address) = get_address(bus_name, conn).await else {
-										// The application may not support p2p connections.
-										#[cfg(feature = "tracing")]
-										info!("Failed to get address for well-known name: {}", well_known_name);
-										continue;
-									};
-
-									let Ok(p2p_connection_builder) = Builder::address(address.clone()) else {
-										#[cfg(feature = "tracing")]
-										info!("Failed to create p2p connection for well-known name: {}", well_known_name);
-										continue;
-									};
-									let Ok(p2p_connection) = p2p_connection_builder.p2p().build().await else {
-										#[cfg(feature = "tracing")]
-										warn!("Failed to create p2p connection for well-known name {}: {}", well_known_name, err);
-										continue;
-									};
-
-									let well_known_name = OwnedWellKnownName::from(well_known_name);
-									let peer = Peer {
-										unique_name: OwnedUniqueName::from(new_owner_unique_name.to_owned()),
-										well_known_name: Some(well_known_name),
-										socket_address: address,
-										p2p_connection,
-									};
-
-									let mut peers_lock = peers.lock().await;
-									// Add the new peer to the list.
-									peers_lock.push(peer);
-								}
-								// Well-known name appeared on the bus.
-								(Some(old_owner_unique_name), None) => {
-									// We need to find the peer by its well-known name and old owner unique name.
-									let well_known_name = OwnedWellKnownName::from(well_known_name);
-									let old_owner_unique_name = OwnedUniqueName::from(old_owner_unique_name.to_owned());
-									let mut peers_lock = peers.lock().await;
-									peers_lock.retain(|p| {
-										// Retain only the peers that do not match the well-known name and old owner unique name.
-										!(p.well_known_name() == Some(&well_known_name)
-											&& p.unique_name() == &old_owner_unique_name)
-									});
-								},
-								// Well-known name received a new owner on the bus.
-								(Some(old_owner_unique_name), Some(new_owner_unique_name)) => {
-									// We need to find the peer by its well-known name and old owner unique name.
-									let well_known_name = OwnedWellKnownName::from(well_known_name);
-									let old_owner_unique_name = OwnedUniqueName::from(old_owner_unique_name.to_owned());
-									let new_owner_unique_name = OwnedUniqueName::from(new_owner_unique_name.to_owned());
-
-									let bus_name = BusName::Unique(new_owner_unique_name.as_ref());
-									let Ok(new_address) = get_address(bus_name, conn).await else {
-										// The application may not support p2p connections.
-										#[cfg(feature = "tracing")]
-										info!("Failed to get address for well-known name {}: {}", well_known_name, new_owner_unique_name);
-										continue;
-									};
-
-									let Ok(p2p_connection_builder) = Builder::address(new_address.clone()) else {
-										#[cfg(feature = "tracing")]
-										info!("Failed to create p2p connection for well-known name {}: {}", well_known_name, new_owner_unique_name);
-										continue;
-									};
-
-									let Ok(new_p2p_connection) = p2p_connection_builder.p2p().build().await else {
-										#[cfg(feature = "tracing")]
-										warn!("Failed to create p2p connection for well-known name {}: {}", well_known_name, new_owner_unique_name);
-										continue;
-									};
-
-									let mut peers_lock = peers.lock().await;
-									if let Some(peer) = peers_lock.iter_mut().find(|p| {
-										p.well_known_name() == Some(&well_known_name)
-											&& p.unique_name() == &old_owner_unique_name
-									}) {
-										// Update the peer's unique name and connection.
-										peer.unique_name = new_owner_unique_name;
-										peer.socket_address = new_address;
-										peer.p2p_connection = new_p2p_connection;
-									}
-								}
-							}
-						}
-					}
-				}
-
-				// Handle the case where the stream is closed
-				#[cfg(feature = "tracing")]
-				warn!("Peer listener task stopped, no more events will be processed.");
-				peers.lock().await.clear();
-			})
-			.detach();
-	}
-}
-
-async fn get_address(bus_name: BusName<'_>, conn: &zbus::Connection) -> AtspiResult<Address> {
-	let application_proxy = application::ApplicationProxy::builder(conn)
-		.destination(&bus_name)?
-		.cache_properties(CacheProperties::No)
-		.build()
-		.await?;
-
-	application_proxy
-		.get_application_bus_address()
-		.await
-		.map_err(|e| {
-			AtspiError::Owned(format!("Failed to get application bus address for {bus_name}: {e}"))
-		})
-		.and_then(|address| {
-			Address::try_from(address.as_str())
-				.map_err(|_| AtspiError::ParseError("Invalid address string"))
-		})
+	/// Returns a [`Peer`] by its bus name.
+	fn find_peer(&self, bus_name: &BusName<'_>) -> impl std::future::Future<Output = Option<Peer>>;
 }
 
 impl P2P for crate::AccessibilityConnection {
-	/// Returns a [`Peer`] by its bus name.
-	///
-	/// # Note
-	/// Bus names are initialized from `ObjectRef` names, which are `OwnedUniqueName`s.
-	/// This means that the bus name should be a unique name, not a well-known name.
-	///
-	/// # Examples
-	/// ```rust
-	/// # use tokio;
-	/// # use atspi::AccessibilityConnection;
-	/// # use atspi::BusName;
-	/// # use atspi::AtspiResult;
-	/// # use atspi-connection::p2p::Peer;
-	/// #[tokio::main]
-	/// async fn main() -> AtspiResult<()> {
-	/// let conn = AccessibilityConnection::new()?;
-	/// let bus_name = BusName::from(":1.4242");
-	/// let peer: Option<Peer> = conn.get_peer(&bus_name).await;
-	/// # assert!(peer.is_none(), "Peer should not be found");
-	/// # Ok::<(), AtspiResult>(())
-	/// }
-	/// ```
-	async fn get_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
-		let peers = self.peers.lock().await;
-
-		let matched = match bus_name {
-			BusName::Unique(unique_name) => {
-				peers.iter().find(|peer| peer.unique_name() == unique_name)
-			}
-			BusName::WellKnown(well_known_name) => {
-				let owned_well_known_name = OwnedWellKnownName::from(well_known_name.clone());
-				peers
-					.iter()
-					.find(|peer| peer.well_known_name() == Some(&owned_well_known_name))
-			}
-		};
-		matched.cloned()
-	}
-
 	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
 	/// otherwise returns an `AccessibleProxy` with a bus connection.
 	///
@@ -562,6 +611,7 @@ impl P2P for crate::AccessibilityConnection {
 	/// This function will first try to find a [`Peer`] with a P2P connection
 	async fn object_as_accessible(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
 		let lookup = self
+			.peers
 			.peers
 			.lock()
 			.await
@@ -620,6 +670,7 @@ impl P2P for crate::AccessibilityConnection {
 		// Look up peer by bus name
 		let lookup = self
 			.peers
+			.peers
 			.lock()
 			.await
 			.iter()
@@ -668,7 +719,28 @@ impl P2P for crate::AccessibilityConnection {
 	/// # Ok::<(), AtspiResult>(())
 	/// ```
 	async fn peers(&self) -> Vec<Peer> {
-		let peers = self.peers.lock().await;
-		peers.clone()
+		self.peers.inner().lock().await.clone()
+	}
+
+	/// Returns a [`Peer`] by its bus name.
+	///
+	/// # Examples
+	/// ```no_run
+	/// # use atspi::AccessibilityConnection;
+	/// # use atspi::AtspiResult;
+	/// # use atspi::BusName;
+	/// let conn = AccessibilityConnection::new().await?;
+	/// let bus_name = BusName::from(":1.4242");
+	/// let peer: Option<Peer> = conn.find_peer(&bus_name).await;
+	///
+	/// if let Some(peer) = peer {
+	///     println!("Found peer: {} at {}", peer.unique_name(), peer.socket_address());
+	/// } else {
+	///     println!("Peer not found");
+	/// }
+	/// # Ok::<(), AtspiResult>(())
+	/// ```
+	async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+		self.peers.find_peer(bus_name).await
 	}
 }
