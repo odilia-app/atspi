@@ -1,3 +1,7 @@
+//! All events which can be received by the `org.a11y.atspi.Object` interface.
+
+#![deny(missing_docs)]
+
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
 #[cfg(feature = "zbus")]
@@ -28,13 +32,15 @@ const ACCESSIBLE_TABLE_ROW_DESCRIPTION_PROPERTY_NAME: &str = "accessible-table-r
 const ACCESSIBLE_TABLE_ROW_HEADER_PROPERTY_NAME: &str = "accessible-table-row-header";
 const ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME: &str = "accessible-table-summary";
 
-/// The `org.a11y.atspi.Event.Object:PropertyChange` event.
+/// An event representing a property change on UI item `item` with new value `value`.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
+	/// The name of the property.
 	// TODO: this is not necessary since the string is encoded in the `Property` type.
 	pub property: String,
+	/// The value of the property.
 	pub value: Property,
 }
 
@@ -65,17 +71,33 @@ impl Default for PropertyChangeEvent {
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[non_exhaustive]
 pub enum Property {
+	/// Name of the element; this can either be the text of a simple UI element like a [`crate::Role::Button`], but it could also be alternative text via [`aria-label`](https://www.w3.org/TR/wai-aria/#aria-label).
 	Name(String),
+	/// The extended description of an item (usually via [`aria-describedby`](https://www.w3.org/TR/wai-aria/#aria-describedby)).
 	Description(String),
+	/// The [ARIA role](https://www.w3.org/TR/wai-aria/#roles) of a given item.
 	Role(crate::Role),
+	/// Parent of the item in a hierarchical tree.
 	Parent(ObjectRef),
+	/// A description of the table as a whole: in HTML this is achieved via the
+	/// `<table><caption>VALUE_HERE</caption>...</table>` pattern
 	TableCaption(String),
+	/// Similar to [`Self::TableColumnHeader`] except it's the attached description instead of the
+	/// data in the header.
 	TableColumnDescription(String),
+	/// A column header: in HTML this is accomplished with the use of `<th>` in an aligned column with a given `<td>` cell element
 	TableColumnHeader(String),
+	/// Similar to [`Self::TableRowHeader`] except it's the attached description instead of the
+	/// data in the header.
 	TableRowDescription(String),
+	/// Row header: in HTML this is accomplished with the use of `<th scope="row">` at the beginning of a `<tr>`
 	TableRowHeader(String),
+	/// The table summary is a shorter description of the table. In HTML this would be accomplished
+	/// with the [figure/figcaption pattern](https://www.w3.org/WAI/tutorials/tables/caption-summary/#using-the-figure-element-to-mark-up-a-table-summary)
 	TableSummary(String),
+	/// The attached help text of the item.
 	HelpText(String),
+	/// Any other attribute not explicitly laid out above.
 	Other((String, OwnedValue)),
 }
 
@@ -294,6 +316,11 @@ mod test_property {
 	);
 }
 
+/// An event triggered when the visual bounds for an item have changed.
+/// This usually happens either:
+///
+/// 1. due to a re-draw on a window whose size has changed and dynamically adjusted said item's visual size, or
+/// 2. content within the bounds of said item has changed to change its size.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -302,6 +329,7 @@ pub struct BoundsChangedEvent {
 
 impl_event_type_properties_for_event!(BoundsChangedEvent);
 
+/// A link has been selected.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -351,7 +379,7 @@ mod i32_bool_conversion {
 	}
 }
 
-/// A child of an [`crate::ObjectRef`] has been added or removed.
+/// A child of `item` has been added or removed.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -366,6 +394,7 @@ pub struct ChildrenChangedEvent {
 
 impl_event_type_properties_for_event!(ChildrenChangedEvent);
 
+/// A change in whether a particular item is visible or invisible (but still present).
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -374,6 +403,8 @@ pub struct VisibleDataChangedEvent {
 
 impl_event_type_properties_for_event!(VisibleDataChangedEvent);
 
+/// The selection of this item has changed.
+/// For example: when a selection from a series of checkboxes is changed, this will change the state of the child, _and_ cause a [`SelectionChangedEvent`] on the parent.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -382,6 +413,8 @@ pub struct SelectionChangedEvent {
 
 impl_event_type_properties_for_event!(SelectionChangedEvent);
 
+/// An event sent when the method of selecting items in a list/set of options changes.
+/// Also see: <https://docs.gtk.org/gtk4//method.GridView.set_model.html>
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -390,15 +423,19 @@ pub struct ModelChangedEvent {
 
 impl_event_type_properties_for_event!(ModelChangedEvent);
 
+/// An event fired when the focus has moved within a tree.
+/// The parent: `item` and descendant (may not be a direct child): `descebdant` are both referenced for convenience.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
 	pub item: crate::events::ObjectRef,
-	pub child: ObjectRef,
+	/// The descendant which is now the active one.
+	pub descendant: ObjectRef,
 }
 
 impl_event_type_properties_for_event!(ActiveDescendantChangedEvent);
 
+/// An announcement with a defined text string and an [ARIA politeness level](https://www.w3.org/TR/2009/WD-wai-aria-20091215/states_and_properties#aria-live).
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -411,6 +448,11 @@ pub struct AnnouncementEvent {
 
 impl_event_type_properties_for_event!(AnnouncementEvent);
 
+/// Signal that some attribute of an object (usually styling) has changed.
+/// This event does not encode _what_ has changed about the attributes, merely that they have
+/// changed.
+///
+/// To query the updated information, use `atspi_proxies::AccessibleProxy`'s `get_attribute` method.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -473,6 +515,9 @@ pub struct ColumnDeletedEvent {
 
 impl_event_type_properties_for_event!(ColumnDeletedEvent);
 
+/// The bounds of a piece of text have changed.
+/// This event does _not_ specify what the new bounds are; it is only to notify an AT that the bounds have changed.
+/// To query information about the new state of the selection, use `atspi_proxies::TextProxy`'s `get_bounded_ranges` function.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -481,6 +526,9 @@ pub struct TextBoundsChangedEvent {
 
 impl_event_type_properties_for_event!(TextBoundsChangedEvent);
 
+/// The user's selection of a piece of text has changed.
+/// This event does _not_ specify what the new selection is, nor its indecies; it is only to notify an AT that the selection has changed.
+/// To query information about the new state of the selection, use `atspi_proxies::TextProxy`'s methods.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -489,7 +537,7 @@ pub struct TextSelectionChangedEvent {
 
 impl_event_type_properties_for_event!(TextSelectionChangedEvent);
 
-/// Text has changed within an [`crate::ObjectRef`].
+/// Text has changed within the UI element `item`.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
@@ -497,8 +545,15 @@ pub struct TextChangedEvent {
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// starting index of the insertion/deletion
+	///
+	/// NOTE: This gives the Unicode index (not the byte index). I.e., it groups unicode sequences
+	/// into one character.
+	/// Always use the appropriate insertion methods to deal with this, i.e., do not use
+	/// [`String::insert_str`].
 	pub start_pos: i32,
 	/// length of the insertion/deletion
+	///
+	/// NOTE: This gives the unicode length (not the byte length).
 	pub length: i32,
 	/// the text being inserted/deleted
 	pub text: String,
@@ -523,6 +578,11 @@ pub struct TextCaretMovedEvent {
 	/// The object on which the caret has been moved on.
 	pub item: crate::events::ObjectRef,
 	/// New position of the caret.
+	/// NOTE: this provide the Unicode index (not the byte index) and therefore when referencing
+	/// locations in a string, you should be using the [`std::str::Chars`] iterator, and not use
+	/// anything like [`str::get`] (as this uses the byte index).
+	///
+	/// See also: [`TextChangedEvent`].
 	pub position: i32,
 }
 
@@ -675,7 +735,7 @@ impl MessageConversion<'_> for ActiveDescendantChangedEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, child: body.take_any_data().try_into()? })
+		Ok(Self { item, descendant: body.take_any_data().try_into()? })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -1009,9 +1069,9 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
 			// Only way to fail is to convert a Fd into an `OwnedValue`.
 			// Therefore, this is safe.
-			any_data: Value::from(event.child)
+			any_data: Value::from(event.descendant)
 				.try_to_owned()
-				.expect("Failed to convert child to OwnedValue"),
+				.expect("Failed to convert descendant to OwnedValue"),
 			..Default::default()
 		}
 	}
