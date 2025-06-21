@@ -11,11 +11,6 @@ use common::{
 	EventProperties,
 };
 
-#[cfg(feature = "p2p")]
-use async_lock::Mutex;
-#[cfg(feature = "p2p")]
-use std::sync::Arc;
-
 #[cfg(feature = "wrappers")]
 use atspi_common::events::Event;
 
@@ -37,6 +32,9 @@ use zbus::{fdo::DBusProxy, proxy::CacheProperties, Address, MatchRule};
 #[cfg(feature = "wrappers")]
 use zbus::{message::Type as MessageType, MessageStream};
 
+#[cfg(feature = "p2p")]
+use crate::p2p::Peers;
+
 /// A wrapper for results whose error type is [`AtspiError`].
 pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
 
@@ -47,7 +45,7 @@ pub struct AccessibilityConnection {
 	dbus_proxy: DBusProxy<'static>,
 
 	#[cfg(feature = "p2p")]
-	peers: Arc<Mutex<Vec<Peer>>>,
+	peers: Peers,
 }
 
 const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
@@ -86,10 +84,9 @@ impl AccessibilityConnection {
 		let accessibility_conn = Self::from_address(addr).await?;
 
 		#[cfg(feature = "p2p")]
-		Self::spawn_peer_listener_task(
+		accessibility_conn.peers.spawn_peer_listener_task(
 			accessibility_conn.connection(),
 			accessibility_conn.dbus_proxy.clone(),
-			accessibility_conn.peers.clone(),
 		);
 
 		Ok(accessibility_conn)
@@ -123,7 +120,7 @@ impl AccessibilityConnection {
 		return Ok(Self { registry, dbus_proxy });
 
 		#[cfg(feature = "p2p")]
-		let peers = Self::initial_peers(&bus).await?;
+		let peers = Peers::initialize_peers(&bus).await?;
 		#[cfg(feature = "p2p")]
 		return Ok(Self { registry, dbus_proxy, peers });
 	}
@@ -382,16 +379,6 @@ impl AccessibilityConnection {
 			.await?;
 
 		Ok(registry)
-	}
-
-	/// Get the list of peers
-	///
-	/// # Errors
-	/// This will return an error if the peers cannot be retrieved from behind the mutex.
-	#[cfg(feature = "p2p")]
-	pub async fn peers(&self) -> Result<Vec<Peer>, AtspiError> {
-		let peers = self.peers.lock().await;
-		Ok(peers.clone())
 	}
 }
 
