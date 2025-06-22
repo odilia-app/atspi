@@ -7,6 +7,7 @@ use atspi_proxies::{
 	accessible::{AccessibleProxy, ObjectRefExt},
 	application::{self, ApplicationProxy},
 	proxy_ext::ProxyExt,
+	registry::RegistryProxy,
 };
 use futures_lite::{future::block_on, stream::StreamExt};
 use std::sync::Arc;
@@ -14,7 +15,7 @@ use zbus::{
 	conn::Builder,
 	fdo::DBusProxy,
 	names::{BusName, OwnedBusName, OwnedUniqueName, OwnedWellKnownName},
-	proxy::CacheProperties,
+	proxy::{CacheProperties, Defaults},
 	zvariant::ObjectPath,
 	Address,
 };
@@ -23,9 +24,6 @@ use zbus::{
 use tracing::{debug, info, warn};
 
 use crate::AtspiResult;
-
-const ACCESSIBLE_ROOT_OBJECT_PATH: &str = "/org/a11y/atspi/accessible/root";
-const REGISTRY_WELL_KNOWN_NAME: &str = "org.a11y.atspi.Registry";
 
 /// Represents a peer with the name, path and connection for the P2P peer.
 #[derive(Clone, Debug)]
@@ -83,9 +81,11 @@ impl Peers {
 	/// - the registry returns an error when querying for children.
 	/// - for any child, the `AccessibleProxy` cannot be created or the `ApplicationProxy` cannot be created.
 	pub(crate) async fn initialize_peers(conn: &zbus::Connection) -> AtspiResult<Self> {
+		let registry_well_known_name = RegistryProxy::DESTINATION
+			.as_ref()
+			.expect("RegistryProxy `default_destination` is not set");
 		let reg_accessible = AccessibleProxy::builder(conn)
-			.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
-			.destination(REGISTRY_WELL_KNOWN_NAME)?
+			.destination(registry_well_known_name)?
 			.cache_properties(CacheProperties::No)
 			.build()
 			.await?;
@@ -118,19 +118,24 @@ impl Peers {
 	///
 	/// # Examples
 	/// ```rust
-	/// # use tokio;
-	/// # use atspi::AccessibilityConnection;
-	/// # use atspi::BusName;
-	/// # use atspi::AtspiResult;
-	/// # use atspi-connection::p2p::Peer;
-	/// #[tokio::main]
-	/// async fn main() -> AtspiResult<()> {
-	/// let conn = AccessibilityConnection::new()?;
-	/// let bus_name = BusName::from(":1.4242");
-	/// let peer: Option<Peer> = conn.get_peer(&bus_name).await;
-	/// # assert!(peer.is_none(), "Peer should not be found");
-	/// # Ok::<(), AtspiResult>(())
+	/// # use futures_lite::future::block_on;
+	/// # use atspi_connection::AccessibilityConnection;
+	/// # use zbus::names::BusName;
+	/// # use atspi_connection::{P2P, Peer};
+	/// # block_on(async {
+	/// let conn = AccessibilityConnection::new().await.unwrap();
+	/// let bus_name = BusName::from_static_str(":1.42").unwrap();
+	/// # let bus_peers = conn.peers().await;
+	/// # let binding = bus_peers.first().map(|p| p.unique_name().to_owned()).unwrap();
+	/// # let bus_name = binding.as_ref();
+	/// # let bus_name = BusName::from(bus_name);
+	/// let peer: Option<Peer> = conn.find_peer(&bus_name).await;
+	/// if let Some(peer) = peer {
+	///     println!("Found peer: {} at {}", peer.unique_name(), peer.socket_address());
+	/// } else {
+	///     println!("Peer not found for bus name: {}", bus_name);
 	/// }
+	/// # });
 	/// ```
 	pub async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
 		let peers = self.peers.lock().await;
@@ -422,7 +427,7 @@ impl Peer {
 		let owned_bus_name: OwnedBusName = bus_name.into();
 
 		// Because D-Bus does not let us query whether a unique name is the owner of a well-known name,
-		// we need to query all well-known names and their owners, and then check if
+		// we need to query all well-known names and their owners, and then check if the unique name is one of them.
 
 		let well_known_names: Vec<OwnedWellKnownName> = dbus_proxy
 			.list_names()
@@ -544,7 +549,6 @@ impl Peer {
 	/// In case of an anvalid connection.
 	pub async fn as_root_accessible_proxy(&self) -> AtspiResult<AccessibleProxy<'_>> {
 		AccessibleProxy::builder(&self.p2p_connection)
-			.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await
@@ -567,14 +571,14 @@ impl Peer {
 
 /// Trait for P2P connection handling.
 pub trait P2P {
-	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
-	/// otherwise returns an `AccessibleProxy` with a bus connection.
+	/// Returns a P2P connected `AccessibleProxy`for object, _if available_.\
+	/// If the application does not support P2P, this returns an `AccessibleProxy` for the object with a bus connection.
 	fn object_as_accessible(
 		&'_ self,
 		obj: &ObjectRef,
 	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy<'_>>>;
 
-	/// Returns an `AccessibleProxy` to the root accessible object with a P2P connection for the given bus name _if available_.\
+	/// Returns a P2P connected `AccessibleProxy` to the root  accessible object for the given bus name, _if available_.\
 	/// If the P2P connection is not available, it returns an `AccessibleProxy` with a bus connection.
 	fn bus_name_as_root_accessible(
 		&'_ self,
@@ -589,19 +593,23 @@ pub trait P2P {
 }
 
 impl P2P for crate::AccessibilityConnection {
-	/// Returns an `AccessibleProxy` with a P2P connection for the given object if available,
-	/// otherwise returns an `AccessibleProxy` with a bus connection.
+	/// Returns a P2P connected `AccessibleProxy` for the object, _if available_.\
+	/// If the application does not support P2P, an `AccessibleProxy` with a bus connection is returned.
 	///
 	/// # Examples
 	/// ```rust
-	/// # use tokio;
-	/// # use atspi::{AtspiResult, AccessibleProxy, ObjectRef};
-	/// # use atspi-connection::p2p::Peer;
-	/// let conn = atspi::AccessibilityConnection::new().await?;
-	/// let obj_ref = ObjectRef::default(); // Replace with a valid ObjectRef
-	/// let accessible_proxy = conn.object_as_accessible(&obj_ref).await?;
-	/// // Use the `accessible_proxy` as needed
-	/// # Ok::<(), AtspiResult>(())
+	/// # use futures_lite::future::block_on;
+	/// use atspi_proxies::accessible::AccessibleProxy;
+	/// use atspi_common::ObjectRef;
+	/// use atspi_connection::{P2P, Peer};
+	/// use atspi_connection::AccessibilityConnection;
+	/// # block_on(async {
+	/// let conn = AccessibilityConnection::new().await.unwrap();
+	///
+	/// let obj_ref = ObjectRef::default();
+	/// let accessible_proxy = conn.object_as_accessible(&obj_ref).await;
+	/// # assert!(accessible_proxy.is_ok(), "Failed to get accessible proxy: {:?}", accessible_proxy.err());
+	/// # });
 	/// ```
 	///
 	/// # Errors
@@ -639,26 +647,25 @@ impl P2P for crate::AccessibilityConnection {
 		}
 	}
 
-	/// Returns an [`AccessibleProxy`] to the root accessible object with a P2P connection for the given bus name _if available_.\
+	/// Returns a P2P connected [`AccessibleProxy`] to the root accessible object for the given bus name _if available_.\
 	/// If the P2P connection is not available, it returns an `AccessibleProxy` with a bus connection.
-	///
-	///
-	/// # Note
-	/// The initial peer list is populated from the `AccessibleProxy` at the root object path.
 	///
 	/// # Examples
 	///
-	/// ```no_run
-	/// use atspi::AccessibilityConnection;
-	/// use atspi::{AtspiResult, P2P, AccessibleProxy};
+	/// ```rust
+	/// # use futures_lite::future::block_on;
+	/// use zbus::names::BusName;
+	/// use atspi_proxies::accessible::AccessibleProxy;
+	/// use atspi_common::ObjectRef;
+	/// use atspi_connection::{AccessibilityConnection, P2P};
 	///
-	/// let conn = atspi::AccessibilityConnection::new().await?;
-	/// let bus_name = atspi::BusName::from("org.a11y.atspi.Registry");
-	/// let accessible_proxy = conn.bus_name_as_root_accessible(&bus_name).await?;
+	/// # block_on(async {
+	/// let conn = AccessibilityConnection::new().await.unwrap();
+	/// let bus_name = BusName::from_static_str("org.a11y.atspi.Registry").unwrap();
+	/// let accessible_proxy = conn.bus_name_as_root_accessible(&bus_name).await.unwrap();
 	/// // Use the `accessible_proxy` as needed
 	///
-	/// # assert
-	/// # Ok::<(), AtspiResult>(())
+	/// # });
 	/// ```
 	///
 	/// # Errors
@@ -688,7 +695,6 @@ impl P2P for crate::AccessibilityConnection {
 		if let Some(peer) = lookup {
 			// If a peer is found, create an AccessibleProxy with a P2P connection
 			AccessibleProxy::builder(peer.connection())
-				.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
@@ -697,7 +703,6 @@ impl P2P for crate::AccessibilityConnection {
 			// If no peer is found, fall back to the bus connection
 			let conn = self.connection();
 			AccessibleProxy::builder(conn)
-				.path(ACCESSIBLE_ROOT_OBJECT_PATH)?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
@@ -705,18 +710,21 @@ impl P2P for crate::AccessibilityConnection {
 		}
 	}
 
-	/// Get a snapshot of currently connected peers.
+	/// Get a snapshot of currently connected P2P capable peers.
 	///
 	/// # Examples
-	/// ```no_run
-	/// # use atspi::AccessibilityConnection;
-	/// # use atspi::AtspiResult;
-	/// let conn = AccessibilityConnection::new().await?;
-	/// let peers = conn.peers().await;
-	/// for peer in peers {
-	///     println!("Peer: {} at {}", peer.bus_name(), peer.socket_address());
-	/// }
-	/// # Ok::<(), AtspiResult>(())
+	/// ```rust
+	/// # use futures_lite::future::block_on;
+	/// use atspi_connection::AccessibilityConnection;
+	/// use atspi_connection::{P2P, Peer};
+	///
+	/// # block_on(async {
+	///     let conn = AccessibilityConnection::new().await.unwrap();
+	///     let peers = conn.peers().await;
+	///     for peer in peers {
+	///         println!("Peer: {} at {}", peer.unique_name(), peer.socket_address());
+	///     }
+	/// # });
 	/// ```
 	async fn peers(&self) -> Vec<Peer> {
 		self.peers.inner().lock().await.clone()
@@ -725,20 +733,23 @@ impl P2P for crate::AccessibilityConnection {
 	/// Returns a [`Peer`] by its bus name.
 	///
 	/// # Examples
-	/// ```no_run
-	/// # use atspi::AccessibilityConnection;
-	/// # use atspi::AtspiResult;
-	/// # use atspi::BusName;
-	/// let conn = AccessibilityConnection::new().await?;
-	/// let bus_name = BusName::from(":1.4242");
-	/// let peer: Option<Peer> = conn.find_peer(&bus_name).await;
+	/// ```rust
+	/// # use futures_lite::future::block_on;
+	/// use atspi_connection::AccessibilityConnection;
+	/// use zbus::names::BusName;
+	/// use atspi_connection::{Peer, P2P};
 	///
-	/// if let Some(peer) = peer {
-	///     println!("Found peer: {} at {}", peer.unique_name(), peer.socket_address());
-	/// } else {
-	///     println!("Peer not found");
-	/// }
-	/// # Ok::<(), AtspiResult>(())
+	/// # block_on(async {
+	///     let conn = AccessibilityConnection::new().await.unwrap();
+	///     let bus_name = BusName::from_static_str(":1.42").unwrap();
+	///     let bus_peers = conn.peers().await;
+	///     # let bus_name = bus_peers.first().map(|p| p.unique_name().to_owned()).unwrap();
+	///     # let bus_name = bus_name.as_ref();
+	///     # let bus_name = BusName::from(bus_name);
+	///
+	///     let peer: Peer = conn.find_peer(&bus_name).await.unwrap();
+	///
+	/// # });
 	/// ```
 	async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
 		self.peers.find_peer(bus_name).await

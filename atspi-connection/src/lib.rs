@@ -28,7 +28,11 @@ use atspi_proxies::{
 #[cfg(feature = "wrappers")]
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{fdo::DBusProxy, proxy::CacheProperties, Address, MatchRule};
+use zbus::{
+	fdo::DBusProxy,
+	proxy::{CacheProperties, Defaults},
+	Address, MatchRule,
+};
 #[cfg(feature = "wrappers")]
 use zbus::{message::Type as MessageType, MessageStream};
 
@@ -47,10 +51,6 @@ pub struct AccessibilityConnection {
 	#[cfg(feature = "p2p")]
 	peers: Peers,
 }
-
-const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const ROOT_OBJECT_PATH: &str = "/org/a11y/atspi/accessible/root";
-const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
 
 impl AccessibilityConnection {
 	/// Open a new connection to the bus
@@ -367,11 +367,15 @@ impl AccessibilityConnection {
 	///
 	/// This will fail if a dbus connection cannot be established when trying to
 	/// connect to the registry
+	///
+	/// # Panics
+	/// This will panic if the `default_service` is not set on the `RegistryProxy`, which should never happen.
 	pub async fn root_accessible_on_registry(&self) -> Result<AccessibleProxy<'_>, AtspiError> {
+		let registry_well_known_name = RegistryProxy::DESTINATION
+			.as_ref()
+			.expect("Registry default_service is set");
 		let registry = AccessibleProxy::builder(self.connection())
-			.destination(REGISTRY_DEST)?
-			.path(ROOT_OBJECT_PATH)?
-			.interface(ACCCESSIBLE_INTERFACE)?
+			.destination(registry_well_known_name)?
 			// registry has an incomplete implementation of the DBus interface
 			// and therefore cannot be cached; thus we always disable caching it
 			.cache_properties(CacheProperties::No)
