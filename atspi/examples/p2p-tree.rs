@@ -12,17 +12,17 @@ use atspi::{
 	AccessibilityConnection, Role,
 };
 use atspi_connection::P2P;
-use atspi_proxies::accessible::ObjectRefExt;
+use atspi_proxies::{accessible::ObjectRefExt, registry::RegistryProxy};
 use futures::{
 	future::{join_all, try_join_all},
 	stream::FuturesUnordered,
 };
-use zbus::{proxy::CacheProperties, Connection};
+use zbus::{
+	proxy::{CacheProperties, Defaults},
+	Connection,
+};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const ROOT_ACCESSIBLE_PATH: &str = "/org/a11y/atspi/accessible/root";
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct A11yNode {
@@ -234,9 +234,10 @@ impl A11yNode {
 }
 
 async fn get_registry_accessible<'a>(conn: &Connection) -> Result<AccessibleProxy<'a>> {
+	let registry_well_known = RegistryProxy::DESTINATION.as_ref().expect("Default service is set");
+
 	let registry = AccessibleProxy::builder(conn)
-		.destination(REGISTRY_DEST)?
-		.path(ROOT_ACCESSIBLE_PATH)?
+		.destination(registry_well_known)?
 		.cache_properties(CacheProperties::No)
 		.build()
 		.await?;
