@@ -15,7 +15,7 @@ The `p2p_tree` example demonstrates three ways to traverse the accessibility tre
 
 1. **Bus:** Queries all nodes of all applications over the accessibility bus.
 2. **P2P Sequential:** Queries each application's nodes over a P2P connection (if available), one after another.
-3. **P2P Parallel:** Queries each application's nodes over P2P connections (if available) concurrently, leveraging parallelism.
+3. **P2P Parallel:** Distributes queries to all applications (over P2P connections if available), parallel in the sense that queried applications get to work in parallel.
 
 Because P2P connections are all separate connections, this modality lends itself well for requests to be sent concurrently with `futures::future::FutureUnordered`.
 
@@ -30,7 +30,7 @@ Because P2P connections are all separate connections, this modality lends itself
 
 * Tested on Intel Core Ultra 7 155H*
 
-The actual latency improvement depends on your hardware. Faster, more IO-bound systems tend to benefit more from P2P, as they spend less time waiting for the bus and more time processing requests in parallel.
+The actual latency improvement depends on your hardware. Faster, more IO-bound systems tend to benefit more from P2P, as with P2P they spend less time waiting for the bus and more time processing method-replies when work is distributed.
 
 ## Design
 
