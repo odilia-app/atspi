@@ -6,7 +6,7 @@
 //! Accessible is the interface which is implemented by all accessible objects.
 //!
 
-use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
+use crate::common::{InterfaceSet, ObjectRef, ParentRef, RelationType, Role, StateSet};
 use crate::AtspiError;
 
 /// # `AccessibleProxy`
@@ -226,7 +226,7 @@ pub trait Accessible {
 	/// An application must have a single root object, called "/org/a11y/atspi/accessible/root".
 	/// All other objects should have that one as their highest-level ancestor.
 	#[zbus(property)]
-	fn parent(&self) -> zbus::Result<ObjectRef>;
+	fn parent(&self) -> zbus::Result<ParentRef>;
 
 	/// Help text for the current object.
 	#[zbus(property)]

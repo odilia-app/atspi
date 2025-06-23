@@ -1,7 +1,7 @@
 //! Common types for `org.a11y.atspi.Cache` events.
 //!
 
-use crate::{InterfaceSet, ObjectRef, Role, StateSet};
+use crate::{object_ref::ParentRef, InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::UniqueName;
@@ -17,7 +17,7 @@ pub struct CacheItem {
 	/// The application (root object(?)    (so)
 	pub app: ObjectRef,
 	/// The parent object.  (so)
-	pub parent: ObjectRef,
+	pub parent: ParentRef,
 	/// The accessbile index in parent.  i
 	pub index: i32,
 	/// Child count of the accessible  i
@@ -49,12 +49,12 @@ impl Default for CacheItem {
 					.unwrap()
 					.into(),
 			},
-			parent: ObjectRef {
+			parent: ParentRef::Some(ObjectRef {
 				name: UniqueName::from_static_str(":0.0").unwrap().into(),
 				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/parent")
 					.unwrap()
 					.into(),
-			},
+			}),
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
@@ -121,11 +121,16 @@ impl Default for LegacyCacheItem {
 }
 
 #[cfg(test)]
-#[test]
-fn zvariant_type_signature_of_legacy_cache_item() {
+mod tests {
+	use super::*;
 	use std::str::FromStr;
-	assert_eq!(
-		*<LegacyCacheItem as Type>::SIGNATURE,
-		zbus::zvariant::Signature::from_str("((so)(so)(so)a(so)assusau)").unwrap()
-	);
+	use zbus::zvariant::Type;
+
+	#[test]
+	fn zvariant_type_signature_of_legacy_cache_item() {
+		assert_eq!(
+			*<LegacyCacheItem as Type>::SIGNATURE,
+			zbus::zvariant::Signature::from_str("((so)(so)(so)a(so)assusau)").unwrap()
+		);
+	}
 }

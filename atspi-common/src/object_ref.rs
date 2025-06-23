@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
-use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, Value};
 
 /// A unique identifier for an object in the accessibility tree.
 ///
@@ -12,10 +12,28 @@ use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 ///
 /// Emitted by `RemoveAccessible` and `Available`
 #[validate(signal: "Available")]
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRef {
 	pub name: OwnedUniqueName,
 	pub path: OwnedObjectPath,
+}
+
+// This addresses the issue of `ObjectRef` not being deserializable (#271).
+// when the name is empty, which is a special case for GTK applications.
+impl<'de> Deserialize<'de> for ObjectRef {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		let (name, path): (String, OwnedObjectPath) = Deserialize::deserialize(deserializer)?;
+		// Check if the name is empty, which is a special case for GTK applications.
+		if name.is_empty() && path == ObjectRef::default().path {
+			return Ok(ObjectRef::default());
+		}
+		let name = UniqueName::try_from(name).map_err(serde::de::Error::custom)?;
+		let name = OwnedUniqueName::from(name);
+		Ok(ObjectRef { name, path })
+	}
 }
 
 impl Default for ObjectRef {
@@ -58,12 +76,28 @@ impl ObjectRef {
 ///
 /// Emitted by `RemoveAccessible` and `Available`
 #[validate(signal: "Available")]
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRefBorrowed<'a> {
 	#[serde(borrow)]
 	pub name: UniqueName<'a>,
 	#[serde(borrow)]
 	pub path: ObjectPath<'a>,
+}
+
+impl<'de> Deserialize<'de> for ObjectRefBorrowed<'de> {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		let (name, path): (&'de str, ObjectPath<'_>) = Deserialize::deserialize(deserializer)?;
+		// Check if the name is empty, which is a special case for GTK applications.
+		if name.is_empty() && path == ObjectRefBorrowed::default().path {
+			// If name is empty and path is the null path, return the default ObjectRefBorrowed.
+			return Ok(ObjectRefBorrowed::default());
+		}
+		let name = UniqueName::try_from(name).map_err(serde::de::Error::custom)?;
+		Ok(ObjectRefBorrowed { name, path })
+	}
 }
 
 impl ObjectRefBorrowed<'_> {
@@ -132,10 +166,98 @@ impl TryFrom<&zbus::message::Header<'_>> for ObjectRef {
 	}
 }
 
+#[validate(signal: "Available")]
+#[derive(Debug, Default, Clone, Type, PartialEq, Eq, Hash)]
+#[zvariant(signature = "(so)")]
+pub enum ParentRef {
+	/// A reference to the parent object.
+	///
+	/// This is used in the `Cache:Add` signal to indicate the parent of the accessible object.
+	Some(ObjectRef),
+
+	#[default]
+	/// A special case for `GTK4` applications where the name is an empty string.
+	None,
+}
+
+impl Serialize for ParentRef {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		match self {
+			ParentRef::Some(ref obj_ref) => obj_ref.serialize(serializer),
+			ParentRef::None => ObjectRef::default().serialize(serializer),
+		}
+	}
+}
+
+// This addresses the issue of `ObjectRef` not being deserializable (#271).
+// when the name is empty, which is a special case for GTK applications.
+impl<'de> Deserialize<'de> for ParentRef {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		let (name, path): (String, zvariant::OwnedObjectPath) =
+			Deserialize::deserialize(deserializer)?;
+		// Check if the name is empty, which is a special case for GTK applications.
+		if name.is_empty() && path == ObjectRef::default().path {
+			return Ok(ParentRef::None);
+		}
+		let name = UniqueName::try_from(name).map_err(serde::de::Error::custom)?;
+		let name = zbus_names::OwnedUniqueName::from(name);
+		Ok(ParentRef::Some(ObjectRef { name, path }))
+	}
+}
+
+// Users can choose their "limitations" of #271.
+// Either convert to `Option<ObjectRef>` or `ObjectRef` directly:
+
+impl From<ParentRef> for Option<ObjectRef> {
+	/// Converts `ParentRef` to an `Option<ObjectRef>`.
+	///
+	/// If the `ParentRef` is `Some`, it returns `Some(ObjectRef)`.
+	/// If the `ParentRef` is `None`, it returns `None`.
+	fn from(parent_ref: ParentRef) -> Self {
+		match parent_ref {
+			ParentRef::Some(obj_ref) => Some(obj_ref),
+			ParentRef::None => None,
+		}
+	}
+}
+
+impl From<ParentRef> for ObjectRef {
+	/// # Warning: Null Object Conversion:
+	///
+	/// This conversion treats `ObjectRef::default()` as a NULL object.
+	/// The `ObjectRef::default()` is constructed with an unused name ":0.0" and "null path".
+	/// While the name is valid, the path is used to indicate 'no object'.
+	fn from(parent_ref: ParentRef) -> Self {
+		match parent_ref {
+			ParentRef::Some(obj_ref) => obj_ref,
+			ParentRef::None => ObjectRef::default(),
+		}
+	}
+}
+
+impl From<OwnedValue> for ParentRef {
+	/// If the `OwnedValue` is an `ObjectRef`, it returns `ParentRef::Some(ObjectRef)`.
+	/// If the `OwnedValue` is not an `ObjectRef`, it returns `ParentRef::None`.
+	fn from(value: OwnedValue) -> Self {
+		if let Ok(obj_ref) = value.try_into() {
+			ParentRef::Some(obj_ref)
+		} else {
+			ParentRef::None
+		}
+	}
+}
+
 #[cfg(test)]
 mod test {
-	use crate::{object_ref::ObjectRefBorrowed, ObjectRef};
-	use zvariant::Value;
+	use crate::{object_ref::ObjectRefBorrowed, ObjectRef, ParentRef};
+	use zbus_names::UniqueName;
+	use zvariant::{serialized::Context, to_bytes, ObjectPath, Value, LE};
 
 	#[test]
 	fn test_accessible_from_dbus_ctxt_to_object_ref() {
@@ -245,5 +367,89 @@ mod test {
 			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
 		};
 		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
+	}
+
+	#[test]
+	fn parent_ref_serialized_deserialized_to_obj_ref() {
+		let test_obj = ObjectRef {
+			name: UniqueName::from_static_str(":1.0").unwrap().into(),
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/100010")
+				.unwrap()
+				.into(),
+		};
+
+		let parent_ref = ParentRef::Some(test_obj.clone());
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &parent_ref).unwrap();
+
+		// Must be deserializable as an `ObjectRef`
+		let (decoded, _) = encoded.deserialize::<ObjectRef>().unwrap();
+		assert_eq!(decoded, test_obj);
+	}
+
+	#[test]
+	fn parent_ref_serialized_deserialized_to_parent_ref() {
+		let test_obj = ObjectRef {
+			name: UniqueName::from_static_str(":1.0").unwrap().into(),
+			path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/100010")
+				.unwrap()
+				.into(),
+		};
+
+		let parent_ref = ParentRef::Some(test_obj.clone());
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &parent_ref).unwrap();
+
+		// Must be deserializable as an `ObjectRef`
+		let (decoded, _) = encoded.deserialize::<ParentRef>().unwrap();
+		assert_eq!(decoded, parent_ref);
+	}
+
+	#[test]
+	fn default_object_ref_serialized_deserialized_to_parent_ref() {
+		let test_obj = ObjectRef::default();
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &test_obj).unwrap();
+
+		// Only empty names are deserializable as `ParentRef::None` as this
+		// is only meant to patch that gap.
+
+		let (decoded, _) = encoded.deserialize::<ParentRef>().unwrap();
+		assert_eq!(decoded, ParentRef::Some(test_obj));
+	}
+
+	#[test]
+	fn parent_ref_none_serialized_deserialized_to_object_ref() {
+		let test_obj = ParentRef::default();
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &test_obj).unwrap();
+
+		// Must be deserializable as an `ObjectRef`
+		let (decoded, _) = encoded.deserialize::<ObjectRef>().unwrap();
+		assert_eq!(decoded, ObjectRef::default());
+	}
+
+	#[test]
+	fn parent_ref_none_into_object_ref() {
+		let test_parent_obj = ParentRef::None;
+
+		let obj_ref: ObjectRef = test_parent_obj.into();
+
+		let name = UniqueName::from_static_str(":0.0").unwrap();
+		let path = ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap();
+		assert_eq!(obj_ref.name, name.to_owned());
+		assert_eq!(obj_ref.path, path.into());
+	}
+
+	#[test]
+	fn parent_ref_none_into_option_object_ref() {
+		let test_parent_obj = ParentRef::None;
+
+		let opt_obj_ref: Option<ObjectRef> = test_parent_obj.into();
+		assert!(opt_obj_ref.is_none());
 	}
 }
