@@ -34,6 +34,174 @@ pub struct Peer {
 	p2p_connection: zbus::Connection,
 }
 
+impl Peer {
+	/// Creates a new `Peer` with the given bus name and socket path.
+	///
+	/// # Note
+	/// This function is intended for use in building the initial list of peers.
+	///
+	/// If given a `UniqueName`, it will check if the peer also owns a well-known name.
+	/// If given a `WellKnownName`, it will query the D-Bus for the unique name of the peer.
+	///
+	/// # Errors
+	/// - `DBusProxy` cannot be created.
+	/// - The socket address cannot be parsed.
+	///
+	pub(crate) async fn try_new<B, S>(
+		bus_name: B,
+		socket: S,
+		conn: &zbus::Connection,
+	) -> Result<Self, AtspiError>
+	where
+		B: Into<OwnedBusName>,
+		S: TryInto<Address>,
+	{
+		let dbus_proxy = DBusProxy::new(conn).await?;
+		let owned_bus_name: OwnedBusName = bus_name.into();
+
+		// Because D-Bus does not let us query whether a unique name is the owner of a well-known name,
+		// we need to query all well-known names and their owners, and then check if the unique name is one of them.
+
+		let well_known_names: Vec<OwnedWellKnownName> = dbus_proxy
+			.list_names()
+			.await?
+			.into_iter()
+			.filter_map(|name| {
+				if let BusName::WellKnown(well_nown_name) = name.clone().inner() {
+					Some(OwnedWellKnownName::from(well_nown_name.clone()))
+				} else {
+					None
+				}
+			})
+			.collect();
+
+		let unique_to_well_known: Vec<(OwnedUniqueName, OwnedWellKnownName)> = well_known_names
+			.iter()
+			.filter_map(|well_known_name| {
+				block_on(dbus_proxy.get_name_owner(BusName::from(well_known_name.clone())))
+					.ok()
+					.map(|unique_name| (unique_name, well_known_name.clone()))
+			})
+			.collect();
+
+		let (unique_name, well_known_name) = match owned_bus_name.inner() {
+			BusName::Unique(name) => {
+				// The argument name is the mandatory `UniqueName`, we do want check whether this peer also owns a well-known name.
+				let owned_well_known_name = unique_to_well_known.iter().find_map(|(u, w)| {
+					if u == name {
+						Some(w.clone())
+					} else {
+						None
+					}
+				});
+				let owned_unique_name = OwnedUniqueName::from(name.clone());
+				(owned_unique_name, owned_well_known_name)
+			}
+			BusName::WellKnown(well_known_name) => {
+				// If the argument name is a well-known name, we _must_ get its unique name.
+				let bus_name = BusName::from(well_known_name.clone());
+				let owned_unique_name = dbus_proxy.get_name_owner(bus_name).await?;
+				let owned_well_known_name = OwnedWellKnownName::from(well_known_name.clone());
+				(owned_unique_name, Some(owned_well_known_name))
+			}
+		};
+
+		let socket_address = socket
+			.try_into()
+			.map_err(|_| AtspiError::ParseError("Bus address string did not parse"))?;
+
+		let p2p_connection = Builder::address(socket_address.clone())?.p2p().build().await?;
+
+		Ok(Peer { unique_name, well_known_name, socket_address, p2p_connection })
+	}
+
+	/// Returns the bus name of the peer.
+	#[must_use]
+	pub fn unique_name(&self) -> &OwnedUniqueName {
+		&self.unique_name
+	}
+
+	/// Returns the well-known bus name of the peer, if it has one.
+	#[must_use]
+	pub fn well_known_name(&self) -> Option<&OwnedWellKnownName> {
+		self.well_known_name.as_ref()
+	}
+
+	/// Returns the socket [`Address`][zbus::Address] of the peer.
+	#[must_use]
+	pub fn socket_address(&self) -> &Address {
+		&self.socket_address
+	}
+
+	/// Returns the p2p [`Connection`][zbus::Connection] of the peer.
+	pub fn connection(&self) -> &zbus::Connection {
+		&self.p2p_connection
+	}
+
+	/// Try to create a new `Peer` from a bus name.
+	///
+	/// # Errors
+	/// Returns an error if the application proxy cannot be created or when it does not support `get_application_bus_address`.\
+	/// A non-existent bus name will also return an error.
+	pub async fn try_from_bus_name(
+		bus_name: BusName<'_>,
+		conn: &zbus::Connection,
+	) -> AtspiResult<Self> {
+		// Get the application proxy for the bus name
+		let application_proxy = ApplicationProxy::builder(conn)
+			.destination(&bus_name)?
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await?;
+
+		let socket_path = application_proxy.get_application_bus_address().await?;
+		Self::try_new(bus_name, socket_path.as_str(), conn).await
+	}
+
+	/// Returns a [`Proxies`][atspi_proxies::proxy_ext::Proxies] object for the given object path.\
+	/// A [`Proxies`] object is used to obtain any of the proxies the object supports.
+	///
+	/// # Errors
+	/// On invalid object path.
+	pub async fn proxies(
+		&'_ self,
+		path: &ObjectPath<'_>,
+	) -> AtspiResult<atspi_proxies::proxy_ext::Proxies<'_>> {
+		let accessible_proxy = AccessibleProxy::builder(&self.p2p_connection)
+			.path(path.to_owned())?
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await?;
+
+		accessible_proxy.proxies().await
+	}
+
+	/// Returns an `AccessibleProxy` for the root accessible object of the peer.
+	///
+	/// # Errors
+	/// In case of an anvalid connection.
+	pub async fn as_root_accessible_proxy(&self) -> AtspiResult<AccessibleProxy<'_>> {
+		AccessibleProxy::builder(&self.p2p_connection)
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await
+			.map_err(AtspiError::from)
+	}
+
+	/// Returns an [`AccessibleProxy`] for the accessible object of the peer.
+	///
+	/// # Errors
+	/// In case of an invalid connection or object path.
+	pub async fn as_accessible_proxy(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
+		AccessibleProxy::builder(&self.p2p_connection)
+			.path(obj.path.clone())?
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await
+			.map_err(AtspiError::from)
+	}
+}
+
 // A trait is needed to extend functionality on `BusName` for P2P address lookup.
 pub(crate) trait BusNameExt {
 	/// Looks up a `BusName`'s P2P address, if available.
@@ -398,174 +566,6 @@ impl Peers {
 	async fn clear(&self) {
 		let mut peers = self.peers.lock().await;
 		peers.clear();
-	}
-}
-
-impl Peer {
-	/// Creates a new `Peer` with the given bus name and socket path.
-	///
-	/// # Note
-	/// This function is intended for use in building the initial list of peers.
-	///
-	/// If given a `UniqueName`, it will check if the peer also owns a well-known name.
-	/// If given a `WellKnownName`, it will query the D-Bus for the unique name of the peer.
-	///
-	/// # Errors
-	/// - `DBusProxy` cannot be created.
-	/// - The socket address cannot be parsed.
-	///
-	pub(crate) async fn try_new<B, S>(
-		bus_name: B,
-		socket: S,
-		conn: &zbus::Connection,
-	) -> Result<Self, AtspiError>
-	where
-		B: Into<OwnedBusName>,
-		S: TryInto<Address>,
-	{
-		let dbus_proxy = DBusProxy::new(conn).await?;
-		let owned_bus_name: OwnedBusName = bus_name.into();
-
-		// Because D-Bus does not let us query whether a unique name is the owner of a well-known name,
-		// we need to query all well-known names and their owners, and then check if the unique name is one of them.
-
-		let well_known_names: Vec<OwnedWellKnownName> = dbus_proxy
-			.list_names()
-			.await?
-			.into_iter()
-			.filter_map(|name| {
-				if let BusName::WellKnown(well_nown_name) = name.clone().inner() {
-					Some(OwnedWellKnownName::from(well_nown_name.clone()))
-				} else {
-					None
-				}
-			})
-			.collect();
-
-		let unique_to_well_known: Vec<(OwnedUniqueName, OwnedWellKnownName)> = well_known_names
-			.iter()
-			.filter_map(|well_known_name| {
-				block_on(dbus_proxy.get_name_owner(BusName::from(well_known_name.clone())))
-					.ok()
-					.map(|unique_name| (unique_name, well_known_name.clone()))
-			})
-			.collect();
-
-		let (unique_name, well_known_name) = match owned_bus_name.inner() {
-			BusName::Unique(name) => {
-				// The argument name is the mandatory `UniqueName`, we do want check whether this peer also owns a well-known name.
-				let owned_well_known_name = unique_to_well_known.iter().find_map(|(u, w)| {
-					if u == name {
-						Some(w.clone())
-					} else {
-						None
-					}
-				});
-				let owned_unique_name = OwnedUniqueName::from(name.clone());
-				(owned_unique_name, owned_well_known_name)
-			}
-			BusName::WellKnown(well_known_name) => {
-				// If the argument name is a well-known name, we _must_ get its unique name.
-				let bus_name = BusName::from(well_known_name.clone());
-				let owned_unique_name = dbus_proxy.get_name_owner(bus_name).await?;
-				let owned_well_known_name = OwnedWellKnownName::from(well_known_name.clone());
-				(owned_unique_name, Some(owned_well_known_name))
-			}
-		};
-
-		let socket_address = socket
-			.try_into()
-			.map_err(|_| AtspiError::ParseError("Bus address string did not parse"))?;
-
-		let p2p_connection = Builder::address(socket_address.clone())?.p2p().build().await?;
-
-		Ok(Peer { unique_name, well_known_name, socket_address, p2p_connection })
-	}
-
-	/// Returns the bus name of the peer.
-	#[must_use]
-	pub fn unique_name(&self) -> &OwnedUniqueName {
-		&self.unique_name
-	}
-
-	/// Returns the well-known bus name of the peer, if it has one.
-	#[must_use]
-	pub fn well_known_name(&self) -> Option<&OwnedWellKnownName> {
-		self.well_known_name.as_ref()
-	}
-
-	/// Returns the socket [`Address`][zbus::Address] of the peer.
-	#[must_use]
-	pub fn socket_address(&self) -> &Address {
-		&self.socket_address
-	}
-
-	/// Returns the p2p [`Connection`][zbus::Connection] of the peer.
-	pub fn connection(&self) -> &zbus::Connection {
-		&self.p2p_connection
-	}
-
-	/// Try to create a new `Peer` from a bus name.
-	///
-	/// # Errors
-	/// Returns an error if the application proxy cannot be created or when it does not support `get_application_bus_address`.\
-	/// A non-existent bus name will also return an error.
-	pub async fn try_from_bus_name(
-		bus_name: BusName<'_>,
-		conn: &zbus::Connection,
-	) -> AtspiResult<Self> {
-		// Get the application proxy for the bus name
-		let application_proxy = ApplicationProxy::builder(conn)
-			.destination(&bus_name)?
-			.cache_properties(zbus::proxy::CacheProperties::No)
-			.build()
-			.await?;
-
-		let socket_path = application_proxy.get_application_bus_address().await?;
-		Self::try_new(bus_name, socket_path.as_str(), conn).await
-	}
-
-	/// Returns a [`Proxies`][atspi_proxies::proxy_ext::Proxies] object for the given object path.\
-	/// A [`Proxies`] object is used to obtain any of the proxies the object supports.
-	///
-	/// # Errors
-	/// On invalid object path.
-	pub async fn proxies(
-		&'_ self,
-		path: &ObjectPath<'_>,
-	) -> AtspiResult<atspi_proxies::proxy_ext::Proxies<'_>> {
-		let accessible_proxy = AccessibleProxy::builder(&self.p2p_connection)
-			.path(path.to_owned())?
-			.cache_properties(zbus::proxy::CacheProperties::No)
-			.build()
-			.await?;
-
-		accessible_proxy.proxies().await
-	}
-
-	/// Returns an `AccessibleProxy` for the root accessible object of the peer.
-	///
-	/// # Errors
-	/// In case of an anvalid connection.
-	pub async fn as_root_accessible_proxy(&self) -> AtspiResult<AccessibleProxy<'_>> {
-		AccessibleProxy::builder(&self.p2p_connection)
-			.cache_properties(zbus::proxy::CacheProperties::No)
-			.build()
-			.await
-			.map_err(AtspiError::from)
-	}
-
-	/// Returns an [`AccessibleProxy`] for the accessible object of the peer.
-	///
-	/// # Errors
-	/// In case of an invalid connection or object path.
-	pub async fn as_accessible_proxy(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
-		AccessibleProxy::builder(&self.p2p_connection)
-			.path(obj.path.clone())?
-			.cache_properties(zbus::proxy::CacheProperties::No)
-			.build()
-			.await
-			.map_err(AtspiError::from)
 	}
 }
 
