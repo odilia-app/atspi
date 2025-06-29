@@ -8,7 +8,7 @@ pub use atspi_common as common;
 use common::{
 	error::AtspiError,
 	events::{DBusInterface, DBusMatchRule, DBusMember, MessageConversion, RegistryEventString},
-	EventProperties,
+	EventProperties, Result as AtspiResult,
 };
 
 #[cfg(feature = "wrappers")]
@@ -38,9 +38,6 @@ use zbus::{message::Type as MessageType, MessageStream};
 
 #[cfg(feature = "p2p")]
 use crate::p2p::Peers;
-
-/// A wrapper for results whose error type is [`AtspiError`].
-pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
 
 /// A connection to the at-spi bus
 #[derive(Clone, Debug)]
