@@ -8,12 +8,11 @@ Peer-to-Peer (P2P) support in [atspi](../atspi) enables direct connections to ap
 cargo run --release --example p2p_tree
 ```
 
-The example walks all nodes in the accessibility tree and queries each node for its role. The example registers the amount of time the operation took.
+The example walks all nodes in the accessibility tree and queries each node for its role. The example registers the time it took to construct the tree.
 
-It does so in three ways:
-The `p2p_tree` example demonstrates three ways to traverse the accessibility tree and measure performance:
+The `p2p_tree` example constructs the tree using three methods:
 
-1. **Bus:** Queries all nodes of all applications over the accessibility bus.
+1. **Bus:** Queries all nodes of all applications over the accessibility bus (baseline).
 2. **P2P Sequential:** Queries each application's nodes over a P2P connection (if available), one after another.
 3. **P2P Parallel:** Distributes queries to all applications (over P2P connections if available), parallel in the sense that queried applications get to work in parallel.
 

@@ -1,0 +1,12 @@
+{
+  "diagnostics": {
+    "disabled": ["outdated_dependencies"]
+  },
+  "cargo": {
+    "features": "all",
+    "check_all_targets": true
+  },
+  "checkOnSave": {
+    "command": "check"
+  }
+}

@@ -150,7 +150,7 @@ impl Peer {
 		// Get the application proxy for the bus name
 		let application_proxy = ApplicationProxy::builder(conn)
 			.destination(&bus_name)?
-			.cache_properties(zbus::proxy::CacheProperties::No)
+			.cache_properties(CacheProperties::No)
 			.build()
 			.await?;
 
@@ -169,7 +169,7 @@ impl Peer {
 	) -> AtspiResult<atspi_proxies::proxy_ext::Proxies<'_>> {
 		let accessible_proxy = AccessibleProxy::builder(&self.p2p_connection)
 			.path(path.to_owned())?
-			.cache_properties(zbus::proxy::CacheProperties::No)
+			.cache_properties(CacheProperties::No)
 			.build()
 			.await?;
 
@@ -182,7 +182,7 @@ impl Peer {
 	/// In case of an anvalid connection.
 	pub async fn as_root_accessible_proxy(&self) -> AtspiResult<AccessibleProxy<'_>> {
 		AccessibleProxy::builder(&self.p2p_connection)
-			.cache_properties(zbus::proxy::CacheProperties::No)
+			.cache_properties(CacheProperties::No)
 			.build()
 			.await
 			.map_err(AtspiError::from)
@@ -195,7 +195,7 @@ impl Peer {
 	pub async fn as_accessible_proxy(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
 		AccessibleProxy::builder(&self.p2p_connection)
 			.path(obj.path.clone())?
-			.cache_properties(zbus::proxy::CacheProperties::No)
+			.cache_properties(CacheProperties::No)
 			.build()
 			.await
 			.map_err(AtspiError::from)
@@ -287,22 +287,32 @@ impl Peers {
 	/// # Examples
 	/// ```rust
 	/// # use futures_lite::future::block_on;
-	/// # use atspi_connection::AccessibilityConnection;
-	/// # use zbus::names::BusName;
-	/// # use atspi_connection::{P2P, Peer};
+	/// use atspi_connection::{AccessibilityConnection, P2P, Peer};
+	/// use zbus::names::BusName;
+	///
 	/// # block_on(async {
-	/// let conn = AccessibilityConnection::new().await.unwrap();
-	/// let bus_name = BusName::from_static_str(":1.42").unwrap();
+	///   let conn = AccessibilityConnection::new().await.unwrap();
+	///   let bus_name = BusName::from_static_str(":1.42").unwrap();
 	/// # let bus_peers = conn.peers().await;
-	/// # let binding = bus_peers.first().map(|p| p.unique_name().to_owned()).unwrap();
+	/// # let binding = bus_peers
+	/// #     .lock()
+	/// #     .await
+	/// #     .first()
+	/// #     .map(|p| p.unique_name().to_owned())
+	/// #     .unwrap();
 	/// # let bus_name = binding.as_ref();
 	/// # let bus_name = BusName::from(bus_name);
-	/// let peer: Option<Peer> = conn.find_peer(&bus_name).await;
-	/// if let Some(peer) = peer {
-	///     println!("Found peer: {} at {}", peer.unique_name(), peer.socket_address());
-	/// } else {
-	///     println!("Peer not found for bus name: {}", bus_name);
-	/// }
+	///    let peer: Option<Peer> = conn.find_peer(&bus_name).await;
+	///
+	///    if let Some(peer) = peer {
+	///        println!(
+	///          "Found peer: {} at {}",
+	///          peer.unique_name(),
+	///          peer.socket_address()
+	///        );
+	///    } else {
+	///        println!("Peer not found for bus name: {bus_name}");
+	///    }
 	/// # });
 	/// ```
 	pub async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
@@ -324,11 +334,11 @@ impl Peers {
 
 	/// Returns the inner `Arc<Mutex<Vec<Peer>>>`.
 	pub(crate) fn inner(&self) -> Arc<Mutex<Vec<Peer>>> {
-		self.peers.clone()
+		Arc::clone(&self.peers)
 	}
 
 	/// Inserts a new `Peer` into the list of peers.
-	async fn insert_unique(
+	pub(crate) async fn insert_unique(
 		&self,
 		unique_name: OwnedUniqueName,
 		conn: &zbus::Connection,
@@ -345,14 +355,14 @@ impl Peers {
 	}
 
 	/// Removes a `Peer` from the list of peers by its unique name.
-	async fn remove_unique(&self, unique_name: &OwnedUniqueName) -> AtspiResult<()> {
+	pub(crate) async fn remove_unique(&self, unique_name: &OwnedUniqueName) -> AtspiResult<()> {
 		let mut peers = self.peers.lock().await;
 		peers.retain(|peer| peer.unique_name() != unique_name);
 		Ok(())
 	}
 
 	/// Inserts a new `Peer` with a well-known name into the list of peers.
-	async fn insert_well_known(
+	pub(crate) async fn insert_well_known(
 		&self,
 		well_known_name: OwnedWellKnownName,
 		name_owner: OwnedUniqueName,
@@ -374,7 +384,7 @@ impl Peers {
 	}
 
 	/// Removes a `Peer` with a well-known name from the list of peers.
-	async fn remove_well_known(
+	pub(crate) async fn remove_well_known(
 		&self,
 		well_known_name: &OwnedWellKnownName,
 		name_owner: &OwnedUniqueName,
@@ -387,7 +397,7 @@ impl Peers {
 	}
 
 	/// Update a `Peer` with a new owner of it's well-known name in the list of peers.
-	async fn update_well_known_owner(
+	pub(crate) async fn update_well_known_owner(
 		&self,
 		well_known_name: OwnedWellKnownName,
 		old_name_owner: OwnedUniqueName,
@@ -586,7 +596,7 @@ pub trait P2P {
 	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy<'_>>>;
 
 	/// Return a list of peers that are currently connected.
-	fn peers(&self) -> impl std::future::Future<Output = Vec<Peer>>;
+	fn peers(&self) -> impl std::future::Future<Output = Arc<Mutex<Vec<Peer>>>>;
 
 	/// Returns a [`Peer`] by its bus name.
 	fn find_peer(&self, bus_name: &BusName<'_>) -> impl std::future::Future<Output = Option<Peer>>;
@@ -603,13 +613,18 @@ impl P2P for crate::AccessibilityConnection {
 	/// use atspi_common::ObjectRef;
 	/// use atspi_connection::{P2P, Peer};
 	/// use atspi_connection::AccessibilityConnection;
-	/// # block_on(async {
-	/// let conn = AccessibilityConnection::new().await.unwrap();
 	///
-	/// let obj_ref = ObjectRef::default();
-	/// let accessible_proxy = conn.object_as_accessible(&obj_ref).await;
-	/// # assert!(accessible_proxy.is_ok(), "Failed to get accessible proxy: {:?}", accessible_proxy.err());
-	/// # });
+	/// block_on(async {
+	///     let conn = AccessibilityConnection::new().await.unwrap();
+	///
+	///     let obj_ref = atspi::ObjectRef::default();
+	///     let accessible_proxy = conn.object_as_accessible(&obj_ref).await;
+	///     assert!(
+	///         accessible_proxy.is_ok(),
+	///         "Failed to get accessible proxy: {:?}",
+	///         accessible_proxy.err()
+	///     );
+	/// });
 	/// ```
 	///
 	/// # Errors
@@ -660,11 +675,10 @@ impl P2P for crate::AccessibilityConnection {
 	/// use atspi_connection::{AccessibilityConnection, P2P};
 	///
 	/// # block_on(async {
-	/// let conn = AccessibilityConnection::new().await.unwrap();
-	/// let bus_name = BusName::from_static_str("org.a11y.atspi.Registry").unwrap();
-	/// let accessible_proxy = conn.bus_name_as_root_accessible(&bus_name).await.unwrap();
-	/// // Use the `accessible_proxy` as needed
-	///
+	///   let conn = AccessibilityConnection::new().await.unwrap();
+	///   let bus_name = BusName::from_static_str("org.a11y.atspi.Registry").unwrap();
+	///   let _accessible_proxy = conn.bus_name_as_root_accessible(&bus_name).await.unwrap();
+	///	  / Use the accessible proxy as needed
 	/// # });
 	/// ```
 	///
@@ -719,15 +733,16 @@ impl P2P for crate::AccessibilityConnection {
 	/// use atspi_connection::{P2P, Peer};
 	///
 	/// # block_on(async {
-	///     let conn = AccessibilityConnection::new().await.unwrap();
-	///     let peers = conn.peers().await;
-	///     for peer in peers {
-	///         println!("Peer: {} at {}", peer.unique_name(), peer.socket_address());
-	///     }
+	///   let conn = AccessibilityConnection::new().await.unwrap();
+	///   let peers_locked = conn.peers().await;
+	///   let peers = peers_locked.lock().await;
+	///   for peer in &*peers {
+	///       println!("Peer: {} at {}", peer.unique_name(), peer.socket_address());
+	///   }
 	/// # });
 	/// ```
-	async fn peers(&self) -> Vec<Peer> {
-		self.peers.inner().lock().await.clone()
+	async fn peers(&self) -> Arc<Mutex<Vec<Peer>>> {
+		self.peers.inner()
 	}
 
 	/// Returns a [`Peer`] by its bus name.
@@ -740,15 +755,17 @@ impl P2P for crate::AccessibilityConnection {
 	/// use atspi_connection::{Peer, P2P};
 	///
 	/// # block_on(async {
-	///     let conn = AccessibilityConnection::new().await.unwrap();
-	///     let bus_name = BusName::from_static_str(":1.42").unwrap();
-	///     let bus_peers = conn.peers().await;
-	///     # let bus_name = bus_peers.first().map(|p| p.unique_name().to_owned()).unwrap();
-	///     # let bus_name = bus_name.as_ref();
-	///     # let bus_name = BusName::from(bus_name);
-	///
-	///     let peer: Peer = conn.find_peer(&bus_name).await.unwrap();
-	///
+	///   let a11y = AccessibilityConnection::new().await.unwrap();
+	///   let bus_name = BusName::from_static_str(":1.42").unwrap();
+	///   # let bus_peers = a11y.peers().await;
+	///   # let bus_peers = &*bus_peers.lock().await;
+	///   # let bus_name = bus_peers
+	///   #     .first()
+	///   #     .map(|p| p.unique_name().to_owned())
+	///   #     .unwrap();
+	///   # let bus_name = bus_name.as_ref();
+	///   # let bus_name = BusName::from(bus_name);
+	///   let _peer: Peer = a11y.find_peer(&bus_name).await.unwrap();
 	/// # });
 	/// ```
 	async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
