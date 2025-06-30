@@ -500,7 +500,7 @@ impl Peers {
 								// Unknown combination.
 								(_, _) => {
 									#[cfg(feature = "tracing")]
-									debug!("Received `NameOwnerChanged`, unique name: {unique_name}, with undefined argument combination.");
+									debug!("NameOwnerChanged` with unique name: {unique_name} has unknown argument combination ({old:?}, {new:?}).");
 								}
 							}
 						}
@@ -678,7 +678,7 @@ impl P2P for crate::AccessibilityConnection {
 	///   let conn = AccessibilityConnection::new().await.unwrap();
 	///   let bus_name = BusName::from_static_str("org.a11y.atspi.Registry").unwrap();
 	///   let _accessible_proxy = conn.bus_name_as_root_accessible(&bus_name).await.unwrap();
-	///	  / Use the accessible proxy as needed
+	///   // Use the accessible proxy as needed
 	/// # });
 	/// ```
 	///
