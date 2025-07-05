@@ -57,7 +57,11 @@
 /// [`toolkit_name`]: ApplicationProxy#method.toolkit_name
 /// [`version`]: ApplicationProxy#method.version
 ///
-#[zbus::proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
+#[zbus::proxy(
+	interface = "org.a11y.atspi.Application",
+	default_path = "/org/a11y/atspi/accessible/root",
+	assume_defaults = true
+)]
 pub trait Application {
 	/// Method to retrieve the application's locale.
 	///
