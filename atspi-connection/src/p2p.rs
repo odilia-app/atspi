@@ -1,6 +1,5 @@
 //! Extends the `AccessibilityConnection` with P2P capabilities.
 
-use async_executor::Executor;
 use async_lock::Mutex;
 use atspi_common::{AtspiError, ObjectRef};
 use atspi_proxies::{
@@ -14,7 +13,9 @@ use std::sync::Arc;
 use zbus::{
 	conn::Builder,
 	fdo::DBusProxy,
-	names::{BusName, OwnedBusName, OwnedUniqueName, OwnedWellKnownName},
+	names::{
+		BusName, OwnedBusName, OwnedUniqueName, OwnedWellKnownName, UniqueName, WellKnownName,
+	},
 	proxy::{CacheProperties, Defaults},
 	zvariant::ObjectPath,
 	Address,
@@ -340,12 +341,14 @@ impl Peers {
 	/// Inserts a new `Peer` into the list of peers.
 	pub(crate) async fn insert_unique(
 		&self,
-		unique_name: OwnedUniqueName,
+		unique_name: &zbus::names::UniqueName<'_>,
 		conn: &zbus::Connection,
 	) -> AtspiResult<()> {
 		let bus_name = BusName::Unique(unique_name.as_ref());
 		let address = bus_name.get_p2p_address(conn).await?;
 		let p2p_connection = Builder::address(address.clone())?.p2p().build().await?;
+
+		let unique_name = OwnedUniqueName::from(unique_name.clone());
 
 		let peer =
 			Peer { unique_name, well_known_name: None, socket_address: address, p2p_connection };
@@ -355,25 +358,27 @@ impl Peers {
 	}
 
 	/// Removes a `Peer` from the list of peers by its unique name.
-	pub(crate) async fn remove_unique(&self, unique_name: &OwnedUniqueName) -> AtspiResult<()> {
+	pub(crate) async fn remove_unique(&self, unique_name: &zbus::names::UniqueName<'_>) {
 		let mut peers = self.peers.lock().await;
 		peers.retain(|peer| peer.unique_name() != unique_name);
-		Ok(())
 	}
 
 	/// Inserts a new `Peer` with a well-known name into the list of peers.
 	pub(crate) async fn insert_well_known(
 		&self,
-		well_known_name: OwnedWellKnownName,
-		name_owner: OwnedUniqueName,
+		well_known_name: &WellKnownName<'_>,
+		name_owner: &UniqueName<'_>,
 		conn: &zbus::Connection,
 	) -> AtspiResult<()> {
-		let bus_name = BusName::WellKnown(well_known_name.inner().clone());
+		let bus_name = BusName::WellKnown(well_known_name.clone());
 		let address = bus_name.get_p2p_address(conn).await?;
 		let p2p_connection = Builder::address(address.clone())?.p2p().build().await?;
 
+		let well_known_name = OwnedWellKnownName::from(well_known_name.clone());
+		let unique_name = OwnedUniqueName::from(name_owner.clone());
+
 		let peer = Peer {
-			unique_name: name_owner,
+			unique_name,
 			well_known_name: Some(well_known_name),
 			socket_address: address,
 			p2p_connection,
@@ -386,12 +391,14 @@ impl Peers {
 	/// Removes a `Peer` with a well-known name from the list of peers.
 	pub(crate) async fn remove_well_known(
 		&self,
-		well_known_name: &OwnedWellKnownName,
-		name_owner: &OwnedUniqueName,
+		well_known_name: &WellKnownName<'_>,
+		name_owner: &UniqueName<'_>,
 	) -> AtspiResult<()> {
 		let mut peers = self.peers.lock().await;
+		let owned_well_known_name = OwnedWellKnownName::from(well_known_name.clone());
 		peers.retain(|peer| {
-			!(peer.well_known_name() == Some(well_known_name) && peer.unique_name() == name_owner)
+			(peer.well_known_name() != Some(&owned_well_known_name))
+				&& peer.unique_name() == name_owner
 		});
 		Ok(())
 	}
@@ -399,28 +406,32 @@ impl Peers {
 	/// Update a `Peer` with a new owner of it's well-known name in the list of peers.
 	pub(crate) async fn update_well_known_owner(
 		&self,
-		well_known_name: OwnedWellKnownName,
-		old_name_owner: OwnedUniqueName,
-		new_name_owner: OwnedUniqueName,
+		well_known_name: &WellKnownName<'_>,
+		old_name_owner: &UniqueName<'_>,
+		new_name_owner: &UniqueName<'_>,
 		conn: &zbus::Connection,
 	) -> AtspiResult<()> {
-		let address = BusName::from(new_name_owner.clone()).get_p2p_address(conn).await?;
-		let p2p_connection = Builder::address(address.clone())?.p2p().build().await?;
+		let socket_address = BusName::from(new_name_owner.clone()).get_p2p_address(conn).await?;
+		let p2p_connection = Builder::address(socket_address.clone())?.p2p().build().await?;
+
+		let well_known_name = Some(OwnedWellKnownName::from(well_known_name.clone()));
+		let old_name_owner = OwnedUniqueName::from(old_name_owner.clone());
+		let unique_name = OwnedUniqueName::from(new_name_owner.clone());
 
 		let peer = Peer {
-			unique_name: new_name_owner,
-			well_known_name: Some(well_known_name.clone()),
-			socket_address: address,
+			unique_name,
+			well_known_name: well_known_name.clone(),
+			socket_address,
 			p2p_connection,
 		};
 
 		let mut peers = self.peers.lock().await;
 		if let Some(existing_peer) = peers.iter_mut().find(|p| {
-			p.well_known_name() == Some(&well_known_name) && p.unique_name() == &old_name_owner
+			p.well_known_name() == well_known_name.as_ref() && p.unique_name() == &old_name_owner
 		}) {
 			*existing_peer = peer;
 		} else {
-			return Err(AtspiError::Owned(format!("Owner swap failed: well-known name {well_known_name} with owner: {old_name_owner} not found")));
+			return Err(AtspiError::Owned(format!("Owner swap failed: well-known name {well_known_name:?} with owner: {old_name_owner} not found")));
 		}
 		Ok(())
 	}
@@ -434,28 +445,32 @@ impl Peers {
 	///
 	/// # Note
 	/// This function is called internally by `AccessibilityConnection::new()`.
-	pub(crate) fn spawn_peer_listener_task(
-		&self,
-		conn: &zbus::Connection,
-		dbus_proxy: DBusProxy<'_>,
-	) {
-		let executor = Executor::new();
+	#[allow(clippy::too_many_lines)]
+	pub(crate) fn spawn_peer_listener_task(&self, conn: &zbus::Connection) {
+		// Clone the `Peers` and `Connection` to move them into the async task.
+		// This is necessary because the async task needs to own these values.
+		let peers = self.clone();
+		let conn = conn.clone();
+		let dbus_proxy = block_on(DBusProxy::new(&conn)).expect("Failed to create DBusProxy");
 
-		executor
-			.spawn(async move {
+		let executor = conn.executor().clone();
+
+		executor.spawn(async move {
 				let mut name_owner_changed_stream = match dbus_proxy.receive_name_owner_changed().await {
 					Ok(stream) => stream,
-					Err(_err) => {
-						#[cfg(feature = "tracing")]
-						warn!("Failed to get DBusProxy `NameOwnerChanged` stream: {}", _err);
+					#[cfg(feature = "tracing")]
+					Err(err) => {
+						warn!("Failed to receive `NameOwnerChanged` stream: {err}");
 						return;
 					}
+					#[cfg(not(feature = "tracing"))]
+					Err(_) => return,
 				};
 
 				while let Some(name_owner_event) = name_owner_changed_stream.next().await {
 					let Ok(args) = name_owner_event.args() else {
 						#[cfg(feature = "tracing")]
-						warn!("Received name owner changed event without args, skipping.");
+						tracing::debug!("Received name owner changed event without args, skipping.");
 						continue;
 					};
 					let name = args.name().clone();
@@ -478,23 +493,27 @@ impl Peers {
 								// Application appeared on the bus.
 								(None, Some(new_owner)) => {
 									debug_assert_eq!(new_owner, &unique_name, "When a name appears on the bus, the new owner must be the unique name itself.");
-									let _result = self.insert_unique(OwnedUniqueName::from(unique_name), conn).await;
 
-									#[cfg(feature = "tracing")]
-									_result.unwrap_or_else(|err| {
-										warn!("Failed to insert unique name: {unique_name}: {err}");
-									});
+									match peers.insert_unique(&unique_name, &conn).await {
+										Ok(()) => {
+											#[cfg(feature = "tracing")]
+											tracing::info!("Inserted unique name: {unique_name} into the peer list.");
+										}
+										#[cfg(feature = "tracing")]
+										Err(err) => warn!("Failed to insert unique name: {unique_name}: {err}"),
+
+										#[cfg(not(feature = "tracing"))]
+										Err(_) => {},
+									}
 								}
 								// Unique name left the bus.
 								(Some(old), None) => {
 									debug_assert!(old == &unique_name, "When a unique name is removed from the bus, the old owner must be the unique name itself.");
 
-									let _result = self.remove_unique(&OwnedUniqueName::from(unique_name)).await;
-
 									#[cfg(feature = "tracing")]
-									_result.unwrap_or_else(|err| {
-										warn!("Failed to remove unique name: {unique_name}: {err}");
-									});
+									tracing::info!("Peer with unique name: {unique_name} left the bus.");
+
+									peers.remove_unique(&unique_name).await;
 								}
 
 								// Unknown combination.
@@ -514,29 +533,37 @@ impl Peers {
 
 								// Well-known name appeared on the bus.
 								(None, Some(new_owner_unique_name)) => {
-									// We need to find the peer by its well-known name and new owner unique name.
-									let well_known_name = OwnedWellKnownName::from(well_known_name);
-									let new_owner_unique_name = OwnedUniqueName::from(new_owner_unique_name.to_owned());
+									match peers.insert_well_known(&well_known_name, new_owner_unique_name, &conn).await {
+										Ok(()) => {
+											#[cfg(feature = "tracing")]
+											tracing::info!("Well-known name: {} with owner: {} inserted into the peer list.", &well_known_name, &new_owner_unique_name);
+										}
 
-									let _result = self.insert_well_known(well_known_name, new_owner_unique_name, conn).await;
+										#[cfg(feature = "tracing")]
+										Err(err) => warn!("Failed to insert well-known name: {} with owner: {} - {}", &well_known_name, &new_owner_unique_name, err),
 
-									#[cfg(feature = "tracing")]
-									_result.unwrap_or_else(|err| {
-										warn!("Failed to insert well-known name: {} - {}", well_known_name, err);
-									});
+										#[cfg(not(feature = "tracing"))]
+										Err(_) => {},
+									}
 								}
 
-								// Well-known name appeared on the bus.
+								// Well-known name left the bus.
 								(Some(old_owner_unique_name), None) => {
-									let well_known_name = OwnedWellKnownName::from(well_known_name);
-									let old_owner_unique_name = OwnedUniqueName::from(old_owner_unique_name.to_owned());
+									match peers.remove_well_known(&well_known_name, old_owner_unique_name).await {
+										Ok(()) => {
+											#[cfg(feature = "tracing")]
+											tracing::info!(
+												"Well-known name: {} with owner: {} removed from the peer list.",
+												&well_known_name,
+												&old_owner_unique_name
+											);
+										}
+										#[cfg(feature = "tracing")]
+										Err(err) => warn!("Failed to remove well-known name: {} with owner: {} - {}", &well_known_name, &old_owner_unique_name, err),
 
-									let _result = self.remove_well_known(&well_known_name, &old_owner_unique_name).await;
-
-									#[cfg(feature = "tracing")]
-									_result.unwrap_or_else(|err| {
-										warn!("Failed to remove well-known name: {} - {}", well_known_name, err);
-									});
+										#[cfg(not(feature = "tracing"))]
+										Err(_) => {},
+									}
 								},
 
 								// Well-known name received a new owner on the bus.
@@ -544,28 +571,33 @@ impl Peers {
 									let well_known_name = OwnedWellKnownName::from(well_known_name);
 									let old_owner_unique_name = OwnedUniqueName::from(old_owner_unique_name.to_owned());
 									let new_owner_unique_name = OwnedUniqueName::from(new_owner_unique_name.to_owned());
-									let _result = self.update_well_known_owner(
-										well_known_name,
-										old_owner_unique_name,
-										new_owner_unique_name,
-										conn,
-									).await;
 
-									#[cfg(feature = "tracing")]
-									_result.unwrap_or_else(|err| warn!(
-										"Failed to replace well known name {well_known_name} with old owner: {old_owner_unique_name} and new owner: {new_owner_unique_name}: {err}"
-									));
+									match peers.update_well_known_owner(
+										&well_known_name,
+										&old_owner_unique_name,
+										&new_owner_unique_name.clone(),
+										&conn,
+									).await {
+										Ok(()) => {
+											#[cfg(feature = "tracing")]
+											info!("Well-known name: {well_known_name} updated owner from: {old_owner_unique_name} to: {new_owner_unique_name}");
+										}
+										#[cfg(feature = "tracing")]
+										Err(err) => warn!("Failed to update well-known name: {} owner from: {} to: {} - {}", &well_known_name, &old_owner_unique_name, &new_owner_unique_name, err),
+
+										#[cfg(not(feature = "tracing"))]
+										Err(_) => {},
+									}
 								}
 							}
 						}
-					}
-				}
+					} // End of match on `name`
+				} // End of while loop
 
-				// Handle the case where the stream is closed
 				#[cfg(feature = "tracing")]
-				warn!("Peer listener task stopped, no more events will be processed.");
-				self.clear().await;
-			})
+				tracing::warn!("Peer listener task stopped, clearing peers list.");
+				peers.clear().await;
+			}, "PeerListenerTask")
 			.detach();
 	}
 
@@ -617,7 +649,7 @@ impl P2P for crate::AccessibilityConnection {
 	/// block_on(async {
 	///     let conn = AccessibilityConnection::new().await.unwrap();
 	///
-	///     let obj_ref = atspi::ObjectRef::default();
+	///     let obj_ref = ObjectRef::default();
 	///     let accessible_proxy = conn.object_as_accessible(&obj_ref).await;
 	///     assert!(
 	///         accessible_proxy.is_ok(),

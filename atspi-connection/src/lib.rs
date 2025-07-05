@@ -81,10 +81,9 @@ impl AccessibilityConnection {
 		let accessibility_conn = Self::from_address(addr).await?;
 
 		#[cfg(feature = "p2p")]
-		accessibility_conn.peers.spawn_peer_listener_task(
-			accessibility_conn.connection(),
-			accessibility_conn.dbus_proxy.clone(),
-		);
+		accessibility_conn
+			.peers
+			.spawn_peer_listener_task(accessibility_conn.connection());
 
 		Ok(accessibility_conn)
 	}
@@ -103,11 +102,11 @@ impl AccessibilityConnection {
 	/// `RegistryProxy` is configured with invalid path, interface or destination
 	pub async fn from_address(bus_addr: Address) -> AtspiResult<Self> {
 		#[cfg(feature = "tracing")]
-		tracing::debug!("Connecting to a11y bus");
+		tracing::info!("Connecting to a11y bus");
 		let bus = Box::pin(zbus::connection::Builder::address(bus_addr)?.build()).await?;
 
 		#[cfg(feature = "tracing")]
-		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
+		tracing::info!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
 
 		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
 		let registry = RegistryProxy::new(&bus).await?;
