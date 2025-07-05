@@ -456,15 +456,11 @@ impl Peers {
 		let executor = conn.executor().clone();
 
 		executor.spawn(async move {
-				let mut name_owner_changed_stream = match dbus_proxy.receive_name_owner_changed().await {
-					Ok(stream) => stream,
+				let Ok(mut name_owner_changed_stream) = dbus_proxy.receive_name_owner_changed().await else {
 					#[cfg(feature = "tracing")]
-					Err(err) => {
-						warn!("Failed to receive `NameOwnerChanged` stream: {err}");
-						return;
-					}
-					#[cfg(not(feature = "tracing"))]
-					Err(_) => return,
+					warn!("Failed to receive `NameOwnerChanged` stream");
+					
+					return;
 				};
 
 				while let Some(name_owner_event) = name_owner_changed_stream.next().await {
