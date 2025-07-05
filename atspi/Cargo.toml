@@ -16,10 +16,11 @@ version                = "0.27.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default    = ["connection", "proxies", "wrappers"]
+default    = ["connection", "proxies", "p2p", "wrappers"]
 wrappers   = ["atspi-common/wrappers"]
 proxies    = ["dep:atspi-proxies"]
 connection = ["dep:atspi-connection"]
+p2p        = ["atspi-connection/p2p"]
 tokio      = ["zbus/tokio"]
 tracing    = ["atspi-connection/tracing"]
 
@@ -46,6 +47,10 @@ path = "./examples/accessible-counts.rs"
 [[example]]
 name = "tree"
 path = "./examples/bus-tree.rs"
+
+[[example]]
+name = "p2p_tree"
+path = "./examples/p2p-tree.rs"
 
 [[example]]
 name = "focused-tokio"
