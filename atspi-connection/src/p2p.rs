@@ -1,4 +1,16 @@
 //! Extends the `AccessibilityConnection` with P2P capabilities.
+//!
+//! # Considerations on using executors and P2P
+//!
+//! Every connection has a zbus `Executor` instance, on which tasks can be launched. Internally, zbus uses this executor for all sorts of tasks: listening for D-Bus signals,
+//! keeping property caches up to date, handling timeout errors, etc.
+//!
+//! When zbus users use `tokio` (zbus feature "tokio" set), the `Executor` instance will be empty and all zbus tasks are run on the user's tokio runtime.
+//! However, when you are using any other executor (smol, glommio, async-std, etc.), each `Connection` will spin up a thread with an `async_executor::Executor`.
+//!
+//! Usually an application will have a single connection, but using P2P you will have a connection with each application that supports it.
+//! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
+//! (So picking smol won't necessarily make your application small in the context of P2P.)
 
 use async_lock::Mutex;
 use atspi_common::{AtspiError, ObjectRef};
@@ -437,7 +449,7 @@ impl Peers {
 		Ok(())
 	}
 
-	/// Spawns a task which listens for  peer mutations.
+	/// Spawns a task which listens for peer mutations.
 	///
 	/// This task listens for `NameOwnerChanged` signals and updates the list of peers accordingly.
 	///
@@ -446,7 +458,6 @@ impl Peers {
 	///
 	/// # Note
 	/// This function is called internally by `AccessibilityConnection::new()`.
-	#[allow(clippy::too_many_lines)]
 	pub(crate) fn spawn_peer_listener_task(&self, conn: &zbus::Connection) {
 		// Clone the `Peers` and `Connection` to move them into the async task.
 		// This is necessary because the async task needs to own these values.
