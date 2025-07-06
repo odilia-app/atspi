@@ -457,7 +457,7 @@ impl Peers {
 		let executor = conn.executor().clone();
 
 		executor.spawn(async move {
-			let Ok(mut name_owner_changed_stream) = dbus_proxy.receive_name_owner_changed().await.inspect_err(|err| {
+			let Ok(mut name_owner_changed_stream) = dbus_proxy.receive_name_owner_changed().await.inspect_err(|#[allow(unused_variables)] err| {
 				#[cfg(feature = "tracing")]
 				debug!("Failed to receive `NameOwnerChanged` stream: {err}");
 			}) else {
@@ -491,7 +491,7 @@ impl Peers {
 								(None, Some(new_owner)) => {
 									debug_assert_eq!(new_owner, &unique_name, "When a name appears on the bus, the new owner must be the unique name itself.");
 
-									if let Ok(()) = peers.insert_unique(&unique_name, &conn).await.inspect_err(|err| {
+									if let Ok(()) = peers.insert_unique(&unique_name, &conn).await.inspect_err(|#[allow(unused_variables)] err| {
 										#[cfg(feature = "tracing")]
 										warn!("Failed to insert unique name: {unique_name}: {err}");
 									}) {
@@ -530,7 +530,7 @@ impl Peers {
 										&well_known_name,
 										new_owner_unique_name,
 										&conn,
-									).await.inspect_err(|err| {
+									).await.inspect_err(|#[allow(unused_variables)] err| {
 										#[cfg(feature = "tracing")]
 										warn!("Failed to insert well-known name: {} with owner: {} - {}", &well_known_name, &new_owner_unique_name, err);
 									}) {
@@ -544,7 +544,7 @@ impl Peers {
 									if let Ok(()) = peers.remove_well_known(
 										&well_known_name,
 										old_owner_unique_name,
-									).await.inspect_err(|err| {
+									).await.inspect_err(|#[allow(unused_variables)] err| {
 										#[cfg(feature = "tracing")]
 										warn!("Failed to remove well-known name: {} with owner: {} - {err}", &well_known_name, &old_owner_unique_name);
 									}) {
@@ -559,7 +559,7 @@ impl Peers {
 
 								// Well-known name received a new owner on the bus.
 								(Some(old_owner_unique_name), Some(new_owner_unique_name)) => {
-									if let Ok(()) = peers.update_well_known_owner(&well_known_name, old_owner_unique_name, new_owner_unique_name, &conn).await.inspect_err(|err| {
+									if let Ok(()) = peers.update_well_known_owner(&well_known_name, old_owner_unique_name, new_owner_unique_name, &conn).await.inspect_err(|#[allow(unused_variables)] err| {
 										#[cfg(feature = "tracing")]
 										warn!("Failed to update well-known name: {} owner from: {} to: {} - {}", &well_known_name, &old_owner_unique_name, &new_owner_unique_name, err);
 									}) {
