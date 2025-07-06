@@ -1,5 +1,5 @@
 //! A connection to AT-SPI.
-//!  connection may receive any [`atspi_common::events::Event`] structures.
+//! This connection may receive any [`atspi_common::events::Event`] structures.
 
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all, missing_docs)]
 #![allow(clippy::multiple_crate_versions)]
