@@ -15,7 +15,7 @@ version                = "0.11.0"
 
 [features]
 default  = ["p2p", "wrappers"]
-p2p      = ["dep:async-lock", "zbus/p2p"]
+p2p      = ["dep:async-lock", "dep:futures-lite", "zbus/p2p"]
 tracing  = ["dep:tracing"]
 wrappers = ["atspi-common/wrappers", "dep:futures-lite"]
 
