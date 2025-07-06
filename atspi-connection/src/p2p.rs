@@ -140,7 +140,7 @@ impl Peer {
 		self.well_known_name.as_ref()
 	}
 
-	/// Returns the socket [`Address`][zbus::Address] of the peer.
+	/// Returns the socket [`Address`] of the peer.
 	#[must_use]
 	pub fn socket_address(&self) -> &Address {
 		&self.socket_address
@@ -172,7 +172,7 @@ impl Peer {
 	}
 
 	/// Returns a [`Proxies`][atspi_proxies::proxy_ext::Proxies] object for the given object path.\
-	/// A [`Proxies`] object is used to obtain any of the proxies the object supports.
+	/// A `Proxies` object is used to obtain any of the proxies the object supports.
 	///
 	/// # Errors
 	/// On invalid object path.
@@ -192,7 +192,7 @@ impl Peer {
 	/// Returns an `AccessibleProxy` for the root accessible object of the peer.
 	///
 	/// # Errors
-	/// In case of an anvalid connection.
+	/// In case of an invalid connection.
 	pub async fn as_root_accessible_proxy(&self) -> AtspiResult<AccessibleProxy<'_>> {
 		AccessibleProxy::builder(&self.p2p_connection)
 			.cache_properties(CacheProperties::No)
@@ -297,37 +297,7 @@ impl Peers {
 	/// Bus names are initialized from `ObjectRef` names, which are `OwnedUniqueName`s.
 	/// This means that the bus name should be a unique name, not a well-known name.
 	///
-	/// # Examples
-	/// ```rust
-	/// # use futures_lite::future::block_on;
-	/// use atspi_connection::{AccessibilityConnection, P2P, Peer};
-	/// use zbus::names::BusName;
-	///
-	/// # block_on(async {
-	///   let conn = AccessibilityConnection::new().await.unwrap();
-	///   let bus_name = BusName::from_static_str(":1.42").unwrap();
-	/// # let bus_peers = conn.peers().await;
-	/// # let binding = bus_peers
-	/// #     .lock()
-	/// #     .await
-	/// #     .first()
-	/// #     .map(|p| p.unique_name().to_owned())
-	/// #     .unwrap();
-	/// # let bus_name = binding.as_ref();
-	/// # let bus_name = BusName::from(bus_name);
-	///   let peer: Option<Peer> = conn.find_peer(&bus_name).await;
-	///
-	///   if let Some(peer) = peer {
-	///      println!("Found peer: {} at {}",
-	///        peer.unique_name(),
-	///        peer.socket_address()
-	///      );
-	///    } else {
-	///        println!("Peer not found for bus name: {bus_name}");
-	///    }
-	/// # });
-	/// ```
-	pub async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+	async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
 		let peers = self.peers.lock().await;
 
 		let matched = match bus_name {
@@ -345,12 +315,12 @@ impl Peers {
 	}
 
 	/// Returns the inner `Arc<Mutex<Vec<Peer>>>`.
-	pub(crate) fn inner(&self) -> Arc<Mutex<Vec<Peer>>> {
+	fn inner(&self) -> Arc<Mutex<Vec<Peer>>> {
 		Arc::clone(&self.peers)
 	}
 
 	/// Inserts a new `Peer` into the list of peers.
-	pub(crate) async fn insert_unique(
+	async fn insert_unique(
 		&self,
 		unique_name: &zbus::names::UniqueName<'_>,
 		conn: &zbus::Connection,
@@ -369,13 +339,13 @@ impl Peers {
 	}
 
 	/// Removes a `Peer` from the list of peers by its unique name.
-	pub(crate) async fn remove_unique(&self, unique_name: &zbus::names::UniqueName<'_>) {
+	async fn remove_unique(&self, unique_name: &zbus::names::UniqueName<'_>) {
 		let mut peers = self.peers.lock().await;
 		peers.retain(|peer| peer.unique_name() != unique_name);
 	}
 
 	/// Inserts a new `Peer` with a well-known name into the list of peers.
-	pub(crate) async fn insert_well_known(
+	async fn insert_well_known(
 		&self,
 		well_known_name: &WellKnownName<'_>,
 		name_owner: &UniqueName<'_>,
@@ -400,7 +370,7 @@ impl Peers {
 	}
 
 	/// Removes a `Peer` with a well-known name from the list of peers.
-	pub(crate) async fn remove_well_known(
+	async fn remove_well_known(
 		&self,
 		well_known_name: &WellKnownName<'_>,
 		name_owner: &UniqueName<'_>,
@@ -415,7 +385,7 @@ impl Peers {
 	}
 
 	/// Update a `Peer` with a new owner of it's well-known name in the list of peers.
-	pub(crate) async fn update_well_known_owner(
+	async fn update_well_known_owner(
 		&self,
 		well_known_name: &WellKnownName<'_>,
 		old_name_owner: &UniqueName<'_>,
