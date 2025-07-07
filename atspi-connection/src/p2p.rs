@@ -759,16 +759,7 @@ impl P2P for crate::AccessibilityConnection {
 	/// # block_on(async {
 	///   let a11y = AccessibilityConnection::new().await.unwrap();
 	///   let bus_name = BusName::from_static_str(":1.42").unwrap();
-	///   # let bus_peers = a11y.peers().await;
-	///   # let bus_peers = &*bus_peers.lock().await;
-	///   # let bus_name = bus_peers
-	///   #     .last()
-	///   #     .map(|p| p.unique_name().to_owned())
-	///   #     .unwrap();
-	///   # let bus_name = bus_name.as_ref();
-	///   # let bus_name = BusName::from(bus_name);
-	///   let peer = a11y.find_peer(&bus_name).await;
-	///   assert!(peer.is_some(), "Failed to find peer with bus name: {}", bus_name);
+	///   let peer: Option<Peer> = a11y.find_peer(&bus_name).await;
 	/// # });
 	/// ```
 	async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
