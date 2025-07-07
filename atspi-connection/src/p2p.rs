@@ -5,10 +5,11 @@
 //! Every connection has a zbus `Executor` instance, on which tasks can be launched. Internally, zbus uses this executor for all sorts of tasks: listening for D-Bus signals,
 //! keeping property caches up to date, handling timeout errors, etc.
 //!
-//! When zbus users use `tokio` (zbus feature "tokio" set), the `Executor` instance will be empty and all zbus tasks are run on the user's tokio runtime.
-//! However, when you are using any other executor (smol, glommio, async-std, etc.), each `Connection` will spin up a thread with an `async_executor::Executor`.
+//! When zbus users use `tokio` (zbus feature "tokio" set), zbus will latch onto the tokio runtime.
+//! The `Executor` instance will be empty and all zbus tasks are run on the user's tokio runtime.
+//! However, when using any other executor (smol, glommio, async-std, etc.), each `Connection` will spin up a thread with an `async_executor::Executor`.
 //!
-//! Usually an application will have a single connection, but using P2P you will have a connection with each application that supports it.
+//! Typically an application will have a single connection, but with P2P, your application will have a connection with each application that supports it.
 //! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
 //! (So picking smol won't necessarily make your application small in the context of P2P.)
 
@@ -75,6 +76,7 @@ impl Peer {
 		// Because D-Bus does not let us query whether a unique name is the owner of a well-known name,
 		// we need to query all well-known names and their owners, and then check if the unique name is one of them.
 
+		// Get all well-known names from D-Bus
 		let well_known_names: Vec<OwnedWellKnownName> = dbus_proxy
 			.list_names()
 			.await?
@@ -88,15 +90,25 @@ impl Peer {
 			})
 			.collect();
 
-		let unique_to_well_known: Vec<(OwnedUniqueName, OwnedWellKnownName)> = well_known_names
-			.iter()
-			.filter_map(|well_known_name| {
-				block_on(dbus_proxy.get_name_owner(BusName::from(well_known_name.clone())))
-					.ok()
-					.map(|unique_name| (unique_name, well_known_name.clone()))
-			})
-			.collect();
+		// We are creating a mapping of unique names to well-known names.
+		let mut unique_to_well_known: Vec<(OwnedUniqueName, OwnedWellKnownName)> = Vec::new();
 
+		// For each well-known name, we get the unique name of the owner.
+		// Note: not all well-known names on the bus will have an accessible owner.
+		// For instance, the `org.freedesktop.DBus` well-known name does not have an accessible connection.
+		for well_known_name in &well_known_names {
+			let bus_name = BusName::from(well_known_name.clone());
+			if let Ok(unique_name) = dbus_proxy.get_name_owner(bus_name).await {
+				unique_to_well_known.push((unique_name, well_known_name.clone()));
+			}
+		}
+
+		// Now we have a mapping of unique names to well-known names.
+		//
+		// A `Peer` instance requires a unique name which may or may not have a well-known name.
+		// We can build a `Peer` instance from either a unique name or a well-known name.
+		// If the argument name is a unique name, we look up whether this peer also owns a well-known name in our mapping.
+		// If the argument name is a well-known name, we _must_ get its unique owner too to create a `Peer`.
 		let (unique_name, well_known_name) = match owned_bus_name.inner() {
 			BusName::Unique(name) => {
 				// The argument name is the mandatory `UniqueName`, we do want check whether this peer also owns a well-known name.
@@ -111,7 +123,6 @@ impl Peer {
 				(owned_unique_name, owned_well_known_name)
 			}
 			BusName::WellKnown(well_known_name) => {
-				// If the argument name is a well-known name, we _must_ get its unique name.
 				let bus_name = BusName::from(well_known_name.clone());
 				let owned_unique_name = dbus_proxy.get_name_owner(bus_name).await?;
 				let owned_well_known_name = OwnedWellKnownName::from(well_known_name.clone());
