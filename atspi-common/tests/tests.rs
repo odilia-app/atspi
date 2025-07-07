@@ -47,10 +47,12 @@ async fn test_recv_remove_accessible() {
 
 	loop {
 		let to = events.try_next().await;
-		let event = to
-			.expect("stream timed out")
-			.expect("stream closed")
-			.expect("conversion to `Event` failed");
+		let bus_event = to.expect("stream timed out").expect("stream closed");
+
+		let Ok(event) = bus_event else {
+			// Likely a "org.freedesktop.DBus" event, which we ignore.
+			continue;
+		};
 
 		if let Event::Cache(CacheEvents::Remove(event)) = event {
 			// If we were not sender of the signal, continue listening.
@@ -105,10 +107,12 @@ async fn test_recv_add_accessible() {
 
 	loop {
 		let to = events.try_next().await;
-		let event = to
-			.expect("stream timed out")
-			.expect("stream closed")
-			.expect("conversion to `Event` failed");
+		let bus_event = to.expect("stream timed out").expect("stream closed");
+
+		let Ok(event) = bus_event else {
+			// Likely a "org.freedesktop.DBus" event, which we ignore.
+			continue;
+		};
 
 		if let Event::Cache(CacheEvents::Add(AddAccessibleEvent { node_added, item })) = event {
 			// If we did not send the signal, continue listening.
@@ -165,10 +169,12 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 
 	loop {
 		let to = events.try_next().await;
-		let event = to
-			.expect("stream timed out")
-			.expect("stream closed")
-			.expect("conversion to `Event` failed");
+		let bus_event = to.expect("stream timed out").expect("stream closed");
+
+		let Ok(event) = bus_event else {
+			// Likely a "org.freedesktop.DBus" event, which we ignore.
+			continue;
+		};
 
 		if let Event::Cache(CacheEvents::Add(AddAccessibleEvent { node_added, item })) = event {
 			// If we did not send the signal, continue listening.
