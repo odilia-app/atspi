@@ -21,7 +21,7 @@ use atspi_proxies::{
 	proxy_ext::ProxyExt,
 	registry::RegistryProxy,
 };
-use futures_lite::{future::block_on, stream::StreamExt};
+use futures_lite::stream::StreamExt;
 use std::sync::Arc;
 use zbus::{
 	conn::Builder,
@@ -444,7 +444,8 @@ impl Peers {
 		// This is necessary because the async task needs to own these values.
 		let peers = self.clone();
 		let conn = conn.clone();
-		let dbus_proxy = block_on(DBusProxy::new(&conn)).expect("Failed to create DBusProxy");
+		let dbus_proxy = futures_lite::future::block_on(DBusProxy::new(&conn))
+			.expect("Failed to create DBusProxy");
 
 		let executor = conn.executor().clone();
 
@@ -609,9 +610,8 @@ impl P2P for crate::AccessibilityConnection {
 	/// If the application does not support P2P, an `AccessibleProxy` with a bus connection is returned.
 	///
 	/// # Examples
-	/// ```no_run
-	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
-	/// # use futures_lite::future::block_on;
+	/// ```rust
+	/// # use tokio_test::block_on;
 	/// use atspi_proxies::accessible::AccessibleProxy;
 	/// use atspi_common::ObjectRef;
 	/// use atspi_connection::{P2P, Peer};
@@ -670,9 +670,8 @@ impl P2P for crate::AccessibilityConnection {
 	///
 	/// # Examples
 	///
-	/// ```no_run
-	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
-	/// # use futures_lite::future::block_on;
+	/// ```rust
+	/// # use tokio_test::block_on;
 	/// use zbus::names::BusName;
 	/// use atspi_proxies::accessible::AccessibleProxy;
 	/// use atspi_common::ObjectRef;
@@ -731,9 +730,8 @@ impl P2P for crate::AccessibilityConnection {
 	/// Get a snapshot of currently connected P2P capable peers.
 	///
 	/// # Examples
-	/// ```no_run
-	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
-	/// # use futures_lite::future::block_on;
+	/// ```rust
+	/// # use tokio_test::block_on;
 	/// use atspi_connection::AccessibilityConnection;
 	/// use atspi_connection::{P2P, Peer};
 	///
@@ -753,9 +751,8 @@ impl P2P for crate::AccessibilityConnection {
 	/// Returns a [`Peer`] by its bus name.
 	///
 	/// # Examples
-	/// ```no_run
-	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
-	/// # use futures_lite::future::block_on;
+	/// ```rust
+	/// # use tokio_test::block_on;
 	/// use atspi_connection::{AccessibilityConnection, P2P, Peer};
 	/// use zbus::names::BusName;
 	///
