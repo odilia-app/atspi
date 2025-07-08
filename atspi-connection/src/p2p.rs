@@ -609,14 +609,15 @@ impl P2P for crate::AccessibilityConnection {
 	/// If the application does not support P2P, an `AccessibleProxy` with a bus connection is returned.
 	///
 	/// # Examples
-	/// ```rust
+	/// ```no_run
+	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
 	/// # use futures_lite::future::block_on;
 	/// use atspi_proxies::accessible::AccessibleProxy;
 	/// use atspi_common::ObjectRef;
 	/// use atspi_connection::{P2P, Peer};
 	/// use atspi_connection::AccessibilityConnection;
 	///
-	/// block_on(async {
+	/// # block_on(async {
 	///     let conn = AccessibilityConnection::new().await.unwrap();
 	///
 	///     let obj_ref = ObjectRef::default();
@@ -626,7 +627,7 @@ impl P2P for crate::AccessibilityConnection {
 	///         "Failed to get accessible proxy: {:?}",
 	///         accessible_proxy.err()
 	///     );
-	/// });
+	/// # });
 	/// ```
 	///
 	/// # Errors
@@ -669,7 +670,8 @@ impl P2P for crate::AccessibilityConnection {
 	///
 	/// # Examples
 	///
-	/// ```rust
+	/// ```no_run
+	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
 	/// # use futures_lite::future::block_on;
 	/// use zbus::names::BusName;
 	/// use atspi_proxies::accessible::AccessibleProxy;
@@ -729,7 +731,8 @@ impl P2P for crate::AccessibilityConnection {
 	/// Get a snapshot of currently connected P2P capable peers.
 	///
 	/// # Examples
-	/// ```rust
+	/// ```no_run
+	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
 	/// # use futures_lite::future::block_on;
 	/// use atspi_connection::AccessibilityConnection;
 	/// use atspi_connection::{P2P, Peer};
@@ -750,11 +753,11 @@ impl P2P for crate::AccessibilityConnection {
 	/// Returns a [`Peer`] by its bus name.
 	///
 	/// # Examples
-	/// ```rust
+	/// ```no_run
+	/// # // This example cannot run with `tokio` feature enabled, see issue #273.
 	/// # use futures_lite::future::block_on;
-	/// use atspi_connection::AccessibilityConnection;
+	/// use atspi_connection::{AccessibilityConnection, P2P, Peer};
 	/// use zbus::names::BusName;
-	/// use atspi_connection::{Peer, P2P};
 	///
 	/// # block_on(async {
 	///   let a11y = AccessibilityConnection::new().await.unwrap();
