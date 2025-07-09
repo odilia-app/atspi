@@ -290,3 +290,52 @@ jobs:
         # Create a lockfile with minimal direct versions for reproducible builds.
         # See advisory: https://blog.rust-lang.org/2023/08/29/committing-lockfiles/
         run: cargo +nightly generate-lockfile -Z direct-minimal-versions
+  run-test-atspi-p2p:
+    runs-on: ubuntu-latest
+    needs: [clippy, no-unused-dependencies]
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Cache cargo home
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-cargo-home
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Install Dependencies
+        run: |
+          sudo apt -y install at-spi2-core systemd
+      - name: Clone P2P test repository
+        uses: actions/checkout@v3
+        with:
+          repository: luukvanderduim/test-atspi-p2p
+          path: test-atspi-p2p
+      - name: Run P2P functionality test
+        run: |
+          cd test-atspi-p2p
+          # Use the local atspi crates instead of published ones
+          cargo add --path ../atspi-connection atspi-connection
+          cargo add --path ../atspi-common atspi-common
+          cargo add --path ../atspi-proxies atspi-proxies
+          cargo run
+        env:
+          # Ensure we have a display for AT-SPI
+          DISPLAY: :99
+      - name: Setup virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 2
+
