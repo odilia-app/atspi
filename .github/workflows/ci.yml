@@ -292,7 +292,7 @@ jobs:
         run: cargo +nightly generate-lockfile -Z direct-minimal-versions
   run-test-atspi-p2p:
     runs-on: ubuntu-latest
-    needs: [clippy, no-unused-dependencies]
+    needs: [clippy]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -315,7 +315,11 @@ jobs:
           toolchain: stable
       - name: Install Dependencies
         run: |
-          sudo apt -y install at-spi2-core systemd
+          sudo apt -y install at-spi2-core systemd xvfb gedit
+      - name: Setup virtual display
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 2
       - name: Clone P2P test repository
         uses: actions/checkout@v3
         with:
@@ -325,10 +329,10 @@ jobs:
         run: |
           cd test-atspi-p2p
           # Use the local atspi crates instead of published ones
-          cargo add --path ../atspi-connection atspi-connection
-          cargo add --path ../atspi-common atspi-common
-          cargo add --path ../atspi-proxies atspi-proxies
-          cargo run
+          cargo add --manifest-path Cargo.toml --path ../atspi-connection atspi-connection
+          cargo add --manifest-path Cargo.toml --path ../atspi-common atspi-common
+          cargo add --manifest-path Cargo.toml --path ../atspi-proxies atspi-proxies
+          cargo run --manifest-path Cargo.toml
         env:
           # Ensure we have a display for AT-SPI
           DISPLAY: :99
