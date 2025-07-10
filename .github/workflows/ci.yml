@@ -315,11 +315,45 @@ jobs:
           toolchain: stable
       - name: Install Dependencies
         run: |
-          sudo apt -y install at-spi2-core systemd xvfb gedit
-      - name: Setup virtual display
+          sudo apt -y update
+          sudo apt -y install \
+            at-spi2-core \
+            at-spi2-common \
+            libatspi2.0-dev \
+            xvfb \
+            dbus-x11 \
+            libgtk-3-dev \
+            gir1.2-gtk-3.0 \
+            gedit \
+            evince \
+            eog
+      - name: Setup virtual display and AT-SPI environment
         run: |
+          # Start virtual display
           Xvfb :99 -screen 0 1024x768x24 &
-          sleep 2
+          export DISPLAY=:99
+          
+          # Disable desktop portals to prevent interference
+          export XDG_DESKTOP_PORTAL_DIR=/dev/null
+          export FLATPAK_DEST=/dev/null
+          
+          # Start D-Bus session
+          eval $(dbus-launch --sh-syntax)
+          export DBUS_SESSION_BUS_ADDRESS
+          
+          # Start AT-SPI registry
+          /usr/libexec/at-spi-bus-launcher --launch-immediately &
+          sleep 3
+          
+          # Create test files
+          echo "Hello World" > test.txt
+          echo "%PDF-1.4" > test.pdf
+          
+          # Export environment for subsequent steps
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+          echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
+          echo "AT_SPI_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
+          echo "XDG_DESKTOP_PORTAL_DIR=/dev/null" >> $GITHUB_ENV
       - name: Clone P2P test repository
         uses: actions/checkout@v3
         with:
@@ -342,4 +376,8 @@ jobs:
           sudo apt-get install -y xvfb
           Xvfb :99 -screen 0 1024x768x24 &
           sleep 2
+          # Set environment and run test
+          export DISPLAY=:99
+          export RUST_BACKTRACE=1
+          timeout 60 cargo run --manifest-path Cargo.toml
 
