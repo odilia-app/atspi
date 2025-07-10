@@ -10,7 +10,7 @@ on:
       - main
 jobs:
   find-msrv:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       version: ${{ steps.step2.outputs.version }}
     steps:
@@ -18,13 +18,13 @@ jobs:
       - id: step2
         run: echo "version=`cat Cargo.toml | sed -n 's/rust-version = "\(.*\)"/\1/p' | xargs`" >> "$GITHUB_OUTPUT"
   benchmarks:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v3
+        uses: useblacksmith/cache@v5
         env:
           cache-name: cache-cargo-home
         with:
@@ -41,14 +41,14 @@ jobs:
       - name: Compile benchmarks (100k)
         run: cargo bench --no-run --bench event_parsing_100k
   clippy:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [rustfmt, no-unused-dependencies, wasm-compatible-common-crate]
     name: nightly Clippy
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v3
+        uses: useblacksmith/cache@v5
         env:
           cache-name: cache-cargo-home
         with:
@@ -69,13 +69,13 @@ jobs:
       - name: Clippy hack
         run: cargo hack --feature-powerset --workspace clippy --benches --examples --tests --no-deps -- -D warnings
   tests:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v3
+        uses: useblacksmith/cache@v5
         env:
           cache-name: cache-cargo-home
         with:
@@ -99,7 +99,7 @@ jobs:
       - name: Run Tests (tokio)
         run: cargo test --workspace --no-default-features --features=tokio -- --nocapture
   rustfmt:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -111,13 +111,13 @@ jobs:
       - name: Run formatter
         run: cargo fmt --all --check
   rustdoc:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v3
+        uses: useblacksmith/cache@v5
         env:
           cache-name: cache-cargo-home
         with:
@@ -136,13 +136,13 @@ jobs:
       - name: Generate Documentation
         run: cargo doc --workspace --no-deps --document-private-items
   cargo-deny:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [rustfmt]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v3
+        uses: useblacksmith/cache@v5
         env:
           cache-name: cache-cargo-home
         with:
@@ -167,13 +167,13 @@ jobs:
       - name: Check For Unknown Repositories
         run: cargo deny check sources
   no-unused-dependencies:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [rustfmt]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v3
+        uses: useblacksmith/cache@v5
         env:
           cache-name: cache-cargo-home
         with:
@@ -194,13 +194,13 @@ jobs:
       - name: Check For Unused Dependencies
         run: cargo machete
   semver-compliance:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Cache cargo home
-        uses: actions/cache@v3
+        uses: useblacksmith/cache@v5
         env:
           cache-name: cache-cargo-home
         with:
@@ -224,7 +224,7 @@ jobs:
       - name: Check Semver Compliance
         run: cargo semver-checks check-release -p atspi --default-features
   msrv-compliance:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [clippy, no-unused-dependencies, find-msrv]
     steps:
       - name: install stable toolchain
@@ -236,7 +236,7 @@ jobs:
       - name: Check MSRV Compliance
         run: cargo test --workspace --no-run --all-features
   wasm-compatible-common-crate:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [rustfmt]
     steps:
       - name: Git checkout
@@ -252,7 +252,7 @@ jobs:
       - name: Test Common Compilation (wasm32-wasip1)
         run: cargo build -p atspi-common --no-default-features --target wasm32-wasip1
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
