@@ -333,15 +333,13 @@ jobs:
           Xvfb :99 -screen 0 1024x768x24 &
           export DISPLAY=:99
           
-          # Disable desktop portals to prevent interference
-          export XDG_DESKTOP_PORTAL_DIR=/dev/null
-          export FLATPAK_DEST=/dev/null
-          
           # Start D-Bus session
           eval $(dbus-launch --sh-syntax)
           export DBUS_SESSION_BUS_ADDRESS
           
-          # Start AT-SPI registry
+          # Start AT-SPI registry - indirectly via at-spi-bus-launcher
+          # This will set up the AT-SPI bus and launch the registry daemon
+          /usr/libexec/at-spi2-registryd --use-gnome-session
           /usr/libexec/at-spi-bus-launcher --launch-immediately &
           sleep 3
           
@@ -353,7 +351,6 @@ jobs:
           echo "DISPLAY=:99" >> $GITHUB_ENV
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
           echo "AT_SPI_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
-          echo "XDG_DESKTOP_PORTAL_DIR=/dev/null" >> $GITHUB_ENV
       - name: Clone P2P test repository
         uses: actions/checkout@v3
         with:
