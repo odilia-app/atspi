@@ -1,44 +1,53 @@
 //! A connection to AT-SPI.
-//!  connection may receive any [`atspi_common::events::Event`] structures.
+//! This connection may receive any [`atspi_common::events::Event`] structures.
 
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all, missing_docs)]
 #![allow(clippy::multiple_crate_versions)]
 
 pub use atspi_common as common;
-use atspi_common::{
-	events::{DBusInterface, DBusMember},
-	EventProperties,
+use common::{
+	error::AtspiError,
+	events::{DBusInterface, DBusMatchRule, DBusMember, MessageConversion, RegistryEventString},
+	EventProperties, Result as AtspiResult,
 };
 
 #[cfg(feature = "wrappers")]
 use atspi_common::events::Event;
+
+#[cfg(feature = "p2p")]
+mod p2p;
+#[cfg(feature = "p2p")]
+pub use p2p::{Peer, P2P};
 
 use atspi_proxies::{
 	accessible::AccessibleProxy,
 	bus::{BusProxy, StatusProxy},
 	registry::RegistryProxy,
 };
-use common::error::AtspiError;
-use common::events::{DBusMatchRule, MessageConversion, RegistryEventString};
+
 #[cfg(feature = "wrappers")]
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
-use zbus::{fdo::DBusProxy, proxy::CacheProperties, Address, MatchRule};
+use zbus::{
+	fdo::DBusProxy,
+	proxy::{CacheProperties, Defaults},
+	Address, MatchRule,
+};
 #[cfg(feature = "wrappers")]
 use zbus::{message::Type as MessageType, MessageStream};
 
-/// A wrapper for results whose error type is [`AtspiError`].
-pub type AtspiResult<T> = std::result::Result<T, AtspiError>;
+#[cfg(feature = "p2p")]
+use crate::p2p::Peers;
 
 /// A connection to the at-spi bus
+#[derive(Clone, Debug)]
 pub struct AccessibilityConnection {
 	registry: RegistryProxy<'static>,
 	dbus_proxy: DBusProxy<'static>,
-}
 
-const REGISTRY_DEST: &str = "org.a11y.atspi.Registry";
-const ROOT_OBJECT_PATH: &str = "/org/a11y/atspi/accessible/root";
-const ACCCESSIBLE_INTERFACE: &str = "org.a11y.atspi.Accessible";
+	#[cfg(feature = "p2p")]
+	peers: Peers,
+}
 
 impl AccessibilityConnection {
 	/// Open a new connection to the bus
@@ -46,7 +55,7 @@ impl AccessibilityConnection {
 	/// May error when a bus is not available,
 	/// or when the accessibility bus (AT-SPI) can not be found.
 	#[cfg_attr(feature = "tracing", tracing::instrument)]
-	pub async fn new() -> zbus::Result<Self> {
+	pub async fn new() -> AtspiResult<Self> {
 		// Grab the a11y bus address from the session bus
 		let a11y_bus_addr = {
 			#[cfg(feature = "tracing")]
@@ -69,7 +78,14 @@ impl AccessibilityConnection {
 		tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
 		let addr: Address = a11y_bus_addr.parse()?;
 
-		Self::from_address(addr).await
+		let accessibility_conn = Self::from_address(addr).await?;
+
+		#[cfg(feature = "p2p")]
+		accessibility_conn
+			.peers
+			.spawn_peer_listener_task(accessibility_conn.connection());
+
+		Ok(accessibility_conn)
 	}
 
 	/// Returns an [`AccessibilityConnection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
@@ -84,19 +100,25 @@ impl AccessibilityConnection {
 	/// # Errors
 	///
 	/// `RegistryProxy` is configured with invalid path, interface or destination
-	pub async fn from_address(bus_addr: Address) -> zbus::Result<Self> {
+	pub async fn from_address(bus_addr: Address) -> AtspiResult<Self> {
 		#[cfg(feature = "tracing")]
-		tracing::debug!("Connecting to a11y bus");
+		tracing::info!("Connecting to a11y bus");
 		let bus = Box::pin(zbus::connection::Builder::address(bus_addr)?.build()).await?;
 
 		#[cfg(feature = "tracing")]
-		tracing::debug!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
+		tracing::info!(name = bus.unique_name().map(|n| n.as_str()), "Connected to a11y bus");
 
 		// The Proxy holds a strong reference to a Connection, so we only need to store the proxy
 		let registry = RegistryProxy::new(&bus).await?;
-		let dbus_proxy = DBusProxy::new(registry.inner().connection()).await?;
+		let dbus_proxy = DBusProxy::new(&bus).await?;
 
-		Ok(Self { registry, dbus_proxy })
+		#[cfg(not(feature = "p2p"))]
+		return Ok(Self { registry, dbus_proxy });
+
+		#[cfg(feature = "p2p")]
+		let peers = Peers::initialize_peers(&bus).await?;
+		#[cfg(feature = "p2p")]
+		return Ok(Self { registry, dbus_proxy, peers });
 	}
 
 	/// Stream yielding all `Event` types.
@@ -341,11 +363,15 @@ impl AccessibilityConnection {
 	///
 	/// This will fail if a dbus connection cannot be established when trying to
 	/// connect to the registry
+	///
+	/// # Panics
+	/// This will panic if the `default_service` is not set on the `RegistryProxy`, which should never happen.
 	pub async fn root_accessible_on_registry(&self) -> Result<AccessibleProxy<'_>, AtspiError> {
+		let registry_well_known_name = RegistryProxy::DESTINATION
+			.as_ref()
+			.expect("Registry default_service is set");
 		let registry = AccessibleProxy::builder(self.connection())
-			.destination(REGISTRY_DEST)?
-			.path(ROOT_OBJECT_PATH)?
-			.interface(ACCCESSIBLE_INTERFACE)?
+			.destination(registry_well_known_name)?
 			// registry has an incomplete implementation of the DBus interface
 			// and therefore cannot be cached; thus we always disable caching it
 			.cache_properties(CacheProperties::No)
