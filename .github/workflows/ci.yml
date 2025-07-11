@@ -313,7 +313,7 @@ jobs:
             gir1.2-gtk-3.0 \
             gedit \
             evince \
-            eog
+            mate-calc
       - name: Setup virtual display and AT-SPI environment
         run: |
           # Start virtual display
@@ -367,4 +367,4 @@ jobs:
           # Set environment to reduce warnings and run test
           export DISPLAY=:99
           export RUST_BACKTRACE=1
-          timeout 60 cargo run --manifest-path Cargo.toml
+          timeout 60 cargo run --manifest-path Cargo.toml -- test.txt test.pdf
