@@ -327,28 +327,29 @@ jobs:
             gedit \
             evince \
             eog
-            - name: Setup virtual display and AT-SPI environment
-            run: |
-              # Start virtual display
-              Xvfb :99 -screen 0 1024x768x24 &
-              export DISPLAY=:99
-              
-              # Start D-Bus session
-              eval $(dbus-launch --sh-syntax)
-              export DBUS_SESSION_BUS_ADDRESS
-              
-              # Start AT-SPI registry via bus launcher (this handles everything)
-              DISPLAY=:99 /usr/libexec/at-spi-bus-launcher --launch-immediately &
-              sleep 3
-              
-              # Create test files
-              echo "Hello World" > test.txt
-              echo "%PDF-1.4" > test.pdf
-              
-              # Export environment for subsequent steps
-              echo "DISPLAY=:99" >> $GITHUB_ENV
-              echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
-              echo "AT_SPI_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
+      - name: Setup virtual display and AT-SPI environment
+        run: |
+          # Start virtual display
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 2
+          export DISPLAY=:99
+          
+          # Start D-Bus session
+          eval $(dbus-launch --sh-syntax)
+          export DBUS_SESSION_BUS_ADDRESS
+          
+          # Start AT-SPI registry via bus launcher
+          DISPLAY=:99 /usr/libexec/at-spi-bus-launcher --launch-immediately &
+          sleep 3
+          
+          # Create test files
+          echo "Hello World" > test.txt
+          echo "%PDF-1.4" > test.pdf
+          
+          # Export environment for subsequent steps
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+          echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
+          echo "AT_SPI_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
       - name: Clone P2P test repository
         uses: actions/checkout@v3
         with:
