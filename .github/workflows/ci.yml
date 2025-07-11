@@ -359,4 +359,4 @@ jobs:
           export RUST_BACKTRACE=1
           export GTK_A11Y=none  # Reduce GTK accessibility warnings
           export NO_AT_BRIDGE=1  # Reduce AT-SPI bridge warnings
-          timeout 60 cargo run --manifest-path Cargo.tomlz
+          timeout 60 cargo run --manifest-path Cargo.toml
