@@ -19,17 +19,19 @@ pub struct ObjectRef {
 }
 
 // This addresses the issue of `ObjectRef` not being deserializable (#271).
-// when the name is empty, which is a special case for GTK applications.
+// when the name is empty. Root nodes have no parent, so the name is empty.
 impl<'de> Deserialize<'de> for ObjectRef {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
 	{
 		let (name, path): (String, OwnedObjectPath) = Deserialize::deserialize(deserializer)?;
-		// Check if the name is empty, which is a special case for GTK applications.
+
+		// Check if the name is empty, which is a special case.
 		if name.is_empty() && path == ObjectRef::default().path {
 			return Ok(ObjectRef::default());
 		}
+
 		let name = UniqueName::try_from(name).map_err(serde::de::Error::custom)?;
 		let name = OwnedUniqueName::from(name);
 		Ok(ObjectRef { name, path })
@@ -40,7 +42,7 @@ impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {
 			name: UniqueName::from_static_str_unchecked(":0.0").into(),
-			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/null").into(),
+			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null").into(),
 		}
 	}
 }
@@ -90,7 +92,7 @@ impl<'de> Deserialize<'de> for ObjectRefBorrowed<'de> {
 		D: serde::Deserializer<'de>,
 	{
 		let (name, path): (&'de str, ObjectPath<'_>) = Deserialize::deserialize(deserializer)?;
-		// Check if the name is empty, which is a special case for GTK applications.
+		// Check if the name is empty, which is a special case to indicate there is no parent object.
 		if name.is_empty() && path == ObjectRefBorrowed::default().path {
 			// If name is empty and path is the null path, return the default ObjectRefBorrowed.
 			return Ok(ObjectRefBorrowed::default());
@@ -116,7 +118,7 @@ impl Default for ObjectRefBorrowed<'_> {
 	fn default() -> Self {
 		ObjectRefBorrowed {
 			name: UniqueName::from_static_str_unchecked(":0.0"),
-			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/null"),
+			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null"),
 		}
 	}
 }
@@ -170,13 +172,13 @@ impl TryFrom<&zbus::message::Header<'_>> for ObjectRef {
 #[derive(Debug, Default, Clone, Type, PartialEq, Eq, Hash)]
 #[zvariant(signature = "(so)")]
 pub enum ParentRef {
-	/// A reference to the parent object.
+	/// A reference to a valid parent object.
 	///
 	/// This is used in the `Cache:Add` signal to indicate the parent of the accessible object.
 	Some(ObjectRef),
 
 	#[default]
-	/// A special case for `GTK4` applications where the name is an empty string.
+	/// When the serialized `name` is empty, it means there is no parent object.
 	None,
 }
 
@@ -187,13 +189,13 @@ impl Serialize for ParentRef {
 	{
 		match self {
 			ParentRef::Some(ref obj_ref) => obj_ref.serialize(serializer),
-			ParentRef::None => ObjectRef::default().serialize(serializer),
+			ParentRef::None => ("", "/org/a11y/atspi/null").serialize(serializer),
 		}
 	}
 }
 
-// This addresses the issue of `ObjectRef` not being deserializable (#271).
-// when the name is empty, which is a special case for GTK applications.
+// This addresses the issue of `ObjectRef` not being deserializable (#271)
+// when the name string is empty to indicate there is no parent object.
 impl<'de> Deserialize<'de> for ParentRef {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
@@ -201,7 +203,7 @@ impl<'de> Deserialize<'de> for ParentRef {
 	{
 		let (name, path): (String, zvariant::OwnedObjectPath) =
 			Deserialize::deserialize(deserializer)?;
-		// Check if the name is empty, which is a special case for GTK applications.
+		// Check if the name is empty, which is a special case to indicate there is no parent object.
 		if name.is_empty() && path == ObjectRef::default().path {
 			return Ok(ParentRef::None);
 		}
@@ -272,7 +274,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -288,7 +290,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -300,7 +302,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -314,7 +316,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -333,7 +335,7 @@ mod test {
 		let obj_borrow: ObjectRefBorrowed = value.try_into().unwrap();
 
 		assert_eq!(obj_borrow.name.as_str(), ":0.0");
-		assert_eq!(obj_borrow.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(obj_borrow.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -347,7 +349,7 @@ mod test {
 	fn test_objectref_default_doesnt_panic() {
 		let objr = ObjectRef::default();
 		assert_eq!(objr.name.as_str(), ":0.0");
-		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -366,7 +368,7 @@ mod test {
 		let Value::ObjectPath(path) = vals.last().unwrap() else {
 			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
 		};
-		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -402,7 +404,7 @@ mod test {
 		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &parent_ref).unwrap();
 
-		// Must be deserializable as an `ObjectRef`
+		// Must be deserializable as an `ParentRef`
 		let (decoded, _) = encoded.deserialize::<ParentRef>().unwrap();
 		assert_eq!(decoded, parent_ref);
 	}
@@ -440,7 +442,7 @@ mod test {
 		let obj_ref: ObjectRef = test_parent_obj.into();
 
 		let name = UniqueName::from_static_str(":0.0").unwrap();
-		let path = ObjectPath::from_static_str("/org/a11y/atspi/accessible/null").unwrap();
+		let path = ObjectPath::from_static_str("/org/a11y/atspi/null").unwrap();
 		assert_eq!(obj_ref.name, name.to_owned());
 		assert_eq!(obj_ref.path, path.into());
 	}

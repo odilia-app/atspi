@@ -140,7 +140,7 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 	tokio::pin!(events);
 
 	let msg: zbus::Message = {
-		let path = "/org/a11y/atspi/accessible/null";
+		let path = "/org/a11y/atspi/null";
 		let iface = "org.a11y.atspi.Cache";
 		let member = "AddAccessible";
 

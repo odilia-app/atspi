@@ -354,7 +354,7 @@ macro_rules! generic_event_test_case {
 		fn generic_event_uses() {
 			use crate::events::traits::MessageConversion;
 			let struct_event = <$type>::default();
-			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
+			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let body = struct_event.body();
 			let body2 = Message::method_call(
