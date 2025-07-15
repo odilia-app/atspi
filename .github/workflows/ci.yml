@@ -277,3 +277,16 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+  reproducible-builds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+      - name: Generate lockfile with minimal direct versions
+        # Create a lockfile with minimal direct versions for reproducible builds.
+        # See advisory: https://blog.rust-lang.org/2023/08/29/committing-lockfiles/
+        run: cargo +nightly generate-lockfile -Z direct-minimal-versions
