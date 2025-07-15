@@ -16,12 +16,12 @@ version                = "0.27.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["proxies", "connection", "wrappers"]
-wrappers = ["atspi-common/wrappers"]
-proxies = ["dep:atspi-proxies"]
+default    = ["connection", "proxies", "wrappers"]
+wrappers   = ["atspi-common/wrappers"]
+proxies    = ["dep:atspi-proxies"]
 connection = ["dep:atspi-connection"]
-tokio     = ["zbus/tokio"]
-tracing              = ["atspi-connection/tracing"]
+tokio      = ["zbus/tokio"]
+tracing    = ["atspi-connection/tracing"]
 
 [dependencies]
 atspi-common     = { path = "../atspi-common", version = "0.11.0", default-features = false }
@@ -40,24 +40,24 @@ name    = "event_parsing_100k"
 path    = "./benches/event_parsing_100k.rs"
 
 [[example]]
-name              = "accessible-counts"
-path              = "./examples/accessible-counts.rs"
+name = "accessible-counts"
+path = "./examples/accessible-counts.rs"
 
 [[example]]
-name              = "tree"
-path              = "./examples/bus-tree.rs"
+name = "tree"
+path = "./examples/bus-tree.rs"
 
 [[example]]
-name              = "focused-tokio"
-path              = "./examples/focused-tokio.rs"
+name = "focused-tokio"
+path = "./examples/focused-tokio.rs"
 
 [[example]]
-name              = "focused-async-std"
-path              = "./examples/focused-async-std.rs"
+name = "focused-async-std"
+path = "./examples/focused-async-std.rs"
 
 [[example]]
-name              = "selected-text"
-path              = "./examples/selected-text.rs"
+name = "selected-text"
+path = "./examples/selected-text.rs"
 
 [dev-dependencies]
 async-std      = { version = "1.12", features = ["attributes"] }
@@ -67,7 +67,7 @@ criterion      = "=0.5.0"
 half = "=2.4.0"
 fastrand       = "2.0"
 futures        = { version = "0.3", default-features = false, features = ["alloc"] }
-futures-lite   = { version = "2", default-features = false }
-tokio          = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
+futures-lite   = { version = "2.6.0", default-features = false }
+tokio          = { version = "1.37.0", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream   = "0.1"
 zbus.workspace = true
