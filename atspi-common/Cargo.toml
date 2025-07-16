@@ -38,8 +38,7 @@ static_assertions = "1.1.0"
 tokio             = { version = "1.37.0", default-features = false, features = [ "macros",
     "rt-multi-thread",
 ] }
-tokio-stream      = { version = "0.1", default-features = false, features = [ "time",
-] }
+tokio-stream   = { version = "0.1.1", default-features = false, features = ["time"] }
 tokio-test        = "0.4.2"
 zbus_xml          = "5.0.2"
 zbus              = { workspace = true }
