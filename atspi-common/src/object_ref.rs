@@ -12,7 +12,7 @@ use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, Value};
 ///
 /// Also see: [`IsNullExt`]
 pub const NULL_OBJECT_PATH: ObjectPath<'static> =
-	ObjectPath::from_static_str_unchecked("/org/atspi/atspi/null");
+	ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null");
 
 /// An [extention trait](http://xion.io/post/code/rust-extension-traits.html) which adds a method to check if an object path matches the
 /// [`NULL_OBJECT_PATH`].
@@ -280,6 +280,7 @@ impl From<OwnedValue> for ParentRef {
 
 #[cfg(test)]
 mod test {
+	use super::NULL_OBJECT_PATH;
 	use crate::{object_ref::ObjectRefBorrowed, ObjectRef, ParentRef};
 	use zbus_names::UniqueName;
 	use zvariant::{serialized::Context, to_bytes, ObjectPath, Value, LE};
@@ -297,7 +298,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), NULL_OBJECT_PATH);
+		assert_eq!(accessible.path.as_str(), &*NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -313,7 +314,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), NULL_OBJECT_PATH);
+		assert_eq!(accessible.path.as_str(), &*NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -325,7 +326,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), NULL_OBJECT_PATH);
+		assert_eq!(obj.path.as_str(), &*NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -339,7 +340,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), NULL_OBJECT_PATH);
+		assert_eq!(obj.path.as_str(), &*NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -358,7 +359,7 @@ mod test {
 		let obj_borrow: ObjectRefBorrowed = value.try_into().unwrap();
 
 		assert_eq!(obj_borrow.name.as_str(), ":0.0");
-		assert_eq!(obj_borrow.path.as_str(), NULL_OBJECT_PATH);
+		assert_eq!(obj_borrow.path.as_str(), &*NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -372,7 +373,7 @@ mod test {
 	fn test_objectref_default_doesnt_panic() {
 		let objr = ObjectRef::default();
 		assert_eq!(objr.name.as_str(), ":0.0");
-		assert_eq!(objr.path.as_str(), NULL_OBJECT_PATH);
+		assert_eq!(objr.path.as_str(), &*NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -391,7 +392,7 @@ mod test {
 		let Value::ObjectPath(path) = vals.last().unwrap() else {
 			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
 		};
-		assert_eq!(path.as_str(), NULL_OBJECT_PATH);
+		assert_eq!(path.as_str(), &*NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -465,7 +466,7 @@ mod test {
 		let obj_ref: ObjectRef = test_parent_obj.into();
 
 		let name = UniqueName::from_static_str(":0.0").unwrap();
-		let path = ObjectPath::from_static_str(NULL_OBJECT_PATH).unwrap();
+		let path = NULL_OBJECT_PATH;
 		assert_eq!(obj_ref.name, name.to_owned());
 		assert_eq!(obj_ref.path, path.into());
 	}
