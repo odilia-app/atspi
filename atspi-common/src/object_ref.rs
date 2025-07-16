@@ -9,8 +9,6 @@ use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, Value};
 /// "Why not just use `None`?"
 ///
 /// `DBus` (which the AT-SPI2 protocol runs on) does not have optional types, so this path indicates the sentinal, `None` value.
-///
-/// Also see: [`IsNullExt`]
 pub const NULL_OBJECT_PATH: ObjectPath<'static> =
 	ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null");
 
