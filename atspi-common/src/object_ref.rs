@@ -3,6 +3,29 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, Value};
 
+/// An object path used in respones from accessible applications indicating that the path does not
+/// exist.
+///
+/// "Why not just use `None`?"
+///
+/// `DBus` (which the AT-SPI2 protocol runs on) does not have optional types, so this path indicates the sentinal, `None` value.
+///
+/// Also see: [`IsNullExt`]
+pub const NULL_OBJECT_PATH: ObjectPath<'static> =
+	ObjectPath::from_static_str_unchecked("/org/atspi/atspi/null");
+
+/// An [extention trait](http://xion.io/post/code/rust-extension-traits.html) which adds a method to check if an object path matches the
+/// [`NULL_OBJECT_PATH`].
+trait IsNullExt {
+	fn is_null(&self) -> bool;
+}
+
+impl IsNullExt for ObjectPath<'_> {
+	fn is_null(&self) -> bool {
+		*self == NULL_OBJECT_PATH
+	}
+}
+
 /// A unique identifier for an object in the accessibility tree.
 ///
 /// A ubiquitous type used to refer to an object in the accessibility tree.
@@ -28,7 +51,7 @@ impl<'de> Deserialize<'de> for ObjectRef {
 		let (name, path): (String, OwnedObjectPath) = Deserialize::deserialize(deserializer)?;
 
 		// Check if the name is empty, which is a special case.
-		if name.is_empty() && path == ObjectRef::default().path {
+		if name.is_empty() && path.is_null() {
 			return Ok(ObjectRef::default());
 		}
 
@@ -42,7 +65,7 @@ impl Default for ObjectRef {
 	fn default() -> Self {
 		ObjectRef {
 			name: UniqueName::from_static_str_unchecked(":0.0").into(),
-			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null").into(),
+			path: NULL_OBJECT_PATH.into(),
 		}
 	}
 }
@@ -93,7 +116,7 @@ impl<'de> Deserialize<'de> for ObjectRefBorrowed<'de> {
 	{
 		let (name, path): (&'de str, ObjectPath<'_>) = Deserialize::deserialize(deserializer)?;
 		// Check if the name is empty, which is a special case to indicate there is no parent object.
-		if name.is_empty() && path == ObjectRefBorrowed::default().path {
+		if name.is_empty() && path.is_null() {
 			// If name is empty and path is the null path, return the default ObjectRefBorrowed.
 			return Ok(ObjectRefBorrowed::default());
 		}
@@ -118,7 +141,7 @@ impl Default for ObjectRefBorrowed<'_> {
 	fn default() -> Self {
 		ObjectRefBorrowed {
 			name: UniqueName::from_static_str_unchecked(":0.0"),
-			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null"),
+			path: NULL_OBJECT_PATH,
 		}
 	}
 }
@@ -189,7 +212,7 @@ impl Serialize for ParentRef {
 	{
 		match self {
 			ParentRef::Some(ref obj_ref) => obj_ref.serialize(serializer),
-			ParentRef::None => ("", "/org/a11y/atspi/null").serialize(serializer),
+			ParentRef::None => ("", NULL_OBJECT_PATH).serialize(serializer),
 		}
 	}
 }
@@ -204,7 +227,7 @@ impl<'de> Deserialize<'de> for ParentRef {
 		let (name, path): (String, zvariant::OwnedObjectPath) =
 			Deserialize::deserialize(deserializer)?;
 		// Check if the name is empty, which is a special case to indicate there is no parent object.
-		if name.is_empty() && path == ObjectRef::default().path {
+		if name.is_empty() && path.is_null() {
 			return Ok(ParentRef::None);
 		}
 		let name = UniqueName::try_from(name).map_err(serde::de::Error::custom)?;
@@ -274,7 +297,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/null");
+		assert_eq!(accessible.path.as_str(), NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -290,7 +313,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/null");
+		assert_eq!(accessible.path.as_str(), NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -302,7 +325,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/null");
+		assert_eq!(obj.path.as_str(), NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -316,7 +339,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/null");
+		assert_eq!(obj.path.as_str(), NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -335,7 +358,7 @@ mod test {
 		let obj_borrow: ObjectRefBorrowed = value.try_into().unwrap();
 
 		assert_eq!(obj_borrow.name.as_str(), ":0.0");
-		assert_eq!(obj_borrow.path.as_str(), "/org/a11y/atspi/null");
+		assert_eq!(obj_borrow.path.as_str(), NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -349,7 +372,7 @@ mod test {
 	fn test_objectref_default_doesnt_panic() {
 		let objr = ObjectRef::default();
 		assert_eq!(objr.name.as_str(), ":0.0");
-		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/null");
+		assert_eq!(objr.path.as_str(), NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -368,7 +391,7 @@ mod test {
 		let Value::ObjectPath(path) = vals.last().unwrap() else {
 			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
 		};
-		assert_eq!(path.as_str(), "/org/a11y/atspi/null");
+		assert_eq!(path.as_str(), NULL_OBJECT_PATH);
 	}
 
 	#[test]
@@ -442,7 +465,7 @@ mod test {
 		let obj_ref: ObjectRef = test_parent_obj.into();
 
 		let name = UniqueName::from_static_str(":0.0").unwrap();
-		let path = ObjectPath::from_static_str("/org/a11y/atspi/null").unwrap();
+		let path = ObjectPath::from_static_str(NULL_OBJECT_PATH).unwrap();
 		assert_eq!(obj_ref.name, name.to_owned());
 		assert_eq!(obj_ref.path, path.into());
 	}
