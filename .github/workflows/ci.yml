@@ -326,7 +326,7 @@ jobs:
             gir1.2-gtk-3.0 \
             gedit \
             evince \
-            eog
+            mate-calc
       - name: Setup virtual display and AT-SPI environment
         run: |
           # Start virtual display
