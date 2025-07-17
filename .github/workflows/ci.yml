@@ -358,17 +358,17 @@ jobs:
       - name: Create test files in correct location
         run: |
           cd test-atspi-p2p
-          # Create test files where the test expects them
           echo "Hello World Test Document" > test.txt
-          echo "%PDF-1.4
-1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj  
-3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj
-xref
-0 4
-0000000000 65535 f
-trailer<</Root 1 0 R>>
-%%EOF" > test.pdf
+          cat <<'EOF' > test.pdf
+          %PDF-1.4
+          1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+          2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+          3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj
+          xref
+          0 4
+          0000000000 65535 f
+          trailer<</Root 1 0 R>>
+          %%EOF
       - name: Run P2P functionality test
         run: |
           cd test-atspi-p2p
