@@ -327,25 +327,37 @@ jobs:
             gedit \
             evince \
             eog
-      - name: Setup virtual display and AT-SPI environment
-        run: |
-          # Start virtual display
-          Xvfb :99 -screen 0 1024x768x24 &
-          sleep 2
-          export DISPLAY=:99
-          
-          # Start D-Bus session
-          eval $(dbus-launch --sh-syntax)
-          export DBUS_SESSION_BUS_ADDRESS
-          
-          # Start AT-SPI registry via bus launcher
-          DISPLAY=:99 /usr/libexec/at-spi-bus-launcher --launch-immediately &
-          sleep 3
-          
-          # Create test files
-          echo "Hello World" > test.txt
-          echo "%PDF-1.4" > test.pdf
-          
+            - name: Setup virtual display and AT-SPI environment
+            run: |
+              # Start virtual display
+              Xvfb :99 -screen 0 1024x768x24 &
+              sleep 2
+              export DISPLAY=:99
+              
+              # Start D-Bus session
+              eval $(dbus-launch --sh-syntax)
+              export DBUS_SESSION_BUS_ADDRESS
+              
+              # Create proper home directories and set permissions
+              sudo mkdir -p /home/runner/.local/share
+              sudo chown -R runner:runner /home/runner/.local
+              
+              # Start AT-SPI registry via bus launcher
+              DISPLAY=:99 /usr/libexec/at-spi-bus-launcher --launch-immediately &
+              sleep 3
+              
+              # Create test files in the working directory
+              echo "Hello World Test Document" > /home/runner/work/atspi/atspi/test.txt
+              echo "%PDF-1.4
+              1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+              2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+              3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj
+              xref
+              0 4
+              0000000000 65535 f
+              trailer<</Root 1 0 R>>
+              %%EOF" > /home/runner/work/atspi/atspi/test.pdf
+              
           # Export environment for subsequent steps
           echo "DISPLAY=:99" >> $GITHUB_ENV
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
@@ -362,6 +374,7 @@ jobs:
           cargo add --manifest-path Cargo.toml --path ../atspi-connection atspi-connection
           cargo add --manifest-path Cargo.toml --path ../atspi-common atspi-common
           cargo add --manifest-path Cargo.toml --path ../atspi-proxies atspi-proxies
+<<<<<<< HEAD
           cargo run --manifest-path Cargo.toml
         env:
           # Ensure we have a display for AT-SPI
@@ -377,3 +390,12 @@ jobs:
           export RUST_BACKTRACE=1
           timeout 60 cargo run --manifest-path Cargo.toml
 
+=======
+          
+          # Set environment to reduce warnings and run test
+          export DISPLAY=:99
+          export RUST_BACKTRACE=1
+          export GTK_A11Y=none  # Reduce GTK accessibility warnings
+          export NO_AT_BRIDGE=1  # Reduce AT-SPI bridge warnings
+          timeout 60 cargo run --manifest-path Cargo.toml
+>>>>>>> 1627fff (CI(p2p): Fix permissions)
