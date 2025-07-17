@@ -17,7 +17,7 @@
 //! * [`set_id`]
 //! * [`atspi_version`]
 //! * [`get_locale`]
-//!  
+//!
 //! [`toolkit_name`] and [`version`] are still in use.
 //!
 //! See the documentation of the individual methods and properties for details.
@@ -45,7 +45,7 @@
 /// * [`set_id`]
 /// * [`atspi_version`]
 /// * [`get_locale`]
-///  
+///
 /// [`toolkit_name`] and [`version`] are still in use.
 ///
 /// See the documentation of the individual methods and properties for details.
@@ -57,12 +57,16 @@
 /// [`toolkit_name`]: ApplicationProxy#method.toolkit_name
 /// [`version`]: ApplicationProxy#method.version
 ///
-#[zbus::proxy(interface = "org.a11y.atspi.Application", assume_defaults = true)]
+#[zbus::proxy(
+	interface = "org.a11y.atspi.Application",
+	default_path = "/org/a11y/atspi/accessible/root",
+	assume_defaults = true
+)]
 pub trait Application {
 	/// Method to retrieve the application's locale.
 	///
 	/// ## Deprecation
-	///  
+	///
 	/// This method is likely to be removed in the future.
 	///
 	/// There is no need to call this method because there is also
@@ -150,4 +154,10 @@ pub trait Application {
 	/// member: `Version`, type: property
 	#[zbus(property)]
 	fn version(&self) -> zbus::Result<String>;
+
+	/// Method to obtain the unix socket address.
+	/// The unix socket can be used to setup a connection, to perform peer-to-peer (P2P) method calls.
+	///
+	/// Known implementors include `Gtk3` and `Firefox`.
+	fn get_application_bus_address(&self) -> zbus::Result<String>;
 }
