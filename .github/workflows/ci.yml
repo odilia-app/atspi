@@ -290,104 +290,88 @@ jobs:
         # Create a lockfile with minimal direct versions for reproducible builds.
         # See advisory: https://blog.rust-lang.org/2023/08/29/committing-lockfiles/
         run: cargo +nightly generate-lockfile -Z direct-minimal-versions
+        
   run-test-atspi-p2p:
     runs-on: ubuntu-latest
-    needs: [clippy]
     steps:
-      - name: Git checkout
+      - name: Git checkout main project
         uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
         with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+          path: main
+
+      - name: Git checkout test project
+        uses: actions/checkout@v3
+        with:
+          repository: luukvanderduim/test-atspi-p2p
+          path: test-atspi-p2p
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: stable    
+
       - name: Install Dependencies
         run: |
-          sudo apt -y update
-          sudo apt -y install \
+          sudo apt-get -y update
+          sudo apt-get -y install \
             at-spi2-core \
-            at-spi2-common \
             libatspi2.0-dev \
             xvfb \
             dbus-x11 \
             libgtk-3-dev \
             gir1.2-gtk-3.0 \
+            mate-calc \
+            gnome-calculator \
+            metacity \
             gedit \
-            evince \
-            mate-calc
+            caja \
+            gsettings-desktop-schemas
+
       - name: Setup virtual display and AT-SPI environment
         run: |
           # Start virtual display
           Xvfb :99 -screen 0 1024x768x24 &
           sleep 2
+          
+          # Set the display for this step
           export DISPLAY=:99
-          
-          # Start D-Bus session
+
+          # Start D-Bus session and export variables
           eval $(dbus-launch --sh-syntax)
-          export DBUS_SESSION_BUS_ADDRESS
+
+          # Start a minimal window manager
+          metacity &
+          sleep 2
+
+          # Start a desktop shell to provide the root desktop object
+          caja &
+          sleep 2
           
-          # Create proper home directories and set permissions
-          sudo mkdir -p /home/runner/.local/share
-          sudo chown -R runner:runner /home/runner/.local
+          # Start AT-SPI bus and registry the standard way
+          /usr/libexec/at-spi-bus-launcher --launch-immediately &
+          sleep 5
           
-          # Start AT-SPI registry via bus launcher
-          DISPLAY=:99 /usr/libexec/at-spi-bus-launcher --launch-immediately &
-          sleep 3
+          # Explicitly enable accessibility
+          gsettings set org.gnome.desktop.interface toolkit-accessibility true
           
           # Export environment for subsequent steps
           echo "DISPLAY=:99" >> $GITHUB_ENV
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
-          echo "AT_SPI_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
-      - name: Clone P2P test repository
-        uses: actions/checkout@v3
-        with:
-          repository: luukvanderduim/test-atspi-p2p
-          path: test-atspi-p2p
-      - name: Create test files in correct location
-        run: |
-          cd test-atspi-p2p
-          echo "Hello World Test Document" > test.txt
-          cat <<'EOF' > test.pdf
-          %PDF-1.4
-          1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-          2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-          3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj
-          xref
-          0 4
-          0000000000 65535 f
-          trailer<</Root 1 0 R>>
-          %%EOF
-      - name: Run P2P functionality test
-        run: |
-          cd test-atspi-p2p
-          # Use the local atspi crates instead of published ones
-          cargo add --manifest-path Cargo.toml --path ../atspi-connection atspi-connection
-          cargo add --manifest-path Cargo.toml --path ../atspi-common atspi-common
-          cargo add --manifest-path Cargo.toml --path ../atspi-proxies atspi-proxies
-          cargo run --manifest-path Cargo.toml
-        env:
-          # Ensure we have a display for AT-SPI
-          DISPLAY: :99
-      - name: Setup virtual display
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          Xvfb :99 -screen 0 1024x768x24 &
-          sleep 2
-          # Set environment and run test
-          export DISPLAY=:99
-          export RUST_BACKTRACE=1
-          timeout 60 cargo run --manifest-path Cargo.toml
+          echo "GTK_MODULES=gail:atk-bridge" >> $GITHUB_ENV
 
+      - name: Run P2P test
+        working-directory: ./test-atspi-p2p
+        run: |
+          # Add local crates
+          cargo add --path ../main/atspi-connection
+          cargo add --path ../main/atspi-common
+          cargo add --path ../main/atspi-proxies
+          
+          # Run with both GTK apps to see which one works
+          GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gnome-calculator --sleep 5 || \
+          GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gedit --sleep 5
+        env:
+          DISPLAY: ${{ env.DISPLAY }}
+          DBUS_SESSION_BUS_ADDRESS: ${{ env.DBUS_SESSION_BUS_ADDRESS }}
+          GTK_MODULES: gail:atk-bridge
+          RUST_BACKTRACE: 1
