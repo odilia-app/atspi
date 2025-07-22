@@ -277,16 +277,31 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
-  reproducible-builds:
+  generate-minimal-lockfile:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
+      - name: Set up Git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
       - name: Install nightly toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
       - name: Generate lockfile with minimal direct versions
-        # Create a lockfile with minimal direct versions for reproducible builds.
+        # Create a lockfile with minimal direct versions to improve reproducability between builds.
         # See advisory: https://blog.rust-lang.org/2023/08/29/committing-lockfiles/
         run: cargo +nightly generate-lockfile -Z direct-minimal-versions
+      - name: Commit and push minimal lockfile
+        run: |
+          git add Cargo.lock
+          git commit -m "chore: update Cargo.lock with minimal direct versions" || echo "No changes to commit"
+          branch="minimal-lockfile-update-$(date +%s)"
+          git checkout -b $branch
+          git push origin $branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
