@@ -16,10 +16,11 @@ version                = "0.27.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default    = ["connection", "proxies", "wrappers"]
+default    = ["connection", "proxies", "p2p", "wrappers"]
 wrappers   = ["atspi-common/wrappers"]
 proxies    = ["dep:atspi-proxies"]
 connection = ["dep:atspi-connection"]
+p2p        = ["atspi-connection/p2p"]
 tokio      = ["zbus/tokio"]
 tracing    = ["atspi-connection/tracing"]
 
@@ -48,6 +49,10 @@ name = "tree"
 path = "./examples/bus-tree.rs"
 
 [[example]]
+name = "p2p_tree"
+path = "./examples/p2p-tree.rs"
+
+[[example]]
 name = "focused-tokio"
 path = "./examples/focused-tokio.rs"
 
@@ -63,7 +68,7 @@ path = "./examples/selected-text.rs"
 async-std      = { version = "1.13", features = ["attributes"] }
 atspi          = { path = "." }
 # TOOD: pinned due to MSRV 1.77.2 policy; this can be lifted when we bump.
-criterion      = "=0.5.0"
+criterion = "=0.5.0"
 half = "=2.4.0"
 fastrand       = "2.3"
 futures        = { version = "0.3", default-features = false, features = ["alloc"] }
