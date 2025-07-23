@@ -132,7 +132,7 @@ impl Default for EventListeners {
 	fn default() -> Self {
 		Self {
 			bus_name: UniqueName::from_static_str_unchecked(":0.0").into(),
-			path: String::from("/org/a11y/atspi/accessible/null"),
+			path: String::from("/org/a11y/atspi/null"),
 		}
 	}
 }
@@ -145,7 +145,7 @@ mod event_listener_tests {
 	fn test_event_listener_default_no_panic() {
 		let el = EventListeners::default();
 		assert_eq!(el.bus_name.as_str(), ":0.0");
-		assert_eq!(el.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(el.path.as_str(), "/org/a11y/atspi/null");
 	}
 }
 
