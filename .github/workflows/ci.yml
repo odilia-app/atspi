@@ -277,7 +277,7 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
-  reproducible-builds:
+  check-true-minimal-versions:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
