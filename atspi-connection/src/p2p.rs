@@ -13,7 +13,6 @@
 //! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
 //! (So picking smol won't necessarily make your application small in the context of P2P.)
 
-use async_lock::Mutex;
 use atspi_common::{AtspiError, ObjectRef};
 use atspi_proxies::{
 	accessible::{AccessibleProxy, ObjectRefExt},
@@ -22,7 +21,7 @@ use atspi_proxies::{
 	registry::RegistryProxy,
 };
 use futures_lite::stream::StreamExt;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use zbus::{
 	conn::Builder,
 	fdo::DBusProxy,
@@ -308,8 +307,8 @@ impl Peers {
 	/// Bus names are initialized from `ObjectRef` names, which are `OwnedUniqueName`s.
 	/// This means that the bus name should be a unique name, not a well-known name.
 	///
-	async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
-		let peers = self.peers.lock().await;
+	fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+		let peers = self.peers.lock().expect("already locked by current thread");
 
 		let matched = match bus_name {
 			BusName::Unique(unique_name) => {
@@ -345,13 +344,14 @@ impl Peers {
 		let peer =
 			Peer { unique_name, well_known_name: None, socket_address: address, p2p_connection };
 
-		self.peers.lock().await.push(peer);
+		let mut guard = self.peers.lock().expect("lock already held by current thread");
+		guard.push(peer);
 		Ok(())
 	}
 
 	/// Removes a `Peer` from the list of peers by its unique name.
-	async fn remove_unique(&self, unique_name: &zbus::names::UniqueName<'_>) {
-		let mut peers = self.peers.lock().await;
+	fn remove_unique(&self, unique_name: &zbus::names::UniqueName<'_>) {
+		let mut peers = self.peers.lock().expect("lock already held by current thread");
 		peers.retain(|peer| peer.unique_name() != unique_name);
 	}
 
@@ -376,23 +376,19 @@ impl Peers {
 			p2p_connection,
 		};
 
-		self.peers.lock().await.push(peer);
+		let mut guard = self.peers.lock().expect("lock already held by current thread");
+		guard.push(peer);
 		Ok(())
 	}
 
 	/// Removes a `Peer` with a well-known name from the list of peers.
-	async fn remove_well_known(
-		&self,
-		well_known_name: &WellKnownName<'_>,
-		name_owner: &UniqueName<'_>,
-	) -> AtspiResult<()> {
-		let mut peers = self.peers.lock().await;
+	fn remove_well_known(&self, well_known_name: &WellKnownName<'_>, name_owner: &UniqueName<'_>) {
+		let mut peers = self.peers.lock().expect("lock already held by current thread");
 		let owned_well_known_name = OwnedWellKnownName::from(well_known_name.clone());
 		peers.retain(|peer| {
 			(peer.well_known_name() != Some(&owned_well_known_name))
 				&& peer.unique_name() == name_owner
 		});
-		Ok(())
 	}
 
 	/// Update a `Peer` with a new owner of it's well-known name in the list of peers.
@@ -417,7 +413,7 @@ impl Peers {
 			p2p_connection,
 		};
 
-		let mut peers = self.peers.lock().await;
+		let mut peers = self.peers.lock().expect("lock already held by current thread");
 		if let Some(existing_peer) = peers.iter_mut().find(|p| {
 			p.well_known_name() == well_known_name.as_ref() && p.unique_name() == &old_name_owner
 		}) {
@@ -496,7 +492,7 @@ impl Peers {
 								// Unique name left the bus.
 								(Some(old), None) => {
 									debug_assert!(old == &unique_name, "When a unique name is removed from the bus, the old owner must be the unique name itself.");
-									peers.remove_unique(&unique_name).await;
+									peers.remove_unique(&unique_name);
 
 									#[cfg(feature = "tracing")]
 									info!("Peer with unique name: {unique_name} left the bus - removed from peer list.");
@@ -534,20 +530,17 @@ impl Peers {
 
 								// Well-known name left the bus.
 								(Some(old_owner_unique_name), None) => {
-									if let Ok(()) = peers.remove_well_known(
+									peers.remove_well_known(
 										&well_known_name,
 										old_owner_unique_name,
-									).await.inspect_err(|#[allow(unused_variables)] err| {
-										#[cfg(feature = "tracing")]
-										warn!("Failed to remove well-known name: {} with owner: {} - {err}", &well_known_name, &old_owner_unique_name);
-									}) {
-										#[cfg(feature = "tracing")]
-										info!(
-											"Well-known name: {} with owner: {} removed from the peer list.",
-											&well_known_name,
-											&old_owner_unique_name
-										);
-									}
+									);
+
+									#[cfg(feature = "tracing")]
+									info!(
+										"Well-known name: {} with owner: {} removed from the peer list.",
+										&well_known_name,
+										&old_owner_unique_name
+									);
 								},
 
 								// Well-known name received a new owner on the bus.
@@ -567,7 +560,7 @@ impl Peers {
 
 				#[cfg(feature = "tracing")]
 				tracing::warn!("Peer listener task stopped, clearing peers list.");
-				peers.clear().await;
+				peers.clear();
 			}, "PeerListenerTask")
 			.detach();
 	}
@@ -576,8 +569,8 @@ impl Peers {
 	///
 	/// # Note
 	/// This is used to reset the list of peers when the D-Bus connection is lost.
-	async fn clear(&self) {
-		let mut peers = self.peers.lock().await;
+	fn clear(&self) {
+		let mut peers = self.peers.lock().expect("lock already held by current thread");
 		peers.clear();
 	}
 }
@@ -599,10 +592,10 @@ pub trait P2P {
 	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy<'_>>>;
 
 	/// Return a list of peers that are currently connected.
-	fn peers(&self) -> impl std::future::Future<Output = Arc<Mutex<Vec<Peer>>>>;
+	fn peers(&self) -> Arc<Mutex<Vec<Peer>>>;
 
 	/// Returns a [`Peer`] by its bus name.
-	fn find_peer(&self, bus_name: &BusName<'_>) -> impl std::future::Future<Output = Option<Peer>>;
+	fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer>;
 }
 
 impl P2P for crate::AccessibilityConnection {
@@ -640,7 +633,7 @@ impl P2P for crate::AccessibilityConnection {
 			.peers
 			.peers
 			.lock()
-			.await
+			.expect("lock already held by current thread")
 			.iter()
 			.find(|peer| obj.name == *peer.unique_name())
 			.cloned();
@@ -696,7 +689,7 @@ impl P2P for crate::AccessibilityConnection {
 			.peers
 			.peers
 			.lock()
-			.await
+			.expect("lock already held by current thread")
 			.iter()
 			.find(|peer| {
 				// Check if the peer's unique name matches the bus name
@@ -737,14 +730,13 @@ impl P2P for crate::AccessibilityConnection {
 	///
 	/// # block_on(async {
 	///   let conn = AccessibilityConnection::new().await.unwrap();
-	///   let peers_locked = conn.peers().await;
-	///   let peers = peers_locked.lock().await;
+	///   let peers_locked = conn.peers();
 	///   for peer in &*peers {
 	///       println!("Peer: {} at {}", peer.unique_name(), peer.socket_address());
 	///   }
 	/// # });
 	/// ```
-	async fn peers(&self) -> Arc<Mutex<Vec<Peer>>> {
+	fn peers(&self) -> Arc<Mutex<Vec<Peer>>> {
 		self.peers.inner()
 	}
 
@@ -759,10 +751,10 @@ impl P2P for crate::AccessibilityConnection {
 	/// # block_on(async {
 	///   let a11y = AccessibilityConnection::new().await.unwrap();
 	///   let bus_name = BusName::from_static_str(":1.42").unwrap();
-	///   let peer: Option<Peer> = a11y.find_peer(&bus_name).await;
+	///   let peer: Option<Peer> = a11y.find_peer(&bus_name);
 	/// # });
 	/// ```
-	async fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
-		self.peers.find_peer(bus_name).await
+	fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+		self.peers.find_peer(bus_name)
 	}
 }
