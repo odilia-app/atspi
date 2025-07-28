@@ -73,6 +73,10 @@ impl Peer {
 		let dbus_proxy = DBusProxy::new(conn).await?;
 		let owned_bus_name: OwnedBusName = bus_name.into();
 
+		let socket_address = socket
+			.try_into()
+			.map_err(|_| AtspiError::ParseError("Invalid address string"))?;
+
 		// Because D-Bus does not let us query whether a unique name is the owner of a well-known name,
 		// we need to query all well-known names and their owners, and then check if the unique name is one of them.
 
@@ -130,10 +134,6 @@ impl Peer {
 			}
 		};
 
-		let socket_address = socket
-			.try_into()
-			.map_err(|_| AtspiError::ParseError("Bus address string did not parse"))?;
-
 		let p2p_connection = Builder::address(socket_address.clone())?.p2p().build().await?;
 
 		Ok(Peer { unique_name, well_known_name, socket_address, p2p_connection })
@@ -151,7 +151,7 @@ impl Peer {
 		self.well_known_name.as_ref()
 	}
 
-	/// Returns the socket [`Address`] of the peer.
+	/// Returns the socket [`Address`][zbus::address::Address] of the peer.
 	#[must_use]
 	pub fn socket_address(&self) -> &Address {
 		&self.socket_address
