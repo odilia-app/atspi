@@ -2,3 +2,4 @@
 /atspi/*.bin
 *.bin
 /.vscode
+rust-analyzer.json
