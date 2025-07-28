@@ -150,7 +150,7 @@ impl Peer {
 		self.well_known_name.as_ref()
 	}
 
-	/// Returns the socket [`Address`][zbus::address::Address] of the peer.
+	/// Returns the socket [`Address`] of the peer.
 	#[must_use]
 	pub fn socket_address(&self) -> &Address {
 		&self.socket_address
@@ -164,7 +164,7 @@ impl Peer {
 	/// Try to create a new `Peer` from a bus name.
 	///
 	/// # Errors
-	/// Returns an error if the application proxy cannot be created or when it does not support `get_application_bus_address`.\
+	/// Returns an error if the application proxy cannot be created or if it does not support `get_application_bus_address`.\
 	/// A non-existent bus name will also return an error.
 	pub async fn try_from_bus_name(
 		bus_name: BusName<'_>,
@@ -730,7 +730,8 @@ impl P2P for crate::AccessibilityConnection {
 	///
 	/// # block_on(async {
 	///   let conn = AccessibilityConnection::new().await.unwrap();
-	///   let peers_locked = conn.peers();
+	///   let locked_peers = conn.peers();
+	///   let peers = locked_peers.lock().expect("lock already held by current thread");
 	///   for peer in &*peers {
 	///       println!("Peer: {} at {}", peer.unique_name(), peer.socket_address());
 	///   }
