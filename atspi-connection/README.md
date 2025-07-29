@@ -10,7 +10,14 @@ See the examples folder and documentation on how to use this library.
 
 ## Feature Flags
 
-- `default`: `wrappers`
-- `wrappers`: enable support for `atspi-common` wrapper types that categorize events by interface, as well as the all-encompassing `Event` enum that can store any event type.
-    - This also enables the `event_stream` function that allows you to receive a stream of `Event`s instead of specific events.
-- `tracing`: enable support for the `tracing` crate
+* `default`: `wrappers`, `p2p`
+* `p2p`: dependencies `async-executor" and enables`zbus/p2p`
+* `tracing`: enable support for the `tracing` crate
+* `wrappers`: enable support for `atspi-common` wrapper types that categorize events by interface, as well as the all-encompassing `Event` enum that can store any event type.
+  * This also enables the `event_stream` function that allows you to receive a stream of `Event`s instead of specific events.
+
+## P2P
+
+Peer-to-Peer (P2P) support in atspi enables direct connections to applications, bypassing the central accessibility bus when possible.
+
+See: [introduction to `atspi` p2p](p2p.md)

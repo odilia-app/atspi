@@ -14,9 +14,10 @@ version                = "0.11.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default  = ["wrappers"]
-wrappers = ["atspi-common/wrappers", "dep:futures-lite"]
+default  = ["p2p", "wrappers"]
+p2p      = ["dep:futures-lite", "zbus/p2p"]
 tracing  = ["dep:tracing"]
+wrappers = ["atspi-common/wrappers", "dep:futures-lite"]
 
 [dependencies]
 atspi-common   = { path = "../atspi-common/", version = "0.11.0", default-features = false, features = ["zbus"] }
