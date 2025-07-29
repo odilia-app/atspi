@@ -302,12 +302,7 @@ impl Peers {
 	}
 
 	/// Returns a [`Peer`] by its bus name.
-	///
-	/// # Note
-	/// Bus names are initialized from `ObjectRef` names, which are `OwnedUniqueName`s.
-	/// This means that the bus name should be a unique name, not a well-known name.
-	///
-	fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+	fn get_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
 		let peers = self.peers.lock().expect("already locked by current thread");
 
 		let matched = match bus_name {
@@ -595,7 +590,7 @@ pub trait P2P {
 	fn peers(&self) -> Arc<Mutex<Vec<Peer>>>;
 
 	/// Returns a [`Peer`] by its bus name.
-	fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer>;
+	fn get_peer(&self, bus_name: &BusName<'_>) -> Option<Peer>;
 }
 
 impl P2P for crate::AccessibilityConnection {
@@ -720,7 +715,7 @@ impl P2P for crate::AccessibilityConnection {
 		}
 	}
 
-	/// Get a snapshot of currently connected P2P capable peers.
+	/// Get the currently connected P2P capable peers.
 	///
 	/// # Examples
 	/// ```rust
@@ -752,10 +747,10 @@ impl P2P for crate::AccessibilityConnection {
 	/// # block_on(async {
 	///   let a11y = AccessibilityConnection::new().await.unwrap();
 	///   let bus_name = BusName::from_static_str(":1.42").unwrap();
-	///   let peer: Option<Peer> = a11y.find_peer(&bus_name);
+	///   let peer: Option<Peer> = a11y.get_peer(&bus_name);
 	/// # });
 	/// ```
-	fn find_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
-		self.peers.find_peer(bus_name)
+	fn get_peer(&self, bus_name: &BusName<'_>) -> Option<Peer> {
+		self.peers.get_peer(bus_name)
 	}
 }
