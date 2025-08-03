@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zbus_names::{OwnedUniqueName, UniqueName};
+use zbus_names::{BusName, OwnedUniqueName, UniqueName};
 use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
+
+use crate::AtspiError;
 
 /// A unique identifier for an object in the accessibility tree.
 ///
@@ -14,16 +16,13 @@ use zvariant::{ObjectPath, OwnedObjectPath, Type, Value};
 #[validate(signal: "Available")]
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRef {
-	pub name: OwnedUniqueName,
-	pub path: OwnedObjectPath,
+	name: OwnedUniqueName,
+	path: OwnedObjectPath,
 }
 
 impl Default for ObjectRef {
 	fn default() -> Self {
-		ObjectRef {
-			name: UniqueName::from_static_str_unchecked(":0.0").into(),
-			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/null").into(),
-		}
+		ObjectRef::from_static_str_unchecked(":0.0", "/org/a11y/atspi/null")
 	}
 }
 
@@ -32,6 +31,22 @@ impl ObjectRef {
 	#[must_use]
 	pub fn new<'a>(sender: UniqueName<'a>, path: ObjectPath<'a>) -> Self {
 		Self { name: sender.into(), path: path.into() }
+	}
+
+	/// Create a new `ObjectRef`, from bus name and object path.
+	///
+	/// # Errors
+	/// Will fail if the `sender` is not a `UniqueName`.
+	pub fn try_from_bus_name_and_path<'a>(
+		sender: BusName<'a>,
+		path: ObjectPath<'a>,
+	) -> Result<Self, AtspiError> {
+		// Check whether BusName matches UniqueName
+		if let BusName::Unique(unique_sender) = sender {
+			Ok(ObjectRef::new(unique_sender, path))
+		} else {
+			Err(AtspiError::ParseError("Expected UniqueName"))
+		}
 	}
 
 	/// Create a new `ObjectRef`, unchecked, with the static string values.
@@ -44,6 +59,18 @@ impl ObjectRef {
 			name: UniqueName::from_static_str_unchecked(sender).into(),
 			path: ObjectPath::from_static_str_unchecked(path).into(),
 		}
+	}
+
+	/// Return the bus-name of the object.
+	#[must_use]
+	pub fn name(&self) -> &UniqueName<'_> {
+		&self.name
+	}
+
+	/// Return the object path of the object.
+	#[must_use]
+	pub fn path(&self) -> &ObjectPath<'_> {
+		&self.path
 	}
 }
 
@@ -61,9 +88,9 @@ impl ObjectRef {
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct ObjectRefBorrowed<'a> {
 	#[serde(borrow)]
-	pub name: UniqueName<'a>,
+	name: UniqueName<'a>,
 	#[serde(borrow)]
-	pub path: ObjectPath<'a>,
+	path: ObjectPath<'a>,
 }
 
 impl ObjectRefBorrowed<'_> {
@@ -76,13 +103,25 @@ impl ObjectRefBorrowed<'_> {
 		let path = OwnedObjectPath::from(self.path.clone());
 		ObjectRef { name, path }
 	}
+
+	/// Return the bus-name of the object.
+	#[must_use]
+	pub fn name(&self) -> &UniqueName<'_> {
+		&self.name
+	}
+
+	/// Return the object path of the object.
+	#[must_use]
+	pub fn path(&self) -> &ObjectPath<'_> {
+		&self.path
+	}
 }
 
 impl Default for ObjectRefBorrowed<'_> {
 	fn default() -> Self {
 		ObjectRefBorrowed {
 			name: UniqueName::from_static_str_unchecked(":0.0"),
-			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/null"),
+			path: ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null"),
 		}
 	}
 }
@@ -150,7 +189,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -166,7 +205,7 @@ mod test {
 		let accessible: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(accessible.name.as_str(), ":0.0");
-		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(accessible.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -178,7 +217,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -192,7 +231,7 @@ mod test {
 		let obj: ObjectRef = value.try_into().unwrap();
 
 		assert_eq!(obj.name.as_str(), ":0.0");
-		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(obj.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -211,7 +250,7 @@ mod test {
 		let obj_borrow: ObjectRefBorrowed = value.try_into().unwrap();
 
 		assert_eq!(obj_borrow.name.as_str(), ":0.0");
-		assert_eq!(obj_borrow.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(obj_borrow.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -225,7 +264,7 @@ mod test {
 	fn test_objectref_default_doesnt_panic() {
 		let objr = ObjectRef::default();
 		assert_eq!(objr.name.as_str(), ":0.0");
-		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(objr.path.as_str(), "/org/a11y/atspi/null");
 	}
 
 	#[test]
@@ -244,6 +283,6 @@ mod test {
 		let Value::ObjectPath(path) = vals.last().unwrap() else {
 			panic!("Unable to destructure field value: {:?}", vals.get(1).unwrap());
 		};
-		assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/null");
+		assert_eq!(path.as_str(), "/org/a11y/atspi/null");
 	}
 }

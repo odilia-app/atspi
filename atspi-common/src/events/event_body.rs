@@ -1040,8 +1040,8 @@ mod test {
 
 		let (objectref, _) = bytes.deserialize::<ObjectRef>().unwrap();
 
-		assert_eq!(objectref.name, ":0.0");
-		assert_eq!(objectref.path, ObjectPath::from_static_str_unchecked("/").into());
+		assert_eq!(objectref.name().as_str(), ":0.0");
+		assert_eq!(objectref.path(), &ObjectPath::from_static_str_unchecked("/"));
 	}
 
 	#[cfg(test)]

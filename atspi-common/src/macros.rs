@@ -21,10 +21,11 @@ macro_rules! impl_event_properties {
 	($type:ty) => {
 		impl crate::EventProperties for $type {
 			fn sender(&self) -> zbus_names::UniqueName<'_> {
-				self.item.name.as_ref()
+				self.item.name().clone()
 			}
+
 			fn path(&self) -> zvariant::ObjectPath<'_> {
-				self.item.path.as_ref()
+				self.item.path().clone()
 			}
 		}
 	};
@@ -354,7 +355,7 @@ macro_rules! generic_event_test_case {
 		fn generic_event_uses() {
 			use crate::events::traits::MessageConversion;
 			let struct_event = <$type>::default();
-			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
+			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/null");
 			assert_eq!(struct_event.sender().as_str(), ":0.0");
 			let body = struct_event.body();
 			let body2 = Message::method_call(

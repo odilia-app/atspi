@@ -4,8 +4,7 @@
 use crate::{InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
-use zbus_names::UniqueName;
-use zvariant::{ObjectPath, Type};
+use zvariant::Type;
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
@@ -37,24 +36,18 @@ pub struct CacheItem {
 impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
-			object: ObjectRef {
-				name: UniqueName::from_static_str(":0.0").unwrap().into(),
-				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/object")
-					.unwrap()
-					.into(),
-			},
-			app: ObjectRef {
-				name: UniqueName::from_static_str(":0.0").unwrap().into(),
-				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/application")
-					.unwrap()
-					.into(),
-			},
-			parent: ObjectRef {
-				name: UniqueName::from_static_str(":0.0").unwrap().into(),
-				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/parent")
-					.unwrap()
-					.into(),
-			},
+			object: ObjectRef::from_static_str_unchecked(
+				":0.0",
+				"/org/a11y/atspi/accessible/object",
+			),
+			app: ObjectRef::from_static_str_unchecked(
+				":0.0",
+				"/org/a11y/atspi/accessible/application",
+			),
+			parent: ObjectRef::from_static_str_unchecked(
+				":0.0",
+				"/org/a11y/atspi/accessible/parent",
+			),
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
@@ -89,27 +82,22 @@ pub struct LegacyCacheItem {
 	/// The states applicable to the accessible.  au
 	pub states: StateSet,
 }
+
 impl Default for LegacyCacheItem {
 	fn default() -> Self {
 		Self {
-			object: ObjectRef {
-				name: UniqueName::from_static_str(":0.0").unwrap().into(),
-				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/object")
-					.unwrap()
-					.into(),
-			},
-			app: ObjectRef {
-				name: UniqueName::from_static_str(":0.0").unwrap().into(),
-				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/application")
-					.unwrap()
-					.into(),
-			},
-			parent: ObjectRef {
-				name: UniqueName::from_static_str(":0.0").unwrap().into(),
-				path: ObjectPath::from_static_str("/org/a11y/atspi/accessible/parent")
-					.unwrap()
-					.into(),
-			},
+			object: ObjectRef::from_static_str_unchecked(
+				":0.0",
+				"/org/a11y/atspi/accessible/object",
+			),
+			app: ObjectRef::from_static_str_unchecked(
+				":0.0",
+				"/org/a11y/atspi/accessible/application",
+			),
+			parent: ObjectRef::from_static_str_unchecked(
+				":0.0",
+				"/org/a11y/atspi/accessible/parent",
+			),
 			children: Vec::new(),
 			ifaces: InterfaceSet::empty(),
 			short_name: String::default(),

@@ -273,10 +273,7 @@ mod test_property {
 		test_prop_type_parent,
 		"accessible-parent",
 		Property::Parent,
-		ObjectRef {
-			name: ":420.69".try_into().unwrap(),
-			path: "/fake/a11y/addr".try_into().unwrap()
-		}
+		ObjectRef::from_static_str_unchecked(":420.69", "/fake/a11y/addr")
 	);
 	property_subtype_test!(
 		test_prop_type_table_caption,
