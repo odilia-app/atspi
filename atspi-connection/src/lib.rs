@@ -168,7 +168,7 @@ impl AccessibilityConnection {
 	/// #       .arg("--address")
 	/// #       .arg(addr_str)
 	/// #       .arg("emit")
-	/// #       .arg("/org/a11y/atspi/accessible/null")
+	/// #       .arg("/org/a11y/atspi/null")
 	/// #       .arg("org.a11y.atspi.Event.Object")
 	/// #       .arg("StateChanged")
 	/// #       .arg("siiva{sv}")

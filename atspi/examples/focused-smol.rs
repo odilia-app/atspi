@@ -14,7 +14,7 @@ smol_macros::main! {
 			let Ok(change) = <StateChangedEvent>::try_from(ev) else { continue };
 
 			if change.state == "focused".into() && change.enabled {
-				let bus_name = change.item.name.clone();
+				let bus_name = change.item.name_as_str();
 				println!("Accessible belonging to {bus_name}  focused!");
 			}
 		}

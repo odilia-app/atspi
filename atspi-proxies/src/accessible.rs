@@ -240,20 +240,18 @@ pub trait Accessible {
 impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
-		Ok(ObjectRef {
-			name: proxy.inner().destination().as_str().try_into()?,
-			path: proxy.inner().path().to_string().try_into()?,
-		})
+		let sender = proxy.inner().destination();
+		let path = proxy.inner().path();
+		ObjectRef::try_from_bus_name_and_path(sender.into(), path.into())
 	}
 }
 
 impl TryFrom<&AccessibleProxy<'_>> for ObjectRef {
 	type Error = AtspiError;
 	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
-		Ok(ObjectRef {
-			name: proxy.inner().destination().as_str().try_into()?,
-			path: proxy.inner().path().to_string().try_into()?,
-		})
+		let sender = proxy.inner().destination();
+		let path = proxy.inner().path();
+		ObjectRef::try_from_bus_name_and_path(sender.into(), path.into())
 	}
 }
 
@@ -289,8 +287,8 @@ impl ObjectRefExt for ObjectRef {
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, zbus::Error> {
 		AccessibleProxy::builder(conn)
-			.destination(self.name.clone())?
-			.path(self.path.clone())?
+			.destination(self.name().clone())?
+			.path(self.path().clone())?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await
@@ -301,8 +299,8 @@ impl ObjectRefExt for ObjectRef {
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, zbus::Error> {
 		AccessibleProxy::builder(conn)
-			.destination(self.name)?
-			.path(self.path)?
+			.destination(self.name().to_owned())?
+			.path(self.path().to_owned())?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await

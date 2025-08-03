@@ -217,7 +217,7 @@ impl Peer {
 	/// In case of an invalid connection or object path.
 	pub async fn as_accessible_proxy(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
 		AccessibleProxy::builder(&self.p2p_connection)
-			.path(obj.path.clone())?
+			.path(obj.path().to_owned())?
 			.cache_properties(CacheProperties::No)
 			.build()
 			.await
@@ -646,13 +646,13 @@ impl P2P for crate::AccessibilityConnection {
 			.lock()
 			.expect("lock already held by current thread")
 			.iter()
-			.find(|peer| obj.name == *peer.unique_name())
+			.find(|peer| obj.name() == peer.unique_name())
 			.cloned();
 
 		if let Some(peer) = lookup {
 			// If a peer is found, create an `AccessibleProxy` with a P2P connection
 			AccessibleProxy::builder(peer.connection())
-				.path(obj.path.clone())?
+				.path(obj.path().to_owned())?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
@@ -661,7 +661,7 @@ impl P2P for crate::AccessibilityConnection {
 			// If _no_ peer was found, fall back to the bus connection
 			let conn = self.connection();
 			AccessibleProxy::builder(conn)
-				.path(obj.path.clone())?
+				.path(obj.path().to_owned())?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
