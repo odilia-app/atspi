@@ -179,7 +179,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 						.name
 						.to_string()).unwrap();
 
-					println!("Converted {},{} to {},{}", ev.mouse_x, ev.mouse_y, x_relative_to_frame, y_relative_to_frame);
+					println!("Converted absolute coords: {},{} to window relative coords: {},{}", ev.mouse_x, ev.mouse_y, x_relative_to_frame, y_relative_to_frame);
 
 					println!("Clicked on app '{app_name}' at {},{}", x_relative_to_frame, y_relative_to_frame);
 
