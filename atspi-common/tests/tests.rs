@@ -121,7 +121,9 @@ async fn test_recv_add_accessible() {
 			}
 			assert_eq!(node_added.object.path.as_str(), "/org/a11y/atspi/accessible/object");
 			assert_eq!(node_added.app.path.as_str(), "/org/a11y/atspi/accessible/application");
-			assert_eq!(node_added.parent.path.as_str(), "/org/a11y/atspi/accessible/parent");
+
+			let parent: ObjectRef = node_added.parent.into();
+			assert_eq!(parent.path.as_str(), "/org/a11y/atspi/accessible/parent");
 
 			// If we did, break the loop.
 			break;
@@ -142,7 +144,7 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 	tokio::pin!(events);
 
 	let msg: zbus::Message = {
-		let path = "/org/a11y/atspi/accessible/null";
+		let path = "/org/a11y/atspi/null";
 		let iface = "org.a11y.atspi.Cache";
 		let member = "AddAccessible";
 
@@ -184,7 +186,11 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 
 			assert_eq!(node_added.object.path.as_str(), "/org/a11y/atspi/accessible/object");
 			assert_eq!(node_added.app.path.as_str(), "/org/a11y/atspi/accessible/application");
-			assert_eq!(node_added.parent.path.as_str(), "/org/a11y/atspi/accessible/parent");
+
+			let parent: ObjectRef = node_added.parent.into();
+			// Check that the parent is correctly converted from `ParentRef` to `ObjectRef
+
+			assert_eq!(parent.path.as_str(), "/org/a11y/atspi/accessible/parent");
 
 			// If we did, break the loop.
 			break;
