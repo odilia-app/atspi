@@ -41,6 +41,10 @@ name    = "event_parsing_100k"
 path    = "./benches/event_parsing_100k.rs"
 
 [[example]]
+name = "currently-focused-frame"
+path = "./examples/currently-focused-frame.rs"
+
+[[example]]
 name = "accessible-counts"
 path = "./examples/accessible-counts.rs"
 
