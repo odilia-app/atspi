@@ -14,7 +14,7 @@ use atspi::{MouseEvents, State};
 use atspi_connection::set_session_accessibility;
 use atspi_proxies::accessible::ObjectRefExt;
 
-#[async_std::main]
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 	let atspi = atspi::AccessibilityConnection::new().await?;
 	let conn = atspi.connection();
