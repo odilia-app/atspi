@@ -168,10 +168,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 					let active_frame = get_active_frame(apps, conn).await?;
 
-					let (width, height) = active_frame.proxies().await?.component().await?.get_position(atspi::CoordType::Window).await?;
+					let (x, y) = active_frame.proxies().await?.component().await?.get_position(atspi::CoordType::Screen).await?;
 
-					let x_relative_to_frame = ev.mouse_x - width;
-					let y_relative_to_frame = ev.mouse_y - height;
+					let x_relative_to_frame = ev.mouse_x - x;
+					let y_relative_to_frame = ev.mouse_y - y;
 
 					let app_name = id_to_name.get(&active_frame
 						.get_application()
