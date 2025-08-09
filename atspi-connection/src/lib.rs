@@ -205,7 +205,10 @@ impl AccessibilityConnection {
 		})
 	}
 
-	/// Registers an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
+	/// Registers an events as defined in [`atspi_common::events`].\
+	/// This function registers a single event, like so:
+	///
+	/// # Example
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
@@ -215,7 +218,6 @@ impl AccessibilityConnection {
 	/// ```
 	///
 	/// # Errors
-	///
 	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
 	pub async fn add_match_rule<T: DBusMatchRule>(&self) -> Result<(), AtspiError> {
 		let match_rule = MatchRule::try_from(<T as DBusMatchRule>::MATCH_RULE_STRING)?;
@@ -223,7 +225,10 @@ impl AccessibilityConnection {
 		Ok(())
 	}
 
-	/// Deregisters an events as defined in [`atspi-types::events`]. This function registers a single event, like so:
+	/// Deregisters an event as defined in [`atspi_common::events`].\
+	/// This function registers a single event, like so:
+	///
+	/// # Example
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
@@ -234,7 +239,6 @@ impl AccessibilityConnection {
 	/// ```
 	///
 	/// # Errors
-	///
 	/// This function may return an error if a [`zbus::Error`] is caused by all the various calls to [`zbus::fdo::DBusProxy`] and [`zbus::MatchRule::try_from`].
 	pub async fn remove_match_rule<T: DBusMatchRule>(&self) -> Result<(), AtspiError> {
 		let match_rule = MatchRule::try_from(<T as DBusMatchRule>::MATCH_RULE_STRING)?;
@@ -246,6 +250,7 @@ impl AccessibilityConnection {
 	/// This tells accessible applications which events should be forwarded to the accessibility bus.
 	/// This is called by [`Self::register_event`].
 	///
+	/// # Example
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
@@ -256,7 +261,6 @@ impl AccessibilityConnection {
 	/// ```
 	///
 	/// # Errors
-	///
 	/// May cause an error if the `DBus` method [`atspi_proxies::registry::RegistryProxy::register_event`] fails.
 	pub async fn add_registry_event<T: RegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
@@ -270,6 +274,7 @@ impl AccessibilityConnection {
 	/// This is called by [`Self::deregister_event`].
 	/// It may be called like so:
 	///
+	/// # Example
 	/// ```rust
 	/// use atspi_connection::common::events::object::StateChangedEvent;
 	/// # tokio_test::block_on(async {
@@ -280,7 +285,6 @@ impl AccessibilityConnection {
 	/// ```
 	///
 	/// # Errors
-	///
 	/// May cause an error if the `DBus` method [`RegistryProxy::deregister_event`] fails.
 	pub async fn remove_registry_event<T: RegistryEventString>(&self) -> Result<(), AtspiError> {
 		self.registry
@@ -321,12 +325,11 @@ impl AccessibilityConnection {
 	/// This converts the event into a [`zbus::Message`] using the [`DBusMember`] + [`DBusInterface`] trait.
 	///
 	/// # Errors
-	///
 	/// This will only fail if:
 	/// 1. [`zbus::Message`] fails at any point, or
 	/// 2. sending the event fails for some reason.
 	///
-	// / Both of these conditions should never happen as long as you have a valid event.
+	/// Both of these conditions should never happen as long as you have a valid event.
 	pub async fn send_event<'a, T>(&self, event: T) -> Result<(), AtspiError>
 	where
 		T: DBusMember + DBusInterface + EventProperties + MessageConversion<'a>,
@@ -349,6 +352,7 @@ impl AccessibilityConnection {
 	///
 	/// It may be called like so:
 	///
+	/// # Example
 	/// ```rust
 	/// use atspi_connection::AccessibilityConnection;
 	/// use zbus::proxy::CacheProperties;
@@ -360,7 +364,6 @@ impl AccessibilityConnection {
 	/// # });
 	/// ```
 	/// # Errors
-	///
 	/// This will fail if a dbus connection cannot be established when trying to
 	/// connect to the registry
 	///
@@ -394,11 +397,11 @@ impl Deref for AccessibilityConnection {
 ///
 /// Assistive Technology provider applications (ATs) should set the accessibility
 /// `IsEnabled` status on the users session bus on startup as applications may monitor this property
-/// to  enable their accessibility support dynamically.
+/// to enable their accessibility support dynamically.
 ///
 /// See: The [freedesktop - AT-SPI2 wiki](https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/)
 ///
-///  ## Example
+/// # Example
 /// ```rust
 ///     let result =  tokio_test::block_on( atspi_connection::set_session_accessibility(true) );
 ///     assert!(result.is_ok());
