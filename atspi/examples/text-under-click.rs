@@ -67,8 +67,9 @@ async fn find_relevant_descendant(
 	y: i32,
 ) -> Result<ObjectRef, Box<dyn Error>> {
 	for child in &children {
-		// unclear if this is even necessary; it seems like get_accessible_at_point
+		// Unclear if this is even necessary since it seems like get_accessible_at_point
 		// tends to return the proxy accessible anyways
+		// Orca checks for state while descending so will keep it for now
 		let states = child.as_accessible_proxy(conn).await?.get_state().await?;
 		if !states.contains(State::Showing) || !states.contains(State::Visible) {
 			continue;
