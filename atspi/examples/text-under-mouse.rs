@@ -10,7 +10,6 @@
 
 use std::{collections::HashMap, error::Error, time::Duration};
 
-use async_std::task::{self, sleep};
 use atspi::{
 	events::mouse::ButtonEvent,
 	AtspiError, Event,
@@ -23,6 +22,7 @@ use atspi_proxies::{
 	proxy_ext::ProxyExt,
 };
 use futures_lite::stream::StreamExt;
+use tokio::{task, time::sleep};
 
 async fn get_active_frame(
 	apps: Vec<ObjectRef>,
@@ -55,11 +55,13 @@ async fn find_relevant_descendant(
 	x: i32,
 	y: i32,
 ) -> Result<ObjectRef, Box<dyn Error>> {
-	for child in children {
-		let states = child.as_accessible_proxy(conn).await?.get_state().await?;
-		if !states.contains(State::Showing) || !states.contains(State::Visible) {
-			continue;
-		}
+	for child in &children {
+
+		// unclear if this is even necessary
+		// let states = child.as_accessible_proxy(conn).await?.get_state().await?;
+		// if !states.contains(State::Showing) || !states.contains(State::Visible) {
+		// 	continue;
+		// }
 
 		if child
 			.as_accessible_proxy(conn)
@@ -76,23 +78,23 @@ async fn find_relevant_descendant(
 				"Found object with accessible name '{name}' and objectref name '{}'",
 				child.name
 			);
-			return Ok(child);
+			return Ok(child.clone());
 		}
 	}
-	Err("There is no relevant descendant".into())
+	Err(format!("Could not find relevant descendant accessible among {} children", children.len()).into())
 }
 
 async fn get_descendant_at_point<'a>(
-	app_root: ObjectRef,
+	frame_root: ObjectRef,
 	conn: &'a zbus::Connection,
 	x: i32,
 	y: i32,
 ) -> Result<AccessibleProxy<'a>, Box<dyn Error>> {
-	let mut accessible_at_point: ObjectRef = app_root.clone();
+	let mut accessible_at_point: ObjectRef = frame_root.clone();
 
 	let mut level = 0;
 	loop {
-		println!("descending to tree level {level}");
+		println!("Descended {level} levels");
 		level += 1;
 		let deeper_accessible = accessible_at_point
 			.as_accessible_proxy(conn)
@@ -104,9 +106,15 @@ async fn get_descendant_at_point<'a>(
 			.get_accessible_at_point(x, y, atspi::CoordType::Window)
 			.await?;
 
+		if deeper_accessible == accessible_at_point {
+			// unclear if this can ever be the case; doesn't seem to be in testing
+			println!("got the same accessible twice; thus indicated that we reached the bottom of the tree");
+			return Ok(accessible_at_point.clone().into_accessible_proxy(conn).await?);
+		}
+
 		let role = deeper_accessible.as_accessible_proxy(conn).await?.get_role().await?;
 
-		println!("Got deeper accessible with role: {role}");
+		println!("Found accessible with role: {role}");
 
 		let children = deeper_accessible
 			.as_accessible_proxy(conn)
@@ -115,16 +123,15 @@ async fn get_descendant_at_point<'a>(
 			.await?;
 
 		if children.is_empty() {
-			// if there is no children then we are at the bottom and thus we can return
-			println!("reached accessible with no children at bottom of tree");
+			println!("Reached accessible with no children at bottom of tree");
 			return Ok(deeper_accessible.into_accessible_proxy(conn).await?);
 		}
 
 		let descendant = find_relevant_descendant(children, conn, x, y).await;
 
 		if let Err(e) = descendant {
-			println!("Error: {e}");
-			continue;
+			println!("{e}; returning early");
+			return Ok(accessible_at_point.clone().into_accessible_proxy(conn).await?);
 		} else {
 			accessible_at_point = descendant.unwrap();
 		}
@@ -132,20 +139,21 @@ async fn get_descendant_at_point<'a>(
 		let accessible = accessible_at_point.clone().into_accessible_proxy(conn).await?;
 
 		if let Ok(text_proxy) = accessible.proxies().await?.text().await {
-			let text = text_proxy.get_text(0, 20000).await?;
-			if !text.is_empty() {
-				println!("Found text: '{text}'");
+			let offset = text_proxy.get_offset_at_point(x, y, atspi::CoordType::Window).await?;
+			if offset > 0 {
 				return Ok(accessible);
 			} else {
-				println!("Had text proxy but contained empty text");
+				eprintln!("Found text proxy but contained empty text; continuing traversal");
 			}
+		} else {
+			eprintln!("Did not find text proxy; continuing traversal");
 		}
 
 		sleep(Duration::from_millis(100)).await;
 	}
 }
 
-#[async_std::main]
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 	let atspi = atspi::AccessibilityConnection::new().await?;
 	let conn = atspi.connection();
@@ -187,8 +195,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 					let active_frame = get_active_frame(apps, conn).await?;
 
-					println!("\n\nActive frame: {}", active_frame.name);
-
 					let (width, height) = active_frame
 						.as_accessible_proxy(conn)
 						.await?
@@ -202,6 +208,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 					let x_relative_to_frame = ev.mouse_x - width;
 					let y_relative_to_frame = ev.mouse_y - height;
 
+					let unknown = String::from("unknown");
 					let app_name = id_to_name
 						.get(
 							&active_frame
@@ -212,16 +219,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 								.name
 								.to_string(),
 						)
-						.unwrap();
+						.unwrap_or(&unknown);
 
 					println!(
-						"Converted absolute coords: {},{} to window relative coords: {},{}",
+						"\n\nClicked on app '{app_name}' with absolute coords: {},{} and window relative coords: {},{}",
 						ev.mouse_x, ev.mouse_y, x_relative_to_frame, y_relative_to_frame
-					);
-
-					println!(
-						"Clicked on app '{app_name}' at {},{}",
-						x_relative_to_frame, y_relative_to_frame
 					);
 
 					let component = get_descendant_at_point(
@@ -232,27 +234,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
 					)
 					.await?;
 
-					let text_offsets = component
-						.proxies()
-						.await?
-						.text()
-						.await?
-						.get_offset_at_point(
-							x_relative_to_frame,
-							y_relative_to_frame,
-							atspi::CoordType::Window,
-						)
-						.await?;
-					println!("Clicked text offset: {text_offsets:?}");
-					let text = component
-						.proxies()
-						.await?
-						.text()
-						.await?
-						.get_text(0, text_offsets)
-						.await?;
+					let text_proxy = component.proxies().await?.text().await;
 
-					println!("Clicked text: '{text}'");
+					if let Ok(text_proxy) = text_proxy {
+						let text_offset_length = text_proxy
+							.get_offset_at_point(
+								x_relative_to_frame,
+								y_relative_to_frame,
+								atspi::CoordType::Window,
+							)
+							.await?;
+						println!("Clicked accessible has text offset of size {text_offset_length:?}");
+						let text = text_proxy.get_text(0, text_offset_length).await?;
+						println!("User clicked on text: '{text}'");
+					} else {
+						eprintln!("Did not find text proxy; nothing to print");
+					}
 				}
 			}
 			Err(err) => eprintln!("Error from event channel: {err}"),
