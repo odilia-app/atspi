@@ -41,8 +41,8 @@ name    = "event_parsing_100k"
 path    = "./benches/event_parsing_100k.rs"
 
 [[example]]
-name = "text-under-mouse"
-path = "./examples/text-under-mouse.rs"
+name = "text-under-click"
+path = "./examples/text-under-click.rs"
 
 [[example]]
 name = "accessible-counts"

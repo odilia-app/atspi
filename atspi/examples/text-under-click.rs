@@ -1,6 +1,6 @@
-//! This example prints out the currently focused frame. A
-//! frame is generally semantically equivalent to an application
-//! window.
+//! This example prints out the text under the mouse click.
+//! This example only works with X11 given the fact
+//! Wayland does not support global coordinates.
 //!
 //! ```sh
 //! cargo run --example text-under-mouse
@@ -8,7 +8,7 @@
 //! Authors:
 //!    Colton Loftus
 
-use std::{collections::HashMap, error::Error, time::Duration};
+use std::{collections::HashMap, error::Error};
 
 use atspi::{
 	events::mouse::ButtonEvent,
@@ -22,7 +22,7 @@ use atspi_proxies::{
 	proxy_ext::ProxyExt,
 };
 use futures_lite::stream::StreamExt;
-use tokio::{task, time::sleep};
+use tokio::task;
 
 async fn get_active_frame(
 	apps: Vec<ObjectRef>,
@@ -49,6 +49,17 @@ async fn get_active_frame(
 	Err("There must be one active frame at any given time".into())
 }
 
+#[derive(Debug)]
+struct NoRelevantDescendantError {
+	children: usize,
+}
+impl std::error::Error for NoRelevantDescendantError {}
+impl std::fmt::Display for NoRelevantDescendantError {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		write!(f, "No relevant descendant found among {} children", self.children)
+	}
+}
+
 async fn find_relevant_descendant(
 	children: Vec<ObjectRef>,
 	conn: &zbus::Connection,
@@ -56,12 +67,12 @@ async fn find_relevant_descendant(
 	y: i32,
 ) -> Result<ObjectRef, Box<dyn Error>> {
 	for child in &children {
-
-		// unclear if this is even necessary
-		// let states = child.as_accessible_proxy(conn).await?.get_state().await?;
-		// if !states.contains(State::Showing) || !states.contains(State::Visible) {
-		// 	continue;
-		// }
+		// unclear if this is even necessary; it seems like get_accessible_at_point
+		// tends to return the proxy accessible anyways
+		let states = child.as_accessible_proxy(conn).await?.get_state().await?;
+		if !states.contains(State::Showing) || !states.contains(State::Visible) {
+			continue;
+		}
 
 		if child
 			.as_accessible_proxy(conn)
@@ -81,7 +92,8 @@ async fn find_relevant_descendant(
 			return Ok(child.clone());
 		}
 	}
-	Err(format!("Could not find relevant descendant accessible among {} children", children.len()).into())
+
+	Err(Box::new(NoRelevantDescendantError { children: children.len() }))
 }
 
 async fn get_descendant_at_point<'a>(
@@ -127,29 +139,27 @@ async fn get_descendant_at_point<'a>(
 			return Ok(deeper_accessible.into_accessible_proxy(conn).await?);
 		}
 
-		let descendant = find_relevant_descendant(children, conn, x, y).await;
-
-		if let Err(e) = descendant {
-			println!("{e}; returning early");
-			return Ok(accessible_at_point.clone().into_accessible_proxy(conn).await?);
-		} else {
-			accessible_at_point = descendant.unwrap();
-		}
-
-		let accessible = accessible_at_point.clone().into_accessible_proxy(conn).await?;
-
-		if let Ok(text_proxy) = accessible.proxies().await?.text().await {
-			let offset = text_proxy.get_offset_at_point(x, y, atspi::CoordType::Window).await?;
-			if offset > 0 {
-				return Ok(accessible);
-			} else {
-				eprintln!("Found text proxy but contained empty text; continuing traversal");
+		match find_relevant_descendant(children, conn, x, y).await {
+			Ok(descendant) => {
+				// If we found a relevant descendant, we use it as
+				// the new accessible at the point and continue descending
+				accessible_at_point = descendant;
 			}
-		} else {
-			eprintln!("Did not find text proxy; continuing traversal");
+			Err(err) => match err.downcast::<NoRelevantDescendantError>() {
+				Ok(err) => {
+					// If there are no relevant children, we're at the bottom of the tree
+					// and thus return the accessible at the point
+					println!("{err}; returning early");
+					return Ok(accessible_at_point.clone().into_accessible_proxy(conn).await?);
+				}
+				Err(err) => {
+					// If we got a different error, something went wrong
+					// and we should return the error
+					eprintln!("Unexpected error: {err}");
+					return Err(err);
+				}
+			},
 		}
-
-		sleep(Duration::from_millis(100)).await;
 	}
 }
 
@@ -160,6 +170,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	set_session_accessibility(true).await?;
 	atspi.register_event::<MouseEvents>().await?;
 
+	// Must use a separate task here to avoid hangs;
+	// zbus's internal buffer can potentially fill up
+	// if you wait too long between events.next.await calls
 	let (tx, rx) = async_std::channel::bounded::<Result<Event, AtspiError>>(1);
 	let atspi_clone = atspi.clone();
 	task::spawn(async move {
@@ -191,7 +204,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 		match rx.recv().await {
 			Ok(ev) => {
 				if let Ok(ev) = <ButtonEvent>::try_from(ev.unwrap()) {
-					let apps = atspi.root_accessible_on_registry().await?.get_children().await?;
+					let apps = root.get_children().await?;
 
 					let active_frame = get_active_frame(apps, conn).await?;
 
@@ -222,11 +235,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 						.unwrap_or(&unknown);
 
 					println!(
-						"\n\nClicked on app '{app_name}' with absolute coords: {},{} and window relative coords: {},{}",
+						"\n\nClicked on app '{app_name}' at absolute coords: {},{} and window relative coords: {},{}",
 						ev.mouse_x, ev.mouse_y, x_relative_to_frame, y_relative_to_frame
 					);
 
-					let component = get_descendant_at_point(
+					let component_with_clicked_text = get_descendant_at_point(
 						active_frame,
 						conn,
 						x_relative_to_frame,
@@ -234,7 +247,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 					)
 					.await?;
 
-					let text_proxy = component.proxies().await?.text().await;
+					let text_proxy = component_with_clicked_text.proxies().await?.text().await;
 
 					if let Ok(text_proxy) = text_proxy {
 						let text_offset_length = text_proxy
@@ -244,15 +257,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
 								atspi::CoordType::Window,
 							)
 							.await?;
-						println!("Clicked accessible has text offset of size {text_offset_length:?}");
-						let text = text_proxy.get_text(0, text_offset_length).await?;
-						println!("User clicked on text: '{text}'");
+						println!(
+							"Clicked accessible has text offset of size {text_offset_length:?}"
+						);
+						let all_text = text_proxy.get_text(0, text_offset_length).await?;
+						println!("User clicked on text: '{all_text}'");
 					} else {
 						eprintln!("Did not find text proxy; nothing to print");
 					}
 				}
 			}
-			Err(err) => eprintln!("Error from event channel: {err}"),
+			Err(err) => panic!("Error from event channel: {err}"),
 		}
 	}
 }
