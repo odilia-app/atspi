@@ -27,17 +27,22 @@ use futures_lite::stream::StreamExt;
 async fn get_active_frame(
 	apps: Vec<ObjectRef>,
 	conn: &zbus::Connection,
-) -> Result<AccessibleProxy, Box<dyn Error>> {
+) -> Result<ObjectRef, Box<dyn Error>> {
 	for app in apps.iter() {
 		let proxy = app.clone().into_accessible_proxy(conn).await?;
 		let state = proxy.get_state().await?;
 		assert!(!state.contains(State::Active), "The top level application should never have active state; only its associated frames should have this state");
 
 		for frame in proxy.get_children().await? {
-			let frame = frame.clone().into_accessible_proxy(conn).await?;
-			let state = frame.get_state().await?;
-			if state.contains(State::Active) {
-				return Ok(frame);
+			if frame
+				.clone()
+				.into_accessible_proxy(conn)
+				.await?
+				.get_state()
+				.await?
+				.contains(State::Active)
+			{
+				return Ok(frame.clone());
 			}
 		}
 	}
@@ -50,18 +55,27 @@ async fn find_relevant_descendant(
 	x: i32,
 	y: i32,
 ) -> Result<ObjectRef, Box<dyn Error>> {
-
-	
 	for child in children {
-		
 		let states = child.as_accessible_proxy(conn).await?.get_state().await?;
-		if !states.contains(State::Enabled) || !states.contains(State::Showing) {
-			continue
+		if !states.contains(State::Showing) || !states.contains(State::Visible) {
+			continue;
 		}
 
-		if child.as_accessible_proxy(conn).await?.proxies().await?.component().await?.contains(x, y, atspi::CoordType::Window).await? {
+		if child
+			.as_accessible_proxy(conn)
+			.await?
+			.proxies()
+			.await?
+			.component()
+			.await?
+			.contains(x, y, atspi::CoordType::Window)
+			.await?
+		{
 			let name = child.as_accessible_proxy(conn).await?.name().await?;
-			println!("Found {name}");
+			println!(
+				"Found object with accessible name '{name}' and objectref name '{}'",
+				child.name
+			);
 			return Ok(child);
 		}
 	}
@@ -69,24 +83,18 @@ async fn find_relevant_descendant(
 }
 
 async fn get_descendant_at_point<'a>(
-	proxy: AccessibleProxy<'a>,
+	app_root: ObjectRef,
 	conn: &'a zbus::Connection,
 	x: i32,
 	y: i32,
 ) -> Result<AccessibleProxy<'a>, Box<dyn Error>> {
-	let mut component = proxy
-		.proxies()
-		.await?
-		.component()
-		.await?
-		.get_accessible_at_point(x, y, atspi::CoordType::Window)
-		.await?;
+	let mut accessible_at_point: ObjectRef = app_root.clone();
 
-	let mut deep = 0;
+	let mut level = 0;
 	loop {
-		println!("descending {deep}");
-		deep += 1;
-		let deeper_component = component
+		println!("descending to tree level {level}");
+		level += 1;
+		let deeper_accessible = accessible_at_point
 			.as_accessible_proxy(conn)
 			.await?
 			.proxies()
@@ -96,22 +104,34 @@ async fn get_descendant_at_point<'a>(
 			.get_accessible_at_point(x, y, atspi::CoordType::Window)
 			.await?;
 
-		let children = deeper_component.as_accessible_proxy(conn).await?.get_children().await?;
+		let role = deeper_accessible.as_accessible_proxy(conn).await?.get_role().await?;
 
-		let descen = find_relevant_descendant(children, conn, x , y).await;
+		println!("Got deeper accessible with role: {role}");
 
-		if let Err(e) = descen {
-			println!("Error: {e}");
-			continue 
-		} else {
-			component = descen.unwrap();
+		let children = deeper_accessible
+			.as_accessible_proxy(conn)
+			.await?
+			.get_children()
+			.await?;
+
+		if children.is_empty() {
+			// if there is no children then we are at the bottom and thus we can return
+			println!("reached accessible with no children at bottom of tree");
+			return Ok(deeper_accessible.into_accessible_proxy(conn).await?);
 		}
 
-		let accessible = component.clone().into_accessible_proxy(conn).await?;
+		let descendant = find_relevant_descendant(children, conn, x, y).await;
 
-		let text_proxy = accessible.proxies().await?.text().await;
+		if let Err(e) = descendant {
+			println!("Error: {e}");
+			continue;
+		} else {
+			accessible_at_point = descendant.unwrap();
+		}
 
-		if let Ok(text_proxy) = text_proxy {
+		let accessible = accessible_at_point.clone().into_accessible_proxy(conn).await?;
+
+		if let Ok(text_proxy) = accessible.proxies().await?.text().await {
 			let text = text_proxy.get_text(0, 20000).await?;
 			if !text.is_empty() {
 				println!("Found text: '{text}'");
@@ -141,7 +161,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 		}
 	});
 
-
 	let root = atspi.root_accessible_on_registry().await?;
 
 	// we have to use a hashmap to map the id to the natural
@@ -168,26 +187,70 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 					let active_frame = get_active_frame(apps, conn).await?;
 
-					let (x, y) = active_frame.proxies().await?.component().await?.get_position(atspi::CoordType::Screen).await?;
+					println!("\n\nActive frame: {}", active_frame.name);
 
-					let x_relative_to_frame = ev.mouse_x - x;
-					let y_relative_to_frame = ev.mouse_y - y;
-
-					let app_name = id_to_name.get(&active_frame
-						.get_application()
+					let (width, height) = active_frame
+						.as_accessible_proxy(conn)
 						.await?
-						.name
-						.to_string()).unwrap();
+						.proxies()
+						.await?
+						.component()
+						.await?
+						.get_position(atspi::CoordType::Screen)
+						.await?;
 
-					println!("Converted absolute coords: {},{} to window relative coords: {},{}", ev.mouse_x, ev.mouse_y, x_relative_to_frame, y_relative_to_frame);
+					let x_relative_to_frame = ev.mouse_x - width;
+					let y_relative_to_frame = ev.mouse_y - height;
 
-					println!("Clicked on app '{app_name}' at {},{}", x_relative_to_frame, y_relative_to_frame);
+					let app_name = id_to_name
+						.get(
+							&active_frame
+								.as_accessible_proxy(conn)
+								.await?
+								.get_application()
+								.await?
+								.name
+								.to_string(),
+						)
+						.unwrap();
 
-					let component =
-						get_descendant_at_point(active_frame, conn, x_relative_to_frame, y_relative_to_frame).await?;
-					
-					let text =
-						component.proxies().await?.text().await?.get_text(0, i32::MAX).await?;
+					println!(
+						"Converted absolute coords: {},{} to window relative coords: {},{}",
+						ev.mouse_x, ev.mouse_y, x_relative_to_frame, y_relative_to_frame
+					);
+
+					println!(
+						"Clicked on app '{app_name}' at {},{}",
+						x_relative_to_frame, y_relative_to_frame
+					);
+
+					let component = get_descendant_at_point(
+						active_frame,
+						conn,
+						x_relative_to_frame,
+						y_relative_to_frame,
+					)
+					.await?;
+
+					let text_offsets = component
+						.proxies()
+						.await?
+						.text()
+						.await?
+						.get_offset_at_point(
+							x_relative_to_frame,
+							y_relative_to_frame,
+							atspi::CoordType::Window,
+						)
+						.await?;
+					println!("Clicked text offset: {text_offsets:?}");
+					let text = component
+						.proxies()
+						.await?
+						.text()
+						.await?
+						.get_text(0, text_offsets)
+						.await?;
 
 					println!("Clicked text: '{text}'");
 				}
