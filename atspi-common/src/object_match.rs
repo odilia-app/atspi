@@ -170,10 +170,10 @@ impl ObjectMatchRuleBuilder {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Default)]
 #[repr(i32)]
 pub enum MatchType {
-	/// Invalidates match criterion.
+	#[default]
+	/// Invalidates match criterion. Meanting: the search of this property will not be performed.
 	Invalid,
 
-	#[default]
 	/// All of the criteria must be met.
 	All,
 
