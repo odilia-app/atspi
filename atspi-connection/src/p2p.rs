@@ -7,7 +7,7 @@
 //!
 //! When zbus users use `tokio` (zbus feature "tokio" set), zbus will latch onto the tokio runtime.
 //! The `Executor` instance will be empty and all zbus tasks are run on the user's tokio runtime.
-//! However, when using any other executor (smol, glommio, async-std, etc.), each `Connection` will spin up a thread with an `async_executor::Executor`.
+//! However, when using any other executor (smol, glommio, etc.), each `Connection` will spin up a thread with an `async_executor::Executor`.
 //!
 //! Typically an application will have a single connection, but with P2P, your application will have a connection with each application that supports it.
 //! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
