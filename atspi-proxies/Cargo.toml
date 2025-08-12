@@ -10,7 +10,7 @@ name                   = "atspi-proxies"
 readme                 = "README.md"
 repository             = "https://github.com/odilia-app/atspi"
 rust-version.workspace = true
-version                = "0.11.0"
+version                = "0.12.0"
 
 [package.metadata.release]
 publish = true
