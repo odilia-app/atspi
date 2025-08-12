@@ -205,7 +205,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atspi"
-version = "0.27.0"
+version = "0.28.0"
 dependencies = [
  "atspi",
  "atspi-common",
@@ -224,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "atspi-common"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "assert_matches",
  "atspi-connection",
@@ -247,7 +247,7 @@ dependencies = [
 
 [[package]]
 name = "atspi-connection"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "atspi-common",
  "atspi-proxies",
@@ -260,7 +260,7 @@ dependencies = [
 
 [[package]]
 name = "atspi-proxies"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "atspi-common",
  "byteorder",
