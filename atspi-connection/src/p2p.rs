@@ -13,7 +13,7 @@
 //! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
 //! (So picking smol won't necessarily make your application small in the context of P2P.)
 
-use atspi_common::{AtspiError, ObjectRef};
+use atspi_common::{object_ref::ObjectRefOwned, AtspiError};
 use atspi_proxies::{
 	accessible::{AccessibleProxy, ObjectRefExt},
 	application::{self, ApplicationProxy},
@@ -215,9 +215,14 @@ impl Peer {
 	///
 	/// # Errors
 	/// In case of an invalid connection or object path.
-	pub async fn as_accessible_proxy(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
+	pub async fn as_accessible_proxy(
+		&self,
+		obj: &ObjectRefOwned,
+	) -> AtspiResult<AccessibleProxy<'_>> {
+		let path = obj.path();
+
 		AccessibleProxy::builder(&self.p2p_connection)
-			.path(obj.path().to_owned())?
+			.path(path)?
 			.cache_properties(CacheProperties::No)
 			.build()
 			.await
@@ -292,6 +297,10 @@ impl Peers {
 			// Get the application bus address
 			// aka: Does the application support P2P connections?
 			if let Ok(address) = application_proxy.get_application_bus_address().await {
+				let name = app.name().ok_or(AtspiError::MissingName)?;
+				let bus_name = BusName::from(name.clone());
+				let peer = Peer::try_new(bus_name, address.as_str(), conn).await?;
+				peers.push(peer);
 				let bus_name = BusName::from(&app.name);
 				match Peer::try_new(bus_name, address.as_str(), conn).await {
 					Ok(peer) => peers.push(peer),
@@ -592,7 +601,7 @@ pub trait P2P {
 	/// If the application does not support P2P, this returns an `AccessibleProxy` for the object with a bus connection.
 	fn object_as_accessible(
 		&'_ self,
-		obj: &ObjectRef,
+		obj: &ObjectRefOwned,
 	) -> impl std::future::Future<Output = AtspiResult<AccessibleProxy<'_>>>;
 
 	/// Returns a P2P connected `AccessibleProxy` to the root  accessible object for the given bus name, _if available_.\
@@ -624,7 +633,10 @@ impl P2P for crate::AccessibilityConnection {
 	/// # block_on(async {
 	///     let conn = AccessibilityConnection::new().await.unwrap();
 	///
-	///     let obj_ref = ObjectRef::default();
+	///     let name = UniqueName::from_static_str_unchecked(":1.1");
+	///     let path = ObjectPath::from_static_str_unchecked("/org/freedesktop/accessible/root");
+	///
+	///     let object_ref = ObjectRef::new_owned(name, path);
 	///     let accessible_proxy = conn.object_as_accessible(&obj_ref).await;
 	///     assert!(
 	///         accessible_proxy.is_ok(),
@@ -639,20 +651,24 @@ impl P2P for crate::AccessibilityConnection {
 	///
 	/// # Note
 	/// This function will first try to find a [`Peer`] with a P2P connection
-	async fn object_as_accessible(&self, obj: &ObjectRef) -> AtspiResult<AccessibleProxy<'_>> {
+	async fn object_as_accessible(&self, obj: &ObjectRefOwned) -> AtspiResult<AccessibleProxy<'_>> {
+		let name = obj.name().ok_or(AtspiError::MissingName)?.to_owned();
+		let name = OwnedUniqueName::from(name);
+		let path = obj.path();
+
 		let lookup = self
 			.peers
 			.peers
 			.lock()
 			.expect("lock already held by current thread")
 			.iter()
-			.find(|peer| obj.name() == peer.unique_name())
+			.find(|peer| &name == peer.unique_name())
 			.cloned();
 
 		if let Some(peer) = lookup {
 			// If a peer is found, create an `AccessibleProxy` with a P2P connection
 			AccessibleProxy::builder(peer.connection())
-				.path(obj.path().to_owned())?
+				.path(path)?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
@@ -661,7 +677,7 @@ impl P2P for crate::AccessibilityConnection {
 			// If _no_ peer was found, fall back to the bus connection
 			let conn = self.connection();
 			AccessibleProxy::builder(conn)
-				.path(obj.path().to_owned())?
+				.path(path)?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await

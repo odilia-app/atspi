@@ -1,4 +1,5 @@
 use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
+use crate::object_ref::ObjectRefOwned;
 #[cfg(feature = "zbus")]
 use crate::EventProperties;
 
@@ -13,7 +14,7 @@ use zbus::message::Header;
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadCompleteEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 /// An event triggered by a reloading of a document.
@@ -21,7 +22,7 @@ pub struct LoadCompleteEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReloadEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 /// An event triggered by the cancelling of a document load.
@@ -29,19 +30,19 @@ pub struct ReloadEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LoadStoppedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ContentChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 /// The focused page has changed.
@@ -56,7 +57,7 @@ pub struct AttributesChangedEvent {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct PageChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
@@ -150,7 +151,6 @@ impl_to_dbus_message!(PageChangedEvent);
 impl_from_dbus_message!(PageChangedEvent);
 impl_event_properties!(PageChangedEvent);
 impl_from_object_ref!(PageChangedEvent);
-
 impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
 impl_msg_conversion_ext_for_target_type!(ReloadEvent);
 impl_msg_conversion_ext_for_target_type!(LoadStoppedEvent);

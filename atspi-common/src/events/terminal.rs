@@ -1,8 +1,11 @@
 #[cfg(feature = "zbus")]
 use crate::error::AtspiError;
-use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
 #[cfg(feature = "zbus")]
 use crate::EventProperties;
+use crate::{
+	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
+	object_ref::ObjectRefOwned,
+};
 #[cfg(feature = "zbus")]
 use zbus::message::Header;
 
@@ -10,7 +13,7 @@ use zbus::message::Header;
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(LineChangedEvent);
@@ -20,7 +23,7 @@ impl_event_type_properties_for_event!(LineChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnCountChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ColumnCountChangedEvent);
@@ -30,7 +33,7 @@ impl_event_type_properties_for_event!(ColumnCountChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LineCountChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(LineCountChangedEvent);
@@ -38,7 +41,7 @@ impl_event_type_properties_for_event!(LineCountChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ApplicationChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ApplicationChangedEvent);
@@ -48,7 +51,7 @@ impl_event_type_properties_for_event!(ApplicationChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CharWidthChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(CharWidthChangedEvent);

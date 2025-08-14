@@ -33,7 +33,12 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 	for child in root.get_children().await?.iter() {
 		let proxy = child.clone().into_accessible_proxy(conn).await?;
 		let natural_name = proxy.name().await?;
-		let id = proxy.get_application().await?.name().to_string();
+		let id = proxy
+			.get_application()
+			.await?
+			.name()
+			.expect("root object has a name")
+			.to_string();
 		id_to_name.insert(id, natural_name);
 	}
 
@@ -53,7 +58,12 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 		)
 		.await?;
 		for child in &children_proxies {
-			let application_name = child.get_application().await?.name().to_string();
+			let application_name = child
+				.get_application()
+				.await?
+				.name()
+				.expect("root object has a name")
+				.to_string();
 			match id_to_accessible_count.entry(application_name) {
 				hash_map::Entry::Vacant(e) => {
 					e.insert(1);

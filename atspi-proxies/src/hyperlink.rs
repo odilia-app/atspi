@@ -10,12 +10,12 @@
 //! section of the zbus documentation.
 //!
 
-use crate::common::ObjectRef;
+use atspi_common::object_ref::ObjectRefOwned;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Hyperlink", assume_defaults = true)]
 pub trait Hyperlink {
 	/// `GetObject` method
-	fn get_object(&self, i: i32) -> zbus::Result<ObjectRef>;
+	fn get_object(&self, i: i32) -> zbus::Result<ObjectRefOwned>;
 
 	/// `GetURI` method
 	fn get_uri(&self, i: i32) -> zbus::Result<String>;

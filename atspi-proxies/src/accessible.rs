@@ -8,6 +8,8 @@
 
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
+use atspi_common::object_ref::ObjectRefOwned;
+use zbus::names::BusName;
 
 /// # `AccessibleProxy`
 ///
@@ -35,7 +37,7 @@ pub trait Accessible {
 	///
 	/// [`ObjectRef`]: [`crate::common::events::ObjectRef`]
 	/// [`Application`]: [`crate::application::ApplicationProxy`]
-	fn get_application(&self) -> zbus::Result<ObjectRef>;
+	fn get_application(&self) -> zbus::Result<ObjectRefOwned>;
 
 	/// Gets a list of name/value pairs of attributes or annotations for this object.
 	///
@@ -61,7 +63,7 @@ pub trait Accessible {
 	/// out of range, to "keep the type system gods happy".
 	///
 	/// [`get_children`]: #method.get_children
-	fn get_child_at_index(&self, index: i32) -> zbus::Result<ObjectRef>;
+	fn get_child_at_index(&self, index: i32) -> zbus::Result<ObjectRefOwned>;
 
 	/// Retrieves a list of the object's accessible children.
 	///
@@ -73,7 +75,7 @@ pub trait Accessible {
 	/// of all accessible applications' root objects on the bus.
 	///
 	/// [`Accessible`]: [`crate::accessible::AccessibleProxy`]
-	fn get_children(&self) -> zbus::Result<Vec<ObjectRef>>;
+	fn get_children(&self) -> zbus::Result<Vec<ObjectRefOwned>>;
 
 	/// This object resides in its parent's list of children.
 	/// This returns its position in this list of children, starting from 0.
@@ -122,7 +124,7 @@ pub trait Accessible {
 	/// [`RelationType::ControllerFor`]: [`crate::common::RelationType::ControllerFor`]
 	/// [`name`]: #method.name
 	/// [`Accessible`]: [`crate::common::events::Accessible`]
-	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<ObjectRef>)>>;
+	fn get_relation_set(&self) -> zbus::Result<Vec<(RelationType, Vec<ObjectRefOwned>)>>;
 
 	/// Gets the [`Role`] that the current accessible object represents.
 	///
@@ -230,28 +232,30 @@ pub trait Accessible {
 	/// An application must have a single root object, called "/org/a11y/atspi/accessible/root".
 	/// All other objects should have that one as their highest-level ancestor.
 	#[zbus(property)]
-	fn parent(&self) -> zbus::Result<ObjectRef>;
+	fn parent(&self) -> zbus::Result<ObjectRefOwned>;
 
 	/// Help text for the current object.
 	#[zbus(property)]
 	fn help_text(&self) -> zbus::Result<String>;
 }
 
-impl TryFrom<AccessibleProxy<'_>> for ObjectRef {
+impl TryFrom<AccessibleProxy<'_>> for ObjectRefOwned {
 	type Error = AtspiError;
-	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
+	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRefOwned, Self::Error> {
 		let sender = proxy.inner().destination();
 		let path = proxy.inner().path();
-		ObjectRef::try_from_bus_name_and_path(sender.into(), path.into())
+		let object_ref = ObjectRef::try_from_bus_name_and_path(sender.into(), path.into())?;
+		Ok(ObjectRefOwned::from(object_ref))
 	}
 }
 
-impl TryFrom<&AccessibleProxy<'_>> for ObjectRef {
+impl TryFrom<&AccessibleProxy<'_>> for ObjectRefOwned {
 	type Error = AtspiError;
-	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectRef, Self::Error> {
-		let sender = proxy.inner().destination();
-		let path = proxy.inner().path();
-		ObjectRef::try_from_bus_name_and_path(sender.into(), path.into())
+	fn try_from(proxy: &AccessibleProxy<'_>) -> Result<ObjectRefOwned, Self::Error> {
+		let sender = proxy.inner().destination().clone();
+		let path = proxy.inner().path().clone();
+		let object_ref = ObjectRef::try_from_bus_name_and_path(sender, path)?;
+		Ok(ObjectRefOwned::from(object_ref))
 	}
 }
 
@@ -266,7 +270,7 @@ pub trait ObjectRefExt {
 	fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
-	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, zbus::Error>> + Send;
+	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
 
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
@@ -278,32 +282,40 @@ pub trait ObjectRefExt {
 	fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
-	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, zbus::Error>> + Send;
+	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
 }
 
-impl ObjectRefExt for ObjectRef {
+impl ObjectRefExt for ObjectRefOwned {
 	async fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
-	) -> Result<AccessibleProxy<'_>, zbus::Error> {
+	) -> Result<AccessibleProxy<'_>, AtspiError> {
+		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
+		let path = self.path();
+
 		AccessibleProxy::builder(conn)
-			.destination(self.name().clone())?
-			.path(self.path().clone())?
+			.destination(name)?
+			.path(path)?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await
+			.map_err(AtspiError::from)
 	}
 
 	async fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
-	) -> Result<AccessibleProxy<'_>, zbus::Error> {
+	) -> Result<AccessibleProxy<'_>, AtspiError> {
+		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
+		let path = self.path();
+
 		AccessibleProxy::builder(conn)
-			.destination(self.name().to_owned())?
-			.path(self.path().to_owned())?
+			.destination(name)?
+			.path(path)?
 			.cache_properties(zbus::proxy::CacheProperties::No)
 			.build()
 			.await
+			.map_err(AtspiError::from)
 	}
 }
 
