@@ -13,6 +13,7 @@ use zvariant::Type;
 
 use crate::{
 	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
+	object_ref::ObjectRefOwned,
 	ObjectRef,
 };
 
@@ -21,7 +22,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerDeregisteredEvent {
 	/// The [`ObjectRef`] the event applies to.
-	pub item: ObjectRef,
+	pub item: ObjectRefOwned,
 	/// A list of events that have been deregistered via the registry interface.
 	/// See `atspi-connection`.
 	pub deregistered_event: EventListeners,
@@ -47,7 +48,7 @@ impl MessageConversion<'_> for EventListenerDeregisteredEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let deregistered_event = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, deregistered_event })
+		Ok(Self { item: item.into(), deregistered_event })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -70,7 +71,7 @@ impl_to_dbus_message!(EventListenerDeregisteredEvent);
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, Eq, Hash)]
 pub struct EventListenerRegisteredEvent {
 	/// The [`ObjectRef`] the event applies to.
-	pub item: crate::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// A list of events that have been registered via the registry interface.
 	/// See `atspi-connection`.
 	pub registered_event: EventListeners,
@@ -87,7 +88,7 @@ impl MessageConversion<'_> for EventListenerRegisteredEvent {
 		registered_event: DbusBody,
 	) -> Result<Self, AtspiError> {
 		let registered_event = registered_event.deserialize_unchecked()?;
-		Ok(Self { item, registered_event })
+		Ok(Self { item: item.into(), registered_event })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -155,6 +156,7 @@ pub mod socket {
 	#[cfg(feature = "zbus")]
 	use crate::events::MessageConversion;
 	use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
+	use crate::object_ref::ObjectRefOwned;
 	#[cfg(feature = "zbus")]
 	use crate::AtspiError;
 	#[cfg(feature = "zbus")]
@@ -173,10 +175,10 @@ pub mod socket {
 	#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, Hash)]
 	pub struct AvailableEvent {
 		/// The emitting [`ObjectRef`].
-		pub item: ObjectRef,
+		pub item: ObjectRefOwned,
 
 		/// The [`ObjectRef`] for the Registry's root object.
-		pub socket: ObjectRef,
+		pub socket: ObjectRefOwned,
 	}
 
 	impl_event_type_properties_for_event!(AvailableEvent);
@@ -197,14 +199,14 @@ pub mod socket {
 
 	#[cfg(feature = "zbus")]
 	impl MessageConversion<'_> for AvailableEvent {
-		type Body<'a> = ObjectRef;
+		type Body<'a> = ObjectRef<'a>;
 
 		fn from_message_unchecked_parts(
-			item: ObjectRef,
+			item: ObjectRef<'_>,
 			body: DbusBody,
 		) -> Result<Self, AtspiError> {
 			let socket = body.deserialize_unchecked::<Self::Body<'_>>()?;
-			Ok(Self { item, socket })
+			Ok(Self { item: item.into(), socket: socket.into() })
 		}
 
 		fn from_message_unchecked(
@@ -217,11 +219,11 @@ pub mod socket {
 		}
 
 		fn body(&self) -> Self::Body<'_> {
-			self.socket.clone()
+			self.socket.clone().into_inner()
 		}
 	}
 
-	impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: AvailableEvent, body: ObjectRef);
+	impl_msg_conversion_ext_for_target_type_with_specified_body_type!(target: AvailableEvent, body: ObjectRef<'a>);
 	impl_from_dbus_message!(AvailableEvent, Explicit);
 	impl_event_properties!(AvailableEvent);
 	impl_to_dbus_message!(AvailableEvent);

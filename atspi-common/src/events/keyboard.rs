@@ -2,8 +2,9 @@
 use super::event_body::EventBody;
 #[cfg(feature = "zbus")]
 use crate::error::AtspiError;
-use crate::events::{
-	DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString,
+use crate::{
+	events::{DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString},
+	object_ref::ObjectRefOwned,
 };
 
 #[cfg(feature = "zbus")]
@@ -14,7 +15,7 @@ use zbus::message::{Body as DbusBody, Header};
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModifiersEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,
 }
@@ -35,7 +36,11 @@ impl MessageConversion<'_> for ModifiersEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, previous_modifiers: body.detail1(), current_modifiers: body.detail2() })
+		Ok(Self {
+			item: item.into(),
+			previous_modifiers: body.detail1(),
+			current_modifiers: body.detail2(),
+		})
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {

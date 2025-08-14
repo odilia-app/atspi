@@ -52,12 +52,12 @@ async fn test_recv_remove_accessible() {
 
 		if let Event::Cache(CacheEvents::Remove(event)) = event {
 			// If we were not sender of the signal, continue listening.
-			if event.item.name().as_str() != unique_bus_name.as_str() {
+			if event.item.name().unwrap().as_str() != unique_bus_name.as_str() {
 				continue;
 			}
 
 			let (name, path) = (event.node_removed.name(), event.node_removed.path());
-			assert_eq!(name.as_str(), ":69.420");
+			assert_eq!(name.unwrap().as_str(), ":69.420");
 			assert_eq!(path.as_str(), "/org/a11y/atspi/accessible/remove");
 
 			// If we were sender, break the loop.
@@ -112,12 +112,12 @@ async fn test_recv_add_accessible() {
 
 		if let Event::Cache(CacheEvents::Add(AddAccessibleEvent { node_added, item })) = event {
 			// If we did not send the signal, continue listening.
-			if item.name().as_str() != unique_bus_name.as_str() {
+			if item.name().unwrap().as_str() != unique_bus_name.as_str() {
 				continue;
 			}
-			assert_eq!(node_added.object.path().as_str(), "/org/a11y/atspi/accessible/object");
-			assert_eq!(node_added.app.path().as_str(), "/org/a11y/atspi/accessible/application");
-			assert_eq!(node_added.parent.path().as_str(), "/org/a11y/atspi/accessible/parent");
+			assert_eq!(node_added.object.path_as_str(), "/org/a11y/atspi/accessible/object");
+			assert_eq!(node_added.app.path_as_str(), "/org/a11y/atspi/accessible/application");
+			assert_eq!(node_added.parent.path_as_str(), "/org/a11y/atspi/accessible/parent");
 
 			// If we did, break the loop.
 			break;
@@ -174,13 +174,13 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 
 		if let Event::Cache(CacheEvents::Add(AddAccessibleEvent { node_added, item })) = event {
 			// If we did not send the signal, continue listening.
-			if item.name().as_str() != unique_bus_name.as_str() {
+			if item.name().unwrap().as_str() != unique_bus_name.as_str() {
 				continue;
 			}
 
-			assert_eq!(node_added.object.path().as_str(), "/org/a11y/atspi/accessible/object");
-			assert_eq!(node_added.app.path().as_str(), "/org/a11y/atspi/accessible/application");
-			assert_eq!(node_added.parent.path().as_str(), "/org/a11y/atspi/accessible/parent");
+			assert_eq!(node_added.object.path_as_str(), "/org/a11y/atspi/accessible/object");
+			assert_eq!(node_added.app.path_as_str(), "/org/a11y/atspi/accessible/application");
+			assert_eq!(node_added.parent.path_as_str(), "/org/a11y/atspi/accessible/parent");
 
 			// If we did, break the loop.
 			break;

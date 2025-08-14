@@ -1,7 +1,7 @@
 //! Common types for `org.a11y.atspi.Cache` events.
 //!
 
-use crate::{InterfaceSet, ObjectRef, Role, StateSet};
+use crate::{object_ref::ObjectRefOwned, InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
 use zbus_lockstep_macros::validate;
 use zvariant::Type;
@@ -12,11 +12,11 @@ use zvariant::Type;
 #[validate(signal: "AddAccessible")]
 pub struct CacheItem {
 	/// The accessible object (within the application)   (so)
-	pub object: ObjectRef,
+	pub object: ObjectRefOwned,
 	/// The application (root object(?)    (so)
-	pub app: ObjectRef,
+	pub app: ObjectRefOwned,
 	/// The parent object.  (so)
-	pub parent: ObjectRef,
+	pub parent: ObjectRefOwned,
 	/// The accessbile index in parent.  i
 	pub index: i32,
 	/// Child count of the accessible  i
@@ -39,15 +39,18 @@ impl Default for CacheItem {
 			object: ObjectRef::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/object",
-			),
+			)
+			.into(),
 			app: ObjectRef::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/application",
-			),
+			)
+			.into(),
 			parent: ObjectRef::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/parent",
-			),
+			)
+			.into(),
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
@@ -64,13 +67,13 @@ impl Default for CacheItem {
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct LegacyCacheItem {
 	/// The accessible object (within the application)   (so)
-	pub object: ObjectRef,
+	pub object: ObjectRefOwned,
 	/// The application (root object(?)    (so)
-	pub app: ObjectRef,
+	pub app: ObjectRefOwned,
 	/// The parent object.  (so)
-	pub parent: ObjectRef,
+	pub parent: ObjectRefOwned,
 	/// List of references to the accessible's children.  a(so)
-	pub children: Vec<ObjectRef>,
+	pub children: Vec<ObjectRefOwned>,
 	/// The exposed interface(s) set.  as
 	pub ifaces: InterfaceSet,
 	/// The short localized name.  s
@@ -89,15 +92,18 @@ impl Default for LegacyCacheItem {
 			object: ObjectRef::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/object",
-			),
+			)
+			.into(),
 			app: ObjectRef::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/application",
-			),
+			)
+			.into(),
 			parent: ObjectRef::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/parent",
-			),
+			)
+			.into(),
 			children: Vec::new(),
 			ifaces: InterfaceSet::empty(),
 			short_name: String::default(),

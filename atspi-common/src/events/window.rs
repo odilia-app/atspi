@@ -8,16 +8,18 @@ use crate::events::{
 	DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString,
 };
 #[cfg(feature = "zbus")]
-use crate::EventProperties;
+use crate::object_ref::{ObjectRef, ObjectRefOwned};
 #[cfg(feature = "zbus")]
-use crate::ObjectRef;
+use crate::EventProperties;
+use serde::Deserialize;
+use serde::Serialize;
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct PropertyChangeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	pub property: String,
 }
 
@@ -27,7 +29,7 @@ impl_event_type_properties_for_event!(PropertyChangeEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MinimizeEvent {
 	/// The application which has been minimized.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(MinimizeEvent);
@@ -36,7 +38,7 @@ impl_event_type_properties_for_event!(MinimizeEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct MaximizeEvent {
 	/// The application which has been maximized.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(MaximizeEvent);
@@ -44,7 +46,7 @@ impl_event_type_properties_for_event!(MaximizeEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RestoreEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(RestoreEvent);
@@ -53,7 +55,7 @@ impl_event_type_properties_for_event!(RestoreEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CloseEvent {
 	/// The application which has been closed.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(CloseEvent);
@@ -62,7 +64,7 @@ impl_event_type_properties_for_event!(CloseEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct CreateEvent {
 	/// An application to query for additional events from.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(CreateEvent);
@@ -70,7 +72,7 @@ impl_event_type_properties_for_event!(CreateEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ReparentEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ReparentEvent);
@@ -79,97 +81,96 @@ impl_event_type_properties_for_event!(ReparentEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct DesktopCreateEvent {
 	/// A reference to a new desktop
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(DesktopCreateEvent);
 
 /// A virtual desktop has been deleted.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct DesktopDestroyEvent {
 	/// A reference to the destroyed desktop.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(DesktopDestroyEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct DestroyEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
-
 impl_event_type_properties_for_event!(DestroyEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct ActivateEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ActivateEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct DeactivateEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(DeactivateEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct RaiseEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(RaiseEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct LowerEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(LowerEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct MoveEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(MoveEvent);
 
 /// A window has been resized.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct ResizeEvent {
 	/// The application which has been resized.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ResizeEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct ShadeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ShadeEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct UUshadeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(UUshadeEvent);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
 pub struct RestyleEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(RestyleEvent);
@@ -188,7 +189,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, property: body.take_kind() })
+		Ok(Self { item: item.into(), property: body.take_kind() })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
