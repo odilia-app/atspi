@@ -18,6 +18,7 @@ pub trait Component {
 	fn contains(&self, x: i32, y: i32, coord_type: CoordType) -> zbus::Result<bool>;
 
 	/// `GetAccessibleAtPoint` method
+	/// To get an accessible at a point inside a frame of a particular app, you must use `CoordType::Window`
 	fn get_accessible_at_point(
 		&self,
 		x: i32,
@@ -39,6 +40,7 @@ pub trait Component {
 	fn get_mdiz_order(&self) -> zbus::Result<i16>;
 
 	/// `GetPosition` method
+	/// To get the position of a frame of a particular app, you must use `CoordType::Screen`
 	fn get_position(&self, coord_type: CoordType) -> zbus::Result<(i32, i32)>;
 
 	/// `GetSize` method
