@@ -625,6 +625,8 @@ impl P2P for crate::AccessibilityConnection {
 	/// # Examples
 	/// ```rust
 	/// # use tokio_test::block_on;
+	/// use zbus::names::UniqueName;
+	/// use zbus::zvariant::ObjectPath;
 	/// use atspi_proxies::accessible::AccessibleProxy;
 	/// use atspi_common::ObjectRef;
 	/// use atspi_connection::{P2P, Peer};
@@ -637,7 +639,7 @@ impl P2P for crate::AccessibilityConnection {
 	///     let path = ObjectPath::from_static_str_unchecked("/org/freedesktop/accessible/root");
 	///
 	///     let object_ref = ObjectRef::new_owned(name, path);
-	///     let accessible_proxy = conn.object_as_accessible(&obj_ref).await;
+	///     let accessible_proxy = conn.object_as_accessible(&object_ref).await;
 	///     assert!(
 	///         accessible_proxy.is_ok(),
 	///         "Failed to get accessible proxy: {:?}",

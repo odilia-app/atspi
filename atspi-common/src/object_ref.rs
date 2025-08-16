@@ -2,8 +2,8 @@ use crate::AtspiError;
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 use zbus::{
-	names::{BusName, OwnedUniqueName, UniqueName},
-	zvariant::{ObjectPath, OwnedObjectPath, Type},
+	names::{BusName, UniqueName},
+	zvariant::{ObjectPath, Type},
 };
 use zbus_lockstep_macros::validate;
 use zvariant::Structure;
@@ -33,7 +33,7 @@ pub(crate) const TEST_DEFAULT_OBJECT_REF: ObjectRef<'static> =
 #[zvariant(signature = "(so)")]
 pub enum ObjectRef<'o> {
 	Null,
-	Owned { name: OwnedUniqueName, path: OwnedObjectPath },
+	Owned { name: UniqueName<'static>, path: ObjectPath<'static> },
 	Borrowed { name: UniqueName<'o>, path: ObjectPath<'o> },
 }
 
@@ -61,11 +61,11 @@ impl<'o> ObjectRef<'o> {
 	/// ```
 	pub fn new_owned<N, P>(name: N, path: P) -> ObjectRefOwned
 	where
-		N: Into<OwnedUniqueName>,
-		P: Into<OwnedObjectPath>,
+		N: Into<UniqueName<'static>>,
+		P: Into<ObjectPath<'static>>,
 	{
-		let name: OwnedUniqueName = name.into();
-		let path: OwnedObjectPath = path.into();
+		let name: UniqueName<'static> = name.into();
+		let path: ObjectPath<'static> = path.into();
 
 		ObjectRefOwned(ObjectRef::Owned { name, path })
 	}
@@ -112,7 +112,7 @@ impl<'o> ObjectRef<'o> {
 		}
 	}
 
-	/// Create a new bprrpwed `ObjectRef`, unchecked and const.
+	/// Create a new `ObjectRef`, unchecked.
 	///
 	/// # Safety
 	/// The caller must ensure that the strings are valid.
@@ -121,7 +121,7 @@ impl<'o> ObjectRef<'o> {
 		let name = UniqueName::from_static_str_unchecked(name);
 		let path = ObjectPath::from_static_str_unchecked(path);
 
-		ObjectRef::Borrowed { name, path }
+		ObjectRef::Owned { name, path }
 	}
 
 	/// Returns `true` if the object reference is `Null`, otherwise returns `false`.
@@ -153,6 +153,9 @@ impl<'o> ObjectRef<'o> {
 	/// assert_eq!(object_ref.name_as_str(), Some(":1.23"));
 	/// ```
 	#[must_use]
+	// The match arms are not the same, but Clippy thinks they are.
+	// `name` is `UniqueName<'o>` in `Borrowed` and `UniqueName<'static>` in `Owned`.
+	#[allow(clippy::match_same_arms)]
 	pub fn name(&self) -> Option<&UniqueName<'o>> {
 		match self {
 			Self::Owned { name, .. } => Some(name),
@@ -178,6 +181,9 @@ impl<'o> ObjectRef<'o> {
 	/// assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
 	/// ```
 	#[must_use]
+	// The match arms are not the same, but Clippy thinks they are.
+	// `path` is `ObjectPath<'o>` in `Borrowed` and `ObjectPath<'static>` in `Owned`.
+	#[allow(clippy::match_same_arms)]
 	pub fn path(&self) -> &ObjectPath<'o> {
 		match self {
 			Self::Owned { path, .. } => path,
@@ -212,7 +218,7 @@ impl<'o> ObjectRef<'o> {
 			Self::Null => ObjectRef::Null,
 			Self::Owned { name, path } => ObjectRef::Owned { name, path },
 			Self::Borrowed { name, path } => {
-				ObjectRef::Owned { name: name.to_owned().into(), path: path.to_owned().into() }
+				ObjectRef::Owned { name: name.to_owned(), path: path.to_owned() }
 			}
 		}
 	}
@@ -222,8 +228,7 @@ impl<'o> ObjectRef<'o> {
 	pub fn name_as_str(&self) -> Option<&str> {
 		match self {
 			ObjectRef::Null => None,
-			ObjectRef::Owned { name, .. } => Some(name.as_str()),
-			ObjectRef::Borrowed { name, .. } => Some(name.as_str()),
+			ObjectRef::Owned { name, .. } | ObjectRef::Borrowed { name, .. } => Some(name.as_str()),
 		}
 	}
 
@@ -232,8 +237,7 @@ impl<'o> ObjectRef<'o> {
 	pub fn path_as_str(&self) -> &str {
 		match self {
 			ObjectRef::Null => NULL_PATH_STR,
-			ObjectRef::Owned { path, .. } => path.as_str(),
-			ObjectRef::Borrowed { path, .. } => path.as_str(),
+			ObjectRef::Owned { path, .. } | ObjectRef::Borrowed { path, .. } => path.as_str(),
 		}
 	}
 }
@@ -275,8 +279,20 @@ impl From<ObjectRef<'_>> for ObjectRefOwned {
 impl ObjectRefOwned {
 	/// Create a new `ObjectRefOwned` from an `ObjectRef<'static>`.
 	#[must_use]
-	pub fn new(object_ref: ObjectRef<'static>) -> Self {
+	pub const fn new(object_ref: ObjectRef<'static>) -> Self {
 		Self(object_ref)
+	}
+
+	/// Create a new `ObjectRefOwned` from `&'static str` unchecked.
+	///
+	/// # Safety
+	/// The caller must ensure that the strings are valid.
+	#[must_use]
+	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
+		let name = UniqueName::from_static_str_unchecked(name);
+		let path = ObjectPath::from_static_str_unchecked(path);
+
+		ObjectRefOwned(ObjectRef::Owned { name, path })
 	}
 
 	/// Returns the inner `ObjectRef`, consuming `self`.
@@ -305,9 +321,8 @@ impl ObjectRefOwned {
 	/// ```
 	#[must_use]
 	pub fn name(&self) -> Option<&UniqueName<'static>> {
-		match self.0 {
-			ObjectRef::Owned { ref name, .. } => Some(name),
-			ObjectRef::Borrowed { ref name, .. } => Some(name),
+		match &self.0 {
+			ObjectRef::Owned { name, .. } | ObjectRef::Borrowed { name, .. } => Some(name),
 			ObjectRef::Null => None,
 		}
 	}
@@ -329,9 +344,8 @@ impl ObjectRefOwned {
 	/// ```
 	#[must_use]
 	pub fn path(&self) -> &ObjectPath<'static> {
-		match self.0 {
-			ObjectRef::Owned { ref path, .. } => path,
-			ObjectRef::Borrowed { ref path, .. } => path,
+		match &self.0 {
+			ObjectRef::Owned { path, .. } | ObjectRef::Borrowed { path, .. } => path,
 			ObjectRef::Null => NULL_OBJECT_PATH,
 		}
 	}
@@ -339,10 +353,9 @@ impl ObjectRefOwned {
 	/// Returns the name of the object reference as a string slice.
 	#[must_use]
 	pub fn name_as_str(&self) -> Option<&str> {
-		match self.0 {
+		match &self.0 {
 			ObjectRef::Null => None,
-			ObjectRef::Owned { ref name, .. } => Some(name.as_str()),
-			ObjectRef::Borrowed { ref name, .. } => Some(name.as_str()),
+			ObjectRef::Owned { name, .. } | ObjectRef::Borrowed { name, .. } => Some(name.as_str()),
 		}
 	}
 
@@ -351,8 +364,7 @@ impl ObjectRefOwned {
 	pub fn path_as_str(&self) -> &str {
 		match &self.0 {
 			ObjectRef::Null => NULL_PATH_STR,
-			ObjectRef::Owned { path, .. } => path.as_str(),
-			ObjectRef::Borrowed { path, .. } => path.as_str(),
+			ObjectRef::Owned { path, .. } | ObjectRef::Borrowed { path, .. } => path.as_str(),
 		}
 	}
 }
@@ -366,10 +378,11 @@ impl Serialize for ObjectRef<'_> {
 	where
 		S: serde::Serializer,
 	{
-		match self {
-			Self::Null => ("", NULL_OBJECT_PATH).serialize(serializer),
-			Self::Owned { name, path } => (name.as_str(), path).serialize(serializer),
-			Self::Borrowed { name, path } => (name.as_str(), path).serialize(serializer),
+		match &self {
+			ObjectRef::Null => ("", NULL_OBJECT_PATH).serialize(serializer),
+			ObjectRef::Owned { name, path } | ObjectRef::Borrowed { name, path } => {
+				(name.as_str(), path).serialize(serializer)
+			}
 		}
 	}
 }
@@ -463,11 +476,7 @@ impl Hash for ObjectRef<'_> {
 				// Hashing a Null object reference.
 				"Null".hash(state);
 			}
-			ObjectRef::Owned { name, path } => {
-				name.as_str().hash(state);
-				path.as_str().hash(state);
-			}
-			ObjectRef::Borrowed { name, path } => {
+			ObjectRef::Owned { name, path } | ObjectRef::Borrowed { name, path } => {
 				name.as_str().hash(state);
 				path.as_str().hash(state);
 			}
@@ -538,10 +547,8 @@ impl<'m> TryFrom<&'m zbus::message::Header<'_>> for ObjectRefOwned {
 		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
 		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
 
-		let object_ref = ObjectRef::Owned {
-			name: name.clone().into_owned().into(),
-			path: path.clone().into_owned().into(),
-		};
+		let object_ref =
+			ObjectRef::Owned { name: name.clone().into_owned(), path: path.clone().into_owned() };
 		Ok(ObjectRefOwned(object_ref))
 	}
 }
@@ -569,7 +576,7 @@ impl<'v> TryFrom<zvariant::Value<'v>> for ObjectRefOwned {
 impl TryFrom<zvariant::OwnedValue> for ObjectRef<'static> {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		let (name, path): (OwnedUniqueName, OwnedObjectPath) = value.try_into()?;
+		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
 		Ok(ObjectRef::Owned { name, path })
 	}
 }
@@ -577,7 +584,7 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRef<'static> {
 impl TryFrom<zvariant::OwnedValue> for ObjectRefOwned {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		let (name, path): (OwnedUniqueName, OwnedObjectPath) = value.try_into()?;
+		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
 		let obj = ObjectRef::Owned { name, path };
 		Ok(ObjectRefOwned(obj))
 	}
@@ -587,9 +594,7 @@ impl<'r: 's, 'o: 's, 's> From<&'r ObjectRef<'o>> for zvariant::Structure<'s> {
 	fn from(obj: &'r ObjectRef<'o>) -> Self {
 		match obj {
 			ObjectRef::Null => ("", NULL_OBJECT_PATH).into(),
-
 			ObjectRef::Borrowed { name, path } => Structure::from((name.clone(), path)),
-
 			ObjectRef::Owned { name, path } => Structure::from((name.as_str(), path.as_ref())),
 		}
 	}
@@ -599,8 +604,9 @@ impl<'o> From<ObjectRef<'o>> for zvariant::Structure<'o> {
 	fn from(obj: ObjectRef<'o>) -> Self {
 		match obj {
 			ObjectRef::Null => Structure::from(("", NULL_OBJECT_PATH)),
-			ObjectRef::Borrowed { name, path } => Structure::from((name, path)),
-			ObjectRef::Owned { name, path } => Structure::from((name, path)),
+			ObjectRef::Borrowed { name, path } | ObjectRef::Owned { name, path } => {
+				Structure::from((name, path))
+			}
 		}
 	}
 }
