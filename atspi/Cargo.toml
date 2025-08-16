@@ -11,7 +11,7 @@ name                   = "atspi"
 readme                 = "../README.md"
 repository             = "https://github.com/odilia-app/atspi"
 rust-version.workspace = true
-version                = "0.27.0"
+version                = "0.28.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -25,9 +25,9 @@ tokio      = ["zbus/tokio"]
 tracing    = ["atspi-connection/tracing"]
 
 [dependencies]
-atspi-common     = { path = "../atspi-common", version = "0.11.0", default-features = false }
-atspi-connection = { path = "../atspi-connection", version = "0.11.0", optional = true }
-atspi-proxies    = { path = "../atspi-proxies", version = "0.11.0", optional = true }
+atspi-common     = { path = "../atspi-common", version = "0.12.0", default-features = false }
+atspi-connection = { path = "../atspi-connection", version = "0.12.0", optional = true }
+atspi-proxies    = { path = "../atspi-proxies", version = "0.12.0", optional = true }
 zbus             = { workspace = true, optional = true }
 
 [[bench]]
@@ -61,15 +61,14 @@ name = "focused-tokio"
 path = "./examples/focused-tokio.rs"
 
 [[example]]
-name = "focused-async-std"
-path = "./examples/focused-async-std.rs"
+name = "focused-smol"
+path = "./examples/focused-smol.rs"
 
 [[example]]
 name = "selected-text"
 path = "./examples/selected-text.rs"
 
 [dev-dependencies]
-async-std      = { version = "1.13", features = ["attributes"] }
 atspi          = { path = "." }
 # TOOD: pinned due to MSRV 1.77.2 policy; this can be lifted when we bump.
 criterion = "=0.5.0"
@@ -80,3 +79,4 @@ futures-lite   = { version = "2.6.0", default-features = false }
 tokio          = { version = "1.38.2", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream   = "0.1.1"
 zbus.workspace = true
+smol-macros = "0.1.1"

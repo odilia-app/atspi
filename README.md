@@ -22,7 +22,7 @@ This crate makes use of the
 [dbus communication](https://www.freedesktop.org/wiki/Software/dbus/).
 We use the asynchronous zbus API, so to use atspi, you will need to run an async executer like
 [tokio](https://crates.io/crates/tokio) or
-[async-std](https://crates.io/crates/async-std).
+[smol](https://crates.io/crates/smol).
 
 ## Feature Flags
 
@@ -30,6 +30,7 @@ We use the asynchronous zbus API, so to use atspi, you will need to run an async
 - `proxies`: enable re-export of the `atspi-proxies` crate; this allows you to directly communicate with DBus.
 - `connection`: enable re-export of the `atspi-connection` crate; this gives some nice abstractions over DBus when receiving only. `proxies` will still be needed to query information actively.
 - `tokio`: enable support for the `tokio` runtime; other runtimes can be used without an integration feature.
+    - One exception on `glomio` as it has its own types not related to how other runtimes work; `atspi` is **_not_** compatible with `atspi` (PRs welcome though)
 - `tracing`: enable support for the `tracing` logger.
 
 ## D-Bus type validation

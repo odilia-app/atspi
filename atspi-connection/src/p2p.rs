@@ -7,7 +7,7 @@
 //!
 //! When zbus users use `tokio` (zbus feature "tokio" set), zbus will latch onto the tokio runtime.
 //! The `Executor` instance will be empty and all zbus tasks are run on the user's tokio runtime.
-//! However, when using any other executor (smol, glommio, async-std, etc.), each `Connection` will spin up a thread with an `async_executor::Executor`.
+//! However, when using any other executor (smol, glommio, etc.), each `Connection` will spin up a thread with an `async_executor::Executor`.
 //!
 //! Typically an application will have a single connection, but with P2P, your application will have a connection with each application that supports it.
 //! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
@@ -292,9 +292,25 @@ impl Peers {
 			// Get the application bus address
 			// aka: Does the application support P2P connections?
 			if let Ok(address) = application_proxy.get_application_bus_address().await {
-				let bus_name = BusName::from(app.name);
-				let peer = Peer::try_new(bus_name, address.as_str(), conn).await?;
-				peers.push(peer);
+				let bus_name = BusName::from(&app.name);
+				match Peer::try_new(bus_name, address.as_str(), conn).await {
+					Ok(peer) => peers.push(peer),
+
+					#[cfg(feature = "tracing")]
+					Err(e) => {
+						tracing::warn!("Failed to create peer for {}: {}", app.name.as_str(), e);
+					}
+
+					#[cfg(all(debug_assertions, not(feature = "tracing")))]
+					Err(e) => {
+						eprintln!("Failed to create peer for {}: {}", app.name.as_str(), e);
+					}
+
+					#[cfg(not(any(feature = "tracing", debug_assertions)))]
+					Err(_) => {
+						// Ignore error creating peer
+					}
+				}
 			}
 		}
 

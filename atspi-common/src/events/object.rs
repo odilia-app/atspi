@@ -940,7 +940,7 @@ impl From<PropertyChangeEvent> for EventBodyOwned {
 impl From<&PropertyChangeEvent> for EventBodyOwned {
 	fn from(event: &PropertyChangeEvent) -> Self {
 		EventBodyOwned {
-			kind: event.property.to_string(),
+			kind: event.property.clone(),
 			any_data: event.value.clone().into(),
 			..Default::default()
 		}
