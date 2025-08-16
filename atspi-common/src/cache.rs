@@ -36,21 +36,18 @@ pub struct CacheItem {
 impl Default for CacheItem {
 	fn default() -> Self {
 		Self {
-			object: ObjectRef::from_static_str_unchecked(
+			object: ObjectRefOwned::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/object",
-			)
-			.into(),
-			app: ObjectRef::from_static_str_unchecked(
+			),
+			app: ObjectRefOwned::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/application",
-			)
-			.into(),
-			parent: ObjectRef::from_static_str_unchecked(
+			),
+			parent: ObjectRefOwned::from_static_str_unchecked(
 				":0.0",
 				"/org/a11y/atspi/accessible/parent",
-			)
-			.into(),
+			),
 			index: 0,
 			children: 0,
 			ifaces: InterfaceSet::empty(),
