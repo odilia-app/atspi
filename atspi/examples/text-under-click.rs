@@ -1,6 +1,7 @@
 //! This example prints out the text under the mouse click.
 //! This example only works with X11 given the fact
-//! Wayland does not support global coordinates.
+//! Wayland does not support global coordinates or 
+//! global input events.
 //!
 //! ```sh
 //! cargo run --example text-under-mouse
@@ -174,7 +175,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	// Must use a separate task here to avoid hangs;
 	// zbus's internal buffer can potentially fill up
 	// if you wait too long between events.next.await calls
-	let (tx, rx) = async_std::channel::bounded::<Result<Event, AtspiError>>(1);
+	let (tx, mut rx) = tokio::sync::mpsc::channel::<Result<Event, AtspiError>>(1);
 	let atspi_clone = atspi.clone();
 	task::spawn(async move {
 		let mut events = atspi_clone.event_stream();
@@ -203,7 +204,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	loop {
 		match rx.recv().await {
-			Ok(ev) => {
+			Some(ev) => {
 				if let Ok(ev) = <ButtonEvent>::try_from(ev.unwrap()) {
 					let apps = root.get_children().await?;
 
@@ -268,7 +269,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 					}
 				}
 			}
-			Err(err) => panic!("Error from event channel: {err}"),
+			_ => (),
 		}
 	}
 }
