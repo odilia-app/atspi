@@ -1,12 +1,9 @@
 use crate::AtspiError;
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
-use zbus::{
-	names::{BusName, UniqueName},
-	zvariant::{ObjectPath, Type},
-};
 use zbus_lockstep_macros::validate;
-use zvariant::Structure;
+use zbus_names::{BusName, UniqueName};
+use zvariant::{ObjectPath, Structure, Type};
 
 const NULL_PATH_STR: &str = "/org/a11y/atspi/null";
 const NULL_OBJECT_PATH: &ObjectPath<'static> =

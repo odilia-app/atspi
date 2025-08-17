@@ -1,11 +1,10 @@
+use crate::cache::{CacheItem, LegacyCacheItem};
 #[cfg(feature = "zbus")]
 use crate::error::AtspiError;
 #[cfg(feature = "zbus")]
+use crate::object_ref::ObjectRef;
+#[cfg(feature = "zbus")]
 use crate::EventProperties;
-use crate::{
-	cache::{CacheItem, LegacyCacheItem},
-	events::ObjectRef,
-};
 use crate::{
 	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 	object_ref::ObjectRefOwned,

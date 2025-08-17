@@ -7,10 +7,9 @@ use crate::events::MessageConversion;
 use crate::events::{
 	DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString,
 };
+use crate::object_ref::ObjectRefOwned;
 #[cfg(feature = "zbus")]
-use crate::object_ref::{ObjectRef, ObjectRefOwned};
-#[cfg(feature = "zbus")]
-use crate::EventProperties;
+use crate::{EventProperties, ObjectRef};
 use serde::Deserialize;
 use serde::Serialize;
 #[cfg(feature = "zbus")]

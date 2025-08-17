@@ -1,20 +1,20 @@
 //! This module contains the events that are emitted by the registry daemon.
 //! The events are [`EventListenerRegisteredEvent`] and [`EventListenerDeregisteredEvent`].
 
-use zbus_lockstep_macros::validate;
-use zbus_names::{OwnedUniqueName, UniqueName};
-
+#[cfg(feature = "zbus")]
+use crate::object_ref::ObjectRef;
 #[cfg(feature = "zbus")]
 use crate::{error::AtspiError, events::MessageConversion, EventProperties};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
+use zbus_lockstep_macros::validate;
+use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::Type;
 
 use crate::{
 	events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString},
 	object_ref::ObjectRefOwned,
-	ObjectRef,
 };
 
 /// An event that is emitted by the registry daemon, to inform that an event has been deregistered
@@ -161,6 +161,7 @@ pub mod socket {
 	use crate::AtspiError;
 	#[cfg(feature = "zbus")]
 	use crate::EventProperties;
+	#[cfg(feature = "zbus")]
 	use crate::ObjectRef;
 	#[cfg(feature = "zbus")]
 	use zbus::message::{Body as DbusBody, Header};

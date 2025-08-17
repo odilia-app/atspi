@@ -5,12 +5,13 @@
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
 #[cfg(feature = "zbus")]
+use crate::object_ref::ObjectRef;
+#[cfg(feature = "zbus")]
 use crate::EventProperties;
 use crate::{
 	error::AtspiError,
 	events::{
-		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, ObjectRef,
-		RegistryEventString,
+		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, RegistryEventString,
 	},
 	object_ref::ObjectRefOwned,
 	State,
