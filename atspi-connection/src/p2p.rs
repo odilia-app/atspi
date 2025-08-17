@@ -299,20 +299,18 @@ impl Peers {
 			if let Ok(address) = application_proxy.get_application_bus_address().await {
 				let name = app.name().ok_or(AtspiError::MissingName)?;
 				let bus_name = BusName::from(name.clone());
-				let peer = Peer::try_new(bus_name, address.as_str(), conn).await?;
-				peers.push(peer);
-				let bus_name = BusName::from(&app.name);
+
 				match Peer::try_new(bus_name, address.as_str(), conn).await {
 					Ok(peer) => peers.push(peer),
 
 					#[cfg(feature = "tracing")]
 					Err(e) => {
-						tracing::warn!("Failed to create peer for {}: {}", app.name.as_str(), e);
+						tracing::warn!("Failed to create peer for {:?}: {}", app.name_as_str(), e);
 					}
 
 					#[cfg(all(debug_assertions, not(feature = "tracing")))]
 					Err(e) => {
-						eprintln!("Failed to create peer for {}: {}", app.name.as_str(), e);
+						eprintln!("Failed to create peer for {:?}: {}", app.name_as_str(), e);
 					}
 
 					#[cfg(not(any(feature = "tracing", debug_assertions)))]
