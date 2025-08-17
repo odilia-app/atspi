@@ -25,7 +25,7 @@ pub(crate) const TEST_DEFAULT_OBJECT_REF: ObjectRef<'static> =
 /// A ubiquitous type used to refer to an object in the accessibility tree.
 ///
 /// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
-/// using a server name and object path. "(so)"
+/// using a applications' bus name and object path. "(so)"
 ///
 /// Emitted by `RemoveAccessible` and `Available`
 #[validate(signal: "Available")]
@@ -150,7 +150,7 @@ impl<'o> ObjectRef<'o> {
 	///
 	/// // Check the name of the object reference
 	/// assert!(object_ref.name().is_some());
-	/// assert_eq!(object_ref.name_as_str(), Some(":1.23"));
+	/// assert_eq!(object_ref.name().unwrap().as_str(), ":1.23");
 	/// ```
 	#[must_use]
 	// The match arms are not the same, but Clippy thinks they are.
@@ -178,7 +178,7 @@ impl<'o> ObjectRef<'o> {
 	/// let object_ref = ObjectRef::new_borrowed(name, path);
 	///
 	/// // Check the path of the object reference
-	/// assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
+	/// assert_eq!(object_ref.path().as_str(), "/org/a11y/example/path/007");
 	/// ```
 	#[must_use]
 	// The match arms are not the same, but Clippy thinks they are.
@@ -196,6 +196,13 @@ impl<'o> ObjectRef<'o> {
 	/// If the object reference is `Null`, it returns `ObjectRef::Null`.\
 	/// If the object reference is `Owned`, it returns the same `ObjectRef::Owned`.\
 	/// If the object reference is `Borrowed`, it converts the name and path to owned versions and returns `ObjectRef::Owned`.
+	///
+	/// # Extending lifetime 'magic' (from 'o -> 'static')
+	///
+	/// `ObjectRef<'_>` leans on the implementation of `UniqueName` and `ObjectPath` to
+	/// convert the inner types to `'static`.
+	/// These types have an `Inner` enum that can contain an `Owned`, `Borrowed`, or `Static` `Str` type.
+	/// The `Str`type is either a `&'static str` (static), `&str` (borrowed), or an `Arc<str>` (owned).
 	///
 	/// # Example
 	/// ```rust
@@ -242,12 +249,12 @@ impl<'o> ObjectRef<'o> {
 	}
 }
 
-// We start with a `Default` of a type, which has an `ObjectRef` field.
-// Events are guaranteed to have a non-null `ObjectRef` because we receive signals over
-// regular non-p2p DBus. Which means the `Message` header has valid `Sender` and `Path` fields which
-// is how we construct the `ObjectRef` from a `Message`.
-//
-// It is not ideal to have a separate Default implementation for any type. On the lookout for a better solution.,
+// Event tests lean on the `Default` implementation of `ObjectRef`.
+// This is a workaround for the fact that `ObjectRef::Null` in
+// `#[cfg(test)]` context is inconvenient.
+// Events are guaranteed to have a non-null `ObjectRef` on their `item` field, because we receive signals over
+// regular (non-p2p) DBus. Which means the `Message` `Header` has valid `Sender` and `Path` fields which
+// are used to construct the `ObjectRef` from a `Message`.
 #[cfg(test)]
 impl Default for ObjectRef<'_> {
 	/// Returns a non-Null object reference. (test implementation)
@@ -268,9 +275,17 @@ impl Default for ObjectRef<'_> {
 /// This is guaranteed to have a `'static` lifetime.
 #[validate(signal: "Available")]
 #[derive(Clone, Debug, Default, Eq, Type)]
-pub struct ObjectRefOwned(ObjectRef<'static>);
+pub struct ObjectRefOwned(pub(crate) ObjectRef<'static>);
 
 impl From<ObjectRef<'_>> for ObjectRefOwned {
+	/// Convert an `ObjectRef<'_>` into an `ObjectRefOwned`.
+	///
+	/// # Extending lifetime 'magic' (from 'o -> 'static')
+	///
+	/// `ObjectRef<'_>` leans on the implementation of `UniqueName` and `ObjectPath` to
+	/// convert the inner types to `'static`.
+	/// These types have an `Inner` enum that can contain an `Owned`, `Borrowed`, or `Static` `Str` type.
+	/// The `Str`type is either a `&'static str` (static), `&str` (borrowed), or an `Arc<str>` (owned).
 	fn from(object_ref: ObjectRef<'_>) -> Self {
 		ObjectRefOwned(object_ref.into_owned())
 	}
@@ -516,22 +531,28 @@ impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for ObjectRef<'o> {
 	// 'm: 'o, 'm outlives 'o, so the references returned by this function
 	// are guaranteed to be valid for the lifetime of the header.
 
-	/// Do not call this in P2P cotnext on method call/reply messages.
+	/// Construct an `ObjectRef` from a `zbus::message::Header`.
+	///
+	/// # Header fields
+	///
+	/// `Path` is a mandatory field on method calls and signals,
+	/// `Sender` is an optional field, see:
+	/// [DBus specification - header fields](<https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-header-fields>)).,
+	///
+	/// ```quote
+	///  On a message bus, this header field is controlled by the message bus,
+	///  so it is as reliable and trustworthy as the message bus itself.
+	///  Otherwise, (eg. P2P) this header field is controlled by the message sender,
+	///  unless there is out-of-band information that indicates otherwise.
+	/// ```
+	///
+	/// While unlikely, it is possible that `Sender` or `Path` are not set on the header.
+	/// This could happen if the server implementation does not set these fields for any reason.
 	///
 	/// # Errors
 	/// Will return an `AtspiError::ParseError` if the header does not contain a valid path or sender.
 	fn try_from(header: &'m zbus::message::Header) -> Result<Self, Self::Error> {
-		// Path is a required header field on signal `Messages`.
 		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
-
-		// Sender is an optional field (DBus specifications),
-		// For atspi this is relevant ONLY on P2P method
-		// call/reply messages - however we do not tend to handle those directly.
-		// You perform a method call and receive a deserialized type, the actual
-		// message handling is performed by `zbus`.
-		//
-		// In P2P there is no bus daemon to "stamp" the sender on the `Message`.
-
 		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
 
 		Ok(ObjectRef::Borrowed { name: name.clone(), path: path.clone() })

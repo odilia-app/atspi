@@ -9,17 +9,16 @@
 ///
 /// ```ignore
 /// impl EventProperties for TextCaretMovedEvent {
-///   fn sender(&self) -> UniqueName<'_> {
-///     self.item
-///         .name()
-///         .expect("Events are constructed with valid ObjetRef")
-///         .clone()
-///   }
-///   fn path(&self) -> ObjectPath<'_> {
-///     self.item
-///         .path()
-///         .clone()
-///   }
+/// impl EventProperties for TextCaretMovedEvent {
+///     fn sender(&self) -> UniqueName<'_> {
+///         self.item
+///             .name()
+///             .expect("Events are constructed with valid ObjetRef")
+///             .clone()
+///     }
+///     fn path(&self) -> ObjectPath<'_> {
+///         self.item.path().clone()
+///     }
 /// }
 /// ```
 macro_rules! impl_event_properties {
@@ -43,13 +42,13 @@ macro_rules! impl_event_properties {
 /// This depends on the struct to have an `item` field of type [`crate::ObjectRef`].
 ///
 /// ```ignore
-/// impl_from_object_ref!(TextCaretMovedEvent);
+/// impl_from_object_ref!(TextAttributesChangedEvent);
 /// ```
 ///
 /// Exapnds to:
 ///
 /// ```ignore
-/// impl From<ObjectRef> for TextCaretMovedItem {
+/// impl From<ObjectRef> for TextAttributesChangedEvent {
 ///     fn from(obj_ref: ObjectRef) -> Self {
 ///         Self { item: obj_ref.into() }
 ///     }
@@ -439,9 +438,9 @@ macro_rules! zbus_message_qtspi_test_case {
       let ev = <$type>::default();
       let qt: crate::events::EventBodyQtOwned = ev.body().into();
       let msg = zbus::Message::signal(
-          ev.path(),
-          ev.interface(),
-          ev.member(),
+        ev.path(),
+        ev.interface(),
+        ev.member(),
       )
         .unwrap()
         .sender(":0.0")
@@ -456,7 +455,6 @@ macro_rules! zbus_message_qtspi_test_case {
 	  use crate::events::EventTypeProperties;
 	  use crate::events::MessageConversion;
 	  use crate::Event;
-
 
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
@@ -511,7 +509,7 @@ macro_rules! zbus_message_test_case {
 			let event_enum: crate::Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
-		// make want to consider parameterized tests here, no need for fuzz testing, but one level lower than that may be nice
+		// may want to consider parameterized tests here, no need for fuzz testing, but one level lower than that may be nice
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
 		#[cfg(feature = "zbus")]
 		#[test]
@@ -819,6 +817,7 @@ macro_rules! event_test_cases {
 		mod foo {
 		use super::{$ufet, AtspiError, EventProperties };
 		use crate::events::traits::EventTypeProperties;
+		#[cfg(feature = "zbus")]
         use zbus::Message;
 		use crate::Event;
 
