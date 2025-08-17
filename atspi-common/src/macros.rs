@@ -9,7 +9,6 @@
 ///
 /// ```ignore
 /// impl EventProperties for TextCaretMovedEvent {
-/// impl EventProperties for TextCaretMovedEvent {
 ///     fn sender(&self) -> UniqueName<'_> {
 ///         self.item
 ///             .name()
