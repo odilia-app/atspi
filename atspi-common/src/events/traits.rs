@@ -1,6 +1,6 @@
 #[cfg(feature = "zbus")]
 use crate::AtspiError;
-use crate::{object_ref::ObjectRefOwned, ObjectRef};
+use crate::ObjectRef;
 #[cfg(feature = "zbus")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
@@ -40,8 +40,8 @@ pub trait EventTypeProperties {
 pub trait EventProperties {
 	fn sender(&self) -> UniqueName<'_>;
 	fn path(&self) -> ObjectPath<'_>;
-	fn object_ref(&self) -> ObjectRefOwned {
-		ObjectRef::new(self.sender(), self.path()).into()
+	fn object_ref(&self) -> ObjectRef<'_> {
+		ObjectRef::new(self.sender(), self.path())
 	}
 }
 

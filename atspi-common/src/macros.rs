@@ -13,10 +13,10 @@
 ///         self.item
 ///             .name()
 ///             .expect("Events are constructed with valid ObjetRef")
-///             .clone()
+///             .as_ref()
 ///     }
 ///     fn path(&self) -> ObjectPath<'_> {
-///         self.item.path().clone()
+///         self.item.path().as_ref()
 ///     }
 /// }
 /// ```
@@ -27,11 +27,11 @@ macro_rules! impl_event_properties {
 				self.item
 					.name()
 					.expect("Events are received with valid ObjetRef")
-					.clone()
+					.as_ref()
 			}
 
 			fn path(&self) -> zvariant::ObjectPath<'_> {
-				self.item.path().clone()
+				self.item.path().as_ref()
 			}
 		}
 	};

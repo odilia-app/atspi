@@ -22,7 +22,7 @@ pub(crate) const TEST_DEFAULT_OBJECT_REF: ObjectRef<'static> =
 /// A ubiquitous type used to refer to an object in the accessibility tree.
 ///
 /// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
-/// using a applications' bus name and object path. "(so)"
+/// using an application's bus name and object path. "(so)"
 ///
 /// Emitted by `RemoveAccessible` and `Available`
 #[validate(signal: "Available")]
@@ -162,7 +162,6 @@ impl<'o> ObjectRef<'o> {
 	}
 
 	/// Returns the path of the object reference.\
-	/// If the object reference is `Null`, it returns `None`.
 	///
 	/// # Example
 	/// ```rust
@@ -438,9 +437,12 @@ impl<'de: 'o, 'o> Deserialize<'de> for ObjectRef<'o> {
 					.next_element()?
 					.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
 
-				if name.is_empty() && path == ObjectPath::from_static_str_unchecked(NULL_PATH_STR) {
+				if path == ObjectPath::from_static_str_unchecked(NULL_PATH_STR) {
 					Ok(ObjectRef::Null)
 				} else {
+					assert_ne!(path, ObjectPath::from_static_str_unchecked(NULL_PATH_STR),
+						"ObjectRef::Null requires an empty name and the null path, but got: ({name}, {path})");
+					assert_ne!(name, "", "ObjectRef::Null requires an empty name and the null path, but got: ({name}, {path})");
 					Ok(ObjectRef::Borrowed {
 						name: UniqueName::try_from(name).map_err(serde::de::Error::custom)?,
 						path,
@@ -608,8 +610,10 @@ impl TryFrom<zvariant::OwnedValue> for ObjectRefOwned {
 	}
 }
 
-impl<'r: 's, 'o: 's, 's> From<&'r ObjectRef<'o>> for zvariant::Structure<'s> {
-	fn from(obj: &'r ObjectRef<'o>) -> Self {
+impl<'reference: 'structure, 'object: 'structure, 'structure> From<&'reference ObjectRef<'object>>
+	for zvariant::Structure<'structure>
+{
+	fn from(obj: &'reference ObjectRef<'object>) -> Self {
 		match obj {
 			ObjectRef::Null => ("", NULL_OBJECT_PATH).into(),
 			ObjectRef::Borrowed { name, path } => Structure::from((name.clone(), path)),
@@ -641,7 +645,7 @@ mod tests {
 	use std::hash::{DefaultHasher, Hash, Hasher};
 
 	use super::ObjectRef;
-	use crate::object_ref::NULL_OBJECT_PATH;
+	use crate::object_ref::{NULL_OBJECT_PATH, NULL_PATH_STR};
 	use zbus::zvariant;
 	use zbus::{names::UniqueName, zvariant::ObjectPath};
 	use zvariant::{serialized::Context, to_bytes, OwnedValue, Value, LE};
@@ -837,5 +841,39 @@ mod tests {
 		object_ref1.hash(&mut hasher1);
 		object_ref2.hash(&mut hasher2);
 		assert_eq!(hasher1.finish(), hasher2.finish());
+	}
+
+	#[test]
+	#[should_panic(
+		expected = "assertion `left != right` failed: ObjectRef::Null requires an empty name and the null path, but got: (1.23, /org/a11y/atspi/null)"
+	)]
+	fn valid_name_null_path_object_ref() {
+		let object_ref = ObjectRef::from_static_str_unchecked("1.23", NULL_PATH_STR);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &object_ref).unwrap();
+
+		let (obj, _) = encoded.deserialize::<ObjectRef>().unwrap();
+		assert!(matches!(obj, ObjectRef::Borrowed { .. }));
+
+		assert_eq!(obj.name().unwrap().as_str(), ":1.23");
+		assert_eq!(obj.path_as_str(), NULL_PATH_STR);
+	}
+
+	#[test]
+	#[should_panic(
+		expected = "assertion `left != right` failed: ObjectRef::Null requires an empty name and the null path, but got: (, /org/a11y/atspi/path/007)"
+	)]
+	fn empty_name_valid_path_object_ref() {
+		let object_ref = ObjectRef::from_static_str_unchecked("", TEST_OBJECT_PATH);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &object_ref).unwrap();
+
+		let (obj, _) = encoded.deserialize::<ObjectRef>().unwrap();
+		assert!(matches!(obj, ObjectRef::Borrowed { .. }));
+
+		assert_eq!(obj.name().unwrap().as_str(), ":1.23");
+		assert_eq!(obj.path_as_str(), NULL_PATH_STR);
 	}
 }
