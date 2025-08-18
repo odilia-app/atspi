@@ -88,6 +88,8 @@ pub trait Text {
 	) -> zbus::Result<(String, i32, i32)>;
 
 	/// `GetText` method
+	/// This should be called with explicitly known offsets. Calling with an arbitrary
+	/// large offset can cause undefined behavior or no text to be returned.
 	fn get_text(&self, start_offset: i32, end_offset: i32) -> zbus::Result<String>;
 
 	/// `GetTextAfterOffset` method
