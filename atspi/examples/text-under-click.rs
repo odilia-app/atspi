@@ -1,6 +1,6 @@
 //! This example prints out the text under the mouse click.
 //! This example only works with X11 given the fact
-//! Wayland does not support global coordinates or 
+//! Wayland does not support global coordinates or
 //! global input events.
 //!
 //! ```sh
@@ -203,73 +203,68 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	}
 
 	loop {
-		match rx.recv().await {
-			Some(ev) => {
-				if let Ok(ev) = <ButtonEvent>::try_from(ev.unwrap()) {
-					let apps = root.get_children().await?;
+		if let Some(ev) = rx.recv().await {
+			if let Ok(ev) = <ButtonEvent>::try_from(ev.unwrap()) {
+				let apps = root.get_children().await?;
 
-					let active_frame = get_active_frame(apps, conn).await?;
+				let active_frame = get_active_frame(apps, conn).await?;
 
-					let (width, height) = active_frame
-						.as_accessible_proxy(conn)
-						.await?
-						.proxies()
-						.await?
-						.component()
-						.await?
-						.get_position(atspi::CoordType::Screen)
-						.await?;
+				let (width, height) = active_frame
+					.as_accessible_proxy(conn)
+					.await?
+					.proxies()
+					.await?
+					.component()
+					.await?
+					.get_position(atspi::CoordType::Screen)
+					.await?;
 
-					let x_relative_to_frame = ev.mouse_x - width;
-					let y_relative_to_frame = ev.mouse_y - height;
+				let x_relative_to_frame = ev.mouse_x - width;
+				let y_relative_to_frame = ev.mouse_y - height;
 
-					let unknown = String::from("unknown");
-					let app_name = id_to_name
-						.get(
-							&active_frame
-								.as_accessible_proxy(conn)
-								.await?
-								.get_application()
-								.await?
-								.name
-								.to_string(),
-						)
-						.unwrap_or(&unknown);
+				let unknown = String::from("unknown");
+				let app_name = id_to_name
+					.get(
+						&active_frame
+							.as_accessible_proxy(conn)
+							.await?
+							.get_application()
+							.await?
+							.name
+							.to_string(),
+					)
+					.unwrap_or(&unknown);
 
-					println!(
+				println!(
 						"\n\nClicked on app '{app_name}' at absolute coords: {},{} and window relative coords: {},{}",
 						ev.mouse_x, ev.mouse_y, x_relative_to_frame, y_relative_to_frame
 					);
 
-					let component_with_clicked_text = get_descendant_at_point(
-						active_frame,
-						conn,
-						x_relative_to_frame,
-						y_relative_to_frame,
-					)
-					.await?;
+				let component_with_clicked_text = get_descendant_at_point(
+					active_frame,
+					conn,
+					x_relative_to_frame,
+					y_relative_to_frame,
+				)
+				.await?;
 
-					let text_proxy = component_with_clicked_text.proxies().await?.text().await;
+				let text_proxy = component_with_clicked_text.proxies().await?.text().await;
 
-					if let Ok(text_proxy) = text_proxy {
-						let text_offset_length = text_proxy
-							.get_offset_at_point(
-								x_relative_to_frame,
-								y_relative_to_frame,
-								atspi::CoordType::Window,
-							)
-							.await?;
-						println!(
-							"Clicked accessible has text offset of size {text_offset_length:?}"
-						);
-						let all_text = text_proxy.get_text(0, text_offset_length).await?;
-						println!("User clicked on text: '{all_text}'");
-					} else {
-						eprintln!("Did not find text proxy; nothing to print");
-					}
+				if let Ok(text_proxy) = text_proxy {
+					let text_offset_length = text_proxy
+						.get_offset_at_point(
+							x_relative_to_frame,
+							y_relative_to_frame,
+							atspi::CoordType::Window,
+						)
+						.await?;
+					println!("Clicked accessible has text offset of size {text_offset_length:?}");
+					let all_text = text_proxy.get_text(0, text_offset_length).await?;
+					println!("User clicked on text: '{all_text}'");
+				} else {
+					eprintln!("Did not find text proxy; nothing to print");
 				}
 			}
-			_ => (),
 		}
 	}
 }
