@@ -263,10 +263,8 @@ pub trait ObjectRefExt {
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
 	/// # Errors  
-	///
-	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
-	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::proxy::Builder::build`].
-	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
+	/// If the `ObjectRef` is null, this method returns an error.
+	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
@@ -275,10 +273,8 @@ pub trait ObjectRefExt {
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
 	/// # Errors  
-	///
-	/// `UniqueName` or `ObjectPath` are assumed to be valid because they are obtained from a valid `ObjectRef`.
-	/// If the builder is lacking the necessary parameters to build a proxy. See [`zbus::proxy::Builder::build`].
-	/// If this method fails, you may want to check the `AccessibleProxy` default values for missing / invalid parameters.
+	/// If the `ObjectRef` is null, this method returns an error.
+	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
@@ -290,7 +286,11 @@ impl ObjectRefExt for ObjectRefOwned {
 		&self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
+		let name: BusName = self
+			.name()
+			.ok_or(AtspiError::NullRef("`as_accessible_proxy` called on null-reference ObjectRef"))?
+			.clone()
+			.into();
 		let path = self.path();
 
 		AccessibleProxy::builder(conn)
@@ -306,7 +306,13 @@ impl ObjectRefExt for ObjectRefOwned {
 		self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
+		let name: BusName = self
+			.name()
+			.ok_or(AtspiError::NullRef(
+				"`into_accessible_proxy` called on null-reference ObjectRef",
+			))?
+			.clone()
+			.into();
 		let path = self.path();
 
 		AccessibleProxy::builder(conn)

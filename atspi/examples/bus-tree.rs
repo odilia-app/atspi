@@ -121,6 +121,7 @@ impl A11yNode {
 			let mut children_proxies = try_join_all(
 				child_objects
 					.into_iter()
+					.filter(|child| !child.is_null()) // Filter out null children
 					.map(|child| child.into_accessible_proxy(&connection)),
 			)
 			.await?;

@@ -48,6 +48,9 @@ pub enum AtspiError {
 	/// Other errors.
 	Owned(String),
 
+	/// Null-reference error. This is used when an `ObjectRef` is expected to be non-null, but it is null.
+	NullRef(&'static str),
+
 	/// A `zbus` or `zbus::Fdo` error. variant.
 	Zbus(String),
 
@@ -109,6 +112,10 @@ impl std::fmt::Display for AtspiError {
 			Self::Owned(e) => {
 				f.write_str("atspi: other error: ")?;
 				e.fmt(f)
+			}
+			Self::NullRef(e) => {
+				f.write_str("atspi: null reference: ")?;
+				f.write_str(e)
 			}
 			Self::Zbus(e) => {
 				f.write_str("ZBus Error: ")?;

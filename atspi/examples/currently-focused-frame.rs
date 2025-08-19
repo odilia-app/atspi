@@ -26,11 +26,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let mut found_active_frame: bool = false;
 
 	for app in apps.iter() {
+		if app.is_null() {
+			continue;
+		}
+
 		let proxy = app.clone().into_accessible_proxy(conn).await?;
 		let state = proxy.get_state().await?;
 		assert!(!state.contains(State::Active), "The top level application should never have active state; only its associated frames should have this state");
 
 		for frame in proxy.get_children().await? {
+			if frame.is_null() {
+				continue;
+			}
+
 			let frame = frame.clone().into_accessible_proxy(conn).await?;
 			let state = frame.get_state().await?;
 			if state.contains(State::Active) {
