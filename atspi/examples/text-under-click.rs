@@ -4,7 +4,7 @@
 //! global input events.
 //!
 //! ```sh
-//! cargo run --example text-under-mouse
+//! cargo run --example text-under-click
 //! ```
 //! Authors:
 //!    Colton Loftus
@@ -15,7 +15,7 @@ use atspi::{
 	events::mouse::ButtonEvent,
 	AtspiError, Event,
 	MouseEvents::{self},
-	ObjectRef, State,
+	ObjectRefOwned, State,
 };
 use atspi_connection::set_session_accessibility;
 use atspi_proxies::{
@@ -26,15 +26,23 @@ use futures_lite::stream::StreamExt;
 use tokio::task;
 
 async fn get_active_frame(
-	apps: Vec<ObjectRef>,
+	apps: Vec<ObjectRefOwned>,
 	conn: &zbus::Connection,
-) -> Result<ObjectRef, Box<dyn Error>> {
+) -> Result<ObjectRefOwned, Box<dyn Error>> {
 	for app in apps.iter() {
+		if app.is_null() {
+			continue;
+		}
+
 		let proxy = app.clone().into_accessible_proxy(conn).await?;
 		let state = proxy.get_state().await?;
 		assert!(!state.contains(State::Active), "The top level application should never have active state; only its associated frames should have this state");
 
 		for frame in proxy.get_children().await? {
+			if frame.is_null() {
+				continue;
+			}
+
 			if frame
 				.clone()
 				.into_accessible_proxy(conn)
@@ -62,12 +70,16 @@ impl std::fmt::Display for NoRelevantDescendantError {
 }
 
 async fn find_relevant_descendant(
-	children: Vec<ObjectRef>,
+	children: Vec<ObjectRefOwned>,
 	conn: &zbus::Connection,
 	x: i32,
 	y: i32,
-) -> Result<ObjectRef, Box<dyn Error>> {
+) -> Result<ObjectRefOwned, Box<dyn Error>> {
 	for child in &children {
+		if child.is_null() {
+			continue;
+		}
+
 		// Unclear if this is even necessary since it seems like get_accessible_at_point
 		// tends to return the proxy accessible anyways
 		// Orca checks for state while descending so will keep it for now
@@ -89,7 +101,9 @@ async fn find_relevant_descendant(
 			let name = child.as_accessible_proxy(conn).await?.name().await?;
 			println!(
 				"Found object with accessible name '{name}' and objectref name '{}'",
-				child.name
+				child
+					.name_as_str()
+					.expect("ObjectRef has a bus_name if we can access it's accessible name")
 			);
 			return Ok(child.clone());
 		}
@@ -99,15 +113,26 @@ async fn find_relevant_descendant(
 }
 
 async fn get_descendant_at_point<'a>(
-	frame_root: ObjectRef,
+	frame_root: ObjectRefOwned,
 	conn: &'a zbus::Connection,
 	x: i32,
 	y: i32,
 ) -> Result<AccessibleProxy<'a>, Box<dyn Error>> {
-	let mut accessible_at_point: ObjectRef = frame_root.clone();
+	if frame_root.is_null() {
+		return Err(Box::new(atspi::AtspiError::NullRef(
+			"`get_descendant_at_point` called with null reference ObjectRef",
+		)));
+	}
+	let mut accessible_at_point: ObjectRefOwned = frame_root.clone();
 
 	let mut level = 0;
 	loop {
+		if accessible_at_point.is_null() {
+			return Err(Box::new(atspi::AtspiError::NullRef(
+				"`get_descendant_at_point` `accessible_at_point` is a null reference ObjectRef",
+			)));
+		}
+
 		println!("Descended {level} levels");
 		level += 1;
 		let deeper_accessible = accessible_at_point
@@ -196,9 +221,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	// by getting the names of the children of the root
 	// we can get the names of all applications currently running
 	for child in root.get_children().await?.iter() {
+		if child.is_null() {
+			continue;
+		}
+
 		let proxy = child.clone().into_accessible_proxy(conn).await?;
 		let natural_name = proxy.name().await?;
-		let id = proxy.get_application().await?.name.to_string();
+		let id = proxy.get_application().await?.name().unwrap().to_string();
 		id_to_name.insert(id, natural_name);
 	}
 
@@ -208,6 +237,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 				let apps = root.get_children().await?;
 
 				let active_frame = get_active_frame(apps, conn).await?;
+				if active_frame.is_null() {
+					eprintln!("Active frame is null; no active application found");
+					continue;
+				}
 
 				let (width, height) = active_frame
 					.as_accessible_proxy(conn)
@@ -230,7 +263,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 							.await?
 							.get_application()
 							.await?
-							.name
+							.name()
+							.unwrap()
 							.to_string(),
 					)
 					.unwrap_or(&unknown);
