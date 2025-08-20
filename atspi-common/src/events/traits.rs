@@ -40,8 +40,8 @@ pub trait EventTypeProperties {
 pub trait EventProperties {
 	fn sender(&self) -> UniqueName<'_>;
 	fn path(&self) -> ObjectPath<'_>;
-	fn object_ref(&self) -> ObjectRef {
-		ObjectRef { name: self.sender().into(), path: self.path().into() }
+	fn object_ref(&self) -> ObjectRef<'_> {
+		ObjectRef::new(self.sender(), self.path())
 	}
 }
 

@@ -5,13 +5,15 @@
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
 #[cfg(feature = "zbus")]
+use crate::object_ref::ObjectRef;
+#[cfg(feature = "zbus")]
 use crate::EventProperties;
 use crate::{
 	error::AtspiError,
 	events::{
-		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, ObjectRef,
-		RegistryEventString,
+		DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, RegistryEventString,
 	},
+	object_ref::ObjectRefOwned,
 	State,
 };
 use std::hash::Hash;
@@ -36,7 +38,7 @@ const ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME: &str = "accessible-table-summary";
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyChangeEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// The name of the property.
 	// TODO: this is not necessary since the string is encoded in the `Property` type.
 	pub property: String,
@@ -61,7 +63,11 @@ impl Eq for PropertyChangeEvent {}
 #[allow(clippy::derivable_impls)]
 impl Default for PropertyChangeEvent {
 	fn default() -> Self {
-		Self { item: ObjectRef::default(), property: String::default(), value: Property::default() }
+		Self {
+			item: ObjectRefOwned::default(),
+			property: String::default(),
+			value: Property::default(),
+		}
 	}
 }
 
@@ -78,7 +84,7 @@ pub enum Property {
 	/// The [ARIA role](https://www.w3.org/TR/wai-aria/#roles) of a given item.
 	Role(crate::Role),
 	/// Parent of the item in a hierarchical tree.
-	Parent(ObjectRef),
+	Parent(ObjectRefOwned),
 	/// A description of the table as a whole: in HTML this is achieved via the
 	/// `<table><caption>VALUE_HERE</caption>...</table>` pattern
 	TableCaption(String),
@@ -239,13 +245,17 @@ mod test_property {
 	use crate::events::object::{Property, PropertyChangeEvent};
 	use crate::events::{EventBody, EventBodyOwned};
 	use crate::{ObjectRef, Role};
+
+	static TEST_OBJECT_REF: &ObjectRef =
+		&ObjectRef::from_static_str_unchecked(":0.0", "/org/a11y/atspi/test/path");
+
 	macro_rules! property_subtype_test {
 		($name:ident, $key:expr, $prop:path, $val:expr) => {
 			#[test]
 			fn $name() {
 				let prop = $prop($val);
 				let prop_ev = PropertyChangeEvent {
-					item: ObjectRef::default(),
+					item: TEST_OBJECT_REF.clone().into(),
 					property: $key.to_string(),
 					value: prop.clone(),
 				};
@@ -273,10 +283,7 @@ mod test_property {
 		test_prop_type_parent,
 		"accessible-parent",
 		Property::Parent,
-		ObjectRef {
-			name: ":420.69".try_into().unwrap(),
-			path: "/fake/a11y/addr".try_into().unwrap()
-		}
+		ObjectRef::from_static_str_unchecked(":420.69", "/fake/a11y/addr").into()
 	);
 	property_subtype_test!(
 		test_prop_type_table_caption,
@@ -324,7 +331,7 @@ mod test_property {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct BoundsChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(BoundsChangedEvent);
@@ -333,7 +340,7 @@ impl_event_type_properties_for_event!(BoundsChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct LinkSelectedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(LinkSelectedEvent);
@@ -343,7 +350,7 @@ impl_event_type_properties_for_event!(LinkSelectedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct StateChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// The state to be enabled/disabled.
 	pub state: State,
 	/// Whether the state was enabled or disabled.
@@ -383,13 +390,13 @@ mod i32_bool_conversion {
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ChildrenChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// Index to remove from/add to.
 	pub index_in_parent: i32,
 	/// A reference to the new child.
-	pub child: ObjectRef,
+	pub child: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ChildrenChangedEvent);
@@ -398,7 +405,7 @@ impl_event_type_properties_for_event!(ChildrenChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct VisibleDataChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(VisibleDataChangedEvent);
@@ -408,7 +415,7 @@ impl_event_type_properties_for_event!(VisibleDataChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct SelectionChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(SelectionChangedEvent);
@@ -418,7 +425,7 @@ impl_event_type_properties_for_event!(SelectionChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ModelChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ModelChangedEvent);
@@ -428,9 +435,9 @@ impl_event_type_properties_for_event!(ModelChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ActiveDescendantChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// The descendant which is now the active one.
-	pub descendant: ObjectRef,
+	pub descendant: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ActiveDescendantChangedEvent);
@@ -439,7 +446,7 @@ impl_event_type_properties_for_event!(ActiveDescendantChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AnnouncementEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// Text of the announcement.
 	pub text: String,
 	/// Politeness level.
@@ -456,7 +463,7 @@ impl_event_type_properties_for_event!(AnnouncementEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AttributesChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(AttributesChangedEvent);
@@ -465,7 +472,7 @@ impl_event_type_properties_for_event!(AttributesChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowInsertedEvent {
 	/// The table which has had a row inserted.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(RowInsertedEvent);
@@ -474,7 +481,7 @@ impl_event_type_properties_for_event!(RowInsertedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowReorderedEvent {
 	/// The table which has had a row re-ordered.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(RowReorderedEvent);
@@ -483,7 +490,7 @@ impl_event_type_properties_for_event!(RowReorderedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RowDeletedEvent {
 	/// The table which has had a row removed.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(RowDeletedEvent);
@@ -492,7 +499,7 @@ impl_event_type_properties_for_event!(RowDeletedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnInsertedEvent {
 	/// The table which has had a column inserted.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ColumnInsertedEvent);
@@ -501,7 +508,7 @@ impl_event_type_properties_for_event!(ColumnInsertedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnReorderedEvent {
 	/// The table which has had a column re-ordered.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ColumnReorderedEvent);
@@ -510,7 +517,7 @@ impl_event_type_properties_for_event!(ColumnReorderedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ColumnDeletedEvent {
 	/// The table which has had a column removed.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(ColumnDeletedEvent);
@@ -521,7 +528,7 @@ impl_event_type_properties_for_event!(ColumnDeletedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextBoundsChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(TextBoundsChangedEvent);
@@ -532,7 +539,7 @@ impl_event_type_properties_for_event!(TextBoundsChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(TextSelectionChangedEvent);
@@ -541,7 +548,7 @@ impl_event_type_properties_for_event!(TextSelectionChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// starting index of the insertion/deletion
@@ -567,7 +574,7 @@ impl_event_type_properties_for_event!(TextChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextAttributesChangedEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 }
 
 impl_event_type_properties_for_event!(TextAttributesChangedEvent);
@@ -576,7 +583,7 @@ impl_event_type_properties_for_event!(TextAttributesChangedEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextCaretMovedEvent {
 	/// The object on which the caret has been moved on.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	/// New position of the caret.
 	/// NOTE: this provide the Unicode index (not the byte index) and therefore when referencing
 	/// locations in a string, you should be using the [`std::str::Chars`] iterator, and not use
@@ -604,7 +611,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		let property: String = body.take_kind();
 		let value: Property = body.try_into()?;
-		Ok(Self { item, property, value })
+		Ok(Self { item: item.into(), property, value })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -649,7 +656,7 @@ impl MessageConversion<'_> for StateChangedEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let body: Self::Body<'_> = body.deserialize_unchecked()?;
-		Ok(Self { item, state: body.kind().into(), enabled: body.detail1() > 0 })
+		Ok(Self { item: item.into(), state: body.kind().into(), enabled: body.detail1() > 0 })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -679,7 +686,7 @@ impl MessageConversion<'_> for ChildrenChangedEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item,
+			item: item.into(),
 			operation: body.kind().parse()?,
 			index_in_parent: body.detail1(),
 			child: body.take_any_data().try_into()?,
@@ -735,7 +742,7 @@ impl MessageConversion<'_> for ActiveDescendantChangedEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, descendant: body.take_any_data().try_into()? })
+		Ok(Self { item: item.into(), descendant: body.take_any_data().try_into()? })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -764,7 +771,7 @@ impl MessageConversion<'_> for AnnouncementEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item,
+			item: item.into(),
 			text: body
 				.take_any_data()
 				.try_into()
@@ -871,7 +878,7 @@ impl MessageConversion<'_> for TextChangedEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item,
+			item: item.into(),
 			operation: body.kind().parse()?,
 			start_pos: body.detail1(),
 			length: body.detail2(),
@@ -912,7 +919,7 @@ impl MessageConversion<'_> for TextCaretMovedEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, position: body.detail1() })
+		Ok(Self { item: item.into(), position: body.detail1() })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {

@@ -11,7 +11,6 @@ pub mod registry;
 pub mod terminal;
 pub mod traits;
 pub mod window;
-use crate::ObjectRef;
 pub use event_body::{
 	EventBody, EventBodyBorrowed, EventBodyOwned, EventBodyQtBorrowed, EventBodyQtOwned,
 };

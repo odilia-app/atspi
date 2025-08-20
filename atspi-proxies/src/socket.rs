@@ -10,7 +10,7 @@
 //! section of the zbus documentation.
 //!
 
-use crate::common::ObjectRef;
+use atspi_common::object_ref::ObjectRefOwned;
 
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Socket",
@@ -31,7 +31,7 @@ pub trait Socket {
 	/// * The registry sets the "Id" property on the org.a11y.atspi.Application interface on the @plug object.
 	/// * The Embed method returns with the bus name and object path for the registry's root object.
 	/// Returns: the bus name and object path of the registry's root object.
-	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<ObjectRef>;
+	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<ObjectRefOwned>;
 
 	/// This method is called by a socket to inform the plug that it is being
 	/// embedded. The plug should register the embedding socket as its parent.

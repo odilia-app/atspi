@@ -31,9 +31,18 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 	// by getting the names of the children of the root
 	// we can get the names of all applications currently running
 	for child in root.get_children().await?.iter() {
+		if child.is_null() {
+			continue; // Skip null children
+		}
+
 		let proxy = child.clone().into_accessible_proxy(conn).await?;
 		let natural_name = proxy.name().await?;
-		let id = proxy.get_application().await?.name.to_string();
+		let id = proxy
+			.get_application()
+			.await?
+			.name()
+			.expect("root object has a name")
+			.to_string();
 		id_to_name.insert(id, natural_name);
 	}
 
@@ -49,11 +58,17 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 		let children_proxies = try_join_all(
 			child_objects
 				.into_iter()
+				.filter(|child| !child.is_null()) // Filter out null children
 				.map(|child| child.into_accessible_proxy(conn)),
 		)
 		.await?;
 		for child in &children_proxies {
-			let application_name = child.get_application().await?.name.to_string();
+			let application_name = child
+				.get_application()
+				.await?
+				.name()
+				.expect("root object has a name")
+				.to_string();
 			match id_to_accessible_count.entry(application_name) {
 				hash_map::Entry::Vacant(e) => {
 					e.insert(1);

@@ -24,7 +24,7 @@ pub use action::Action;
 pub mod object_match;
 pub use object_match::{MatchType, ObjectMatchRule, SortOrder, TreeTraversalType};
 pub mod object_ref;
-pub use object_ref::ObjectRef;
+pub use object_ref::{ObjectRef, ObjectRefOwned};
 pub mod operation;
 pub use operation::Operation;
 pub mod interface;
@@ -54,11 +54,11 @@ pub type Result<T> = std::result::Result<T, AtspiError>;
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct TextSelection {
 	/// starting object reference
-	start_obj: ObjectRef,
+	start_obj: ObjectRefOwned,
 	/// text offset within `start_obj`
 	start_idx: i32,
 	/// ending object reference
-	end_obj: ObjectRef,
+	end_obj: ObjectRefOwned,
 	/// text offset within `end_obj`
 	end_idx: i32,
 	/// is the `start_obj` active;
