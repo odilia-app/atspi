@@ -446,7 +446,10 @@ impl<'de: 'o, 'o> Deserialize<'de> for ObjectRef<'o> {
 				if path == *NULL_OBJECT_PATH {
 					Ok(ObjectRef::Null)
 				} else {
-					assert!(!name.is_empty(), "ObjectRef::Null requires an empty name and the null path, but got: ({name}, {path})");
+					assert!(
+						!name.is_empty(),
+						"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
+					);
 					Ok(ObjectRef::Borrowed {
 						name: UniqueName::try_from(name).map_err(serde::de::Error::custom)?,
 						path,
@@ -862,7 +865,7 @@ mod tests {
 	// Check that the Deserialize implementation correctly panics
 	#[test]
 	#[should_panic(
-		expected = "ObjectRef::Null requires an empty name and the null path, but got: (, /org/a11y/atspi/path/007)"
+		expected = r#"A non-null ObjectRef requires a name and a path but got: ("", /org/a11y/atspi/path/007)"#
 	)]
 	fn empty_name_valid_path_object_ref() {
 		let object_ref = ObjectRef::from_static_str_unchecked("", TEST_OBJECT_PATH);

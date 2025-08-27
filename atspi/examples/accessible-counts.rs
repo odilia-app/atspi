@@ -31,10 +31,6 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 	// by getting the names of the children of the root
 	// we can get the names of all applications currently running
 	for child in root.get_children().await?.iter() {
-		if child.is_null() {
-			continue; // Skip null children
-		}
-
 		let proxy = child.clone().into_accessible_proxy(conn).await?;
 		let natural_name = proxy.name().await?;
 		let id = proxy

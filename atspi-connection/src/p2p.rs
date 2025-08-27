@@ -631,36 +631,67 @@ impl P2P for crate::AccessibilityConnection {
 	/// use atspi_connection::AccessibilityConnection;
 	///
 	/// # block_on(async {
-	///     let conn = AccessibilityConnection::new().await.unwrap();
+	/// let conn = AccessibilityConnection::new().await.unwrap();
 	///
-	///     let name = UniqueName::from_static_str_unchecked(":1.1");
-	///     let path = ObjectPath::from_static_str_unchecked("/org/freedesktop/accessible/root");
+	/// let name = UniqueName::from_static_str_unchecked(":1.1");
+	/// let path = ObjectPath::from_static_str_unchecked("/org/freedesktop/accessible/root");
 	///
-	///     let object_ref = ObjectRef::new_owned(name, path);
-	///     let accessible_proxy = conn.object_as_accessible(&object_ref).await;
-	///     assert!(
-	///         accessible_proxy.is_ok(),
-	///         "Failed to get accessible proxy: {:?}",
-	///         accessible_proxy.err()
-	///     );
+	/// let object_ref = ObjectRef::new_owned(name, path);
+	/// let accessible_proxy = conn.object_as_accessible(&object_ref).await;
+	/// assert!(
+	///    accessible_proxy.is_ok(),
+	///    "Failed to get accessible proxy: {:?}",
+	///    accessible_proxy.err()
+	/// );
+	/// # });
+	/// ```
+	///
+	/// Handling `ObjectRef::Null` case:
+	///
+	/// ```rust
+	/// # use tokio_test::block_on;
+	/// use atspi_proxies::accessible::AccessibleProxy;
+	/// use atspi_common::{AtspiError, ObjectRef, ObjectRefOwned};
+	/// use atspi_connection::P2P;
+	/// use atspi_connection::AccessibilityConnection;
+	///
+	/// # block_on(async {
+	/// let conn = AccessibilityConnection::new().await.unwrap();
+	/// let object_ref = ObjectRef::Null;
+	/// let object_ref = ObjectRefOwned::new(object_ref); // Assume we received this from `Accessible.Parent`
+	///
+	/// let res = conn.object_as_accessible(&object_ref).await;
+	/// match res {
+	///     Ok(proxy) => {
+	///         // Use the proxy
+	///         let _proxy: AccessibleProxy<'_> = proxy;
+	///     }
+	///     Err(AtspiError::NullRef(_msg)) => {
+	///         // Handle null-reference case
+	///     }
+	///     Err(_other) => {
+	///         // Handle other error types
+	///     }
+	/// }
 	/// # });
 	/// ```
 	///
 	/// # Errors
 	/// If the method is called with a null-reference `ObjectRef`, it will return an `AtspiError::NullRef`.
-	/// Users should ensure that the `ObjectRef` is non-null before calling this method.
+	/// Users should ensure that the `ObjectRef` is non-null before calling this method or handle the result.
 	/// If the `AccessibleProxy` cannot be created, or if the object path is invalid.
 	/// If the object is a null reference, it will return an `AtspiError::MissingName`.
 	///
 	/// # Note
 	/// This function will first try to find a [`Peer`] with a P2P connection
 	async fn object_as_accessible(&self, obj: &ObjectRefOwned) -> AtspiResult<AccessibleProxy<'_>> {
-		let name = obj
-			.name()
-			.ok_or(AtspiError::NullRef(
+		if obj.is_null() {
+			return Err(AtspiError::NullRef(
 				"`p2p::object_as_accessible` called with null-reference ObjectRef",
-			))?
-			.to_owned();
+			));
+		}
+
+		let name = obj.name().ok_or(AtspiError::MissingName)?.to_owned();
 		let name = OwnedUniqueName::from(name);
 		let path = obj.path();
 

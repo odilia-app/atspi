@@ -286,11 +286,13 @@ impl ObjectRefExt for ObjectRefOwned {
 		&self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		let name: BusName = self
-			.name()
-			.ok_or(AtspiError::NullRef("`as_accessible_proxy` called on null-reference ObjectRef"))?
-			.clone()
-			.into();
+		if self.is_null() {
+			return Err(AtspiError::NullRef(
+				"`as_accessible_proxy` called on null-reference ObjectRef",
+			));
+		}
+
+		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
 		let path = self.path();
 
 		AccessibleProxy::builder(conn)
@@ -306,13 +308,13 @@ impl ObjectRefExt for ObjectRefOwned {
 		self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		let name: BusName = self
-			.name()
-			.ok_or(AtspiError::NullRef(
+		if self.is_null() {
+			return Err(AtspiError::NullRef(
 				"`into_accessible_proxy` called on null-reference ObjectRef",
-			))?
-			.clone()
-			.into();
+			));
+		}
+
+		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
 		let path = self.path();
 
 		AccessibleProxy::builder(conn)

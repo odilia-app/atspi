@@ -9,8 +9,6 @@
 //! Authors:
 //!    Colton Loftus
 
-use std::{collections::HashMap, error::Error};
-
 use atspi::{
 	events::mouse::ButtonEvent,
 	AtspiError, Event,
@@ -23,6 +21,7 @@ use atspi_proxies::{
 	proxy_ext::ProxyExt,
 };
 use futures_lite::stream::StreamExt;
+use std::{collections::HashMap, error::Error};
 use tokio::task;
 
 // macro to convert an ObjectRef into an AccessibleProxy
