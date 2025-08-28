@@ -680,7 +680,6 @@ impl P2P for crate::AccessibilityConnection {
 	/// If the method is called with a null-reference `ObjectRef`, it will return an `AtspiError::NullRef`.
 	/// Users should ensure that the `ObjectRef` is non-null before calling this method or handle the result.
 	/// If the `AccessibleProxy` cannot be created, or if the object path is invalid.
-	/// If the object is a null reference, it will return an `AtspiError::MissingName`.
 	///
 	/// # Note
 	/// This function will first try to find a [`Peer`] with a P2P connection

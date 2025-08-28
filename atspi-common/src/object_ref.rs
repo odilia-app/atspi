@@ -150,13 +150,10 @@ impl<'o> ObjectRef<'o> {
 	/// assert_eq!(object_ref.name().unwrap().as_str(), ":1.23");
 	/// ```
 	#[must_use]
-	// The match arms are not the same, but Clippy thinks they are.
-	// `name` is `UniqueName<'o>` in `Borrowed` and `UniqueName<'static>` in `Owned`.
-	#[allow(clippy::match_same_arms)]
 	pub fn name(&self) -> Option<&UniqueName<'o>> {
 		match self {
-			Self::Owned { name, .. } => Some(name),
-			Self::Borrowed { name, .. } => Some(name),
+			Self::Owned { name: own_name, .. } => Some(own_name),
+			Self::Borrowed { name: borrow_name, .. } => Some(borrow_name),
 			Self::Null => None,
 		}
 	}
@@ -177,13 +174,10 @@ impl<'o> ObjectRef<'o> {
 	/// assert_eq!(object_ref.path().as_str(), "/org/a11y/example/path/007");
 	/// ```
 	#[must_use]
-	// The match arms are not the same, but Clippy thinks they are.
-	// `path` is `ObjectPath<'o>` in `Borrowed` and `ObjectPath<'static>` in `Owned`.
-	#[allow(clippy::match_same_arms)]
 	pub fn path(&self) -> &ObjectPath<'o> {
 		match self {
-			Self::Owned { path, .. } => path,
-			Self::Borrowed { path, .. } => path,
+			Self::Owned { path: own_path, .. } => own_path,
+			Self::Borrowed { path: borrow_path, .. } => borrow_path,
 			Self::Null => NULL_OBJECT_PATH,
 		}
 	}
