@@ -3,6 +3,7 @@ use crate::events::MessageConversion;
 use crate::events::{
 	DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, RegistryEventString,
 };
+use crate::object_ref::ObjectRefOwned;
 #[cfg(feature = "zbus")]
 use crate::EventProperties;
 #[cfg(feature = "zbus")]
@@ -13,7 +14,7 @@ use zbus::message::{Body as DbusBody, Header};
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct AbsEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	pub x: i32,
 	pub y: i32,
 }
@@ -23,7 +24,7 @@ impl_event_type_properties_for_event!(AbsEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct RelEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	pub x: i32,
 	pub y: i32,
 }
@@ -33,7 +34,7 @@ impl_event_type_properties_for_event!(RelEvent);
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct ButtonEvent {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: crate::events::ObjectRef,
+	pub item: ObjectRefOwned,
 	pub detail: String,
 	pub mouse_x: i32,
 	pub mouse_y: i32,
@@ -71,7 +72,7 @@ impl MessageConversion<'_> for AbsEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, x: body.detail1(), y: body.detail2() })
+		Ok(Self { item: item.into(), x: body.detail1(), y: body.detail2() })
 	}
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
 		let item = header.try_into()?;
@@ -89,7 +90,7 @@ impl MessageConversion<'_> for RelEvent {
 
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item, x: body.detail1(), y: body.detail2() })
+		Ok(Self { item: item.into(), x: body.detail1(), y: body.detail2() })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
@@ -110,7 +111,7 @@ impl MessageConversion<'_> for ButtonEvent {
 	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item,
+			item: item.into(),
 			detail: body.take_kind(),
 			mouse_x: body.detail1(),
 			mouse_y: body.detail2(),

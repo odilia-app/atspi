@@ -9,8 +9,7 @@
 //! [Writing a client proxy](https://dbus.pages.freedesktop.org/zbus/client.html)
 //! section of the zbus documentation.
 //!
-
-use crate::common::ObjectRef;
+use atspi_common::object_ref::ObjectRefOwned;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Selection", assume_defaults = true)]
 pub trait Selection {
@@ -24,7 +23,7 @@ pub trait Selection {
 	fn deselect_selected_child(&self, selected_child_index: i32) -> zbus::Result<bool>;
 
 	/// `GetSelectedChild` method
-	fn get_selected_child(&self, selected_child_index: i32) -> zbus::Result<ObjectRef>;
+	fn get_selected_child(&self, selected_child_index: i32) -> zbus::Result<ObjectRefOwned>;
 
 	/// `IsChildSelected` method
 	fn is_child_selected(&self, child_index: i32) -> zbus::Result<bool>;

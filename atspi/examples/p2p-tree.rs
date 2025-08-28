@@ -12,14 +12,10 @@ use atspi::{
 	AccessibilityConnection, Role,
 };
 use atspi_connection::P2P;
-use atspi_proxies::{accessible::ObjectRefExt, registry::RegistryProxy};
+use atspi_proxies::accessible::ObjectRefExt;
 use futures::{
 	future::{join_all, try_join_all},
 	stream::FuturesUnordered,
-};
-use zbus::{
-	proxy::{CacheProperties, Defaults},
-	Connection,
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -86,6 +82,10 @@ impl A11yNode {
 						Vec::with_capacity(children.len());
 
 					for child in children.into_iter() {
+						if child.is_null() {
+							continue; // Skip null children
+						}
+
 						match a11y.object_as_accessible(&child).await {
 							Ok(proxy) => children_proxies.push(proxy),
 							Err(e) => {
@@ -197,6 +197,7 @@ impl A11yNode {
 			let mut children_proxies = try_join_all(
 				child_objects
 					.into_iter()
+					.filter(|child| !child.is_null()) // Filter out null children
 					.map(|child| child.into_accessible_proxy(&connection)),
 			)
 			.await?;
@@ -233,34 +234,19 @@ impl A11yNode {
 	}
 }
 
-async fn get_registry_accessible<'a>(conn: &Connection) -> Result<AccessibleProxy<'a>> {
-	let registry_well_known = RegistryProxy::DESTINATION.as_ref().expect("Default service is set");
-
-	let registry = AccessibleProxy::builder(conn)
-		.destination(registry_well_known)?
-		.cache_properties(CacheProperties::No)
-		.build()
-		.await?;
-
-	Ok(registry)
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
 	set_session_accessibility(true).await?;
 
 	let a11y = AccessibilityConnection::new().await?;
-	let conn = a11y.connection();
-	let registry = get_registry_accessible(conn).await?;
+	let registry = a11y.root_accessible_on_registry().await?;
 
 	let child_count = registry.child_count().await?;
 	println!("Number of accessible applications on the a11y-bus: {child_count}");
 
-	// Define a fixed width for the description column
+	// Define fixed widths for the description, node count and time columns
 	const DESC_WIDTH: usize = 30;
-	// Define a fixed width for node count column
 	const NODE_COUNT_WIDTH: usize = 10;
-	// Define a fixed width for the time column
 	const TIME_WIDTH: usize = 10;
 
 	println!();
@@ -270,10 +256,11 @@ async fn main() -> Result<()> {
 	);
 	let table_divider = "-".repeat(DESC_WIDTH + NODE_COUNT_WIDTH + TIME_WIDTH + 2).to_string();
 
-	// Building tree (bus)
+	print!("Building tree using the bus... ");
 	let now = std::time::Instant::now();
 	let _tree_bus = A11yNode::from_accessible_proxy_bus(registry.clone()).await?;
 	let bus_elapsed = now.elapsed();
+	println!(" done.");
 	let bus_tree_line = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$.2?}",
 		"Building tree (bus)",
@@ -281,10 +268,11 @@ async fn main() -> Result<()> {
 		bus_elapsed.as_secs_f64() * 1000.0
 	);
 
-	// Building tree (P2P)
+	print!("Building tree using P2P...");
 	let now = std::time::Instant::now();
 	let _tree_p2p = A11yNode::from_accessible_proxy(registry.clone(), &a11y).await?;
 	let p2p_elapsed = now.elapsed();
+	println!(" done.");
 	let p2p_tree_line = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$.2?}",
 		"Building tree (P2P)",
@@ -292,7 +280,7 @@ async fn main() -> Result<()> {
 		p2p_elapsed.as_secs_f64() * 1000.0
 	);
 
-	// Building tree (P2P) parallel
+	print!("Building tree using P2P (parallel)...");
 	let now = std::time::Instant::now();
 	let registry_role = registry.get_role().await.ok();
 	let bus_applications = registry.get_children().await?;
@@ -300,6 +288,7 @@ async fn main() -> Result<()> {
 	let futures = bus_applications
 		.into_iter()
 		.map(|child| {
+			assert!(!child.is_null(), "Child should not be null");
 			let a11y_clone = a11y.clone();
 			async move {
 				let proxy = a11y_clone.object_as_accessible(&child).await?;
@@ -318,6 +307,8 @@ async fn main() -> Result<()> {
 	}
 	let _tree_par = A11yNode { role: registry_role, children };
 	let p2p_par_elapsed = now.elapsed();
+	println!(" done.\n\n");
+
 	let p2p_par_line = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$.2?}",
 		"Building tree (P2P parallel)",

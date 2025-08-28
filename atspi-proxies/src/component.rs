@@ -10,7 +10,8 @@
 //! section of the zbus documentation.
 //!
 
-use crate::common::{CoordType, Layer, ObjectRef, ScrollType};
+use crate::common::{CoordType, Layer, ScrollType};
+use atspi_common::object_ref::ObjectRefOwned;
 
 #[zbus::proxy(interface = "org.a11y.atspi.Component", assume_defaults = true)]
 pub trait Component {
@@ -24,7 +25,7 @@ pub trait Component {
 		x: i32,
 		y: i32,
 		coord_type: CoordType,
-	) -> zbus::Result<ObjectRef>;
+	) -> zbus::Result<ObjectRefOwned>;
 
 	/// `GetAlpha` method
 	fn get_alpha(&self) -> zbus::Result<f64>;

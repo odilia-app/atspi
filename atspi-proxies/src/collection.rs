@@ -14,7 +14,9 @@
 //!
 //! [`CollectionProxy`]: crate::collection::CollectionProxy
 
-use crate::common::{ObjectMatchRule, ObjectRef, SortOrder, TreeTraversalType};
+use atspi_common::object_ref::ObjectRefOwned;
+
+use crate::common::{ObjectMatchRule, SortOrder, TreeTraversalType};
 
 #[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
 pub trait Collection {
@@ -24,7 +26,7 @@ pub trait Collection {
 	///
 	/// See [atspi/collection.c](https://gitlab.gnome.org/GNOME/at-spi2-core/-/blob/main/atspi/atspi-collection.c?ref_type=heads#L272)
 	///
-	fn get_active_descendant(&self) -> zbus::Result<ObjectRef>;
+	fn get_active_descendant(&self) -> zbus::Result<ObjectRefOwned>;
 
 	/// Retrieves a list of objects that match the specified `ObjectMatchRule`, ordered according to `SortOrder` and limited by the count parameter.
 	///
@@ -43,7 +45,7 @@ pub trait Collection {
 		sortby: SortOrder,
 		count: i32,
 		traverse: bool,
-	) -> zbus::Result<Vec<ObjectRef>>;
+	) -> zbus::Result<Vec<ObjectRefOwned>>;
 
 	/// Retrieves objects from the collection, after `current_object`, matching a given `rule`.
 	///
@@ -67,7 +69,7 @@ pub trait Collection {
 		tree: TreeTraversalType,
 		count: i32,
 		traverse: bool,
-	) -> zbus::Result<Vec<ObjectRef>>;
+	) -> zbus::Result<Vec<ObjectRefOwned>>;
 
 	/// Retrieves objects from the collection, before `current_object`, matching a given `rule`.
 	///
@@ -95,5 +97,5 @@ pub trait Collection {
 		limit_scope: bool,
 		count: i32,
 		traverse: bool,
-	) -> zbus::Result<Vec<ObjectRef>>;
+	) -> zbus::Result<Vec<ObjectRefOwned>>;
 }

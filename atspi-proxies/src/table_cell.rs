@@ -10,18 +10,18 @@
 //! section of the zbus documentation.
 //!
 
-use crate::common::ObjectRef;
+use atspi_common::object_ref::ObjectRefOwned;
 
 #[zbus::proxy(interface = "org.a11y.atspi.TableCell", assume_defaults = true)]
 pub trait TableCell {
 	/// `GetColumnHeaderCells` method
-	fn get_column_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
+	fn get_column_header_cells(&self) -> zbus::Result<Vec<ObjectRefOwned>>;
 
 	/// `GetRowColumnSpan` method
 	fn get_row_column_span(&self) -> zbus::Result<(bool, i32, i32, i32, i32)>;
 
 	/// `GetRowHeaderCells` method
-	fn get_row_header_cells(&self) -> zbus::Result<Vec<ObjectRef>>;
+	fn get_row_header_cells(&self) -> zbus::Result<Vec<ObjectRefOwned>>;
 
 	/// `ColumnSpan` property
 	#[zbus(property)]
@@ -37,5 +37,5 @@ pub trait TableCell {
 
 	/// `Table` property
 	#[zbus(property)]
-	fn table(&self) -> zbus::Result<ObjectRef>;
+	fn table(&self) -> zbus::Result<ObjectRefOwned>;
 }

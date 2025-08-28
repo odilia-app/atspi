@@ -9,22 +9,29 @@
 ///
 /// ```ignore
 /// impl EventProperties for TextCaretMovedEvent {
-///   fn sender(&self) -> UniqueName<'_> {
-///     self.item.name.as_ref()
-///   }
-///   fn path(&self) -> ObjectPath<'_> {
-///     self.item.path.as_ref()
-///   }
+///     fn sender(&self) -> UniqueName<'_> {
+///         self.item
+///             .name()
+///             .expect("Events are constructed with valid ObjetRef")
+///             .as_ref()
+///     }
+///     fn path(&self) -> ObjectPath<'_> {
+///         self.item.path().as_ref()
+///     }
 /// }
 /// ```
 macro_rules! impl_event_properties {
 	($type:ty) => {
 		impl crate::EventProperties for $type {
 			fn sender(&self) -> zbus_names::UniqueName<'_> {
-				self.item.name.as_ref()
+				self.item
+					.name()
+					.expect("Events are received with valid ObjetRef")
+					.as_ref()
 			}
+
 			fn path(&self) -> zvariant::ObjectPath<'_> {
-				self.item.path.as_ref()
+				self.item.path().as_ref()
 			}
 		}
 	};
@@ -34,23 +41,23 @@ macro_rules! impl_event_properties {
 /// This depends on the struct to have an `item` field of type [`crate::ObjectRef`].
 ///
 /// ```ignore
-/// impl_from_object_ref!(TextCaretMovedEvent);
+/// impl_from_object_ref!(TextAttributesChangedEvent);
 /// ```
 ///
 /// Exapnds to:
 ///
 /// ```ignore
-/// impl From<ObjectRef> for TextCaretMovedItem {
+/// impl From<ObjectRef> for TextAttributesChangedEvent {
 ///     fn from(obj_ref: ObjectRef) -> Self {
-///         Self { item: obj_ref }
+///         Self { item: obj_ref.into() }
 ///     }
 /// }
 /// ```
 macro_rules! impl_from_object_ref {
 	($type:ty) => {
-		impl From<crate::ObjectRef> for $type {
+		impl From<crate::ObjectRef<'_>> for $type {
 			fn from(obj_ref: crate::ObjectRef) -> Self {
-				Self { item: obj_ref }
+				Self { item: obj_ref.into() }
 			}
 		}
 	};
@@ -353,23 +360,24 @@ macro_rules! generic_event_test_case {
 		#[test]
 		fn generic_event_uses() {
 			use crate::events::traits::MessageConversion;
-			let struct_event = <$type>::default();
-			assert_eq!(struct_event.path().as_str(), "/org/a11y/atspi/accessible/null");
-			assert_eq!(struct_event.sender().as_str(), ":0.0");
-			let body = struct_event.body();
+
+			let event_struct = <$type>::default();
+			assert_eq!(event_struct.path().as_str(), crate::object_ref::TEST_OBJECT_PATH_STR);
+			assert_eq!(event_struct.sender().as_str(), crate::object_ref::TEST_OBJECT_BUS_NAME);
+			let body = event_struct.body();
 			let body2 = Message::method_call(
-				struct_event.path().as_str(),
+				event_struct.path().as_str(),
 				<$type as crate::events::DBusMember>::DBUS_MEMBER,
 			)
 			.unwrap()
-			.sender(struct_event.sender().as_str())
+			.sender(event_struct.sender().as_str())
 			.unwrap()
 			.build(&(body,))
 			.unwrap();
 			let header = body2.header();
 			let build_struct = <$type>::from_message_unchecked(&body2, &header)
 				.expect("<$type as Default>'s parts should build a valid ObjectRef");
-			assert_eq!(struct_event, build_struct);
+			assert_eq!(event_struct, build_struct);
 		}
 	};
 }
@@ -389,24 +397,27 @@ macro_rules! event_has_matching_xml_definition {
 	($type:ty) => {
 		#[test]
 		fn event_has_matching_xml_definition() {
-      use zbus_xml;
-				use crate::events::{DBusInterface, DBusMember};
 
-			let fname = match <$type>::DBUS_INTERFACE.split(".").last().expect("Has last section") {
-				"Cache" => "xml/Cache.xml",
-				"Socket" => "xml/Socket.xml",
-				"Registry" => "xml/Registry.xml",
-				_ => "xml/Event.xml",
-			};
-      let reader = std::fs::File::open(fname).expect("Valid file path!");
-      let xml = zbus_xml::Node::from_reader(reader).expect("Valid DBus XML file!");
-      let Some(interface) = xml.interfaces().iter().find(|int| int.name() == <$type>::DBUS_INTERFACE) else {
-          let possible_names: Vec<String> = xml.interfaces().iter().map(|int| int.name().as_str().to_string()).collect();
-          panic!("{} has interface name {}, but it was not found in the list of interfaces defined in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, possible_names);
+	    use zbus_xml;
+		use crate::events::{DBusInterface, DBusMember};
+
+		let fname = match <$type>::DBUS_INTERFACE.split(".").last().expect("Has last section") {
+			"Cache" => "xml/Cache.xml",
+			"Socket" => "xml/Socket.xml",
+			"Registry" => "xml/Registry.xml",
+			_ => "xml/Event.xml",
+		};
+
+		let reader = std::fs::File::open(fname).expect("Valid file path!");
+		let xml = zbus_xml::Node::from_reader(reader).expect("Valid DBus XML file!");
+		let Some(interface) = xml.interfaces().iter().find(|int| int.name() == <$type>::DBUS_INTERFACE) else {
+
+	    let possible_names: Vec<String> = xml.interfaces().iter().map(|int| int.name().as_str().to_string()).collect();
+        panic!("{} has interface name {}, but it was not found in the list of interfaces defined in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, possible_names);
       };
-      let Some(_member) = interface.signals().iter().find(|mem| mem.name() == <$type>::DBUS_MEMBER) else {
-          let possible_names: Vec<String> = interface.signals().iter().map(|mem| mem.name().as_str().to_string()).collect();
-          panic!("{} has interface name {} and member name {}, but it was not found in the list of members defined in the corresponding interface in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, <$type>::DBUS_MEMBER, possible_names);
+        let Some(_member) = interface.signals().iter().find(|mem| mem.name() == <$type>::DBUS_MEMBER) else {
+        let possible_names: Vec<String> = interface.signals().iter().map(|mem| mem.name().as_str().to_string()).collect();
+        panic!("{} has interface name {} and member name {}, but it was not found in the list of members defined in the corresponding interface in the XML: {:?}", std::any::type_name::<$type>(), <$type>::DBUS_INTERFACE, <$type>::DBUS_MEMBER, possible_names);
       };
 		}
 	};
@@ -418,17 +429,17 @@ macro_rules! zbus_message_qtspi_test_case {
       #[cfg(feature = "zbus")]
      #[test]
     fn zbus_message_conversion_qtspi() {
-		use crate::events::EventTypeProperties;
-		use crate::events::MessageConversion;
+	  use crate::events::EventTypeProperties;
+	  use crate::events::MessageConversion;
 
-		// in the case that the body type is EventBodyOwned, we need to also check successful
+	  // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
       let ev = <$type>::default();
       let qt: crate::events::EventBodyQtOwned = ev.body().into();
       let msg = zbus::Message::signal(
-          ev.path(),
-          ev.interface(),
-          ev.member(),
+        ev.path(),
+        ev.interface(),
+        ev.member(),
       )
         .unwrap()
         .sender(":0.0")
@@ -443,7 +454,6 @@ macro_rules! zbus_message_qtspi_test_case {
 	  use crate::events::EventTypeProperties;
 	  use crate::events::MessageConversion;
 	  use crate::Event;
-
 
       // in the case that the body type is EventBodyOwned, we need to also check successful
       // conversion from a QSPI-style body.
@@ -498,7 +508,7 @@ macro_rules! zbus_message_test_case {
 			let event_enum: crate::Event = struct_event.into();
 			assert_eq!(event_enum, event_enum_back);
 		}
-		// make want to consider parameterized tests here, no need for fuzz testing, but one level lower than that may be nice
+		// may want to consider parameterized tests here, no need for fuzz testing, but one level lower than that may be nice
 		// try having a matching member, matching interface, path, or body type, but that has some other piece which is not right
 		#[cfg(feature = "zbus")]
 		#[test]
@@ -806,6 +816,7 @@ macro_rules! event_test_cases {
 		mod foo {
 		use super::{$ufet, AtspiError, EventProperties };
 		use crate::events::traits::EventTypeProperties;
+		#[cfg(feature = "zbus")]
         use zbus::Message;
 		use crate::Event;
 
@@ -933,7 +944,7 @@ macro_rules! impl_msg_conversion_ext_for_target_type_with_specified_body_type {
 ///         Self::validate_interface(header)?;
 ///         Self::validate_member(header)?;
 ///
-///         let item = crate::events::ObjectRef::try_from(header)?;
+///         let item = ObjectRefOwned::try_from(header)?;
 ///         let msg_body = msg.body();
 ///         let signature = msg_body.signature();
 ///
@@ -962,14 +973,14 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 				Self::validate_interface(header)?;
 				Self::validate_member(header)?;
 
-				let item = crate::events::ObjectRef::try_from(header)?;
+				let item = ObjectRefOwned::try_from(header)?;
 				let msg_body = msg.body();
 				let signature = msg_body.signature();
 
 				if signature == crate::events::EventBodyOwned::SIGNATURE
 					|| signature == crate::events::EventBodyQtOwned::SIGNATURE
 				{
-					Self::from_message_unchecked_parts(item, msg_body)
+					Self::from_message_unchecked_parts(item.into_inner(), msg_body)
 				} else {
 					Err(AtspiError::SignatureMatch(format!(
 						"The message signature {} does not match a valid signal body signature: {} or {}",
@@ -1050,14 +1061,14 @@ macro_rules! impl_tryfrommessage_for_event_wrapper {
 ///     type Body<'msg> = crate::events::EventBody<'msg>;
 ///
 ///     fn from_message_unchecked_parts(
-///         obj_ref: crate::events::ObjectRef,
+///         obj_ref: ObjectRefOwned,
 ///         _body: zbus::message::Body,
 ///     ) -> Result<Self, AtspiError> {
 ///         Ok(obj_ref.into())
 ///     }
 ///
 ///     fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-///         let obj_ref: crate::events::ObjectRef = header.try_into()?;
+///         let obj_ref: ObjectRefOwned = header.try_into()?;
 ///         Ok(obj_ref.into())
 ///     }
 ///
@@ -1074,15 +1085,15 @@ macro_rules! impl_msg_conversion_for_types_built_from_object_ref {
 				type Body<'msg> = crate::events::EventBody<'msg>;
 
 				fn from_message_unchecked_parts(
-					obj_ref: crate::events::ObjectRef,
+					obj_ref: crate::object_ref::ObjectRef<'_>,
 					_body: zbus::message::Body,
 				) -> Result<Self, AtspiError> {
 					Ok(obj_ref.into())
 				}
 
 				fn from_message_unchecked(_: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-					let obj_ref: crate::events::ObjectRef = header.try_into()?;
-					Ok(obj_ref.into())
+					let obj_ref: ObjectRefOwned = header.try_into()?;
+					Ok( Self { item: obj_ref })
 				}
 
 				fn body(&self) -> Self::Body<'_> {
@@ -1156,18 +1167,18 @@ macro_rules! impl_member_interface_registry_string_and_match_rule_for_event {
 ///
 /// ```ignore
 /// impl EventTypeProperties for FocusEvent {
-///    fn member(&self) -> &'static str {
-///       Self::DBUS_MEMBER
-///   }
-///  fn interface(&self) -> &'static str {
+/// fn member(&self) -> &'static str {
+///   Self::DBUS_MEMBER
+/// }
+/// fn interface(&self) -> &'static str {
 ///   Self::DBUS_INTERFACE
 /// }
 /// fn registry_string(&self) -> &'static str {
-///  Self::REGISTRY_EVENT_STRING
+///   Self::REGISTRY_EVENT_STRING
 /// }
 /// fn match_rule(&self) -> &'static str {
-/// Self::MATCH_RULE_STRING
-/// }
+///     Self::MATCH_RULE_STRING
+///   }
 /// }
 ///
 macro_rules! impl_event_type_properties_for_event {
