@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 use zbus_lockstep_macros::validate;
 use zbus_names::{BusName, UniqueName};
-use zvariant::{ObjectPath, Structure, Type};
+use zvariant::{ObjectPath, OwnedValue, Structure, Type, Value};
 
 const NULL_PATH_STR: &str = "/org/a11y/atspi/null";
 const NULL_OBJECT_PATH: &ObjectPath<'static> =
@@ -17,9 +17,10 @@ pub(crate) const TEST_OBJECT_PATH_STR: &str = "/org/a11y/atspi/test/default";
 pub(crate) const TEST_DEFAULT_OBJECT_REF: ObjectRef<'static> =
 	ObjectRef::from_static_str_unchecked(TEST_OBJECT_BUS_NAME, TEST_OBJECT_PATH_STR);
 
-/// A unique identifier for an object in the accessibility tree.
-///
-/// A ubiquitous type used to refer to an object in the accessibility tree.
+// Cannot derive `zvariant::Value` or `zvariant::OwnedValue` on non-unit variants in enums.	20250903
+
+/// A unique *non-null* object reference.
+/// An identifier for an object in the accessibility tree.
 ///
 /// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
 /// using an application's bus name and object path. "(so)"
@@ -28,17 +29,198 @@ pub(crate) const TEST_DEFAULT_OBJECT_REF: ObjectRef<'static> =
 #[validate(signal: "Available")]
 #[derive(Clone, Debug, Eq, Type)]
 #[zvariant(signature = "(so)")]
-pub enum ObjectRef<'o> {
-	Null,
+pub enum NonNullObjectRef<'o> {
 	Owned { name: UniqueName<'static>, path: ObjectPath<'static> },
 	Borrowed { name: UniqueName<'o>, path: ObjectPath<'o> },
+}
+
+impl<'o> NonNullObjectRef<'o> {
+	/// Create a new `ObjectRef::Borrowed` from a `UniqueName` and `ObjectPath`.
+	#[must_use]
+	pub fn new(name: UniqueName<'o>, path: ObjectPath<'o>) -> Self {
+		Self::new_borrowed(name, path)
+	}
+
+	/// Create a new, borrowed `ObjectRef`.
+	///
+	/// # Example
+	/// ```rust
+	/// use zbus::names::UniqueName;
+	/// use zbus::zvariant::ObjectPath;
+	/// use atspi_common::NonNullObjectRef;
+	///
+	/// let name = UniqueName::from_static_str_unchecked(":1.23");
+	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
+	///
+	/// let object_ref = NonNullObjectRef::new_borrowed(name, path);
+	/// # assert_eq!(object_ref.name_as_str(), Some(":1.23"));
+	/// # assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
+	/// ```
+	pub fn new_borrowed<N, P>(name: N, path: P) -> NonNullObjectRef<'o>
+	where
+		N: Into<UniqueName<'o>>,
+		P: Into<ObjectPath<'o>>,
+	{
+		let name: UniqueName<'o> = name.into();
+		let path: ObjectPath<'o> = path.into();
+
+		Self::Borrowed { name, path }
+	}
+
+	/// Create a new, owned `NonNullObjectRef`.
+	///
+	/// # Example
+	/// ```rust
+	/// use zbus::names::UniqueName;
+	/// use zbus::zvariant::ObjectPath;
+	/// use atspi_common::NonNullObjectRef;
+	///
+	/// let name = UniqueName::from_static_str_unchecked(":1.23");
+	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
+	///
+	/// let object_ref = NonNullObjectRef::new_owned(name, path);
+	/// # assert_eq!(object_ref.name_as_str(), Some(":1.23"));
+	/// # assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
+	/// ```
+	pub fn new_owned<N, P>(name: N, path: P) -> NonNullObjectRef<'static>
+	where
+		N: Into<UniqueName<'static>>,
+		P: Into<ObjectPath<'static>>,
+	{
+		let name: UniqueName<'static> = name.into();
+		let path: ObjectPath<'static> = path.into();
+
+		NonNullObjectRef::Owned { name, path }
+	}
+
+	/// Returns the name of the object reference.
+	#[must_use]
+	#[allow(clippy::match_same_arms)] // match arms differ by lifetime
+	pub fn name(&self) -> &UniqueName<'o> {
+		match self {
+			Self::Owned { name, .. } => name,
+			Self::Borrowed { name, .. } => name,
+		}
+	}
+
+	/// Returns the path of the object reference.
+	#[must_use]
+	#[allow(clippy::match_same_arms)] // match arms differ by lifetime
+	pub fn path(&self) -> &ObjectPath<'o> {
+		match self {
+			Self::Owned { path, .. } => path,
+			Self::Borrowed { path, .. } => path,
+		}
+	}
+
+	/// Create a new `NonNullObjectRef`, from `BusName` and `ObjectPath`.
+	///
+	/// # Errors
+	/// Will fail if the `sender` is not a `UniqueName`.
+	pub fn try_from_bus_name_and_path(
+		sender: BusName<'o>,
+		path: ObjectPath<'o>,
+	) -> Result<Self, AtspiError> {
+		// Check whether `BusName` matches `UniqueName`
+		if let BusName::Unique(name) = sender {
+			Ok(NonNullObjectRef::Borrowed { name, path })
+		} else {
+			Err(AtspiError::ParseError("Expected UniqueName"))
+		}
+	}
+
+	/// Create a new `NonNullObjectRef`, unchecked.
+	///
+	/// # Safety
+	/// The caller must ensure that the strings are valid for `UniqueName` and `ObjectPath`.
+	#[must_use]
+	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
+		let name = UniqueName::from_static_str_unchecked(name);
+		let path = ObjectPath::from_static_str_unchecked(path);
+
+		NonNullObjectRef::Owned { name, path }
+	}
+
+	/// Converts the `NonNullObjectRef` into an owned instance, consuming `self`.\
+	/// If the object reference is `Owned`, it returns the same `ObjectRef::Owned`.\
+	/// If the object reference is `Borrowed`, it converts the name and path to owned versions and returns `ObjectRef::Owned`.
+	///
+	/// # Extending lifetime 'magic' (from 'o -> 'static')
+	///
+	/// `ObjectRef<'_>` leans on the implementation of `UniqueName` and `ObjectPath` to
+	/// convert the inner types to `'static`.\
+	/// These types have an `Inner` enum that can contain an `Owned`, `Borrowed`, or `Static` `Str` type.\
+	/// The `Str`type is either a `&'static str` (static), `&str` (borrowed), or an `Arc<str>` (owned).
+	///
+	/// # Example
+	/// ```rust
+	/// use zbus::names::UniqueName;
+	/// use zbus::zvariant::ObjectPath;
+	/// use atspi_common::NonNullObjectRef;
+	///
+	/// let name = UniqueName::from_static_str_unchecked(":1.23");
+	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
+	/// let object_ref = NonNullObjectRef::new_borrowed(name, path);
+	///
+	/// let object_ref = object_ref.into_owned();
+	/// assert!(matches!(object_ref, ObjectRef::Owned { .. }));
+	/// ```
+	#[must_use]
+	pub fn into_owned(self) -> NonNullObjectRef<'static> {
+		match self {
+			Self::Owned { name, path } => NonNullObjectRef::Owned { name, path },
+			Self::Borrowed { name, path } => {
+				NonNullObjectRef::Owned { name: name.to_owned(), path: path.to_owned() }
+			}
+		}
+	}
+
+	/// Returns the name of the object reference as a string slice.
+	#[must_use]
+	pub fn name_as_str(&self) -> &str {
+		match self {
+			NonNullObjectRef::Owned { name, .. } | NonNullObjectRef::Borrowed { name, .. } => {
+				name.as_str()
+			}
+		}
+	}
+
+	/// Returns the path of the object reference as a string slice.
+	#[must_use]
+	pub fn path_as_str(&self) -> &str {
+		match self {
+			NonNullObjectRef::Owned { path, .. } | NonNullObjectRef::Borrowed { path, .. } => {
+				path.as_str()
+			}
+		}
+	}
+}
+
+/// A unique identifier for an object in the accessibility tree that can also be null.
+/// A ubiquitous type used to refer to an object in the accessibility tree.
+///
+/// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
+/// using an application's bus name and object path. "(so)"
+///
+/// # null variant
+/// A null-reference may be used either in the accessibility tree or
+/// in method return messages to indicate that there is no object.
+///
+/// Emitted by `RemoveAccessible` and `Available`
+#[validate(signal: "Available")]
+#[derive(Clone, Debug, Eq, Type)]
+#[zvariant(signature = "(so)")]
+pub enum ObjectRef<'o> {
+	Null,
+	NonNull(NonNullObjectRef<'o>),
 }
 
 impl<'o> ObjectRef<'o> {
 	/// Create a new `ObjectRef::Borrowed` from a `UniqueName` and `ObjectPath`.
 	#[must_use]
 	pub fn new(name: UniqueName<'o>, path: ObjectPath<'o>) -> Self {
-		Self::new_borrowed(name, path)
+		let non_null = NonNullObjectRef::new_borrowed(name, path);
+		Self::NonNull(non_null)
 	}
 
 	/// Create a new, owned `ObjectRef`.
@@ -56,7 +238,7 @@ impl<'o> ObjectRef<'o> {
 	/// # assert_eq!(object_ref.name_as_str(), Some(":1.23"));
 	/// # assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
 	/// ```
-	pub fn new_owned<N, P>(name: N, path: P) -> ObjectRefOwned
+	pub fn new_owned<N, P>(name: N, path: P) -> ObjectRef<'static>
 	where
 		N: Into<UniqueName<'static>>,
 		P: Into<ObjectPath<'static>>,
@@ -64,7 +246,8 @@ impl<'o> ObjectRef<'o> {
 		let name: UniqueName<'static> = name.into();
 		let path: ObjectPath<'static> = path.into();
 
-		ObjectRefOwned(ObjectRef::Owned { name, path })
+		let non_null = NonNullObjectRef::Owned { name, path };
+		ObjectRef::NonNull(non_null)
 	}
 
 	/// Create a new, borrowed `ObjectRef`.
@@ -90,7 +273,8 @@ impl<'o> ObjectRef<'o> {
 		let name: UniqueName<'o> = name.into();
 		let path: ObjectPath<'o> = path.into();
 
-		ObjectRef::Borrowed { name, path }
+		let non_null = NonNullObjectRef::Borrowed { name, path };
+		Self::NonNull(non_null)
 	}
 
 	/// Create a new `ObjectRef`, from `BusName` and `ObjectPath`.
@@ -102,8 +286,9 @@ impl<'o> ObjectRef<'o> {
 		path: ObjectPath<'o>,
 	) -> Result<Self, AtspiError> {
 		// Check whether `BusName` matches `UniqueName`
-		if let BusName::Unique(unique_sender) = sender {
-			Ok(ObjectRef::new(unique_sender, path))
+		if let BusName::Unique(name) = sender {
+			let non_null = NonNullObjectRef::Borrowed { name, path };
+			Ok(ObjectRef::NonNull(non_null))
 		} else {
 			Err(AtspiError::ParseError("Expected UniqueName"))
 		}
@@ -115,10 +300,8 @@ impl<'o> ObjectRef<'o> {
 	/// The caller must ensure that the strings are valid.
 	#[must_use]
 	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
-		let name = UniqueName::from_static_str_unchecked(name);
-		let path = ObjectPath::from_static_str_unchecked(path);
-
-		ObjectRef::Owned { name, path }
+		let non_null = NonNullObjectRef::from_static_str_unchecked(name, path);
+		ObjectRef::NonNull(non_null)
 	}
 
 	/// Returns `true` if the object reference is `Null`, otherwise returns `false`.
@@ -133,7 +316,7 @@ impl<'o> ObjectRef<'o> {
 
 	/// Returns the name of the object reference.
 	/// If the object reference is `Null`, it returns `None`.
-	/// If the object reference is `Owned` or `Borrowed`, it returns the name.
+	/// If the object reference is non-null, either `Owned` or `Borrowed`, it returns the name.
 	///
 	/// # Example
 	/// ```rust
@@ -152,8 +335,7 @@ impl<'o> ObjectRef<'o> {
 	#[must_use]
 	pub fn name(&self) -> Option<&UniqueName<'o>> {
 		match self {
-			Self::Owned { name: own_name, .. } => Some(own_name),
-			Self::Borrowed { name: borrow_name, .. } => Some(borrow_name),
+			Self::NonNull(non_null) => Some(non_null.name()),
 			Self::Null => None,
 		}
 	}
@@ -176,8 +358,7 @@ impl<'o> ObjectRef<'o> {
 	#[must_use]
 	pub fn path(&self) -> &ObjectPath<'o> {
 		match self {
-			Self::Owned { path: own_path, .. } => own_path,
-			Self::Borrowed { path: borrow_path, .. } => borrow_path,
+			Self::NonNull(non_null) => non_null.path(),
 			Self::Null => NULL_OBJECT_PATH,
 		}
 	}
@@ -213,10 +394,7 @@ impl<'o> ObjectRef<'o> {
 	pub fn into_owned(self) -> ObjectRef<'static> {
 		match self {
 			Self::Null => ObjectRef::Null,
-			Self::Owned { name, path } => ObjectRef::Owned { name, path },
-			Self::Borrowed { name, path } => {
-				ObjectRef::Owned { name: name.to_owned(), path: path.to_owned() }
-			}
+			Self::NonNull(non_null) => ObjectRef::NonNull(non_null.into_owned()),
 		}
 	}
 
@@ -225,7 +403,7 @@ impl<'o> ObjectRef<'o> {
 	pub fn name_as_str(&self) -> Option<&str> {
 		match self {
 			ObjectRef::Null => None,
-			ObjectRef::Owned { name, .. } | ObjectRef::Borrowed { name, .. } => Some(name.as_str()),
+			ObjectRef::NonNull(non_null) => Some(non_null.name_as_str()),
 		}
 	}
 
@@ -234,7 +412,7 @@ impl<'o> ObjectRef<'o> {
 	pub fn path_as_str(&self) -> &str {
 		match self {
 			ObjectRef::Null => NULL_PATH_STR,
-			ObjectRef::Owned { path, .. } | ObjectRef::Borrowed { path, .. } => path.as_str(),
+			ObjectRef::NonNull(non_null) => non_null.path_as_str(),
 		}
 	}
 }
@@ -262,7 +440,6 @@ impl Default for ObjectRef<'_> {
 }
 
 /// A wrapper around the static variant of `ObjectRef`.
-/// This is guaranteed to have a `'static` lifetime.
 #[validate(signal: "Available")]
 #[derive(Clone, Debug, Default, Eq, Type)]
 pub struct ObjectRefOwned(pub(crate) ObjectRef<'static>);
@@ -282,10 +459,10 @@ impl From<ObjectRef<'_>> for ObjectRefOwned {
 }
 
 impl ObjectRefOwned {
-	/// Create a new `ObjectRefOwned` from an `ObjectRef<'static>`.
+	/// Create a new `ObjectRefOwned` from a static `ObjectRef`.
 	#[must_use]
 	pub const fn new(object_ref: ObjectRef<'static>) -> Self {
-		Self(object_ref)
+		ObjectRefOwned(object_ref)
 	}
 
 	/// Create a new `ObjectRefOwned` from `&'static str` unchecked.
@@ -294,10 +471,7 @@ impl ObjectRefOwned {
 	/// The caller must ensure that the strings are valid.
 	#[must_use]
 	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
-		let name = UniqueName::from_static_str_unchecked(name);
-		let path = ObjectPath::from_static_str_unchecked(path);
-
-		ObjectRefOwned(ObjectRef::Owned { name, path })
+		ObjectRefOwned(ObjectRef::from_static_str_unchecked(name, path))
 	}
 
 	/// Returns `true` if the object reference is `Null`, otherwise returns `false`.
@@ -333,7 +507,7 @@ impl ObjectRefOwned {
 	#[must_use]
 	pub fn name(&self) -> Option<&UniqueName<'static>> {
 		match &self.0 {
-			ObjectRef::Owned { name, .. } | ObjectRef::Borrowed { name, .. } => Some(name),
+			ObjectRef::NonNull(non_null) => Some(non_null.name()),
 			ObjectRef::Null => None,
 		}
 	}
@@ -356,7 +530,7 @@ impl ObjectRefOwned {
 	#[must_use]
 	pub fn path(&self) -> &ObjectPath<'static> {
 		match &self.0 {
-			ObjectRef::Owned { path, .. } | ObjectRef::Borrowed { path, .. } => path,
+			ObjectRef::NonNull(non_null) => non_null.path(),
 			ObjectRef::Null => NULL_OBJECT_PATH,
 		}
 	}
@@ -366,7 +540,7 @@ impl ObjectRefOwned {
 	pub fn name_as_str(&self) -> Option<&str> {
 		match &self.0 {
 			ObjectRef::Null => None,
-			ObjectRef::Owned { name, .. } | ObjectRef::Borrowed { name, .. } => Some(name.as_str()),
+			ObjectRef::NonNull(non_null) => Some(non_null.name_as_str()),
 		}
 	}
 
@@ -375,7 +549,69 @@ impl ObjectRefOwned {
 	pub fn path_as_str(&self) -> &str {
 		match &self.0 {
 			ObjectRef::Null => NULL_PATH_STR,
-			ObjectRef::Owned { path, .. } | ObjectRef::Borrowed { path, .. } => path.as_str(),
+			ObjectRef::NonNull(non_null) => non_null.path_as_str(),
+		}
+	}
+}
+
+impl<'o> From<NonNullObjectRef<'o>> for ObjectRef<'o> {
+	/// Convert a `NonNullObjectRef<'o>` into an `ObjectRef<'o>`.
+	fn from(non_null: NonNullObjectRef<'o>) -> Self {
+		ObjectRef::NonNull(non_null)
+	}
+}
+
+impl From<NonNullObjectRef<'_>> for ObjectRefOwned {
+	/// Convert a `NonNullObjectRef<'_>` into an `ObjectRefOwned`.
+	fn from(non_null: NonNullObjectRef<'_>) -> Self {
+		match non_null {
+			// Somehow the compiler does not see that if we match on Owned, non_null must be owned.
+			NonNullObjectRef::Owned { .. } => ObjectRefOwned(non_null.into_owned().into()),
+			NonNullObjectRef::Borrowed { .. } => {
+				let non_null = non_null.into_owned();
+				ObjectRefOwned(non_null.into())
+			}
+		}
+	}
+}
+
+impl<'o> TryFrom<ObjectRef<'o>> for NonNullObjectRef<'o> {
+	type Error = AtspiError;
+
+	/// Convert an `ObjectRef<'o>` into a `NonNullObjectRef<'o>`.
+	///
+	/// # Errors
+	/// Will return an `AtspiError::ParseError` if the `ObjectRef` is `Null`.
+	fn try_from(object_ref: ObjectRef<'o>) -> Result<Self, Self::Error> {
+		match object_ref {
+			ObjectRef::NonNull(non_null) => Ok(non_null),
+			ObjectRef::Null => Err(AtspiError::ParseError("Expected NonNullObjectRef")),
+		}
+	}
+}
+
+impl TryFrom<ObjectRefOwned> for NonNullObjectRef<'static> {
+	type Error = AtspiError;
+
+	/// Convert an `ObjectRefOwned` into a `NonNullObjectRef<'static>`.
+	///
+	/// # Errors
+	/// Will return an `AtspiError::ParseError` if the inner `ObjectRef` is `Null`.
+	fn try_from(object_ref: ObjectRefOwned) -> Result<Self, Self::Error> {
+		NonNullObjectRef::try_from(object_ref.0)
+	}
+}
+
+impl Serialize for NonNullObjectRef<'_> {
+	/// `NonNullObjectRef`'s wire format is `(&str, ObjectPath)`.
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: serde::Serializer,
+	{
+		match &self {
+			NonNullObjectRef::Owned { name, path } | NonNullObjectRef::Borrowed { name, path } => {
+				(name.as_str(), path).serialize(serializer)
+			}
 		}
 	}
 }
@@ -391,9 +627,7 @@ impl Serialize for ObjectRef<'_> {
 	{
 		match &self {
 			ObjectRef::Null => ("", NULL_OBJECT_PATH).serialize(serializer),
-			ObjectRef::Owned { name, path } | ObjectRef::Borrowed { name, path } => {
-				(name.as_str(), path).serialize(serializer)
-			}
+			ObjectRef::NonNull(non_null) => non_null.serialize(serializer),
 		}
 	}
 }
@@ -405,6 +639,45 @@ impl Serialize for ObjectRefOwned {
 		S: serde::Serializer,
 	{
 		self.0.serialize(serializer)
+	}
+}
+
+// Preferably deserialize to `ObjectRef` to deserialize references from the bus.
+// The NonNullObjectRef will error on the Null object reference.
+impl<'de: 'o, 'o> Deserialize<'de> for NonNullObjectRef<'o> {
+	/// `NonNullObjectRef`'s wire format is `(&str, ObjectPath)`.
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		struct NonNullObjectRefVisitor;
+
+		impl<'de> serde::de::Visitor<'de> for NonNullObjectRefVisitor {
+			type Value = NonNullObjectRef<'de>;
+
+			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+				formatter.write_str("a tuple of (&str, ObjectPath)")
+			}
+
+			fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+			where
+				A: serde::de::SeqAccess<'de>,
+			{
+				let name: &str = seq
+					.next_element()?
+					.ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+				let path: ObjectPath<'de> = seq
+					.next_element()?
+					.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
+
+				Ok(NonNullObjectRef::Borrowed {
+					name: UniqueName::try_from(name).map_err(serde::de::Error::custom)?,
+					path,
+				})
+			}
+		}
+
+		deserializer.deserialize_tuple(2, NonNullObjectRefVisitor)
 	}
 }
 
@@ -437,6 +710,10 @@ impl<'de: 'o, 'o> Deserialize<'de> for ObjectRef<'o> {
 					.next_element()?
 					.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
 
+				// Even though the specifications state that a null-reference is defined as: ("", ObjectPath),
+				// some implementations use (valid bus name, null path) to indicate a null object,
+				// We consider the sequance null if the path is null.
+				// After this arm, empty names are a reason to panic.
 				if path == *NULL_OBJECT_PATH {
 					Ok(ObjectRef::Null)
 				} else {
@@ -444,10 +721,10 @@ impl<'de: 'o, 'o> Deserialize<'de> for ObjectRef<'o> {
 						!name.is_empty(),
 						"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
 					);
-					Ok(ObjectRef::Borrowed {
+					Ok(ObjectRef::NonNull(NonNullObjectRef::Borrowed {
 						name: UniqueName::try_from(name).map_err(serde::de::Error::custom)?,
 						path,
-					})
+					}))
 				}
 			}
 		}
@@ -467,6 +744,12 @@ impl<'de> Deserialize<'de> for ObjectRefOwned {
 	}
 }
 
+impl PartialEq for NonNullObjectRef<'_> {
+	fn eq(&self, other: &Self) -> bool {
+		self.name() == other.name() && self.path() == other.path()
+	}
+}
+
 impl PartialEq for ObjectRef<'_> {
 	fn eq(&self, other: &Self) -> bool {
 		match (self, other) {
@@ -478,12 +761,22 @@ impl PartialEq for ObjectRef<'_> {
 	}
 }
 
-// `Hash` requires that hashes are equal if values are equal.
-// If a == b, then a.hash() == b.hash() must hold true.
+// NonNullObjectRef's hash must not consider the variant (Owned/Borrowed),
+// because PartialEq does not consider it either.
 //
-// Because PartialEq treats Owned and Borrowed variants with identical (name, path) as equal,
-// we must implement Hash manually to ignore the variant discriminant and preserve hash/equality
-// consistency.
+// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
+impl Hash for NonNullObjectRef<'_> {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.name().hash(state);
+		self.path().hash(state);
+	}
+}
+
+// ObjectRef's hash must not consider the variant (Null / Borrowed),
+// because PartialEq does not consider it either. We say a borrowed and owned
+// object reference with the same name and path are equal.
+//
+// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
 impl Hash for ObjectRef<'_> {
 	fn hash<H: Hasher>(&self, state: &mut H) {
 		match self {
@@ -491,14 +784,17 @@ impl Hash for ObjectRef<'_> {
 				// Hashing a Null object reference.
 				"Null".hash(state);
 			}
-			ObjectRef::Owned { name, path } | ObjectRef::Borrowed { name, path } => {
-				name.as_str().hash(state);
-				path.as_str().hash(state);
+			ObjectRef::NonNull(non_null) => {
+				non_null.hash(state);
 			}
 		}
 	}
 }
 
+// ObjectRefOwned's hash must not consider the variant (Owned/Borrowed),
+// because PartialEq does not consider it either.
+//
+// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
 impl Hash for ObjectRefOwned {
 	fn hash<H: Hasher>(&self, state: &mut H) {
 		self.0.hash(state);
@@ -554,104 +850,164 @@ impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for ObjectRef<'o> {
 	fn try_from(header: &'m zbus::message::Header) -> Result<Self, Self::Error> {
 		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
 		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
-
-		Ok(ObjectRef::Borrowed { name: name.clone(), path: path.clone() })
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl<'m> TryFrom<&'m zbus::message::Header<'_>> for ObjectRefOwned {
-	type Error = crate::AtspiError;
-
-	/// Construct an `ObjectRefOwned` from a `zbus::message::Header`.
-	fn try_from(header: &'m zbus::message::Header) -> Result<Self, Self::Error> {
-		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
-		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
-
-		let object_ref =
-			ObjectRef::Owned { name: name.clone().into_owned(), path: path.clone().into_owned() };
-		Ok(ObjectRefOwned(object_ref))
-	}
-}
-
-impl<'v> TryFrom<zvariant::Value<'v>> for ObjectRef<'v> {
-	type Error = zvariant::Error;
-
-	fn try_from(value: zvariant::Value<'v>) -> Result<Self, Self::Error> {
-		// Relies on the generic `Value` to tuple conversion `(UniqueName, ObjectPath)`.
-		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
 		Ok(ObjectRef::new_borrowed(name, path))
 	}
 }
 
-impl<'v> TryFrom<zvariant::Value<'v>> for ObjectRefOwned {
+#[cfg(feature = "zbus")]
+impl TryFrom<&zbus::message::Header<'_>> for ObjectRefOwned {
+	type Error = crate::AtspiError;
+
+	/// Construct an `ObjectRefOwned` from a `zbus::message::Header`.
+	fn try_from(header: &zbus::message::Header) -> Result<Self, Self::Error> {
+		let name = header.sender().ok_or(crate::AtspiError::MissingName)?.to_owned();
+		let path = header.path().ok_or(crate::AtspiError::MissingPath)?.to_owned();
+		let object_ref = ObjectRef::new_owned(name, path);
+		Ok(ObjectRefOwned::new(object_ref))
+	}
+}
+
+// Implementing TryFrom<Value> and not From<Value>.
+//
+// If we have a TryFrom<T> for U, we can no longer implement From<T> for U or Into<U> for T,
+// Because std core would implement TryFrom in terms of Into:
+// <https://doc.rust-lang.org/std/convert/trait.TryFrom.html#impl-TryFrom%3CU%3E-for-T>
+//
+// impl<T, U> TryFrom<U> for T
+// where
+//    U: Into<T>, (This includes From<U> for T)
+//
+// We cannot derive TryFrom with `Value` derive macro, for `NonNullObjectRef` because `NonNullObjectRef`
+// contains non-unit variants.
+// The derive macros `Value` and `OwnedValue` do not support struct-like variants.
+
+impl<'v> TryFrom<Value<'v>> for NonNullObjectRef<'v> {
 	type Error = zvariant::Error;
 
-	fn try_from(value: zvariant::Value<'v>) -> Result<Self, Self::Error> {
+	fn try_from(value: Value<'v>) -> Result<Self, Self::Error> {
 		// Relies on the generic `Value` to tuple conversion `(UniqueName, ObjectPath)`.
 		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
-		Ok(ObjectRef::new_borrowed(name, path).into())
+		Ok(NonNullObjectRef::new_borrowed(name, path))
 	}
 }
 
-impl TryFrom<zvariant::OwnedValue> for ObjectRef<'static> {
+impl TryFrom<OwnedValue> for NonNullObjectRef<'static> {
 	type Error = zvariant::Error;
-	fn try_from(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
+
+	fn try_from(value: OwnedValue) -> Result<Self, Self::Error> {
+		// Relies on the generic `Value` to tuple conversion `(UniqueName, ObjectPath)`.
 		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
-		Ok(ObjectRef::Owned { name, path })
+		Ok(NonNullObjectRef::new_owned(name, path))
 	}
 }
 
-impl TryFrom<zvariant::OwnedValue> for ObjectRefOwned {
+impl<'v> TryFrom<Value<'v>> for ObjectRef<'v> {
 	type Error = zvariant::Error;
-	fn try_from(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
-		let obj = ObjectRef::Owned { name, path };
-		Ok(ObjectRefOwned(obj))
-	}
-}
 
-impl<'reference: 'structure, 'object: 'structure, 'structure> From<&'reference ObjectRef<'object>>
-	for zvariant::Structure<'structure>
-{
-	fn from(obj: &'reference ObjectRef<'object>) -> Self {
-		match obj {
-			ObjectRef::Null => ("", NULL_OBJECT_PATH).into(),
-			ObjectRef::Borrowed { name, path } => Structure::from((name.clone(), path)),
-			ObjectRef::Owned { name, path } => Structure::from((name.as_str(), path.as_ref())),
+	fn try_from(value: Value<'v>) -> Result<Self, Self::Error> {
+		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
+		// Like `Deserialize`, let's make all null-path combinations ObjectRef::Null
+		if path == *NULL_OBJECT_PATH {
+			Ok(ObjectRef::Null)
+		} else {
+			assert!(
+				!name.as_str().is_empty(),
+				"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
+			);
+			Ok(ObjectRef::new_borrowed(name, path))
 		}
 	}
 }
 
-impl<'o> From<ObjectRef<'o>> for zvariant::Structure<'o> {
-	fn from(obj: ObjectRef<'o>) -> Self {
-		match obj {
-			ObjectRef::Null => Structure::from(("", NULL_OBJECT_PATH)),
-			ObjectRef::Borrowed { name, path } | ObjectRef::Owned { name, path } => {
+impl TryFrom<OwnedValue> for ObjectRef<'static> {
+	type Error = zvariant::Error;
+
+	fn try_from(value: OwnedValue) -> Result<Self, Self::Error> {
+		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
+		// Like `Deserialize`, let's make all null-path combinations ObjectRef::Null
+		if path == *NULL_OBJECT_PATH {
+			Ok(ObjectRef::Null)
+		} else {
+			assert!(
+				!name.as_str().is_empty(),
+				"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
+			);
+			Ok(ObjectRef::new_owned(name, path))
+		}
+	}
+}
+
+impl TryFrom<Value<'_>> for ObjectRefOwned {
+	type Error = zvariant::Error;
+
+	fn try_from(value: Value<'_>) -> Result<Self, Self::Error> {
+		let value = OwnedValue::try_from(value)?;
+		let object_ref = value.try_into()?;
+		Ok(ObjectRefOwned::new(object_ref))
+	}
+}
+
+impl TryFrom<OwnedValue> for ObjectRefOwned {
+	type Error = zvariant::Error;
+
+	fn try_from(value: OwnedValue) -> Result<Self, Self::Error> {
+		let object_ref: ObjectRef<'static> = value.try_into()?;
+		Ok(ObjectRefOwned::new(object_ref))
+	}
+}
+
+// implemented by zvariant as blanket for T: Into<Structure>
+// impl<'v> From<ObjectRef<'v>> for Value<'v>
+
+impl<'o> From<NonNullObjectRef<'o>> for Structure<'o> {
+	fn from(non_null: NonNullObjectRef<'o>) -> Self {
+		match non_null {
+			NonNullObjectRef::Owned { name, path } | NonNullObjectRef::Borrowed { name, path } => {
 				Structure::from((name, path))
 			}
 		}
 	}
 }
 
-impl From<ObjectRefOwned> for zvariant::Structure<'_> {
-	fn from(obj: ObjectRefOwned) -> Self {
-		let object_ref = obj.into_inner();
+impl<'o> From<ObjectRef<'o>> for Structure<'_> {
+	fn from(object_ref: ObjectRef<'o>) -> Self {
+		match object_ref {
+			ObjectRef::Null => Structure::from(("", NULL_OBJECT_PATH)),
+			ObjectRef::NonNull(non_null) => {
+				Structure::from((non_null.name().to_owned(), non_null.path().to_owned()))
+			}
+		}
+	}
+}
+
+impl From<ObjectRefOwned> for Value<'static> {
+	fn from(object_ref_owned: ObjectRefOwned) -> Self {
+		let object_ref: ObjectRef<'static> = object_ref_owned.into_inner();
 		object_ref.into()
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use std::hash::{DefaultHasher, Hash, Hasher};
-
-	use super::ObjectRef;
 	use crate::object_ref::{NULL_OBJECT_PATH, NULL_PATH_STR};
+	use crate::{NonNullObjectRef, ObjectRef};
+	use std::hash::{DefaultHasher, Hash, Hasher};
 	use zbus::zvariant;
 	use zbus::{names::UniqueName, zvariant::ObjectPath};
 	use zvariant::{serialized::Context, to_bytes, OwnedValue, Value, LE};
 
 	const TEST_OBJECT_PATH: &str = "/org/a11y/atspi/path/007";
+
+	#[test]
+	fn non_null_object_ref_owned_creation() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let non_null = super::NonNullObjectRef::new_owned(name, path);
+
+		assert_eq!(non_null.name_as_str(), ":1.23");
+		assert_eq!(non_null.path_as_str(), TEST_OBJECT_PATH);
+	}
 
 	#[test]
 	fn owned_object_ref_creation() {
@@ -662,6 +1018,17 @@ mod tests {
 
 		assert_eq!(object_ref.name_as_str(), Some(":1.23"));
 		assert_eq!(object_ref.path_as_str(), TEST_OBJECT_PATH);
+	}
+
+	#[test]
+	fn non_null_object_ref_borrowed_creation() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let non_null = super::NonNullObjectRef::new_borrowed(name, path);
+
+		assert_eq!(non_null.name_as_str(), ":1.23");
+		assert_eq!(non_null.path_as_str(), TEST_OBJECT_PATH);
 	}
 
 	#[test]
@@ -683,13 +1050,25 @@ mod tests {
 	}
 
 	#[test]
+	fn non_null_object_ref_into_owned() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let non_null = super::NonNullObjectRef::new_borrowed(name, path);
+		let owned_non_null = non_null.into_owned();
+
+		assert_eq!(owned_non_null.name_as_str(), ":1.23");
+		assert_eq!(owned_non_null.path_as_str(), TEST_OBJECT_PATH);
+	}
+
+	#[test]
 	fn object_ref_into_owned() {
 		let borrowed_object_ref = ObjectRef::new_borrowed(
 			UniqueName::from_static_str(":1.23").unwrap(),
 			ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH),
 		);
 		let owned_object_ref = borrowed_object_ref.into_owned();
-		assert!(matches!(owned_object_ref, ObjectRef::Owned { .. }));
+		assert!(matches!(owned_object_ref, ObjectRef::NonNull(NonNullObjectRef::Owned { .. })));
 		assert_eq!(owned_object_ref.name_as_str(), Some(":1.23"));
 		assert_eq!(owned_object_ref.path_as_str(), TEST_OBJECT_PATH);
 	}
@@ -722,6 +1101,22 @@ mod tests {
 	}
 
 	#[test]
+	fn serialize_non_null_object_ref() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let non_null = super::NonNullObjectRef::new_borrowed(name, path);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &non_null).unwrap();
+
+		let (obj, _) = encoded.deserialize::<super::NonNullObjectRef>().unwrap();
+
+		assert_eq!(obj.name_as_str(), ":1.23");
+		assert_eq!(obj.path_as_str(), TEST_OBJECT_PATH);
+	}
+
+	#[test]
 	fn serialization_owned_object_ref() {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
@@ -733,11 +1128,28 @@ mod tests {
 
 		let (obj, _) = encoded.deserialize::<ObjectRef>().unwrap();
 
-		// Deserialization alwayys results in a borrowed object reference.
+		// Deserialization always results in a borrowed object reference.
 		// On the wire the distinction between owned and borrowed is not preserved.
 		// As borrowed is the cheaper option, we always deserialize to that.
-		assert!(matches!(obj, ObjectRef::Borrowed { .. }));
+		assert!(matches!(obj, ObjectRef::NonNull(NonNullObjectRef::Borrowed { .. })));
 		assert_eq!(obj.name().unwrap().as_str(), ":1.23");
+		assert_eq!(obj.path_as_str(), TEST_OBJECT_PATH);
+	}
+
+	#[test]
+	fn serialize_non_null_owned_object_ref() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let non_null = super::NonNullObjectRef::new_owned(name, path);
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &non_null).unwrap();
+
+		let (obj, _) = encoded.deserialize::<super::NonNullObjectRef>().unwrap();
+
+		assert!(matches!(obj, super::NonNullObjectRef::Borrowed { .. }));
+		assert_eq!(obj.name_as_str(), ":1.23");
 		assert_eq!(obj.path_as_str(), TEST_OBJECT_PATH);
 	}
 
@@ -752,10 +1164,28 @@ mod tests {
 		let encoded = to_bytes(ctxt, &object_ref).unwrap();
 
 		let (obj, _) = encoded.deserialize::<ObjectRef>().unwrap();
-		assert!(matches!(obj, ObjectRef::Borrowed { .. }));
+		assert!(matches!(obj, ObjectRef::NonNull(NonNullObjectRef::Borrowed { .. })));
 
 		assert_eq!(obj.name().unwrap().as_str(), ":1.23");
 		assert_eq!(obj.path_as_str(), TEST_OBJECT_PATH);
+	}
+
+	#[test]
+	fn non_null_object_ref_equality() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let object_ref1 = NonNullObjectRef::new_borrowed(&name, &path);
+		let object_ref2 = NonNullObjectRef::new_borrowed(&name, &path);
+
+		assert_eq!(object_ref1, object_ref2);
+
+		let name2 = UniqueName::from_static_str_unchecked(":1.24");
+		let object_ref3 = NonNullObjectRef::new_borrowed(name2, &path);
+		assert_ne!(object_ref1, object_ref3);
+
+		let object_ref4 = NonNullObjectRef::new_owned(name, &path);
+		assert_eq!(object_ref1, object_ref4);
 	}
 
 	#[test]
@@ -820,12 +1250,29 @@ mod tests {
 	}
 
 	// Must fail test:
-
 	#[test]
 	fn must_fail_test_try_from_invalid_value_for_object_ref() {
 		let value = zvariant::Value::from((42, true));
 		let obj: Result<ObjectRef, _> = value.try_into();
 		assert!(obj.is_err());
+	}
+
+	#[test]
+	fn non_null_hash_and_object_coherence() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let object_ref1 = super::NonNullObjectRef::new_borrowed(&name, &path);
+		let object_ref2 = super::NonNullObjectRef::new_borrowed(name, path);
+
+		// If a == b then a.hash() == b.hash()
+
+		let mut hasher1 = DefaultHasher::new();
+		let mut hasher2 = DefaultHasher::new();
+		assert_eq!(object_ref1, object_ref2);
+		object_ref1.hash(&mut hasher1);
+		object_ref2.hash(&mut hasher2);
+		assert_eq!(hasher1.finish(), hasher2.finish());
 	}
 
 	#[test]
@@ -853,7 +1300,7 @@ mod tests {
 		let encoded = to_bytes(ctxt, &object_ref).unwrap();
 
 		let (obj, _) = encoded.deserialize::<ObjectRef>().unwrap();
-		assert!(matches!(obj, ObjectRef::Borrowed { .. }));
+		assert!(matches!(obj, ObjectRef::NonNull(NonNullObjectRef::Borrowed { .. })));
 	}
 
 	// Check that the Deserialize implementation correctly panics

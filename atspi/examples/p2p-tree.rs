@@ -9,7 +9,7 @@
 
 use atspi::{
 	connection::set_session_accessibility, proxy::accessible::AccessibleProxy,
-	AccessibilityConnection, Role,
+	AccessibilityConnection, NonNullObjectRef, Role,
 };
 use atspi_connection::P2P;
 use atspi_proxies::accessible::ObjectRefExt;
@@ -82,9 +82,7 @@ impl A11yNode {
 						Vec::with_capacity(children.len());
 
 					for child in children.into_iter() {
-						if child.is_null() {
-							continue; // Skip null children
-						}
+						let Ok(child) = NonNullObjectRef::try_from(child) else { continue };
 
 						match a11y.object_as_accessible(&child).await {
 							Ok(proxy) => children_proxies.push(proxy),
@@ -197,7 +195,7 @@ impl A11yNode {
 			let mut children_proxies = try_join_all(
 				child_objects
 					.into_iter()
-					.filter(|child| !child.is_null()) // Filter out null children
+					.filter_map(|child| NonNullObjectRef::try_from(child).ok()) // Filter out null and convert
 					.map(|child| child.into_accessible_proxy(&connection)),
 			)
 			.await?;
@@ -288,10 +286,12 @@ async fn main() -> Result<()> {
 	let futures = bus_applications
 		.into_iter()
 		.map(|child| {
-			assert!(!child.is_null(), "Child should not be null");
 			let a11y_clone = a11y.clone();
+
 			async move {
-				let proxy = a11y_clone.object_as_accessible(&child).await?;
+				let non_null_child =
+					NonNullObjectRef::try_from(child).expect("Child should be NonNullObjectRef");
+				let proxy = a11y_clone.object_as_accessible(&non_null_child).await?;
 				A11yNode::from_accessible_proxy(proxy, &a11y_clone).await
 			}
 		})
