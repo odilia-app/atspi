@@ -10,7 +10,7 @@
 
 use std::error::Error;
 
-use atspi::State;
+use atspi::{NonNullObjectRef, State};
 use atspi_connection::set_session_accessibility;
 use atspi_proxies::accessible::ObjectRefExt;
 
@@ -24,15 +24,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut found_active_frame: bool = false;
 
-	for app in apps.iter() {
-		let proxy = app.clone().into_accessible_proxy(conn).await?;
+	for app in apps.into_iter() {
+		let Ok(app) = NonNullObjectRef::try_from(app) else { continue };
+
+		let proxy = app.into_accessible_proxy(conn).await?;
 		let state = proxy.get_state().await?;
 		assert!(!state.contains(State::Active), "The top level application should never have active state; only its associated frames should have this state");
 
 		for frame in proxy.get_children().await? {
-			if frame.is_null() {
-				continue;
-			}
+			let Ok(frame) = NonNullObjectRef::try_from(frame) else { continue };
 
 			let frame = frame.clone().into_accessible_proxy(conn).await?;
 			let state = frame.get_state().await?;
