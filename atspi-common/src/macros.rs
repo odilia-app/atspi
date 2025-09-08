@@ -307,8 +307,9 @@ macro_rules! impl_from_dbus_message {
 			fn try_from(msg: &'msg zbus::Message) -> Result<Self, Self::Error> {
 				use crate::events::{EventBody, EventBodyQtBorrowed};
 				use crate::events::traits::{MessageConversion, MessageConversionExt};
-				use zvariant::Type;
 				use crate::ObjectRef;
+				use zvariant::Type;
+
 
 				let hdr = msg.header();
 				<Self as MessageConversionExt<<Self as MessageConversion>::Body<'_>>>::validate_interface(&hdr)?;

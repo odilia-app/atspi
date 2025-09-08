@@ -12,7 +12,7 @@
 use atspi::{
 	connection::set_session_accessibility,
 	proxy::accessible::{AccessibleProxy, ObjectRefExt},
-	AccessibilityConnection, Role,
+	AccessibilityConnection, NonNullObjectRef, Role,
 };
 use futures::future::{join_all, try_join_all};
 use std::fmt::{self, Display, Formatter};
@@ -121,7 +121,7 @@ impl A11yNode {
 			let mut children_proxies = try_join_all(
 				child_objects
 					.into_iter()
-					.filter(|child| !child.is_null()) // Filter out null children
+					.filter_map(|child| NonNullObjectRef::try_from(child).ok()) // Filter out null children
 					.map(|child| child.into_accessible_proxy(&connection)),
 			)
 			.await?;
