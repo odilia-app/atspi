@@ -1292,7 +1292,9 @@ mod tests {
 	}
 
 	#[test]
-	#[should_panic(expected = "assertion failed: matches!(obj, ObjectRef::Borrowed { .. })")]
+	#[should_panic(
+		expected = "assertion failed: matches!(obj, ObjectRef::NonNull(NonNullObjectRef::Borrowed { .. }))"
+	)]
 	fn valid_name_null_path_object_ref() {
 		let object_ref = ObjectRef::from_static_str_unchecked("1.23", NULL_PATH_STR);
 
