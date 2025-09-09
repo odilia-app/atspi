@@ -150,7 +150,7 @@ impl<'o> NonNullObjectRef<'o> {
 	///
 	/// `NonNullObjectRef<'_>` leans on the implementation of `UniqueName` and `ObjectPath` to
 	/// convert the inner types to `'static`.\
-	/// These types have an `Inner` enum that can contain an `Owned`, `Borrowed`, or `Static` [`Str` type.][docs.rs/zvariant/latest/zvariant/struct.Str]\
+	/// These types have an `Inner` enum that can contain an `Owned`, `Borrowed`, or `Static` [`Str` type.](docs.rs/zvariant/latest/zvariant/struct.Str)\
 	/// The `Str` type is either a `&'static str` (static), `&str` (borrowed), or an `Arc<str>` (owned).
 	///
 	/// # Example
