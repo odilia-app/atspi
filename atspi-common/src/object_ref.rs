@@ -95,6 +95,7 @@ impl<'o> NonNullObjectRef<'o> {
 
 	/// Returns the name of the object reference.
 	#[must_use]
+	#[allow(clippy::match_same_arms)] // Arms differ by lifetime
 	pub fn name(&self) -> &UniqueName<'_> {
 		match self {
 			Self::Owned { name, .. } => name,
@@ -104,6 +105,7 @@ impl<'o> NonNullObjectRef<'o> {
 
 	/// Returns the path of the object reference.
 	#[must_use]
+	#[allow(clippy::match_same_arms)] // Arms differ by lifetime
 	pub fn path(&self) -> &ObjectPath<'_> {
 		match self {
 			Self::Owned { path, .. } => path,
@@ -332,7 +334,7 @@ impl<'o> ObjectRef<'o> {
 	/// assert_eq!(object_ref.name().unwrap().as_str(), ":1.23");
 	/// ```
 	#[must_use]
-	pub fn name(&self) -> Option<&UniqueName<'o>> {
+	pub fn name(&self) -> Option<&UniqueName<'_>> {
 		match self {
 			Self::NonNull(non_null) => Some(non_null.name()),
 			Self::Null => None,
@@ -355,7 +357,7 @@ impl<'o> ObjectRef<'o> {
 	/// assert_eq!(object_ref.path().as_str(), "/org/a11y/example/path/007");
 	/// ```
 	#[must_use]
-	pub fn path(&self) -> &ObjectPath<'o> {
+	pub fn path(&self) -> &ObjectPath<'_> {
 		match self {
 			Self::NonNull(non_null) => non_null.path(),
 			Self::Null => NULL_OBJECT_PATH,
@@ -378,7 +380,7 @@ impl<'o> ObjectRef<'o> {
 	/// ```rust
 	/// use zbus::names::UniqueName;
 	/// use zbus::zvariant::ObjectPath;
-	/// use atspi_common::ObjectRef;
+	/// use atspi_common::{ObjectRef, NonNullObjectRef};
 	///
 	/// let name = UniqueName::from_static_str_unchecked(":1.23");
 	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
@@ -387,7 +389,7 @@ impl<'o> ObjectRef<'o> {
 	/// // Check whether the object reference can be converted to an owned version
 	/// assert!(!object_ref.is_null());
 	/// let object_ref = object_ref.into_owned();
-	/// assert!(matches!(object_ref, ObjectRef::Owned { .. }));
+	/// assert!(matches!(object_ref, ObjectRef::NonNull(NonNullObjectRef::Owned { .. })));
 	/// ```
 	#[must_use]
 	pub fn into_owned(self) -> ObjectRef<'static> {
@@ -506,7 +508,11 @@ impl ObjectRefOwned {
 	#[must_use]
 	pub fn name(&self) -> Option<&UniqueName<'static>> {
 		match &self.0 {
-			ObjectRef::NonNull(non_null) => Some(non_null.name()),
+			ObjectRef::NonNull(non_null) => match non_null {
+				NonNullObjectRef::Owned { name, .. } | NonNullObjectRef::Borrowed { name, .. } => {
+					Some(name)
+				}
+			},
 			ObjectRef::Null => None,
 		}
 	}
@@ -529,7 +535,11 @@ impl ObjectRefOwned {
 	#[must_use]
 	pub fn path(&self) -> &ObjectPath<'static> {
 		match &self.0 {
-			ObjectRef::NonNull(non_null) => non_null.path(),
+			ObjectRef::NonNull(non_null) => match non_null {
+				NonNullObjectRef::Owned { path, .. } | NonNullObjectRef::Borrowed { path, .. } => {
+					path
+				}
+			},
 			ObjectRef::Null => NULL_OBJECT_PATH,
 		}
 	}
