@@ -53,7 +53,7 @@ impl<'o> NonNullObjectRef<'o> {
 	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
 	///
 	/// let object_ref = NonNullObjectRef::new_borrowed(name, path);
-	/// # assert_eq!(object_ref.name_as_str(), Some(":1.23"));
+	/// # assert_eq!(object_ref.name_as_str(), ":1.23");
 	/// # assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
 	/// ```
 	pub fn new_borrowed<N, P>(name: N, path: P) -> NonNullObjectRef<'o>
@@ -79,7 +79,7 @@ impl<'o> NonNullObjectRef<'o> {
 	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
 	///
 	/// let object_ref = NonNullObjectRef::new_owned(name, path);
-	/// # assert_eq!(object_ref.name_as_str(), Some(":1.23"));
+	/// # assert_eq!(object_ref.name_as_str(), ":1.23");
 	/// # assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
 	/// ```
 	pub fn new_owned<N, P>(name: N, path: P) -> NonNullObjectRef<'static>
@@ -95,8 +95,7 @@ impl<'o> NonNullObjectRef<'o> {
 
 	/// Returns the name of the object reference.
 	#[must_use]
-	#[allow(clippy::match_same_arms)] // match arms differ by lifetime
-	pub fn name(&self) -> &UniqueName<'o> {
+	pub fn name(&self) -> &UniqueName<'_> {
 		match self {
 			Self::Owned { name, .. } => name,
 			Self::Borrowed { name, .. } => name,
@@ -105,8 +104,7 @@ impl<'o> NonNullObjectRef<'o> {
 
 	/// Returns the path of the object reference.
 	#[must_use]
-	#[allow(clippy::match_same_arms)] // match arms differ by lifetime
-	pub fn path(&self) -> &ObjectPath<'o> {
+	pub fn path(&self) -> &ObjectPath<'_> {
 		match self {
 			Self::Owned { path, .. } => path,
 			Self::Borrowed { path, .. } => path,
@@ -141,16 +139,17 @@ impl<'o> NonNullObjectRef<'o> {
 		NonNullObjectRef::Owned { name, path }
 	}
 
-	/// Converts the `NonNullObjectRef` into an owned instance, consuming `self`.\
-	/// If the object reference is `Owned`, it returns the same `ObjectRef::Owned`.\
-	/// If the object reference is `Borrowed`, it converts the name and path to owned versions and returns `ObjectRef::Owned`.
+	/// Converts the `NonNullObjectRef` into it's owned variant, consuming `self`.\
+	/// If the object reference is `Owned`, it returns the same `NonNullObjectRef::Owned`.\
+	/// If the object reference is `Borrowed`, it converts the name and path to owned versions\
+	///  and returns `NonNullObjectRef::Owned`.
 	///
-	/// # Extending lifetime 'magic' (from 'o -> 'static')
+	/// # Lifetime extension 'magic' (from 'o -> 'static')
 	///
-	/// `ObjectRef<'_>` leans on the implementation of `UniqueName` and `ObjectPath` to
+	/// `NonNullObjectRef<'_>` leans on the implementation of `UniqueName` and `ObjectPath` to
 	/// convert the inner types to `'static`.\
-	/// These types have an `Inner` enum that can contain an `Owned`, `Borrowed`, or `Static` `Str` type.\
-	/// The `Str`type is either a `&'static str` (static), `&str` (borrowed), or an `Arc<str>` (owned).
+	/// These types have an `Inner` enum that can contain an `Owned`, `Borrowed`, or `Static` [`Str` type.][docs.rs/zvariant/latest/zvariant/struct.Str]\
+	/// The `Str` type is either a `&'static str` (static), `&str` (borrowed), or an `Arc<str>` (owned).
 	///
 	/// # Example
 	/// ```rust
@@ -163,7 +162,7 @@ impl<'o> NonNullObjectRef<'o> {
 	/// let object_ref = NonNullObjectRef::new_borrowed(name, path);
 	///
 	/// let object_ref = object_ref.into_owned();
-	/// assert!(matches!(object_ref, ObjectRef::Owned { .. }));
+	/// assert!(matches!(object_ref, NonNullObjectRef::Owned { .. }));
 	/// ```
 	#[must_use]
 	pub fn into_owned(self) -> NonNullObjectRef<'static> {
