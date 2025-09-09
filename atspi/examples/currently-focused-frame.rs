@@ -24,9 +24,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut found_active_frame: bool = false;
 
-	for app in apps.into_iter() {
-		let Ok(app) = NonNullObjectRef::try_from(app) else { continue };
-
+	for app in apps.into_iter().flat_map(|or| NonNullObjectRef::try_from(or).ok()) {
 		let proxy = app.into_accessible_proxy(conn).await?;
 		let state = proxy.get_state().await?;
 		assert!(!state.contains(State::Active), "The top level application should never have active state; only its associated frames should have this state");
