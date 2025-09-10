@@ -10,7 +10,7 @@
 
 use std::error::Error;
 
-use atspi::{MouseEvents, NonNullObjectRef, State};
+use atspi::{NonNullObjectRef, State};
 use atspi_connection::set_session_accessibility;
 use atspi_proxies::accessible::ObjectRefExt;
 
@@ -19,7 +19,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let atspi = atspi::AccessibilityConnection::new().await?;
 	let conn = atspi.connection();
 	set_session_accessibility(true).await?;
-	atspi.register_event::<MouseEvents>().await?;
 
 	let apps = atspi.root_accessible_on_registry().await?.get_children().await?;
 
