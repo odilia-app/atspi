@@ -1,0 +1,37 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0 # Use the latest stable version
+    hooks:
+     # Prevent accidental commits of large files like dbus logs
+      - id: check-added-large-files
+    # Check validity of config files
+      - id: check-toml
+      - id: check-xml
+    # Optional, for style consistency
+      # - id: end-of-file-fixer
+      # - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        entry: cargo fmt --all --
+        language: system
+        types: [rust]
+        pass_filenames: false # cargo fmt handles files itself
+
+      - id: cargo check 
+        name: cargo check
+        # check everything compiles
+        entry: cargo check --examples --locked --all-features --tests --benches  --bins  --workspace
+        language: system
+        types: [rust]
+        pass_filenames: false  # cargo check handles files itself
+
+      - id: clippy
+        name: clippy
+        # lint the entire project with warnings
+        entry: cargo clippy --benches --examples --tests --no-deps --no-default-features -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false # cargo clippy handles files itself
