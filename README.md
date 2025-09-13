@@ -44,6 +44,16 @@ in the protocol descriptions, for example because they are deprecated (but still
 
 [A (partial) review of type validation may be found here](type_validation.md)
 
+## Contributors
+
+This repository offers basic pre-commit and pre-push scripts in the `.githooks` directory.
+We recommend contributors to enable local git hooks.
+This command will configure git to use the hooks from the `.githooks` directory for this repository.
+
+```sh
+git config core.hooksPath .githooks
+```
+
 ## License
 
 The `atspi` library is licensed as [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) or [MIT](https://mit-license.org/).
