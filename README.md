@@ -44,14 +44,26 @@ in the protocol descriptions, for example because they are deprecated (but still
 
 [A (partial) review of type validation may be found here](type_validation.md)
 
-## Contributors
+## Contributing
 
+This repository offers contributors hooks and a commit message template.
+We kindly request contributors to set both up locally.
+
+### git hooks
 This repository offers basic pre-commit and pre-push scripts in the `.githooks` directory.
-We recommend contributors to enable local git hooks.
 This command will configure git to use the hooks from the `.githooks` directory for this repository.
 
 ```sh
 git config core.hooksPath .githooks
+```
+### git commit message template
+
+The git commit message template helps contributors follow conventional commits for atspi.
+This command will configure git to use the commit message template from the `.gitmessage` file for
+this repository.
+
+```sh
+git config commit.template .gitmessage
 ```
 
 ## License
