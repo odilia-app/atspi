@@ -2113,8 +2113,7 @@ impl DBusInterface for EventListenerEvents {
 }
 
 impl DBusMatchRule for EventListenerEvents {
-	const MATCH_RULE_STRING: &'static str =
-		"type='signal',interface='org.a11y.atspi.Event.Registry'";
+	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Registry'";
 }
 
 impl RegistryEventString for EventListenerEvents {
