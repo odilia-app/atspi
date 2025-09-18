@@ -8,7 +8,7 @@
 
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
-use atspi_common::object_ref::ObjectRefOwned;
+use atspi_common::object_ref::{NonNullObjectRef, ObjectRefOwned};
 use zbus::names::BusName;
 
 /// # `AccessibleProxy`
@@ -262,7 +262,7 @@ impl TryFrom<&AccessibleProxy<'_>> for ObjectRefOwned {
 pub trait ObjectRefExt {
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
-	/// # Errors  
+	/// # Errors
 	/// If the `ObjectRef` is null, this method returns an error.
 	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn as_accessible_proxy(
@@ -272,7 +272,7 @@ pub trait ObjectRefExt {
 
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
-	/// # Errors  
+	/// # Errors
 	/// If the `ObjectRef` is null, this method returns an error.
 	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn into_accessible_proxy(
@@ -281,17 +281,45 @@ pub trait ObjectRefExt {
 	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
 }
 
-impl ObjectRefExt for ObjectRefOwned {
+impl ObjectRefExt for NonNullObjectRef<'_> {
 	async fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		if self.is_null() {
-			return Err(AtspiError::NullRef(
-				"`as_accessible_proxy` called on null-reference ObjectRef",
-			));
-		}
+		let name: BusName = self.name().clone().into();
+		let path = self.path();
 
+		AccessibleProxy::builder(conn)
+			.destination(name)?
+			.path(path)?
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await
+			.map_err(AtspiError::from)
+	}
+
+	async fn into_accessible_proxy(
+		self,
+		conn: &zbus::Connection,
+	) -> Result<AccessibleProxy<'_>, AtspiError> {
+		let name: BusName = self.name().clone().to_owned().into();
+		let path = self.path().to_owned();
+
+		AccessibleProxy::builder(conn)
+			.destination(name)?
+			.path(path)?
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await
+			.map_err(AtspiError::from)
+	}
+}
+
+impl ObjectRefExt for ObjectRef<'_> {
+	async fn as_accessible_proxy(
+		&self,
+		conn: &zbus::Connection,
+	) -> Result<AccessibleProxy<'_>, AtspiError> {
 		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
 		let path = self.path();
 
@@ -308,14 +336,8 @@ impl ObjectRefExt for ObjectRefOwned {
 		self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		if self.is_null() {
-			return Err(AtspiError::NullRef(
-				"`into_accessible_proxy` called on null-reference ObjectRef",
-			));
-		}
-
-		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
-		let path = self.path();
+		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().to_owned().into();
+		let path = self.path().to_owned();
 
 		AccessibleProxy::builder(conn)
 			.destination(name)?

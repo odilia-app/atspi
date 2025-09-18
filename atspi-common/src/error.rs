@@ -155,6 +155,7 @@ impl From<std::convert::Infallible> for AtspiError {
 		Self::Infallible
 	}
 }
+
 impl From<std::num::TryFromIntError> for AtspiError {
 	fn from(e: std::num::TryFromIntError) -> Self {
 		Self::IntConversionError(e)
