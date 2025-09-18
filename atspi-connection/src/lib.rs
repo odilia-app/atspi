@@ -198,9 +198,21 @@ impl AccessibilityConnection {
 				Ok(m) => m,
 				Err(e) => return Some(Err(e.into())),
 			};
-			match msg.message_type() {
-				MessageType::Signal => Some(Event::try_from(&msg)),
-				_ => None,
+
+			let msg_header = msg.header();
+			let Some(msg_interface) = msg_header.interface() else {
+				return Some(Err(AtspiError::MissingInterface));
+			};
+
+			// Most events we encounter are sent on an "org.a11y.atspi.Event.*" interface,
+			// but there are exceptions like "org.a11y.atspi.Cache" or "org.a11y.atspi.Registry".
+			// So only signals with a suitable interface name will be parsed.
+			if msg_interface.starts_with("org.a11y.atspi")
+				&& msg.message_type() == MessageType::Signal
+			{
+				Some(Event::try_from(&msg))
+			} else {
+				None
 			}
 		})
 	}
