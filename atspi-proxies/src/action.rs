@@ -12,7 +12,7 @@
 //! Components which are not "passive" providers of UI information should
 //! implement this interface, unless there is a more specialized interface for
 //! interaction like [`org.a11y.atspi.Text`][TextProxy] or [`org.a11y.atspi.Value`][ValueProxy].
-//!  
+//!
 //! [ActionProxy]: crate::action::ActionProxy
 //! [TextProxy]: crate::text::TextProxy
 //! [ValueProxy]: crate::value::ValueProxy
@@ -31,7 +31,7 @@ use atspi_common::Action;
 /// Components which are not "passive" providers of UI information should
 /// implement this interface, unless there is a more specialized interface for
 /// interaction like [`org.a11y.atspi.Text`][TextProxy] or [`org.a11y.atspi.Value`][ValueProxy].
-///  
+///
 /// [TextProxy]: crate::text::TextProxy
 /// [ValueProxy]: crate::value::ValueProxy
 #[zbus::proxy(interface = "org.a11y.atspi.Action", assume_defaults = true)]
@@ -66,7 +66,7 @@ pub trait Action {
 
 	/// Returns the localized description for the action at the specified
 	/// index, starting at zero.
-	///   
+	///
 	/// For	example, a screen reader will read out this description when
 	/// the user asks for extra detail on an action.
 	/// For example, "Clicks the button" for the "click" action of a button.
@@ -126,6 +126,6 @@ pub trait Action {
 	///
 	/// By convention, if there is more than one action available,
 	/// the first one is considered the "default" action of the object.
-	#[zbus(property)]
-	fn nactions(&self) -> zbus::Result<i32>;
+	#[zbus(property, name = "NActions")]
+	fn n_actions(&self) -> zbus::Result<i32>;
 }

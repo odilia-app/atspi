@@ -35,6 +35,6 @@ pub trait Selection {
 	fn select_child(&self, child_index: i32) -> zbus::Result<bool>;
 
 	/// `NSelectedChildren` property
-	#[zbus(property)]
-	fn nselected_children(&self) -> zbus::Result<i32>;
+	#[zbus(property, name = "NSelectedChildren")]
+	fn n_selected_children(&self) -> zbus::Result<i32>;
 }

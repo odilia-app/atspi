@@ -21,5 +21,6 @@ pub trait Hypertext {
 	fn get_link_index(&self, character_index: i32) -> zbus::Result<i32>;
 
 	/// `GetNLinks` method
+	#[zbus(name = "GetNLinks")]
 	fn get_n_links(&self) -> zbus::Result<i32>;
 }

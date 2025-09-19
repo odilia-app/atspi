@@ -29,7 +29,7 @@ pub trait Hyperlink {
 	fn end_index(&self) -> zbus::Result<i32>;
 
 	/// `NAnchors` property
-	#[zbus(property)]
+	#[zbus(property, name = "NAnchors")]
 	fn n_anchors(&self) -> zbus::Result<i16>;
 
 	/// `StartIndex` property
