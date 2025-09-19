@@ -83,19 +83,19 @@ pub trait Table {
 
 	/// `NColumns` property
 	#[zbus(property)]
-	fn ncolumns(&self) -> zbus::Result<i32>;
+	fn n_columns(&self) -> zbus::Result<i32>;
 
 	/// `NRows` property
 	#[zbus(property)]
-	fn nrows(&self) -> zbus::Result<i32>;
+	fn n_rows(&self) -> zbus::Result<i32>;
 
 	/// `NSelectedColumns` property
 	#[zbus(property)]
-	fn nselected_columns(&self) -> zbus::Result<i32>;
+	fn n_selected_columns(&self) -> zbus::Result<i32>;
 
 	/// `NSelectedRows` property
 	#[zbus(property)]
-	fn nselected_rows(&self) -> zbus::Result<i32>;
+	fn n_selected_rows(&self) -> zbus::Result<i32>;
 
 	/// `Summary` property
 	#[zbus(property)]
