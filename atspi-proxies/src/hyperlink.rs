@@ -18,6 +18,7 @@ pub trait Hyperlink {
 	fn get_object(&self, i: i32) -> zbus::Result<ObjectRefOwned>;
 
 	/// `GetURI` method
+	#[zbus(name = "GetURI")]
 	fn get_uri(&self, i: i32) -> zbus::Result<String>;
 
 	/// `IsValid` method
@@ -29,7 +30,7 @@ pub trait Hyperlink {
 
 	/// `NAnchors` property
 	#[zbus(property)]
-	fn nanchors(&self) -> zbus::Result<i16>;
+	fn n_anchors(&self) -> zbus::Result<i16>;
 
 	/// `StartIndex` property
 	#[zbus(property)]
