@@ -9,7 +9,7 @@
 //!    Colton Loftus
 use atspi::connection::set_session_accessibility;
 use atspi::proxy::accessible::ObjectRefExt;
-use atspi_proxies::traversal_helper::{TraversalExt, TraversalHelper};
+use atspi_proxies::traversal_helper::{CollectionClientside, TraversalHelper};
 use std::error::Error;
 
 #[tokio::main]

@@ -10,7 +10,7 @@ use crate::accessible::{AccessibleProxy, ObjectRefExt};
 /// A helper struct for clientside traversal of the accessibility tree.
 ///
 /// Since most applications do not support the Collection interface,
-/// TraversalHelper allows for clean traversals without needing to
+/// `TraversalHelper` allows for clean traversals without needing to
 /// implement tree algorithms yourself.
 pub struct TraversalHelper<'a> {
 	/// The root from which to start the traversal
@@ -44,7 +44,7 @@ pub trait CollectionClientside {
 	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
 }
 
-impl<'a> CollectionClientside for TraversalHelper<'a> {
+impl CollectionClientside for TraversalHelper<'_> {
 	/// Find the closest Accessible with State:Active starting from the root object
 	async fn get_active_descendant(&self) -> Result<AccessibleProxy<'_>, AtspiError> {
 		let root = &self.root;
