@@ -20,12 +20,14 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 
 	let root = atspi.root_accessible_on_registry().await?;
 
+	const DEPTH: u32 = 10;
+
 	// we can get the names of all applications currently running
 	for child in root.get_children().await?.iter() {
 		let traversal_helper = TraversalHelper::new(
 			child.to_owned().into_accessible_proxy(conn).await?,
 			conn.clone(),
-			200005,
+			DEPTH,
 			None,
 		);
 		let result = traversal_helper.get_active_descendant().await;
