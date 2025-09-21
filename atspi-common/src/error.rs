@@ -75,6 +75,7 @@ pub enum AtspiError {
 	/// An infallible error; this is just something to satisfy the compiler.
 	Infallible,
 
+	/// A clientside traversal timed out
 	TraversalTimeoutError,
 }
 
