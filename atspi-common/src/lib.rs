@@ -24,7 +24,7 @@ pub use action::Action;
 pub mod object_match;
 pub use object_match::{MatchType, ObjectMatchRule, SortOrder, TreeTraversalType};
 pub mod object_ref;
-pub use object_ref::{ObjectRef, ObjectRefOwned};
+pub use object_ref::{NonNullObjectRef, ObjectRef, ObjectRefOwned};
 pub mod operation;
 pub use operation::Operation;
 pub mod interface;
