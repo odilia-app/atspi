@@ -64,7 +64,8 @@ pub trait Text {
 	fn get_default_attributes(&self) -> zbus::Result<std::collections::HashMap<String, String>>;
 
 	/// `GetNSelections` method
-	fn get_nselections(&self) -> zbus::Result<i32>;
+	#[zbus(name = "GetNSelections")]
+	fn get_n_selections(&self) -> zbus::Result<i32>;
 
 	/// `GetOffsetAtPoint` method
 	fn get_offset_at_point(&self, x: i32, y: i32, coord_type: CoordType) -> zbus::Result<i32>;
