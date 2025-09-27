@@ -44,6 +44,11 @@ path    = "./benches/event_parsing_100k.rs"
 name = "text-under-click"
 path = "./examples/text-under-click.rs"
 
+
+[[example]]
+name = "clientside-collection-traversal"
+path = "./examples/clientside-collection-traversal.rs"
+
 [[example]]
 name = "currently-focused-frame"
 path = "./examples/currently-focused-frame.rs"

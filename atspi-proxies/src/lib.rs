@@ -29,4 +29,5 @@ pub mod socket;
 pub mod table;
 pub mod table_cell;
 pub mod text;
+pub mod traversal_helper;
 pub mod value;
