@@ -62,6 +62,7 @@ pub(crate) trait EventWrapperMessageConversion {
 }
 
 // TODO: Document why this can't be `TryFrom<&zbus::Message>`.
+// A TryFrom impl would collide with core Rust blanket impl for all T: From<U>.
 #[cfg(all(feature = "zbus", feature = "wrappers"))]
 pub(crate) trait TryFromMessage {
 	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>

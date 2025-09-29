@@ -13,7 +13,7 @@ use atspi::{
 	events::mouse::ButtonEvent,
 	AtspiError, Event,
 	MouseEvents::{self},
-	ObjectRefOwned, State,
+	NonNullObjectRef, ObjectRefOwned, State,
 };
 use atspi_connection::set_session_accessibility;
 use atspi_proxies::{
@@ -24,74 +24,22 @@ use futures_lite::stream::StreamExt;
 use std::{collections::HashMap, error::Error};
 use tokio::task;
 
-// macro to convert an ObjectRef into an AccessibleProxy
-// this macro is used to avoid repeated code for converting
-// an ObjectRef into an AccessibleProxy and handling errors
-// it can be used in two ways: `into` or `as`
-// `into` will convert the ObjectRef into an AccessibleProxy
-// `as` will convert the ObjectRef into an AccessibleProxy if it is not already one
-// It can either return an error or continue the loop
-//
-// the first argument is either `into` or `as`
-// the second argument is either `continue` or `error`
-// the third argument is the connection to use for the conversion
-// the fourth argument is the ObjectRef to convert
-// the fifth argument is the context string to print in case of an error
-macro_rules! accessible_proxy {
-	(into, continue, $conn:expr, $object_ref:expr, $ctx:expr) => {{
-		match $object_ref.clone().into_accessible_proxy($conn).await {
-			Ok(proxy) => proxy,
-			Err(AtspiError::NullRef(msg)) => {
-				eprintln!("L{}: {}: {}", line!(), $ctx, msg);
-				continue;
-			}
-			Err(err) => return Err(Box::new(err) as Box<dyn std::error::Error>),
-		}
-	}};
-	(into, error, $conn:expr, $object_ref:expr, $ctx:expr) => {{
-		match $object_ref.clone().into_accessible_proxy($conn).await {
-			Ok(proxy) => proxy,
-			Err(AtspiError::NullRef(msg)) => {
-				eprintln!("L{}: {}: {}", line!(), $ctx, msg);
-				return Err(Box::new(AtspiError::NullRef(msg)));
-			}
-			Err(err) => return Err(Box::new(err) as Box<dyn std::error::Error>),
-		}
-	}};
-	(as, continue, $conn:expr, $object_ref:expr, $ctx:expr) => {{
-		match $object_ref.as_accessible_proxy($conn).await {
-			Ok(proxy) => proxy,
-			Err(AtspiError::NullRef(msg)) => {
-				eprintln!("L{}: {}: {}", line!(), $ctx, msg);
-				continue;
-			}
-			Err(err) => return Err(Box::new(err)),
-		}
-	}};
-	(as, error, $conn:expr, $object_ref:expr, $ctx:expr) => {{
-		match $object_ref.as_accessible_proxy($conn).await {
-			Ok(proxy) => proxy,
-			Err(AtspiError::NullRef(msg)) => {
-				eprintln!("L{}: {}: {}", line!(), $ctx, msg);
-				return Err(Box::new(AtspiError::NullRef(msg)));
-			}
-			Err(err) => return Err(Box::new(err)),
-		}
-	}};
-}
-
 async fn get_active_frame(
-	apps: Vec<ObjectRefOwned>,
+	apps: &[ObjectRefOwned],
 	conn: &zbus::Connection,
 ) -> Result<ObjectRefOwned, Box<dyn Error>> {
-	for app in apps.iter() {
-		let proxy = accessible_proxy!(into, continue, conn, app, "`get_active_frame`");
+	for app in apps {
+		// Skip null reference and convert to NonNullObjectRef.
+		let Ok(non_null_ref) = NonNullObjectRef::try_from(app.clone()) else { continue };
+		let proxy = non_null_ref.into_accessible_proxy(conn).await?;
+
 		let state = proxy.get_state().await?;
 
 		assert!(!state.contains(State::Active), "The top level application should never have active state; only its associated frames should have this state");
 
 		for frame in proxy.get_children().await? {
-			let candidate = accessible_proxy!(into, continue, conn, frame, "`get_active_frame`");
+			let Ok(non_null) = NonNullObjectRef::try_from(frame.clone()) else { continue };
+			let candidate = non_null.into_accessible_proxy(conn).await?;
 
 			if candidate.get_state().await?.contains(State::Active) {
 				return Ok(frame);
@@ -117,10 +65,10 @@ async fn find_relevant_descendant(
 	conn: &zbus::Connection,
 	x: i32,
 	y: i32,
-) -> Result<ObjectRefOwned, Box<dyn Error>> {
+) -> Result<NonNullObjectRef<'_>, Box<dyn Error>> {
 	for child in &children {
-		let child_proxy =
-			accessible_proxy!(as, continue, conn, child, "`find_relevant_descendant`");
+		let Ok(non_null) = NonNullObjectRef::try_from(child.clone()) else { continue };
+		let child_proxy = non_null.as_accessible_proxy(conn).await?;
 
 		// Unclear if this is even necessary since it seems like get_accessible_at_point
 		// tends to return the proxy accessible anyways
@@ -139,13 +87,14 @@ async fn find_relevant_descendant(
 			.await?
 		{
 			let name = child_proxy.name().await?;
+
 			println!(
-				"Found object with accessible name '{name}' and bus name '{}'",
-				child
-					.name_as_str()
-					.expect("we managed a bus call, so this should be valid")
+				"Found object with accessible name '{}' and bus name '{}'",
+				name,
+				child.name_as_str().expect("created from non-null"),
 			);
-			return Ok(child.clone());
+
+			return Ok(non_null);
 		}
 	}
 
@@ -153,25 +102,30 @@ async fn find_relevant_descendant(
 }
 
 async fn get_descendant_at_point<'a>(
-	frame_root: ObjectRefOwned,
+	frame_root: NonNullObjectRef<'_>,
 	conn: &'a zbus::Connection,
 	x: i32,
 	y: i32,
 ) -> Result<AccessibleProxy<'a>, Box<dyn Error>> {
-	let mut accessible_at_point: ObjectRefOwned = frame_root.clone();
+	let mut accessible_at_point: NonNullObjectRef<'_> = frame_root.clone();
 
 	let mut level = 0;
 	loop {
 		println!("Descended {level} levels");
 		level += 1;
-		let deeper_accessible =
-			accessible_proxy!(as, continue, conn, accessible_at_point, "`get_descendant_at_point`")
-				.proxies()
-				.await?
-				.component()
-				.await?
-				.get_accessible_at_point(x, y, atspi::CoordType::Window)
-				.await?;
+
+		let deeper_accessible = accessible_at_point
+			.clone()
+			.into_accessible_proxy(conn)
+			.await?
+			.proxies()
+			.await?
+			.component()
+			.await?
+			.get_accessible_at_point(x, y, atspi::CoordType::Window)
+			.await?;
+
+		let Ok(deeper_accessible) = NonNullObjectRef::try_from(deeper_accessible) else { continue };
 
 		if deeper_accessible == accessible_at_point {
 			// unclear if this can ever be the case; doesn't seem to be in testing
@@ -179,27 +133,15 @@ async fn get_descendant_at_point<'a>(
 			return Ok(accessible_at_point.clone().into_accessible_proxy(conn).await?);
 		}
 
-		let role =
-			accessible_proxy!(as, continue, conn, deeper_accessible, "`get_descendant_at_point`")
-				.get_role()
-				.await?;
+		let deeper_accessible_proxy = deeper_accessible.into_accessible_proxy(conn).await?;
 
+		let role = deeper_accessible_proxy.get_role().await?;
+		let children = deeper_accessible_proxy.get_children().await?;
 		println!("Found accessible with role: {role}");
-
-		let children =
-			accessible_proxy!(as, continue, conn, deeper_accessible, "`get_descendant_at_point`")
-				.get_children()
-				.await?;
 
 		if children.is_empty() {
 			println!("Reached accessible with no children at bottom of tree");
-			return Ok(accessible_proxy!(
-				into,
-				error,
-				conn,
-				deeper_accessible,
-				"`get_descendant_at_point`"
-			));
+			return Ok(deeper_accessible_proxy);
 		}
 
 		match find_relevant_descendant(children, conn, x, y).await {
@@ -213,13 +155,7 @@ async fn get_descendant_at_point<'a>(
 					// If there are no relevant children, we're at the bottom of the tree
 					// and thus return the accessible at the point
 					println!("{err}; returning early");
-					return Ok(accessible_proxy!(
-						into,
-						error,
-						conn,
-						accessible_at_point,
-						"`get_descendant_at_point`"
-					));
+					return Ok(accessible_at_point.into_accessible_proxy(conn).await?);
 				}
 				Err(err) => {
 					// If we got a different error, something went wrong
@@ -259,19 +195,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	// but not the natural language name of the associated app;
 	// thus we need this to map the id to the natural language name
 	let mut id_to_name = HashMap::new();
+	let root_children = root.get_children().await?;
 
 	// by getting the names of the children of the root
 	// we can get the names of all applications currently running
-	for child in root.get_children().await?.iter() {
-		let child_proxy = accessible_proxy!(into, continue, conn, child.clone(), "`main loop`");
+	for child in root_children.iter().cloned() {
+		let Ok(child) = NonNullObjectRef::try_from(child) else { continue };
+		let child_proxy = child.into_accessible_proxy(conn).await?;
 
 		let natural_name = child_proxy.name().await.unwrap();
 		let id = child_proxy
 			.get_application()
-			.await
-			.unwrap()
+			.await?
 			.name()
-			.unwrap()
+			.expect("child is non-null")
 			.to_string();
 		id_to_name.insert(id, natural_name);
 	}
@@ -279,11 +216,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	loop {
 		if let Some(ev) = rx.recv().await {
 			if let Ok(ev) = <ButtonEvent>::try_from(ev.unwrap()) {
-				let apps = root.get_children().await.unwrap();
-				let active_frame = get_active_frame(apps, conn).await.unwrap();
+				let active_frame = get_active_frame(root_children.as_slice(), conn).await.unwrap();
+				let Ok(active_frame) = NonNullObjectRef::try_from(active_frame) else { continue };
 
 				let active_frame_proxy =
-					accessible_proxy!(into, error, conn, active_frame, "`main loop`");
+					active_frame.clone().into_accessible_proxy(conn).await.unwrap();
 
 				let (width, height) = active_frame_proxy
 					.proxies()
