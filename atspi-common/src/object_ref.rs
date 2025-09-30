@@ -561,6 +561,15 @@ impl ObjectRefOwned {
 			ObjectRef::NonNull(non_null) => non_null.path_as_str(),
 		}
 	}
+
+	/// Converts to `Option<NonNullObjectRef<'static>>`, returning `None` if null.
+	#[must_use]
+	pub fn into_non_null(self) -> Option<NonNullObjectRef<'static>> {
+		match self.0 {
+			ObjectRef::NonNull(non_null) => Some(non_null),
+			ObjectRef::Null => None,
+		}
+	}
 }
 
 impl<'o> From<NonNullObjectRef<'o>> for ObjectRef<'o> {
