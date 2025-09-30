@@ -286,17 +286,10 @@ impl Peers {
 			.build()
 			.await?;
 
-		let accessible_applications = reg_accessible.get_children().await?;
-		let mut peers = Vec::with_capacity(accessible_applications.len());
+		let accessible_apps = reg_accessible.get_children().await?;
+		let mut peers = Vec::with_capacity(accessible_apps.len());
 
-		for app in accessible_applications {
-			if app.is_null() {
-				continue;
-			}
-
-			let app =
-				NonNullObjectRef::try_from(app).expect("null-reference case already handled.");
-
+		for app in accessible_apps.into_iter().filter_map(ObjectRefOwned::into_non_null) {
 			let accessible_proxy = app.as_accessible_proxy(conn).await?;
 			let proxies = accessible_proxy.proxies().await?;
 			let application_proxy = proxies.application().await?;

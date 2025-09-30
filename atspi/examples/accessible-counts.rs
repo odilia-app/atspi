@@ -10,6 +10,7 @@
 use atspi::connection::set_session_accessibility;
 use atspi::proxy::accessible::ObjectRefExt;
 use atspi::NonNullObjectRef;
+use atspi_common::ObjectRefOwned;
 use futures::future::try_join_all;
 use std::collections::{hash_map, HashMap};
 use std::error::Error;
@@ -31,9 +32,12 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 
 	// by getting the names of the children of the root
 	// we can get the names of all applications currently running
-	for child in root.get_children().await?.into_iter() {
-		let Ok(child) = NonNullObjectRef::try_from(child) else { continue };
-
+	for child in root
+		.get_children()
+		.await?
+		.into_iter()
+		.filter_map(ObjectRefOwned::into_non_null)
+	{
 		let proxy = child.into_accessible_proxy(conn).await?;
 		let natural_name = proxy.name().await?;
 		let id = proxy
