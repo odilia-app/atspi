@@ -1,4 +1,4 @@
-use atspi_common::{AtspiError, State};
+use atspi_common::{AtspiError, ObjectMatchRule, SortOrder, State};
 use core::time;
 use std::collections::VecDeque;
 use std::time::Instant;
@@ -9,8 +9,8 @@ use crate::accessible::{AccessibleProxy, ObjectRefExt};
 ///
 /// A helper struct for clientside traversal of the accessibility tree.
 ///
-/// Since most applications do not support the Collection interface,
-/// `TraversalHelper` allows for clean traversals without needing to
+/// Since most applications do not support the `org.a11y.atspi.Collection` interface,
+/// `TraversalHelper` allows for a simpler traversal abstraction without needing to
 /// implement tree algorithms yourself.
 pub struct TraversalHelper<'a> {
 	/// The root from which to start the traversal
@@ -35,17 +35,36 @@ impl<'a> TraversalHelper<'a> {
 	}
 }
 
-/// A trait which mimics the org.a11y.atspi.Collection interface
+/// A trait which mimics the `org.a11y.atspi.Collection` interface
 /// but entirely clientside. All methods perform dbus roundtrips.
 pub trait CollectionClientside {
-	/// Find the closest Accessible with State:Active starting from the root object
+	/// Find the closest Accessible with [`atspi_common::State::Active`] that is a descendant of the root object
 	fn get_active_descendant(
 		&self,
+	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
+
+	/// Retrieves a list of objects that match the specified `ObjectMatchRule`, ordered according to `SortOrder` and limited by the count parameter.
+	///
+	/// # Arguments
+	///
+	/// * `rule` - An [`ObjectMatchRule`] describing the match criteria.
+	/// * `sortby` - A [`SortOrder`] specifying the way the results are to be sorted.
+	/// * `count` - The maximum number of results to return, or 0 for no limit.
+	/// * `traverse` - Not supported.
+	///
+	/// [`ObjectMatchRule`]: [`atspi_common::object_match::ObjectMatchRule`]
+	/// [`SortOrder`]: [`atspi_common::SortOrder`]
+	fn get_matches(
+		&self,
+		rule: ObjectMatchRule,
+		sortby: SortOrder,
+		count: i32,
+		traverse: bool,
 	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
 }
 
 impl CollectionClientside for TraversalHelper<'_> {
-	/// Find the closest Accessible with State:Active starting from the root object
+	/// Find the closest Accessible with [`atspi_common::State::Active`] that is a descendant of the root object
 	async fn get_active_descendant(&self) -> Result<AccessibleProxy<'_>, AtspiError> {
 		let root = &self.root;
 		let mut queue = VecDeque::new();
