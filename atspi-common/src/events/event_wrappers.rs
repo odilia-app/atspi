@@ -2,7 +2,7 @@ use crate::events::registry::socket::AvailableEvent;
 
 use crate::events::registry::{EventListenerDeregisteredEvent, EventListenerRegisteredEvent};
 #[cfg(feature = "zbus")]
-use crate::events::traits::{EventWrapperMessageConversion, TryFromMessage};
+use crate::events::traits::EventWrapperMessageConversion;
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
 use crate::{
@@ -145,14 +145,6 @@ impl RegistryEventString for KeyboardEvents {
 
 impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
 
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for KeyboardEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
 impl_try_from_event_for_user_facing_type!(
 	ModifiersEvent,
 	KeyboardEvents::Modifiers,
@@ -283,14 +275,6 @@ impl EventWrapperMessageConversion for MouseEvents {
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Mouse".into())),
 		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for MouseEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
 	}
 }
 
@@ -666,14 +650,6 @@ impl EventWrapperMessageConversion for DocumentEvents {
 			}
 			_ => Err(AtspiError::MemberMatch("No matching member for Document".into())),
 		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for DocumentEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
 	}
 }
 
@@ -1228,14 +1204,6 @@ impl EventWrapperMessageConversion for ObjectEvents {
 	}
 }
 
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for ObjectEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
 /// All events related to the `org.a11y.atspi.Cache` interface.
 /// Note that these are not telling the client that an item *has been added* to a cache.
 /// It is telling the client "here is a bunch of information to store it in your cache".
@@ -1353,14 +1321,6 @@ impl EventWrapperMessageConversion for CacheEvents {
 
 impl_tryfrommessage_for_event_wrapper!(CacheEvents);
 
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for CacheEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
 impl_from_user_facing_event_for_interface_event_enum!(
 	LegacyAddAccessibleEvent,
 	CacheEvents,
@@ -1392,14 +1352,6 @@ pub enum FocusEvents {
 }
 
 impl_tryfrommessage_for_event_wrapper!(FocusEvents);
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for FocusEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
 
 impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
 impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
@@ -1605,14 +1557,6 @@ impl EventWrapperMessageConversion for TerminalEvents {
 			)),
 			_ => Err(AtspiError::MemberMatch("No matching member for Terminal".into())),
 		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for TerminalEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
 	}
 }
 
@@ -1963,14 +1907,6 @@ impl EventWrapperMessageConversion for WindowEvents {
 	}
 }
 
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for WindowEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		Self::try_from_message(msg)
-	}
-}
-
 impl_from_user_facing_event_for_interface_event_enum!(
 	WindowPropertyChangeEvent,
 	WindowEvents,
@@ -2185,14 +2121,6 @@ impl crate::events::traits::EventWrapperMessageConversion for EventListenerEvent
 				Self::DBUS_INTERFACE
 			))),
 		}
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for EventListenerEvents {
-	type Error = AtspiError;
-	fn try_from(msg: &zbus::Message) -> Result<Self, Self::Error> {
-		<Self as crate::events::traits::TryFromMessage>::try_from_message(msg)
 	}
 }
 
