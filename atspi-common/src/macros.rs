@@ -1023,8 +1023,9 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 macro_rules! impl_tryfrommessage_for_event_wrapper {
 	($wrapper:ty) => {
 		#[cfg(feature = "zbus")]
-		impl crate::events::traits::TryFromMessage for $wrapper {
-			fn try_from_message(msg: &zbus::Message) -> Result<$wrapper, AtspiError> {
+		impl TryFrom<&zbus::Message> for $wrapper {
+			type Error = AtspiError;
+			fn try_from(msg: &zbus::Message) -> Result<$wrapper, AtspiError> {
 				use crate::events::traits::EventWrapperMessageConversion;
 
 				let header = msg.header();
