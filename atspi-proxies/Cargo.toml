@@ -22,7 +22,7 @@ wrappers = []
 
 [dependencies]
 atspi-common = { path = "../atspi-common", version = "0.13.0" }
-serde        = { version = "^1.0.200", default-features = false, features = ["derive"] }
+serde        = { version = "^1.0.217", default-features = false, features = ["derive"] }
 zbus         = { workspace = true }
 
 [dev-dependencies]
@@ -30,7 +30,7 @@ atspi-common = { path = "../atspi-common", version = "0.13.0" }
 byteorder    = "1.4"
 futures-lite = { version = "2.6.0", default-features = false }
 rename-item  = "0.1.0"
-serde_json   = "1.0.96"
+serde_json   = "1.0.138"
 serde_plain  = "1.0.1"
 tokio        = { version = "1.38.2", default-features = false, features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1.1"
