@@ -74,8 +74,8 @@ path = "./examples/selected-text.rs"
 
 [dev-dependencies]
 atspi          = { path = "." }
+criterion = { version = "4.1", package = "codspeed-criterion-compat" }
 # TOOD: pinned due to MSRV 1.77.2 policy; this can be lifted when we bump.
-criterion = "=0.5.0"
 half = "=2.4.0"
 fastrand       = "2.3"
 futures        = { version = "0.3", default-features = false, features = ["alloc"] }
