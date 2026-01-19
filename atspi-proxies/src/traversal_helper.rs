@@ -1,6 +1,6 @@
-use atspi_common::{AtspiError, ObjectMatchRule, ObjectRefOwned, SortOrder, State};
+use atspi_common::{AtspiError, InterfaceSet, ObjectMatchRule, ObjectRefOwned, Role, SortOrder, State, StateSet};
 use core::time;
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::time::Instant;
 
 use crate::accessible::{AccessibleProxy, ObjectRefExt};
@@ -63,6 +63,77 @@ pub trait CollectionClientside {
 	) -> impl std::future::Future<Output = Result<Vec<AccessibleProxy<'_>>, AtspiError>> + Send;
 }
 
+
+/// A helper for encapsulating all matching logic specified by the [`ObjectMatchRule`] for easier and reusable checks
+struct ObjectMatchRuleResolver {
+	attributes: HashMap<String, String>,
+	states: StateSet,
+	interfaces: InterfaceSet,
+	role: Role,
+
+	rule: ObjectMatchRule
+}
+
+impl ObjectMatchRuleResolver {
+
+	/// Given an [`AccessibleProxy`] and an [`ObjectMatchRule`], returns a [`MatchesHelper`] which encapsulates all matching logic
+	pub async fn from_accessible_and_rule(accessible: &AccessibleProxy<'_>, rule: ObjectMatchRule) -> Result<ObjectMatchRuleResolver, Box<dyn std::error::Error>> {
+		Ok(ObjectMatchRuleResolver {
+			attributes: accessible.get_attributes().await?,
+			states: accessible.get_state().await?,
+			interfaces: accessible.get_interfaces().await?,
+			role: accessible.get_role().await?,
+			rule
+		})
+		
+	}
+
+	/// The attributes of the root accessible matches the attribute match rule
+	fn attributes_match(&self) -> bool 
+	{
+
+		let attribute_to_match: HashMap<(String, String), bool > = HashMap::new();
+
+		true
+	}
+
+	/// The states of the root accessible match the state match rule
+	fn states_match(&self) -> bool {
+		true
+	}
+
+	/// The interfaces of the root accessible match the interface match rule
+	fn interfaces_match(&self) -> bool {
+		true
+	}
+
+	/// The role of the root accessible matches the role match rule
+	fn role_match(&self) -> bool {
+
+		let all_rules_matches = self.rule.roles.contains(&self.role);
+		let no_rule_matched = !all_rules_matches; 
+
+		match self.rule.roles_mt {
+			atspi_common::MatchType::Invalid => true,
+			// since an accessible can only have one role and it can't be empty
+			// these are all equivalent
+			atspi_common::MatchType::All | atspi_common::MatchType::Empty | atspi_common::MatchType::Any => all_rules_matches,
+			atspi_common::MatchType::NA => no_rule_matched,
+		}
+	}
+
+	/// All of the attributes, states, interfaces, and role match the match rule
+	pub fn matches(&self) -> bool {
+		let all_state_matches = self.attributes_match() && self.states_match() && self.interfaces_match() && self.role_match();
+		match self.rule.invert {
+			true => !all_state_matches,
+			false => all_state_matches
+		}
+	}
+}
+
+
+
 impl CollectionClientside for TraversalHelper<'_> {
 	/// Find the closest Accessible with State:Active starting from the root object
 	async fn get_active_descendant(&self) -> Result<AccessibleProxy<'_>, AtspiError> {
@@ -123,6 +194,11 @@ impl CollectionClientside for TraversalHelper<'_> {
 		queue.push_back((self.root.clone(), 0u32));
 
 		while let Some((node, depth)) = queue.pop_front() {
+
+			if results.len() >= count as usize {
+				break;
+			}
+
 			// Time limit
 			if let Some(max_time) = self.max_time {
 				if start.elapsed() > max_time {
@@ -135,49 +211,14 @@ impl CollectionClientside for TraversalHelper<'_> {
 				continue;
 			}
 
-			let attr_matches = match rule.attr_mt {
-				atspi_common::MatchType::Invalid => true,
-				atspi_common::MatchType::All | atspi_common::MatchType::Empty => {
-					panic!("Not implemented")
+			let matches_helper = match ObjectMatchRuleResolver::from_accessible_and_rule(&node, rule.clone()).await {
+				Ok(matches_helper) => matches_helper,
+				Err(e) => {
+					return Err(AtspiError::Owned(e.to_string()));
 				}
-				atspi_common::MatchType::Any => panic!("Not implemented"),
-				atspi_common::MatchType::NA => panic!("Not implemented"),
 			};
 
-			let state_matches = match rule.states_mt {
-				atspi_common::MatchType::Invalid => true,
-				atspi_common::MatchType::All | atspi_common::MatchType::Empty => {
-					panic!("Not implemented")
-				}
-				atspi_common::MatchType::Any => panic!("Not implemented"),
-				atspi_common::MatchType::NA => panic!("Not implemented"),
-			};
-
-			let role_matches = match rule.roles_mt {
-				atspi_common::MatchType::Invalid => true,
-				atspi_common::MatchType::All | atspi_common::MatchType::Empty => {
-					panic!("Not implemented")
-				}
-				atspi_common::MatchType::Any => panic!("Not implemented"),
-				atspi_common::MatchType::NA => panic!("Not implemented"),
-			};
-
-			let iface_matches = match rule.ifaces_mt {
-				atspi_common::MatchType::Invalid => true,
-				atspi_common::MatchType::All | atspi_common::MatchType::Empty => {
-					panic!("Not implemented")
-				}
-				atspi_common::MatchType::Any => panic!("Not implemented"),
-				atspi_common::MatchType::NA => panic!("Not implemented"),
-			};
-
-			let add_node = if rule.invert {
-				!(attr_matches && state_matches && role_matches && iface_matches)
-			} else {
-				attr_matches && state_matches && role_matches && iface_matches
-			};
-
-			if add_node {
+			if matches_helper.matches() {
 				results.push(node.clone());
 			}
 
