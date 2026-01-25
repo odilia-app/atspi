@@ -1,4 +1,7 @@
-use atspi_common::{AtspiError, InterfaceSet, ObjectMatchRule, ObjectRefOwned, Role, SortOrder, State, StateSet};
+use atspi_common::{
+	AtspiError, Interface, InterfaceSet, MatchType, ObjectMatchRule, ObjectRefOwned, Role,
+	SortOrder, State, StateSet,
+};
 use core::time;
 use std::collections::{HashMap, VecDeque};
 use std::time::Instant;
@@ -10,16 +13,16 @@ use crate::accessible::{AccessibleProxy, ObjectRefExt};
 /// A helper struct for clientside traversal of the accessibility tree.
 ///
 /// Since most applications do not support the Collection interface,
-/// `TraversalHelper` allows for clean traversals without needing to
+/// [`TraversalHelper`] allows for clean traversals without needing to
 /// implement tree algorithms yourself.
 pub struct TraversalHelper<'a> {
-	/// The root from which to start the traversal
+	/// The root accessible from which to start the traversal
 	pub root: AccessibleProxy<'a>,
-	// The connection to use for creating proxies
+	// The connection to use for creating zbus proxies
 	pub conn: zbus::Connection,
-	// The maximum depth to traverse to prevent excessively long traversals
+	// The maximum depth to traverse in the accessibility tree; used to prevent excessively long traversals
 	pub max_depth: u32,
-	// The maximum time to traverse to prevent excessively long traversals
+	// The maximum time to traverse; used to prevent excessively long traversals
 	pub max_time: Option<time::Duration>,
 }
 
@@ -63,76 +66,183 @@ pub trait CollectionClientside {
 	) -> impl std::future::Future<Output = Result<Vec<AccessibleProxy<'_>>, AtspiError>> + Send;
 }
 
-
 /// A helper for encapsulating all matching logic specified by the [`ObjectMatchRule`] for easier and reusable checks
-struct ObjectMatchRuleResolver {
-	attributes: HashMap<String, String>,
-	states: StateSet,
-	interfaces: InterfaceSet,
-	role: Role,
+struct ObjectMatchRuleHelper {
+	attributes: Option<HashMap<String, String>>,
+	states: Option<StateSet>,
+	interfaces: Option<InterfaceSet>,
+	role: Option<Role>,
 
-	rule: ObjectMatchRule
+	rule: ObjectMatchRule,
 }
 
-impl ObjectMatchRuleResolver {
+impl ObjectMatchRuleHelper {
+	/// Given an [`AccessibleProxy`] and an [`ObjectMatchRule`], create a [`ObjectMatchRuleHelper`]
+	/// which encapsulates all matching logic
+	pub async fn from_accessible_and_rule(
+		accessible: &AccessibleProxy<'_>,
+		rule: ObjectMatchRule,
+	) -> Result<ObjectMatchRuleHelper, Box<dyn std::error::Error>> {
+		// If any of the match types is specified as [`MatchType::Invalid`], it means that
+		// a search against the corresponding field should not be performed;
+		// As such, the lookup for the corresponding field should be skipped to
+		// prevent unnecessary dbus i/o
+		let attributes = match rule.attr_mt {
+			MatchType::Invalid => None,
+			_ => Some(accessible.get_attributes().await?),
+		};
 
-	/// Given an [`AccessibleProxy`] and an [`ObjectMatchRule`], returns a [`MatchesHelper`] which encapsulates all matching logic
-	pub async fn from_accessible_and_rule(accessible: &AccessibleProxy<'_>, rule: ObjectMatchRule) -> Result<ObjectMatchRuleResolver, Box<dyn std::error::Error>> {
-		Ok(ObjectMatchRuleResolver {
-			attributes: accessible.get_attributes().await?,
-			states: accessible.get_state().await?,
-			interfaces: accessible.get_interfaces().await?,
-			role: accessible.get_role().await?,
-			rule
-		})
-		
+		let states = match rule.states_mt {
+			MatchType::Invalid => None,
+			_ => Some(accessible.get_state().await?),
+		};
+
+		let interfaces = match rule.ifaces_mt {
+			MatchType::Invalid => None,
+			_ => Some(accessible.get_interfaces().await?),
+		};
+
+		let role = match rule.roles_mt {
+			MatchType::Invalid => None,
+			_ => Some(accessible.get_role().await?),
+		};
+
+		Ok(ObjectMatchRuleHelper { attributes, states, interfaces, role, rule })
 	}
 
 	/// The attributes of the root accessible matches the attribute match rule
-	fn attributes_match(&self) -> bool 
-	{
+	fn attributes_match(&self) -> Result<bool, AtspiError> {
+		// if the match type is invalid, return true automatically without needing to check
+		if self.rule.attr_mt == MatchType::Invalid {
+			return Ok(true);
+		}
 
-		let attribute_to_match: HashMap<(String, String), bool > = HashMap::new();
+		let attributes_in_accessible = match &self.attributes {
+			Some(attributes) => attributes,
+			// if the match type is invalid, return true automatically without needing to check
+			// since an accessible can only have attributes and it can't be empty
+			// these are all equivalent
+			None => return Ok(true),
+		};
 
-		true
+		let mut matching_attributes = 0;
+
+		for (expected_attribute, expected_value) in &self.rule.attr {
+			if let Some(found_value) = attributes_in_accessible.get(expected_attribute) {
+				if found_value == expected_value {
+					matching_attributes += 1;
+				}
+			}
+		}
+
+		Ok(match self.rule.attr_mt {
+			MatchType::Invalid => true,
+			MatchType::All => matching_attributes == self.attributes.iter().count(),
+			MatchType::Empty => matching_attributes == 0,
+			MatchType::Any => matching_attributes > 0,
+			MatchType::NA => matching_attributes == 0,
+		})
 	}
 
 	/// The states of the root accessible match the state match rule
-	fn states_match(&self) -> bool {
-		true
+	fn states_match(&self) -> Result<bool, AtspiError> {
+		// if the match type is invalid, return true automatically without needing to check
+		if self.rule.states_mt == MatchType::Invalid {
+			return Ok(true);
+		}
+
+		let mut matching_states = 0;
+
+		let states_in_accessible = match self.states {
+			Some(states) => states,
+			None => return Err(AtspiError::Owned("States were not set".to_string())),
+		};
+
+		// a naive for loop is faster than using hashmap since the number of states is
+		// known to be small
+		for found_state in states_in_accessible {
+			for expected_state in &self.rule.states {
+				if found_state == expected_state {
+					matching_states += 1;
+				}
+			}
+		}
+
+		Ok(match self.rule.ifaces_mt {
+			MatchType::Invalid => true,
+			MatchType::All => matching_states == self.states.iter().count(),
+			MatchType::Empty => matching_states == 0,
+			MatchType::Any => matching_states > 0,
+			MatchType::NA => matching_states == 0,
+		})
 	}
 
 	/// The interfaces of the root accessible match the interface match rule
-	fn interfaces_match(&self) -> bool {
-		true
+	fn interfaces_match(&self) -> Result<bool, AtspiError> {
+		// if the match type is invalid, return true automatically without needing to check
+		if self.rule.ifaces_mt == MatchType::Invalid {
+			return Ok(true);
+		}
+
+		let mut matching_interfaces = 0;
+
+		let interfaces_in_accessible = match self.interfaces {
+			Some(states) => states,
+			None => return Err(AtspiError::Owned("Interfaces were not set".to_string())),
+		};
+
+		// a naive for loop is faster than using hashmap since the number of interfaces is
+		// known to be small
+		for found_interface in interfaces_in_accessible {
+			for expected_interface in &self.rule.ifaces {
+				if found_interface == expected_interface {
+					matching_interfaces += 1;
+				}
+			}
+		}
+
+		Ok(match self.rule.ifaces_mt {
+			MatchType::Invalid => true,
+			MatchType::All => matching_interfaces == self.interfaces.iter().count(),
+			MatchType::Empty => matching_interfaces == 0,
+			MatchType::Any => matching_interfaces > 0,
+			MatchType::NA => matching_interfaces == 0,
+		})
 	}
 
 	/// The role of the root accessible matches the role match rule
-	fn role_match(&self) -> bool {
+	fn role_match(&self) -> Result<bool, AtspiError> {
+		// if the match type is invalid, return true automatically without needing to check
+		if self.rule.roles_mt == MatchType::Invalid {
+			return Ok(true);
+		}
 
-		let all_rules_matches = self.rule.roles.contains(&self.role);
-		let no_rule_matched = !all_rules_matches; 
+		let role_in_accessible = match self.role {
+			Some(role) => role,
+			None => return Err(AtspiError::Owned("Role was not set".to_string())),
+		};
 
-		match self.rule.roles_mt {
+		Ok(match self.rule.roles_mt {
 			atspi_common::MatchType::Invalid => true,
 			// since an accessible can only have one role and it can't be empty
 			// these are all equivalent
-			atspi_common::MatchType::All | atspi_common::MatchType::Empty | atspi_common::MatchType::Any => all_rules_matches,
-			atspi_common::MatchType::NA => no_rule_matched,
-		}
+			MatchType::All | MatchType::Empty | MatchType::Any => self.rule.roles.contains(&role_in_accessible),
+			MatchType::NA => !self.rule.roles.contains(&role_in_accessible),
+		})
 	}
 
-	/// All of the attributes, states, interfaces, and role match the match rule
-	pub fn matches(&self) -> bool {
-		let all_state_matches = self.attributes_match() && self.states_match() && self.interfaces_match() && self.role_match();
-		match self.rule.invert {
+	/// All of the attributes, states, interfaces, and role in the accessible match the conditions of the [`ObjectMatchRule`]
+	pub fn matches(&self) -> Result<bool, AtspiError> {
+		let all_state_matches = self.attributes_match()?
+			&& self.states_match()?
+			&& self.interfaces_match()?
+			&& self.role_match()?;
+		Ok(match self.rule.invert {
 			true => !all_state_matches,
-			false => all_state_matches
-		}
+			false => all_state_matches,
+		})
 	}
 }
-
-
 
 impl CollectionClientside for TraversalHelper<'_> {
 	/// Find the closest Accessible with State:Active starting from the root object
@@ -194,7 +304,6 @@ impl CollectionClientside for TraversalHelper<'_> {
 		queue.push_back((self.root.clone(), 0u32));
 
 		while let Some((node, depth)) = queue.pop_front() {
-
 			if results.len() >= count as usize {
 				break;
 			}
@@ -211,14 +320,15 @@ impl CollectionClientside for TraversalHelper<'_> {
 				continue;
 			}
 
-			let matches_helper = match ObjectMatchRuleResolver::from_accessible_and_rule(&node, rule.clone()).await {
-				Ok(matches_helper) => matches_helper,
-				Err(e) => {
-					return Err(AtspiError::Owned(e.to_string()));
-				}
-			};
+			let matches_helper =
+				match ObjectMatchRuleHelper::from_accessible_and_rule(&node, rule.clone()).await {
+					Ok(matches_helper) => matches_helper,
+					Err(e) => {
+						return Err(AtspiError::Owned(e.to_string()));
+					}
+				};
 
-			if matches_helper.matches() {
+			if matches_helper.matches()? {
 				results.push(node.clone());
 			}
 
