@@ -177,7 +177,7 @@ where
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {}",
 				body_signature,
-				&expected_signature.to_string(),
+				expected_signature.to_string(),
 			)));
 		}
 		Ok(())

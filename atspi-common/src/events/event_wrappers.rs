@@ -1302,7 +1302,7 @@ impl EventWrapperMessageConversion for CacheEvents {
 				} else {
 					Err(AtspiError::SignatureMatch(format!(
 						"No matching event for signature {} in interface {}",
-						&sig.to_string(),
+						sig.to_string(),
 						Self::DBUS_INTERFACE
 					)))
 				}
