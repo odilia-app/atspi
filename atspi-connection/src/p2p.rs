@@ -248,10 +248,7 @@ impl BusNameExt for BusName<'_> {
 			.get_application_bus_address()
 			.await
 			.map_err(|e| {
-				AtspiError::Owned(format!(
-					"Failed to get application bus address for {}: {e}",
-					&self
-				))
+				AtspiError::Owned(format!("Failed to get application bus address for {self}: {e}"))
 			})
 			.and_then(|address| {
 				Address::try_from(address.as_str())
