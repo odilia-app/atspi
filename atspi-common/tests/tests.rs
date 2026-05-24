@@ -45,14 +45,16 @@ async fn test_recv_remove_accessible() {
 		let to = events.try_next().await;
 		let bus_event = to.expect("stream timed out").expect("stream closed");
 
-		let Ok(event) = bus_event else {
+		let Ok(ref message) = bus_event else {
 			// Likely a "org.freedesktop.DBus" event, which we ignore.
 			continue;
 		};
 
+		let event = Event::try_from(message).expect("Message should resolve as Event.");
+
 		if let Event::Cache(CacheEvents::Remove(event)) = event {
 			// If we were not sender of the signal, continue listening.
-			if event.item.name().unwrap().as_str() != unique_bus_name.as_str() {
+			if event.item.name().as_str() != unique_bus_name.as_str() {
 				continue;
 			}
 
@@ -102,17 +104,26 @@ async fn test_recv_add_accessible() {
 		.expect("Message sending unsuccessful");
 
 	loop {
+		// `to` (time-out wrapped event) is a
+		// Result<Option<Result<Message, AtspiError>>, Elapsed>) admittedly a bit of a mouthful.
 		let to = events.try_next().await;
+		// Unwrapping the Result of the timeout and the Option of the `MessageStream`.
 		let bus_event = to.expect("stream timed out").expect("stream closed");
 
-		let Ok(event) = bus_event else {
+		// If the event_stream yields Ok(_), this means
+		// The message is indeed a Signal
+		// The message interface starts with "org.a11y.atspi."
+		// It is either this or - note the `else`
+		let Ok(ref message) = bus_event else {
 			// Likely a "org.freedesktop.DBus" event, which we ignore.
 			continue;
 		};
 
+		let event = Event::try_from(message).expect("Message should resolve as Event.");
+
 		if let Event::Cache(CacheEvents::Add(AddAccessibleEvent { node_added, item })) = event {
 			// If we did not send the signal, continue listening.
-			if item.name().unwrap().as_str() != unique_bus_name.as_str() {
+			if item.name().as_str() != unique_bus_name.as_str() {
 				continue;
 			}
 			assert_eq!(node_added.object.path_as_str(), "/org/a11y/atspi/accessible/object");
@@ -138,7 +149,7 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 	tokio::pin!(events);
 
 	let msg: zbus::Message = {
-		let path = "/org/a11y/atspi/null";
+		let path = "/org/a11y/atspi/cache";
 		let iface = "org.a11y.atspi.Cache";
 		let member = "AddAccessible";
 
@@ -164,17 +175,26 @@ async fn test_recv_add_accessible_unmarshalled_body() {
 		.expect("Message sending unsuccessful");
 
 	loop {
+		// `to` (time-out wrapped event) is a
+		// Result<Option<Result<Message, AtspiError>>, Elapsed>) admittedly a bit of a mouthful.
 		let to = events.try_next().await;
+		// Unwrapping the Result of the timeout and the Option of the `MessageStream`.
 		let bus_event = to.expect("stream timed out").expect("stream closed");
 
-		let Ok(event) = bus_event else {
+		// If the event_stream yields Ok(_), this means
+		// The message is indeed a Signal
+		// The message interface starts with "org.a11y.atspi."
+		// It is either this or - note the `else`
+		let Ok(ref message) = bus_event else {
 			// Likely a "org.freedesktop.DBus" event, which we ignore.
 			continue;
 		};
 
+		let event = Event::try_from(message).expect("Message should resolve as Event.");
+
 		if let Event::Cache(CacheEvents::Add(AddAccessibleEvent { node_added, item })) = event {
 			// If we did not send the signal, continue listening.
-			if item.name().unwrap().as_str() != unique_bus_name.as_str() {
+			if item.name().as_str() != unique_bus_name.as_str() {
 				continue;
 			}
 

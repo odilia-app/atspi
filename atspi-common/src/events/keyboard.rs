@@ -4,26 +4,27 @@ use super::event_body::EventBody;
 use crate::error::AtspiError;
 use crate::{
 	events::{DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString},
-	object_ref::ObjectRefOwned,
+	object_ref::NonNullObjectRef,
 };
 
 #[cfg(feature = "zbus")]
-use crate::{events::MessageConversion, EventProperties, ObjectRef};
+use crate::{events::MessageConversion, EventProperties};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ModifiersEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ModifiersEvent<'o> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'o>,
 	pub previous_modifiers: i32,
 	pub current_modifiers: i32,
 }
 
-impl_event_type_properties_for_event!(ModifiersEvent);
+impl_event_type_properties_for_event!(ModifiersEvent<'_>);
 
 impl_member_interface_registry_string_and_match_rule_for_event! {
-	ModifiersEvent,
+	ModifiersEvent<'_>,
 	"Modifiers",
 	"org.a11y.atspi.Event.Keyboard",
 	"keyboard:modifiers",
@@ -31,22 +32,24 @@ impl_member_interface_registry_string_and_match_rule_for_event! {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for ModifiersEvent {
-	type Body<'msg> = EventBody<'msg>;
+impl<'a> MessageConversion<'a> for ModifiersEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'a>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
 		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self {
-			item: item.into(),
-			previous_modifiers: body.detail1(),
-			current_modifiers: body.detail2(),
-		})
+		Ok(Self { item, previous_modifiers: body.detail1(), current_modifiers: body.detail2() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+	fn from_message_unchecked(msg: &'a zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -59,14 +62,15 @@ impl MessageConversion<'_> for ModifiersEvent {
 	}
 }
 
-impl_msg_conversion_ext_for_target_type!(ModifiersEvent);
+impl_msg_conversion_ext_for_target_type!(ModifiersEvent<'_>);
 
 event_test_cases!(ModifiersEvent);
-impl_to_dbus_message!(ModifiersEvent);
-impl_from_dbus_message!(ModifiersEvent);
-impl_event_properties!(ModifiersEvent);
+impl_to_dbus_message!(ModifiersEvent<'_>);
+impl_from_dbus_message!(ModifiersEvent<'_>);
+impl_event_properties!(ModifiersEvent<'_>);
+impl_test_event!(ModifiersEvent<'_> { previous_modifiers, current_modifiers });
 
-impl From<ModifiersEvent> for EventBodyOwned {
+impl From<ModifiersEvent<'_>> for EventBodyOwned {
 	fn from(event: ModifiersEvent) -> Self {
 		EventBodyOwned {
 			detail1: event.previous_modifiers,

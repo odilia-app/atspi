@@ -21,10 +21,13 @@ use atspi::events::window::{
 	PropertyChangeEvent as WindowPropertyChangeEvent, RaiseEvent, ReparentEvent, ResizeEvent,
 	RestoreEvent, RestyleEvent, ShadeEvent, UUshadeEvent,
 };
+use atspi::NonNullObjectRef;
 use std::{
 	fs::File,
 	io::{BufReader, BufWriter, Read, Write},
 };
+use zbus::names::UniqueName;
+use zbus::zvariant::ObjectPath;
 use zbus::{
 	zvariant::{
 		serialized::{Context, Data, Format},
@@ -33,74 +36,83 @@ use zbus::{
 	Message,
 };
 
-pub fn vec_of_all_atspi_messages() -> Vec<Message> {
+pub fn vec_of_all_atspi_messages(origin: &NonNullObjectRef) -> Vec<Message> {
 	vec![
 		// document events
-		DocumentAttributesChangedEvent::default().try_into().unwrap(),
-		ContentChangedEvent::default().try_into().unwrap(),
-		LoadCompleteEvent::default().try_into().unwrap(),
-		LoadStoppedEvent::default().try_into().unwrap(),
-		PageChangedEvent::default().try_into().unwrap(),
-		ReloadEvent::default().try_into().unwrap(),
+		DocumentAttributesChangedEvent::new_test_event(origin)
+			.try_into()
+			.unwrap(),
+		ContentChangedEvent::new_test_event(origin).try_into().unwrap(),
+		LoadCompleteEvent::new_test_event(origin).try_into().unwrap(),
+		LoadStoppedEvent::new_test_event(origin).try_into().unwrap(),
+		PageChangedEvent::new_test_event(origin).try_into().unwrap(),
+		ReloadEvent::new_test_event(origin).try_into().unwrap(),
 		// focus events
-		FocusEvent::default().try_into().unwrap(),
+		FocusEvent::new_test_event(origin).try_into().unwrap(),
 		// mouse events
-		AbsEvent::default().try_into().unwrap(),
-		ButtonEvent::default().try_into().unwrap(),
-		RelEvent::default().try_into().unwrap(),
+		AbsEvent::new_test_event(origin).try_into().unwrap(),
+		ButtonEvent::new_test_event(origin).try_into().unwrap(),
+		RelEvent::new_test_event(origin).try_into().unwrap(),
 		// object events
-		ActiveDescendantChangedEvent::default().try_into().unwrap(),
-		AnnouncementEvent::default().try_into().unwrap(),
-		AttributesChangedEvent::default().try_into().unwrap(),
-		BoundsChangedEvent::default().try_into().unwrap(),
-		ChildrenChangedEvent::default().try_into().unwrap(),
-		ColumnDeletedEvent::default().try_into().unwrap(),
-		ColumnInsertedEvent::default().try_into().unwrap(),
-		ColumnReorderedEvent::default().try_into().unwrap(),
-		LinkSelectedEvent::default().try_into().unwrap(),
-		ModelChangedEvent::default().try_into().unwrap(),
-		PropertyChangeEvent::default().try_into().unwrap(),
-		RowDeletedEvent::default().try_into().unwrap(),
-		RowInsertedEvent::default().try_into().unwrap(),
-		RowReorderedEvent::default().try_into().unwrap(),
-		SelectionChangedEvent::default().try_into().unwrap(),
-		TextAttributesChangedEvent::default().try_into().unwrap(),
-		TextBoundsChangedEvent::default().try_into().unwrap(),
-		TextCaretMovedEvent::default().try_into().unwrap(),
-		TextChangedEvent::default().try_into().unwrap(),
-		TextSelectionChangedEvent::default().try_into().unwrap(),
-		VisibleDataChangedEvent::default().try_into().unwrap(),
+		ActiveDescendantChangedEvent::new_test_event(origin)
+			.try_into()
+			.unwrap(),
+		AnnouncementEvent::new_test_event(origin).try_into().unwrap(),
+		AttributesChangedEvent::new_test_event(origin).try_into().unwrap(),
+		BoundsChangedEvent::new_test_event(origin).try_into().unwrap(),
+		ChildrenChangedEvent::new_test_event(origin).try_into().unwrap(),
+		ColumnDeletedEvent::new_test_event(origin).try_into().unwrap(),
+		ColumnInsertedEvent::new_test_event(origin).try_into().unwrap(),
+		ColumnReorderedEvent::new_test_event(origin).try_into().unwrap(),
+		LinkSelectedEvent::new_test_event(origin).try_into().unwrap(),
+		ModelChangedEvent::new_test_event(origin).try_into().unwrap(),
+		PropertyChangeEvent::new_test_event(origin).try_into().unwrap(),
+		RowDeletedEvent::new_test_event(origin).try_into().unwrap(),
+		RowInsertedEvent::new_test_event(origin).try_into().unwrap(),
+		RowReorderedEvent::new_test_event(origin).try_into().unwrap(),
+		SelectionChangedEvent::new_test_event(origin).try_into().unwrap(),
+		TextAttributesChangedEvent::new_test_event(origin).try_into().unwrap(),
+		TextBoundsChangedEvent::new_test_event(origin).try_into().unwrap(),
+		TextCaretMovedEvent::new_test_event(origin).try_into().unwrap(),
+		TextChangedEvent::new_test_event(origin).try_into().unwrap(),
+		TextSelectionChangedEvent::new_test_event(origin).try_into().unwrap(),
+		VisibleDataChangedEvent::new_test_event(origin).try_into().unwrap(),
 		// terminal events
-		ApplicationChangedEvent::default().try_into().unwrap(),
-		CharWidthChangedEvent::default().try_into().unwrap(),
-		ColumnCountChangedEvent::default().try_into().unwrap(),
-		LineChangedEvent::default().try_into().unwrap(),
-		LineCountChangedEvent::default().try_into().unwrap(),
+		ApplicationChangedEvent::new_test_event(origin).try_into().unwrap(),
+		CharWidthChangedEvent::new_test_event(origin).try_into().unwrap(),
+		ColumnCountChangedEvent::new_test_event(origin).try_into().unwrap(),
+		LineChangedEvent::new_test_event(origin).try_into().unwrap(),
+		LineCountChangedEvent::new_test_event(origin).try_into().unwrap(),
 		// window events
-		ActivateEvent::default().try_into().unwrap(),
-		CloseEvent::default().try_into().unwrap(),
-		CreateEvent::default().try_into().unwrap(),
-		DeactivateEvent::default().try_into().unwrap(),
-		DesktopCreateEvent::default().try_into().unwrap(),
-		DesktopDestroyEvent::default().try_into().unwrap(),
-		DestroyEvent::default().try_into().unwrap(),
-		LowerEvent::default().try_into().unwrap(),
-		MaximizeEvent::default().try_into().unwrap(),
-		MinimizeEvent::default().try_into().unwrap(),
-		MoveEvent::default().try_into().unwrap(),
-		WindowPropertyChangeEvent::default().try_into().unwrap(),
-		RaiseEvent::default().try_into().unwrap(),
-		ReparentEvent::default().try_into().unwrap(),
-		ResizeEvent::default().try_into().unwrap(),
-		RestoreEvent::default().try_into().unwrap(),
-		RestyleEvent::default().try_into().unwrap(),
-		ShadeEvent::default().try_into().unwrap(),
-		UUshadeEvent::default().try_into().unwrap(),
+		ActivateEvent::new_test_event(origin).try_into().unwrap(),
+		CloseEvent::new_test_event(origin).try_into().unwrap(),
+		CreateEvent::new_test_event(origin).try_into().unwrap(),
+		DeactivateEvent::new_test_event(origin).try_into().unwrap(),
+		DesktopCreateEvent::new_test_event(origin).try_into().unwrap(),
+		DesktopDestroyEvent::new_test_event(origin).try_into().unwrap(),
+		DestroyEvent::new_test_event(origin).try_into().unwrap(),
+		LowerEvent::new_test_event(origin).try_into().unwrap(),
+		MaximizeEvent::new_test_event(origin).try_into().unwrap(),
+		MinimizeEvent::new_test_event(origin).try_into().unwrap(),
+		MoveEvent::new_test_event(origin).try_into().unwrap(),
+		WindowPropertyChangeEvent::new_test_event(origin).try_into().unwrap(),
+		RaiseEvent::new_test_event(origin).try_into().unwrap(),
+		ReparentEvent::new_test_event(origin).try_into().unwrap(),
+		ResizeEvent::new_test_event(origin).try_into().unwrap(),
+		RestoreEvent::new_test_event(origin).try_into().unwrap(),
+		RestyleEvent::new_test_event(origin).try_into().unwrap(),
+		ShadeEvent::new_test_event(origin).try_into().unwrap(),
+		UUshadeEvent::new_test_event(origin).try_into().unwrap(),
 	]
 }
 
 pub fn generate_n_messages_rnd(n: usize) -> Vec<Message> {
-	let all_messages = vec_of_all_atspi_messages();
+	static NON_NULL_ORIGIN: NonNullObjectRef<'static> = NonNullObjectRef::Owned {
+		name: UniqueName::from_static_str_unchecked(":0.0"),
+		path: ObjectPath::from_static_str_unchecked("/org/atspi/test"),
+	};
+
+	let all_messages = vec_of_all_atspi_messages(&NON_NULL_ORIGIN);
 	let mut messages: Vec<Message> = Vec::with_capacity(n);
 	for _ in 0..n {
 		let random_msg = all_messages[fastrand::usize(..all_messages.len())].clone();

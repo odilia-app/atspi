@@ -5,17 +5,22 @@ use zbus_lockstep_macros::validate;
 use zbus_names::{BusName, UniqueName};
 use zvariant::{ObjectPath, OwnedValue, Structure, Type, Value};
 
-const NULL_PATH_STR: &str = "/org/a11y/atspi/null";
-const NULL_OBJECT_PATH: &ObjectPath<'static> =
-	&ObjectPath::from_static_str_unchecked(NULL_PATH_STR);
+// Rustc performs "string merges" identical strings (but not identical structs.)
+// This means rustc is smart enough to deduplicate string slices in the binary if possible.
+// Having strings const and structs static is therefore considered idiomatic.
+pub(crate) const NULL_PATH_STR: &str = "/org/a11y/atspi/null";
+// pub(crate) const NULL_OBJECT_NAME_STR: &str = "";
 
-#[cfg(test)]
+pub(crate) static NULL_OBJECT_PATH: &ObjectPath<'static> =
+	&ObjectPath::from_static_str_unchecked(NULL_PATH_STR);
+// We cannot create a static `UniqueName` with an empty string.
+
 pub(crate) const TEST_OBJECT_BUS_NAME: &str = ":0.0";
-#[cfg(test)]
 pub(crate) const TEST_OBJECT_PATH_STR: &str = "/org/a11y/atspi/test/default";
-#[cfg(test)]
 pub(crate) const TEST_DEFAULT_OBJECT_REF: ObjectRef<'static> =
 	ObjectRef::from_static_str_unchecked(TEST_OBJECT_BUS_NAME, TEST_OBJECT_PATH_STR);
+pub(crate) const TEST_NON_NULL_OBJECT_REF: NonNullObjectRef<'static> =
+	NonNullObjectRef::from_static_str_unchecked(TEST_OBJECT_BUS_NAME, TEST_OBJECT_PATH_STR);
 
 // Cannot derive `zvariant::Value` or `zvariant::OwnedValue` on non-unit variants in enums.	20250903
 
@@ -35,13 +40,23 @@ pub enum NonNullObjectRef<'o> {
 }
 
 impl<'o> NonNullObjectRef<'o> {
-	/// Create a new `ObjectRef::Borrowed` from a `UniqueName` and `ObjectPath`.
-	#[must_use]
-	pub fn new(name: UniqueName<'o>, path: ObjectPath<'o>) -> Self {
-		Self::new_borrowed(name, path)
+	/// Create a new `NonNullObjectRef::Borrowed` from a `UniqueName` and `ObjectPath`.
+	///
+	/// # Errors
+	/// Returns an error if the path is a null-path.
+	/// Name is guaranteed to be non-null because no `UniqueName` can't be constructed from an empty string.
+	pub fn try_new(
+		name: UniqueName<'o>,
+		path: ObjectPath<'o>,
+	) -> Result<NonNullObjectRef<'o>, AtspiError> {
+		Self::try_new_borrowed(name, path)
 	}
 
-	/// Create a new, borrowed `ObjectRef`.
+	/// Create a new, borrowed `NonNullObjectRef`.
+	///
+	/// # Errors
+	/// Returns an error if the path is null.
+	/// Name is guaranteed to be non-null because no `UniqueName` can't be constructed from an empty string.
 	///
 	/// # Example
 	/// ```rust
@@ -52,11 +67,11 @@ impl<'o> NonNullObjectRef<'o> {
 	/// let name = UniqueName::from_static_str_unchecked(":1.23");
 	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
 	///
-	/// let object_ref = NonNullObjectRef::new_borrowed(name, path);
+	/// let object_ref = NonNullObjectRef::try_new_borrowed(name, path).unwrap();
 	/// # assert_eq!(object_ref.name_as_str(), ":1.23");
 	/// # assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
 	/// ```
-	pub fn new_borrowed<N, P>(name: N, path: P) -> NonNullObjectRef<'o>
+	pub fn try_new_borrowed<N, P>(name: N, path: P) -> Result<NonNullObjectRef<'o>, AtspiError>
 	where
 		N: Into<UniqueName<'o>>,
 		P: Into<ObjectPath<'o>>,
@@ -64,10 +79,23 @@ impl<'o> NonNullObjectRef<'o> {
 		let name: UniqueName<'o> = name.into();
 		let path: ObjectPath<'o> = path.into();
 
-		Self::Borrowed { name, path }
+		// Prevent propagating null objects.
+		// Empty strings are not valid `UniqueName` anyway so we only need
+		// to consider `ObjectPath`.
+		if &path == NULL_OBJECT_PATH {
+			return Err(AtspiError::NullRef(
+				"Cannot create NonNullObjectRef with null name or path",
+			));
+		}
+
+		Ok(Self::Borrowed { name, path })
 	}
 
-	/// Create a new, owned `NonNullObjectRef`.
+	/// Create a new, owned [`NonNullObjectRef`].
+	///
+	/// # Errors
+	/// Returns an error if the path is null.
+	/// Name is guaranteed to be non-null as `UniqueName` cannot be constructed from an empty string.
 	///
 	/// # Example
 	/// ```rust
@@ -78,11 +106,11 @@ impl<'o> NonNullObjectRef<'o> {
 	/// let name = UniqueName::from_static_str_unchecked(":1.23");
 	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
 	///
-	/// let object_ref = NonNullObjectRef::new_owned(name, path);
+	/// let object_ref = NonNullObjectRef::try_new_owned(name, path).unwrap();
 	/// # assert_eq!(object_ref.name_as_str(), ":1.23");
 	/// # assert_eq!(object_ref.path_as_str(), "/org/a11y/example/path/007");
 	/// ```
-	pub fn new_owned<N, P>(name: N, path: P) -> NonNullObjectRef<'static>
+	pub fn try_new_owned<N, P>(name: N, path: P) -> Result<NonNullObjectRef<'static>, AtspiError>
 	where
 		N: Into<UniqueName<'static>>,
 		P: Into<ObjectPath<'static>>,
@@ -90,7 +118,16 @@ impl<'o> NonNullObjectRef<'o> {
 		let name: UniqueName<'static> = name.into();
 		let path: ObjectPath<'static> = path.into();
 
-		NonNullObjectRef::Owned { name, path }
+		// Prevent propagating null objects.
+		// Empty strings are not valid `UniqueName` anyway so we only need
+		// to consider `ObjectPath`.
+		if &path == NULL_OBJECT_PATH {
+			return Err(AtspiError::NullRef(
+				"Cannot create NonNullObjectRef with null name or path",
+			));
+		}
+
+		Ok(NonNullObjectRef::Owned { name, path })
 	}
 
 	/// Returns the name of the object reference.
@@ -116,14 +153,15 @@ impl<'o> NonNullObjectRef<'o> {
 	/// Create a new `NonNullObjectRef`, from `BusName` and `ObjectPath`.
 	///
 	/// # Errors
-	/// Will fail if the `sender` is not a `UniqueName`.
+	/// If a null path is provided.
+	/// If the `sender` is not a `UniqueName`.
 	pub fn try_from_bus_name_and_path(
 		sender: BusName<'o>,
 		path: ObjectPath<'o>,
 	) -> Result<Self, AtspiError> {
 		// Check whether `BusName` matches `UniqueName`
 		if let BusName::Unique(name) = sender {
-			Ok(NonNullObjectRef::Borrowed { name, path })
+			Ok(NonNullObjectRef::try_new_borrowed(name, path)?)
 		} else {
 			Err(AtspiError::ParseError("Expected UniqueName"))
 		}
@@ -132,7 +170,11 @@ impl<'o> NonNullObjectRef<'o> {
 	/// Create a new `NonNullObjectRef`, unchecked.
 	///
 	/// # Safety
-	/// The caller must ensure that the strings are valid for `UniqueName` and `ObjectPath`.
+	/// The caller must ensure that the provided strings are valid for [`UniqueName`][un] and [`ObjectPath`][op] types\
+	/// and **neither** null path ("/org/a11y/atspi/null") nor null name ("") is provided.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zvariant::ObjectPath
 	#[must_use]
 	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
 		let name = UniqueName::from_static_str_unchecked(name);
@@ -161,7 +203,7 @@ impl<'o> NonNullObjectRef<'o> {
 	///
 	/// let name = UniqueName::from_static_str_unchecked(":1.23");
 	/// let path = ObjectPath::from_static_str_unchecked("/org/a11y/example/path/007");
-	/// let object_ref = NonNullObjectRef::new_borrowed(name, path);
+	/// let object_ref = NonNullObjectRef::try_new_borrowed(name, path).unwrap();
 	///
 	/// let object_ref = object_ref.into_owned();
 	/// assert!(matches!(object_ref, NonNullObjectRef::Owned { .. }));
@@ -217,14 +259,26 @@ pub enum ObjectRef<'o> {
 }
 
 impl<'o> ObjectRef<'o> {
-	/// Create a new `ObjectRef::Borrowed` from a `UniqueName` and `ObjectPath`.
-	#[must_use]
-	pub fn new(name: UniqueName<'o>, path: ObjectPath<'o>) -> Self {
-		let non_null = NonNullObjectRef::new_borrowed(name, path);
-		Self::NonNull(non_null)
+	/// Create a new `ObjectRef::Borrowed` from a [`UniqueName`][un] and [`ObjectPath`][op].
+	///
+	/// This method cannot be used to create a Null variant.
+	///
+	/// # Errors
+	/// Returns an error if the path is null.
+	/// Name is guaranteed to be non-null as `UniqueName` cannot be constructed from an empty string.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zvariant::ObjectPath
+	pub fn try_new<N, P>(name: N, path: P) -> Result<Self, AtspiError>
+	where
+		N: Into<UniqueName<'o>>,
+		P: Into<ObjectPath<'o>>,
+	{
+		let non_null = NonNullObjectRef::try_new_borrowed(name.into(), path.into())?;
+		Ok(Self::NonNull(non_null))
 	}
 
-	/// Create a new, owned `ObjectRef`.
+	/// Create a new, owned [`ObjectRef`].
 	///
 	/// # Example
 	/// ```rust
@@ -251,7 +305,7 @@ impl<'o> ObjectRef<'o> {
 		ObjectRef::NonNull(non_null)
 	}
 
-	/// Create a new, borrowed `ObjectRef`.
+	/// Create a new, borrowed [`ObjectRef`].
 	///
 	/// # Example
 	/// ```rust
@@ -278,10 +332,13 @@ impl<'o> ObjectRef<'o> {
 		Self::NonNull(non_null)
 	}
 
-	/// Create a new `ObjectRef`, from `BusName` and `ObjectPath`.
+	/// Create a new [`ObjectRef`], from [`BusName`][bn] and [`ObjectPath`][op].
 	///
 	/// # Errors
 	/// Will fail if the `sender` is not a `UniqueName`.
+	///
+	/// [bn]: zbus::names::BusName
+	/// [op]: zvariant::ObjectPath
 	pub fn try_from_bus_name_and_path(
 		sender: BusName<'o>,
 		path: ObjectPath<'o>,
@@ -295,10 +352,13 @@ impl<'o> ObjectRef<'o> {
 		}
 	}
 
-	/// Create a new `ObjectRef`, unchecked.
+	/// Create a new [`ObjectRef`], **unchecked**.
 	///
 	/// # Safety
-	/// The caller must ensure that the strings are valid.
+	/// The caller **must** ensure that the strings are valid representations for [`UniqueName`][un] and [`ObjectPath`][op] types.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zvariant::ObjectPath
 	#[must_use]
 	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
 		let non_null = NonNullObjectRef::from_static_str_unchecked(name, path);
@@ -481,7 +541,7 @@ impl ObjectRefOwned {
 		matches!(self.0, ObjectRef::Null)
 	}
 
-	/// Returns the inner `ObjectRef`, consuming `self`.
+	/// Returns the inner [`ObjectRef`], consuming `self`.
 	#[must_use]
 	pub fn into_inner(self) -> ObjectRef<'static> {
 		self.0
@@ -573,14 +633,20 @@ impl ObjectRefOwned {
 }
 
 impl<'o> From<NonNullObjectRef<'o>> for ObjectRef<'o> {
-	/// Convert a `NonNullObjectRef<'o>` into an `ObjectRef<'o>`.
+	/// Convert a [`NonNullObjectRef<'o>`][nnor] into an [`ObjectRef<'o>`][or].
+	///
+	/// [nnor]: NonNullObjectRef
+	/// [or]: ObjectRef
 	fn from(non_null: NonNullObjectRef<'o>) -> Self {
 		ObjectRef::NonNull(non_null)
 	}
 }
 
 impl From<NonNullObjectRef<'_>> for ObjectRefOwned {
-	/// Convert a `NonNullObjectRef<'_>` into an `ObjectRefOwned`.
+	/// Convert a [`NonNullObjectRef<'_>`][nnor] into an [`ObjectRefOwned`][or].
+	///
+	/// [nnor]: NonNullObjectRef
+	/// [or]: ObjectRefOwned
 	fn from(non_null: NonNullObjectRef<'_>) -> Self {
 		match non_null {
 			// Somehow the compiler does not see that if we match on Owned, non_null must be owned.
@@ -596,10 +662,13 @@ impl From<NonNullObjectRef<'_>> for ObjectRefOwned {
 impl<'o> TryFrom<ObjectRef<'o>> for NonNullObjectRef<'o> {
 	type Error = AtspiError;
 
-	/// Convert an `ObjectRef<'o>` into a `NonNullObjectRef<'o>`.
+	/// Convert an [`ObjectRef<'o>`][or] into a [`NonNullObjectRef<'o>`][nnor].
 	///
 	/// # Errors
 	/// Will return an `AtspiError::ParseError` if the `ObjectRef` is `Null`.
+	///
+	/// [nnor]: NonNullObjectRef
+	/// [or]: ObjectRef
 	fn try_from(object_ref: ObjectRef<'o>) -> Result<Self, Self::Error> {
 		match object_ref {
 			ObjectRef::NonNull(non_null) => Ok(non_null),
@@ -611,17 +680,20 @@ impl<'o> TryFrom<ObjectRef<'o>> for NonNullObjectRef<'o> {
 impl TryFrom<ObjectRefOwned> for NonNullObjectRef<'static> {
 	type Error = AtspiError;
 
-	/// Convert an `ObjectRefOwned` into a `NonNullObjectRef<'static>`.
+	/// Convert an [`ObjectRefOwned`][or] into a [`NonNullObjectRef<'static>`][nnor].
 	///
 	/// # Errors
 	/// Will return an `AtspiError::ParseError` if the inner `ObjectRef` is `Null`.
+	///
+	/// [nnor]: NonNullObjectRef
+	/// [or]: ObjectRefOwned
 	fn try_from(object_ref: ObjectRefOwned) -> Result<Self, Self::Error> {
 		NonNullObjectRef::try_from(object_ref.0)
 	}
 }
 
 impl Serialize for NonNullObjectRef<'_> {
-	/// `NonNullObjectRef`'s wire format is `(&str, ObjectPath)`.
+	/// `NonNullObjectRef`s wire format is `(&str, ObjectPath)`.
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -859,9 +931,9 @@ impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for ObjectRef<'o> {
 	///  Otherwise, (eg. P2P) this header field is controlled by the message sender,
 	///  unless there is out-of-band information that indicates otherwise.
 	/// ```
-	///
-	/// While unlikely, it is possible that `Sender` or `Path` are not set on the header.
-	/// This could happen if the server implementation does not set these fields for any reason.
+	/// In short, we depend on the `DBus` daemon implementation to set the sender.
+	/// In p2p-context we rely on the sender to set it, which may be less
+	/// reliable.
 	///
 	/// # Errors
 	/// Will return an `AtspiError::ParseError` if the header does not contain a valid path or sender.
@@ -869,6 +941,36 @@ impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for ObjectRef<'o> {
 		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
 		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
 		Ok(ObjectRef::new_borrowed(name, path))
+	}
+}
+#[cfg(feature = "zbus")]
+impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for NonNullObjectRef<'o> {
+	type Error = crate::AtspiError;
+
+	/// Construct an `NonNullObjectRef` from a `zbus::message::Header`.
+	///
+	/// # Header fields
+	///
+	/// `Path` is a mandatory field on method calls and signals,
+	/// `Sender` is an optional field, see:
+	/// [DBus specification - header fields](<https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-header-fields>)).,
+	///
+	/// ```quote
+	///  On a message bus, this header field is controlled by the message bus,
+	///  so it is as reliable and trustworthy as the message bus itself.
+	///  Otherwise, (eg. P2P) this header field is controlled by the message sender,
+	///  unless there is out-of-band information that indicates otherwise.
+	/// ```
+	/// In short, we depend on the DBus-daemon implementation to set the sender.
+	/// In p2p-context we rely on the sender to set it, which may be less
+	/// reliable.
+	///
+	/// # Errors
+	/// Will return an `AtspiError::ParseError` if the header does not contain a valid path or sender.
+	fn try_from(header: &'m zbus::message::Header) -> Result<Self, Self::Error> {
+		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
+		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
+		NonNullObjectRef::try_new_borrowed(name, path)
 	}
 }
 
@@ -900,22 +1002,22 @@ impl TryFrom<&zbus::message::Header<'_>> for ObjectRefOwned {
 // The derive macros `Value` and `OwnedValue` do not support struct-like variants.
 
 impl<'v> TryFrom<Value<'v>> for NonNullObjectRef<'v> {
-	type Error = zvariant::Error;
+	type Error = AtspiError;
 
 	fn try_from(value: Value<'v>) -> Result<Self, Self::Error> {
 		// Relies on the generic `Value` to tuple conversion `(UniqueName, ObjectPath)`.
 		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
-		Ok(NonNullObjectRef::new_borrowed(name, path))
+		NonNullObjectRef::try_new_borrowed(name, path)
 	}
 }
 
 impl TryFrom<OwnedValue> for NonNullObjectRef<'static> {
-	type Error = zvariant::Error;
+	type Error = AtspiError;
 
 	fn try_from(value: OwnedValue) -> Result<Self, Self::Error> {
 		// Relies on the generic `Value` to tuple conversion `(UniqueName, ObjectPath)`.
 		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
-		Ok(NonNullObjectRef::new_owned(name, path))
+		NonNullObjectRef::try_new_owned(name, path)
 	}
 }
 
@@ -1021,7 +1123,7 @@ mod tests {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
 
-		let non_null = super::NonNullObjectRef::new_owned(name, path);
+		let non_null = super::NonNullObjectRef::try_new_owned(name, path).unwrap();
 
 		assert_eq!(non_null.name_as_str(), ":1.23");
 		assert_eq!(non_null.path_as_str(), TEST_OBJECT_PATH);
@@ -1043,7 +1145,7 @@ mod tests {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
 
-		let non_null = super::NonNullObjectRef::new_borrowed(name, path);
+		let non_null = super::NonNullObjectRef::try_new_borrowed(name, path).unwrap();
 
 		assert_eq!(non_null.name_as_str(), ":1.23");
 		assert_eq!(non_null.path_as_str(), TEST_OBJECT_PATH);
@@ -1072,7 +1174,7 @@ mod tests {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
 
-		let non_null = super::NonNullObjectRef::new_borrowed(name, path);
+		let non_null = super::NonNullObjectRef::try_new_borrowed(name, path).unwrap();
 		let owned_non_null = non_null.into_owned();
 
 		assert_eq!(owned_non_null.name_as_str(), ":1.23");
@@ -1123,7 +1225,7 @@ mod tests {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
 
-		let non_null = super::NonNullObjectRef::new_borrowed(name, path);
+		let non_null = super::NonNullObjectRef::try_new_borrowed(name, path).unwrap();
 
 		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &non_null).unwrap();
@@ -1159,7 +1261,7 @@ mod tests {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
 
-		let non_null = super::NonNullObjectRef::new_owned(name, path);
+		let non_null = super::NonNullObjectRef::try_new_owned(name, path).unwrap();
 
 		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &non_null).unwrap();
@@ -1193,16 +1295,16 @@ mod tests {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
 
-		let object_ref1 = NonNullObjectRef::new_borrowed(&name, &path);
-		let object_ref2 = NonNullObjectRef::new_borrowed(&name, &path);
+		let object_ref1 = NonNullObjectRef::try_new_borrowed(&name, &path).unwrap();
+		let object_ref2 = NonNullObjectRef::try_new_borrowed(&name, &path).unwrap();
 
 		assert_eq!(object_ref1, object_ref2);
 
 		let name2 = UniqueName::from_static_str_unchecked(":1.24");
-		let object_ref3 = NonNullObjectRef::new_borrowed(name2, &path);
+		let object_ref3 = NonNullObjectRef::try_new_borrowed(name2, &path).unwrap();
 		assert_ne!(object_ref1, object_ref3);
 
-		let object_ref4 = NonNullObjectRef::new_owned(name, &path);
+		let object_ref4 = NonNullObjectRef::try_new_owned(name, &path).unwrap();
 		assert_eq!(object_ref1, object_ref4);
 	}
 
@@ -1280,8 +1382,8 @@ mod tests {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
 
-		let object_ref1 = super::NonNullObjectRef::new_borrowed(&name, &path);
-		let object_ref2 = super::NonNullObjectRef::new_borrowed(name, path);
+		let object_ref1 = super::NonNullObjectRef::try_new_borrowed(&name, &path).unwrap();
+		let object_ref2 = super::NonNullObjectRef::try_new_borrowed(name, path).unwrap();
 
 		// If a == b then a.hash() == b.hash()
 

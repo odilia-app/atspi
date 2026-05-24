@@ -10,11 +10,11 @@ smol_macros::main! {
 		let mut events = atspi.event_stream();
 		pin!(&mut events);
 
-		while let Some(Ok(ev)) = events.next().await {
-			let Ok(change) = <StateChangedEvent>::try_from(ev) else { continue };
+		while let Some(Ok(ref message)) = events.next().await {
+			let Ok(change) = <StateChangedEvent>::try_from(message) else { continue };
 
 			if change.state == "focused".into() && change.enabled {
-				let bus_name = change.item.name_as_str().unwrap_or("unknown");
+				let bus_name = change.item.name_as_str();
 				println!("Accessible belonging to {bus_name}  focused!");
 			}
 		}

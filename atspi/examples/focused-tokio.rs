@@ -11,11 +11,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let events = atspi.event_stream();
 	tokio::pin!(events);
 
-	while let Some(Ok(ev)) = events.next().await {
-		let Ok(change) = <StateChangedEvent>::try_from(ev) else { continue };
+	while let Some(Ok(ref message)) = events.next().await {
+		let Ok(change) = <StateChangedEvent>::try_from(message) else { continue };
 
 		if change.state == "focused".into() && change.enabled {
-			let bus_name = change.item.name().expect("signal items have a bus name");
+			let bus_name = change.item.name();
 			println!("Accessible belonging to {bus_name}  focused!");
 		}
 	}

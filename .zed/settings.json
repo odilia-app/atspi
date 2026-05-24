@@ -1,0 +1,7 @@
+{
+  "languages": {
+    "TOML": {
+      "format_on_save": "off"
+    }
+  }
+}

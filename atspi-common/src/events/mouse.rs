@@ -1,49 +1,68 @@
 #[cfg(feature = "zbus")]
+use crate::error::AtspiError;
+#[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
 use crate::events::{
 	DBusInterface, DBusMatchRule, DBusMember, EventBody, EventBodyOwned, RegistryEventString,
 };
-use crate::object_ref::ObjectRefOwned;
+use crate::object_ref::NonNullObjectRef;
 #[cfg(feature = "zbus")]
 use crate::EventProperties;
 #[cfg(feature = "zbus")]
-use crate::{error::AtspiError, ObjectRef};
-#[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct AbsEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct AbsEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
+
+	/// x-axis coordinate as a distance from the root of the screen.\
+	/// Usually root is the top-left of the screen.
 	pub x: i32,
+	/// y-axis coordinate as a distance from the root of the screen.\
+	/// Usually root is the top-left of the screen.
 	pub y: i32,
 }
 
-impl_event_type_properties_for_event!(AbsEvent);
+impl_event_type_properties_for_event!(AbsEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct RelEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct RelEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
+
+	/// x-axis coordinate as a distance from the window origin.\
 	pub x: i32,
+	/// y-axis coordinate as a distance from the root of the screen.\
 	pub y: i32,
 }
 
-impl_event_type_properties_for_event!(RelEvent);
+impl_event_type_properties_for_event!(RelEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ButtonEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ButtonEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
+
+	/// Describes the button involved in the event.
+	/// # Examples
+	/// "p1": Button 1 pressed\
+	/// "r1": Button 1 released
 	pub detail: String,
+
+	/// The absolute x-coordinate of the mouse pointer.
 	pub mouse_x: i32,
+	/// The absolute y-coordinate of the mouse pointer.
 	pub mouse_y: i32,
 }
 
-impl_event_type_properties_for_event!(ButtonEvent);
+impl_event_type_properties_for_event!(ButtonEvent<'_>);
 
 impl_member_interface_registry_string_and_match_rule_for_event! {
-	AbsEvent,
+	AbsEvent<'_>,
 	"Abs",
 	"org.a11y.atspi.Event.Mouse",
 	"mouse:abs",
@@ -51,7 +70,7 @@ impl_member_interface_registry_string_and_match_rule_for_event! {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event! {
-	RelEvent,
+	RelEvent<'_>,
 	"Rel",
 	"org.a11y.atspi.Event.Mouse",
 	"mouse:rel",
@@ -59,7 +78,7 @@ impl_member_interface_registry_string_and_match_rule_for_event! {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event! {
-	ButtonEvent,
+	ButtonEvent<'_>,
 	"Button",
 	"org.a11y.atspi.Event.Mouse",
 	"mouse:button",
@@ -67,36 +86,26 @@ impl_member_interface_registry_string_and_match_rule_for_event! {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for AbsEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for AbsEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'a>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		// A short-lived amonymous borrow on `Body` is just fine as 'detail1' and 'detail2' are `Copy` types.
+		// Meaning `Self` is not borrowing from `Body`.
 		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item: item.into(), x: body.detail1(), y: body.detail2() })
-	}
-	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
-		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
-	}
-	fn body(&self) -> Self::Body<'_> {
-		EventBodyOwned { detail1: self.x, detail2: self.y, ..Default::default() }.into()
-	}
-}
-
-#[cfg(feature = "zbus")]
-impl MessageConversion<'_> for RelEvent {
-	type Body<'a> = EventBody<'a>;
-
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
-		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item: item.into(), x: body.detail1(), y: body.detail2() })
+		Ok(Self { item, x: body.detail1(), y: body.detail2() })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -105,13 +114,48 @@ impl MessageConversion<'_> for RelEvent {
 }
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for ButtonEvent {
-	type Body<'a> = EventBody<'a>;
+impl MessageConversion<'_> for RelEvent<'_> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'_>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		// A short-lived amonymous borrow on `Body` is just fine as 'detail1' and 'detail2' are `Copy` types.
+		// Meaning `Self` is not borrowing from `Body`.
+		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		Ok(Self { item: item.into_owned(), x: body.detail1(), y: body.detail2() })
+	}
+
+	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item = header.try_into()?;
+		let body = msg.body();
+		Self::from_message_unchecked_parts(item, body)
+	}
+
+	fn body(&self) -> Self::Body<'_> {
+		EventBodyOwned { detail1: self.x, detail2: self.y, ..Default::default() }.into()
+	}
+}
+
+#[cfg(feature = "zbus")]
+impl<'a> MessageConversion<'a> for ButtonEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
+
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'a>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		// In this case however we need to take ownership of 'kind'.
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item: item.into(),
+			item,
 			detail: body.take_kind(),
 			mouse_x: body.detail1(),
 			mouse_y: body.detail2(),
@@ -119,9 +163,9 @@ impl MessageConversion<'_> for ButtonEvent {
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -129,58 +173,59 @@ impl MessageConversion<'_> for ButtonEvent {
 	}
 }
 
-event_test_cases!(AbsEvent);
-impl_to_dbus_message!(AbsEvent);
-impl_from_dbus_message!(AbsEvent);
-impl_event_properties!(AbsEvent);
+event_test_cases!(AbsEvent, [x, y], Auto);
 
-impl From<AbsEvent> for EventBodyOwned {
+impl_to_dbus_message!(AbsEvent<'_>);
+impl_from_dbus_message!(AbsEvent<'_>);
+impl_event_properties!(AbsEvent<'_>);
+
+impl From<AbsEvent<'_>> for EventBodyOwned {
 	fn from(event: AbsEvent) -> Self {
 		EventBodyOwned { detail1: event.x, detail2: event.y, ..Default::default() }
 	}
 }
 
-impl From<&AbsEvent> for EventBodyOwned {
+impl From<&AbsEvent<'_>> for EventBodyOwned {
 	fn from(event: &AbsEvent) -> Self {
 		EventBodyOwned { detail1: event.x, detail2: event.y, ..Default::default() }
 	}
 }
 
-impl From<AbsEvent> for EventBody<'_> {
+impl From<AbsEvent<'_>> for EventBody<'_> {
 	fn from(event: AbsEvent) -> Self {
 		EventBodyOwned::from(event).into()
 	}
 }
 
-event_test_cases!(RelEvent);
-impl_to_dbus_message!(RelEvent);
-impl_from_dbus_message!(RelEvent);
-impl_event_properties!(RelEvent);
+event_test_cases!(RelEvent, [x, y], Auto);
+impl_to_dbus_message!(RelEvent<'_>);
+impl_from_dbus_message!(RelEvent<'_>);
+impl_event_properties!(RelEvent<'_>);
 
-impl From<RelEvent> for EventBodyOwned {
+impl From<RelEvent<'_>> for EventBodyOwned {
 	fn from(event: RelEvent) -> Self {
 		EventBodyOwned { detail1: event.x, detail2: event.y, ..Default::default() }
 	}
 }
 
-impl From<&RelEvent> for EventBodyOwned {
+impl From<&RelEvent<'_>> for EventBodyOwned {
 	fn from(event: &RelEvent) -> Self {
 		EventBodyOwned { detail1: event.x, detail2: event.y, ..Default::default() }
 	}
 }
 
-impl From<RelEvent> for EventBody<'_> {
+impl From<RelEvent<'_>> for EventBody<'_> {
 	fn from(event: RelEvent) -> Self {
 		EventBodyOwned::from(event).into()
 	}
 }
 
-event_test_cases!(ButtonEvent);
-impl_to_dbus_message!(ButtonEvent);
-impl_from_dbus_message!(ButtonEvent);
+event_test_cases!(ButtonEvent, [detail, mouse_x, mouse_y], Auto);
+impl_to_dbus_message!(ButtonEvent<'_>);
+impl_from_dbus_message!(ButtonEvent<'_>);
 
-impl_event_properties!(ButtonEvent);
-impl From<ButtonEvent> for EventBodyOwned {
+impl_event_properties!(ButtonEvent<'_>);
+impl From<ButtonEvent<'_>> for EventBodyOwned {
 	fn from(event: ButtonEvent) -> Self {
 		EventBodyOwned {
 			kind: event.detail,
@@ -191,13 +236,13 @@ impl From<ButtonEvent> for EventBodyOwned {
 	}
 }
 
-impl From<ButtonEvent> for EventBody<'_> {
+impl From<ButtonEvent<'_>> for EventBody<'_> {
 	fn from(event: ButtonEvent) -> Self {
 		EventBodyOwned::from(event).into()
 	}
 }
 
-impl From<&ButtonEvent> for EventBodyOwned {
+impl From<&ButtonEvent<'_>> for EventBodyOwned {
 	fn from(event: &ButtonEvent) -> Self {
 		EventBodyOwned {
 			kind: event.detail.clone(),
@@ -208,6 +253,10 @@ impl From<&ButtonEvent> for EventBodyOwned {
 	}
 }
 
-impl_msg_conversion_ext_for_target_type!(AbsEvent);
-impl_msg_conversion_ext_for_target_type!(RelEvent);
-impl_msg_conversion_ext_for_target_type!(ButtonEvent);
+impl_msg_conversion_ext_for_target_type!(AbsEvent<'_>, RelEvent<'_>, ButtonEvent<'_>);
+
+impl_test_event!(
+	AbsEvent<'_> {x, y},
+	RelEvent<'_> {x, y},
+	ButtonEvent<'_> {detail, mouse_x, mouse_y}
+);

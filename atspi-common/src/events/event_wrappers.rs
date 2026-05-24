@@ -51,48 +51,49 @@ use zvariant::ObjectPath;
 use zvariant::Type;
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	EventListenerRegisteredEvent,
-	EventListenerEvents,
+	EventListenerRegisteredEvent<'_>,
+	EventListenerEvents<'_>,
 	EventListenerEvents::Registered
 );
 
-impl_from_user_facing_type_for_event_enum!(EventListenerRegisteredEvent, Event::Listener);
+impl_from_user_facing_type_for_event_enum!(EventListenerRegisteredEvent<'_>, Event::Listener);
 
 impl_try_from_event_for_user_facing_type!(
-	EventListenerRegisteredEvent,
+	EventListenerRegisteredEvent<'_>,
 	EventListenerEvents::Registered,
 	Event::Listener
 );
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	EventListenerDeregisteredEvent,
-	EventListenerEvents,
+	EventListenerDeregisteredEvent<'_>,
+	EventListenerEvents<'_>,
 	EventListenerEvents::Deregistered
 );
 
-impl_from_user_facing_type_for_event_enum!(EventListenerDeregisteredEvent, Event::Listener);
+impl_from_user_facing_type_for_event_enum!(EventListenerDeregisteredEvent<'_>, Event::Listener);
 impl_try_from_event_for_user_facing_type!(
-	EventListenerDeregisteredEvent,
+	EventListenerDeregisteredEvent<'_>,
 	EventListenerEvents::Deregistered,
 	Event::Listener
 );
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum KeyboardEvents {
+pub enum KeyboardEvents<'a> {
 	/// See: [`ModifiersEvent`].
-	Modifiers(ModifiersEvent),
+	#[serde(borrow)]
+	Modifiers(ModifiersEvent<'a>),
 }
 
-impl_tryfrommessage_for_event_wrapper!(KeyboardEvents);
-impl_try_from_event_for_interface_enum!(KeyboardEvents, Event::Keyboard);
+impl_tryfrommessage_for_event_wrapper!(KeyboardEvents<'_>);
+impl_try_from_event_for_interface_enum!(KeyboardEvents<'_>, Event::Keyboard);
 impl_from_interface_event_enum_for_event!(KeyboardEvents, Event::Keyboard);
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	ModifiersEvent,
-	KeyboardEvents,
+	ModifiersEvent<'_>,
+	KeyboardEvents<'_>,
 	KeyboardEvents::Modifiers
 );
-impl EventTypeProperties for KeyboardEvents {
+impl EventTypeProperties for KeyboardEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Modifiers(inner) => inner.member(),
@@ -115,7 +116,7 @@ impl EventTypeProperties for KeyboardEvents {
 	}
 }
 
-impl EventProperties for KeyboardEvents {
+impl EventProperties for KeyboardEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Modifiers(inner) => inner.path(),
@@ -130,57 +131,60 @@ impl EventProperties for KeyboardEvents {
 
 event_wrapper_test_cases!(KeyboardEvents, ModifiersEvent);
 
-impl DBusMatchRule for KeyboardEvents {
+impl DBusMatchRule for KeyboardEvents<'_> {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Keyboard'";
 }
 
-impl DBusInterface for KeyboardEvents {
+impl DBusInterface for KeyboardEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Keyboard";
 }
 
-impl RegistryEventString for KeyboardEvents {
+impl RegistryEventString for KeyboardEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "keyboard:";
 }
 
-impl_from_user_facing_type_for_event_enum!(ModifiersEvent, Event::Keyboard);
+impl_from_user_facing_type_for_event_enum!(ModifiersEvent<'_>, Event::Keyboard);
 
 impl_try_from_event_for_user_facing_type!(
-	ModifiersEvent,
+	ModifiersEvent<'_>,
 	KeyboardEvents::Modifiers,
 	Event::Keyboard
 );
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum MouseEvents {
+pub enum MouseEvents<'a> {
 	/// See: [`AbsEvent`].
-	Abs(AbsEvent),
+	#[serde(borrow)]
+	Abs(AbsEvent<'a>),
 
 	/// See: [`RelEvent`].
-	Rel(RelEvent),
+	#[serde(borrow)]
+	Rel(RelEvent<'a>),
 
 	/// See: [`ButtonEvent`].
-	Button(ButtonEvent),
+	#[serde(borrow)]
+	Button(ButtonEvent<'a>),
 }
 
-impl DBusMatchRule for MouseEvents {
+impl DBusMatchRule for MouseEvents<'_> {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Mouse'";
 }
 
-impl DBusInterface for MouseEvents {
+impl DBusInterface for MouseEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Mouse";
 }
 
-impl RegistryEventString for MouseEvents {
+impl RegistryEventString for MouseEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "mouse:";
 }
 
-impl_tryfrommessage_for_event_wrapper!(MouseEvents);
+impl_tryfrommessage_for_event_wrapper!(MouseEvents<'_>);
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for KeyboardEvents {
+impl<'a> EventWrapperMessageConversion<'a> for KeyboardEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr
@@ -195,7 +199,7 @@ impl EventWrapperMessageConversion for KeyboardEvents {
 	}
 }
 
-impl EventProperties for MouseEvents {
+impl EventProperties for MouseEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Abs(inner) => inner.path(),
@@ -212,7 +216,7 @@ impl EventProperties for MouseEvents {
 	}
 }
 
-impl EventTypeProperties for MouseEvents {
+impl EventTypeProperties for MouseEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Abs(inner) => inner.member(),
@@ -244,22 +248,26 @@ impl EventTypeProperties for MouseEvents {
 }
 
 event_wrapper_test_cases!(MouseEvents, AbsEvent);
-impl_try_from_event_for_interface_enum!(MouseEvents, Event::Mouse);
-impl_from_interface_event_enum_for_event!(MouseEvents, Event::Mouse);
+impl_try_from_event_for_interface_enum!(MouseEvents<'_>, Event::Mouse);
+impl_from_interface_event_enum_for_event!(MouseEvents<'_>, Event::Mouse);
 
-impl_from_user_facing_event_for_interface_event_enum!(RelEvent, MouseEvents, MouseEvents::Rel);
-impl_try_from_event_for_user_facing_type!(RelEvent, MouseEvents::Rel, Event::Mouse);
 impl_from_user_facing_event_for_interface_event_enum!(
-	ButtonEvent,
-	MouseEvents,
+	RelEvent<'_>,
+	MouseEvents<'_>,
+	MouseEvents::Rel
+);
+impl_try_from_event_for_user_facing_type!(RelEvent<'_>, MouseEvents::Rel, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ButtonEvent<'_>,
+	MouseEvents<'_>,
 	MouseEvents::Button
 );
-impl_try_from_event_for_user_facing_type!(ButtonEvent, MouseEvents::Button, Event::Mouse);
+impl_try_from_event_for_user_facing_type!(ButtonEvent<'_>, MouseEvents::Button, Event::Mouse);
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for MouseEvents {
+impl<'a> EventWrapperMessageConversion<'a> for MouseEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
@@ -278,64 +286,110 @@ impl EventWrapperMessageConversion for MouseEvents {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(ButtonEvent, Event::Mouse);
-impl_from_user_facing_type_for_event_enum!(RelEvent, Event::Mouse);
-impl_from_user_facing_type_for_event_enum!(AbsEvent, Event::Mouse);
+impl_from_user_facing_type_for_event_enum!(ButtonEvent<'_>, Event::Mouse);
+impl_from_user_facing_type_for_event_enum!(RelEvent<'_>, Event::Mouse);
+impl_from_user_facing_type_for_event_enum!(AbsEvent<'_>, Event::Mouse);
 
-impl_from_user_facing_event_for_interface_event_enum!(AbsEvent, MouseEvents, MouseEvents::Abs);
-impl_try_from_event_for_user_facing_type!(AbsEvent, MouseEvents::Abs, Event::Mouse);
+impl_from_user_facing_event_for_interface_event_enum!(
+	AbsEvent<'_>,
+	MouseEvents<'_>,
+	MouseEvents::Abs
+);
+impl_try_from_event_for_user_facing_type!(AbsEvent<'_>, MouseEvents::Abs, Event::Mouse);
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum ObjectEvents {
+pub enum ObjectEvents<'a> {
 	/// See: [`ObjectPropertyChangeEvent`].
-	PropertyChange(ObjectPropertyChangeEvent),
+	#[serde(borrow)]
+	PropertyChange(ObjectPropertyChangeEvent<'a>),
+
 	/// See: [`BoundsChangedEvent`].
-	BoundsChanged(BoundsChangedEvent),
+	#[serde(borrow)]
+	BoundsChanged(BoundsChangedEvent<'a>),
+
 	/// See: [`LinkSelectedEvent`].
-	LinkSelected(LinkSelectedEvent),
+	#[serde(borrow)]
+	LinkSelected(LinkSelectedEvent<'a>),
+
 	/// See: [`StateChangedEvent`].
-	StateChanged(StateChangedEvent),
+	#[serde(borrow)]
+	StateChanged(StateChangedEvent<'a>),
+
 	/// See: [`ChildrenChangedEvent`].
-	ChildrenChanged(ChildrenChangedEvent),
+	#[serde(borrow)]
+	ChildrenChanged(ChildrenChangedEvent<'a>),
+
 	/// See: [`VisibleDataChangedEvent`].
-	VisibleDataChanged(VisibleDataChangedEvent),
+	#[serde(borrow)]
+	VisibleDataChanged(VisibleDataChangedEvent<'a>),
+
 	/// See: [`SelectionChangedEvent`].
-	SelectionChanged(SelectionChangedEvent),
+	#[serde(borrow)]
+	SelectionChanged(SelectionChangedEvent<'a>),
+
 	/// See: [`ModelChangedEvent`].
-	ModelChanged(ModelChangedEvent),
+	#[serde(borrow)]
+	ModelChanged(ModelChangedEvent<'a>),
+
 	/// See: [`ActiveDescendantChangedEvent`].
-	ActiveDescendantChanged(ActiveDescendantChangedEvent),
+	#[serde(borrow)]
+	ActiveDescendantChanged(ActiveDescendantChangedEvent<'a>),
+
 	/// See: [`AnnouncementEvent`].
-	Announcement(AnnouncementEvent),
+	#[serde(borrow)]
+	Announcement(AnnouncementEvent<'a>),
+
 	/// See: [`ObjectAttributesChangedEvent`].
-	AttributesChanged(ObjectAttributesChangedEvent),
+	#[serde(borrow)]
+	AttributesChanged(ObjectAttributesChangedEvent<'a>),
+
 	/// See: [`RowInsertedEvent`].
-	RowInserted(RowInsertedEvent),
+	#[serde(borrow)]
+	RowInserted(RowInsertedEvent<'a>),
 	/// See: [`RowReorderedEvent`].
-	RowReordered(RowReorderedEvent),
+	#[serde(borrow)]
+	RowReordered(RowReorderedEvent<'a>),
+
 	/// See: [`RowDeletedEvent`].
-	RowDeleted(RowDeletedEvent),
+	#[serde(borrow)]
+	RowDeleted(RowDeletedEvent<'a>),
+
 	/// See: [`ColumnInsertedEvent`].
-	ColumnInserted(ColumnInsertedEvent),
+	#[serde(borrow)]
+	ColumnInserted(ColumnInsertedEvent<'a>),
+
 	/// See: [`ColumnReorderedEvent`].
-	ColumnReordered(ColumnReorderedEvent),
+	#[serde(borrow)]
+	ColumnReordered(ColumnReorderedEvent<'a>),
+
 	/// See: [`ColumnDeletedEvent`].
-	ColumnDeleted(ColumnDeletedEvent),
+	#[serde(borrow)]
+	ColumnDeleted(ColumnDeletedEvent<'a>),
+
 	/// See: [`TextBoundsChangedEvent`].
-	TextBoundsChanged(TextBoundsChangedEvent),
+	#[serde(borrow)]
+	TextBoundsChanged(TextBoundsChangedEvent<'a>),
+
 	/// See: [`TextSelectionChangedEvent`].
-	TextSelectionChanged(TextSelectionChangedEvent),
+	#[serde(borrow)]
+	TextSelectionChanged(TextSelectionChangedEvent<'a>),
+
 	/// See: [`TextChangedEvent`].
-	TextChanged(TextChangedEvent),
+	#[serde(borrow)]
+	TextChanged(TextChangedEvent<'a>),
+
 	/// See: [`TextAttributesChangedEvent`].
-	TextAttributesChanged(TextAttributesChangedEvent),
+	#[serde(borrow)]
+	TextAttributesChanged(TextAttributesChangedEvent<'a>),
+
 	/// See: [`TextCaretMovedEvent`].
-	TextCaretMoved(TextCaretMovedEvent),
+	#[serde(borrow)]
+	TextCaretMoved(TextCaretMovedEvent<'a>),
 }
 
-impl_tryfrommessage_for_event_wrapper!(ObjectEvents);
+impl_tryfrommessage_for_event_wrapper!(ObjectEvents<'_>);
 
-impl EventTypeProperties for ObjectEvents {
+impl EventTypeProperties for ObjectEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::PropertyChange(inner) => inner.member(),
@@ -442,7 +496,7 @@ impl EventTypeProperties for ObjectEvents {
 	}
 }
 
-impl EventProperties for ObjectEvents {
+impl EventProperties for ObjectEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::PropertyChange(inner) => inner.path(),
@@ -497,54 +551,65 @@ impl EventProperties for ObjectEvents {
 	}
 }
 
-impl_try_from_event_for_interface_enum!(ObjectEvents, Event::Object);
+impl_try_from_event_for_interface_enum!(ObjectEvents<'_>, Event::Object);
 impl_from_interface_event_enum_for_event!(ObjectEvents, Event::Object);
 
 event_wrapper_test_cases!(ObjectEvents, ObjectPropertyChangeEvent);
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	TextChangedEvent,
-	ObjectEvents,
+	TextChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::TextChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	TextChangedEvent,
+	TextChangedEvent<'_>,
 	ObjectEvents::TextChanged,
 	Event::Object
 );
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum DocumentEvents {
+pub enum DocumentEvents<'a> {
 	/// See: [`LoadCompleteEvent`].
-	LoadComplete(LoadCompleteEvent),
+	#[serde(borrow)]
+	LoadComplete(LoadCompleteEvent<'a>),
+
 	/// See: [`ReloadEvent`].
-	Reload(ReloadEvent),
+	#[serde(borrow)]
+	Reload(ReloadEvent<'a>),
+
 	/// See: [`LoadStoppedEvent`].
-	LoadStopped(LoadStoppedEvent),
+	#[serde(borrow)]
+	LoadStopped(LoadStoppedEvent<'a>),
+
 	/// See: [`ContentChangedEvent`].
-	ContentChanged(ContentChangedEvent),
+	#[serde(borrow)]
+	ContentChanged(ContentChangedEvent<'a>),
+
 	/// See: [`DocumentAttributesChangedEvent`].
-	AttributesChanged(DocumentAttributesChangedEvent),
+	#[serde(borrow)]
+	AttributesChanged(DocumentAttributesChangedEvent<'a>),
+
 	/// See: [`PageChangedEvent`].
-	PageChanged(PageChangedEvent),
+	#[serde(borrow)]
+	PageChanged(PageChangedEvent<'a>),
 }
 
-impl_tryfrommessage_for_event_wrapper!(DocumentEvents);
+impl_tryfrommessage_for_event_wrapper!(DocumentEvents<'_>);
 
-impl DBusInterface for DocumentEvents {
+impl DBusInterface for DocumentEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Document";
 }
 
-impl DBusMatchRule for DocumentEvents {
+impl DBusMatchRule for DocumentEvents<'_> {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Document'";
 }
 
-impl RegistryEventString for DocumentEvents {
+impl RegistryEventString for DocumentEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "Document:";
 }
 
-impl EventTypeProperties for DocumentEvents {
+impl EventTypeProperties for DocumentEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::LoadComplete(inner) => inner.member(),
@@ -587,7 +652,7 @@ impl EventTypeProperties for DocumentEvents {
 	}
 }
 
-impl EventProperties for DocumentEvents {
+impl EventProperties for DocumentEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::LoadComplete(inner) => inner.path(),
@@ -610,22 +675,22 @@ impl EventProperties for DocumentEvents {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(PageChangedEvent, Event::Document);
-impl_from_user_facing_type_for_event_enum!(DocumentAttributesChangedEvent, Event::Document);
-impl_from_user_facing_type_for_event_enum!(ContentChangedEvent, Event::Document);
-impl_from_user_facing_type_for_event_enum!(LoadStoppedEvent, Event::Document);
-impl_from_user_facing_type_for_event_enum!(ReloadEvent, Event::Document);
-impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent, Event::Document);
+impl_from_user_facing_type_for_event_enum!(PageChangedEvent<'_>, Event::Document);
+impl_from_user_facing_type_for_event_enum!(DocumentAttributesChangedEvent<'_>, Event::Document);
+impl_from_user_facing_type_for_event_enum!(ContentChangedEvent<'_>, Event::Document);
+impl_from_user_facing_type_for_event_enum!(LoadStoppedEvent<'_>, Event::Document);
+impl_from_user_facing_type_for_event_enum!(ReloadEvent<'_>, Event::Document);
+impl_from_user_facing_type_for_event_enum!(LoadCompleteEvent<'_>, Event::Document);
 
-impl_try_from_event_for_interface_enum!(DocumentEvents, Event::Document);
-impl_from_interface_event_enum_for_event!(DocumentEvents, Event::Document);
+impl_try_from_event_for_interface_enum!(DocumentEvents<'_>, Event::Document);
+impl_from_interface_event_enum_for_event!(DocumentEvents<'_>, Event::Document);
 
 event_wrapper_test_cases!(DocumentEvents, LoadCompleteEvent);
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for DocumentEvents {
+impl<'a> EventWrapperMessageConversion<'a> for DocumentEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
@@ -654,63 +719,63 @@ impl EventWrapperMessageConversion for DocumentEvents {
 }
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	LoadCompleteEvent,
-	DocumentEvents,
+	LoadCompleteEvent<'_>,
+	DocumentEvents<'_>,
 	DocumentEvents::LoadComplete
 );
 impl_try_from_event_for_user_facing_type!(
-	LoadCompleteEvent,
+	LoadCompleteEvent<'_>,
 	DocumentEvents::LoadComplete,
 	Event::Document
 );
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	ReloadEvent,
-	DocumentEvents,
+	ReloadEvent<'_>,
+	DocumentEvents<'_>,
 	DocumentEvents::Reload
 );
-impl_try_from_event_for_user_facing_type!(ReloadEvent, DocumentEvents::Reload, Event::Document);
+impl_try_from_event_for_user_facing_type!(ReloadEvent<'_>, DocumentEvents::Reload, Event::Document);
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	LoadStoppedEvent,
-	DocumentEvents,
+	LoadStoppedEvent<'_>,
+	DocumentEvents<'_>,
 	DocumentEvents::LoadStopped
 );
 impl_try_from_event_for_user_facing_type!(
-	LoadStoppedEvent,
+	LoadStoppedEvent<'_>,
 	DocumentEvents::LoadStopped,
 	Event::Document
 );
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	ContentChangedEvent,
-	DocumentEvents,
+	ContentChangedEvent<'_>,
+	DocumentEvents<'_>,
 	DocumentEvents::ContentChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	ContentChangedEvent,
+	ContentChangedEvent<'_>,
 	DocumentEvents::ContentChanged,
 	Event::Document
 );
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	DocumentAttributesChangedEvent,
-	DocumentEvents,
+	DocumentAttributesChangedEvent<'_>,
+	DocumentEvents<'_>,
 	DocumentEvents::AttributesChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	DocumentAttributesChangedEvent,
+	DocumentAttributesChangedEvent<'_>,
 	DocumentEvents::AttributesChanged,
 	Event::Document
 );
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	PageChangedEvent,
-	DocumentEvents,
+	PageChangedEvent<'_>,
+	DocumentEvents<'_>,
 	DocumentEvents::PageChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	PageChangedEvent,
+	PageChangedEvent<'_>,
 	DocumentEvents::PageChanged,
 	Event::Document
 );
@@ -720,30 +785,49 @@ impl_try_from_event_for_user_facing_type!(
 /// Assumes being non exhaustive to allow for future- or custom signals.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[non_exhaustive]
-pub enum Event {
+pub enum Event<'a> {
 	/// See: [`DocumentEvents`].
-	Document(DocumentEvents),
+	#[serde(borrow)]
+	Document(DocumentEvents<'a>),
+
 	/// See: [`FocusEvents`].
-	Focus(FocusEvents),
+	#[serde(borrow)]
+	Focus(FocusEvents<'a>),
+
 	/// See: [`KeyboardEvents`].
-	Keyboard(KeyboardEvents),
+	#[serde(borrow)]
+	Keyboard(KeyboardEvents<'a>),
+
 	/// See: [`MouseEvents`].
-	Mouse(MouseEvents),
+	#[serde(borrow)]
+	Mouse(MouseEvents<'a>),
+
 	/// See: [`ObjectEvents`].
-	Object(ObjectEvents),
+	#[serde(borrow)]
+	Object(ObjectEvents<'a>),
+
 	/// See: [`TerminalEvents`].
-	Terminal(TerminalEvents),
+	#[serde(borrow)]
+	Terminal(TerminalEvents<'a>),
+
 	/// See: [`WindowEvents`].
-	Window(WindowEvents),
+	#[serde(borrow)]
+	Window(WindowEvents<'a>),
+
 	/// See: [`AvailableEvent`].
-	Available(AvailableEvent),
+	#[serde(borrow)]
+	Available(AvailableEvent<'a>),
+
 	/// See: [`CacheEvents`].
-	Cache(CacheEvents),
+	#[serde(borrow)]
+	Cache(CacheEvents<'a>),
+
 	/// See: [`EventListenerEvents`].
-	Listener(EventListenerEvents),
+	#[serde(borrow)]
+	Listener(EventListenerEvents<'a>),
 }
 
-impl EventTypeProperties for Event {
+impl EventTypeProperties for Event<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Document(inner) => inner.member(),
@@ -802,7 +886,7 @@ impl EventTypeProperties for Event {
 	}
 }
 
-impl EventProperties for Event {
+impl EventProperties for Event<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Document(inner) => inner.path(),
@@ -834,10 +918,10 @@ impl EventProperties for Event {
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<&zbus::Message> for Event {
+impl<'a> TryFrom<&'a zbus::Message> for Event<'a> {
 	type Error = AtspiError;
 
-	fn try_from(msg: &zbus::Message) -> Result<Event, AtspiError> {
+	fn try_from(msg: &'a zbus::Message) -> Result<Event<'a>, AtspiError> {
 		let header = msg.header();
 		let interface = header.interface().ok_or(AtspiError::MissingInterface)?;
 		let interface_str = interface.as_str();
@@ -880,252 +964,256 @@ impl TryFrom<&zbus::Message> for Event {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(TextCaretMovedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(TextAttributesChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(TextChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(TextSelectionChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(TextBoundsChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ColumnDeletedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ColumnReorderedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ColumnInsertedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(RowDeletedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(RowReorderedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(RowInsertedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ObjectAttributesChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(AnnouncementEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ActiveDescendantChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ModelChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(SelectionChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(VisibleDataChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ChildrenChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(LinkSelectedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent, Event::Object);
-impl_from_user_facing_type_for_event_enum!(ObjectPropertyChangeEvent, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextCaretMovedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextAttributesChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextSelectionChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(TextBoundsChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ColumnDeletedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ColumnReorderedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ColumnInsertedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(RowDeletedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(RowReorderedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(RowInsertedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ObjectAttributesChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(AnnouncementEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ActiveDescendantChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ModelChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(SelectionChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(VisibleDataChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ChildrenChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(StateChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(LinkSelectedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(BoundsChangedEvent<'_>, Event::Object);
+impl_from_user_facing_type_for_event_enum!(ObjectPropertyChangeEvent<'_>, Event::Object);
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	ObjectPropertyChangeEvent,
-	ObjectEvents,
+	ObjectPropertyChangeEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::PropertyChange
 );
 impl_try_from_event_for_user_facing_type!(
-	ObjectPropertyChangeEvent,
+	ObjectPropertyChangeEvent<'_>,
 	ObjectEvents::PropertyChange,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	BoundsChangedEvent,
-	ObjectEvents,
+	BoundsChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::BoundsChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	BoundsChangedEvent,
+	BoundsChangedEvent<'_>,
 	ObjectEvents::BoundsChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	LinkSelectedEvent,
-	ObjectEvents,
+	LinkSelectedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::LinkSelected
 );
 impl_try_from_event_for_user_facing_type!(
-	LinkSelectedEvent,
+	LinkSelectedEvent<'_>,
 	ObjectEvents::LinkSelected,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	StateChangedEvent,
-	ObjectEvents,
+	StateChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::StateChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	StateChangedEvent,
+	StateChangedEvent<'_>,
 	ObjectEvents::StateChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ChildrenChangedEvent,
-	ObjectEvents,
+	ChildrenChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::ChildrenChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	ChildrenChangedEvent,
+	ChildrenChangedEvent<'_>,
 	ObjectEvents::ChildrenChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	VisibleDataChangedEvent,
-	ObjectEvents,
+	VisibleDataChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::VisibleDataChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	VisibleDataChangedEvent,
+	VisibleDataChangedEvent<'_>,
 	ObjectEvents::VisibleDataChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	SelectionChangedEvent,
-	ObjectEvents,
+	SelectionChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::SelectionChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	SelectionChangedEvent,
+	SelectionChangedEvent<'_>,
 	ObjectEvents::SelectionChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ModelChangedEvent,
-	ObjectEvents,
+	ModelChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::ModelChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	ModelChangedEvent,
+	ModelChangedEvent<'_>,
 	ObjectEvents::ModelChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ActiveDescendantChangedEvent,
-	ObjectEvents,
+	ActiveDescendantChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::ActiveDescendantChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	ActiveDescendantChangedEvent,
+	ActiveDescendantChangedEvent<'_>,
 	ObjectEvents::ActiveDescendantChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	AnnouncementEvent,
-	ObjectEvents,
+	AnnouncementEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::Announcement
 );
 impl_try_from_event_for_user_facing_type!(
-	AnnouncementEvent,
+	AnnouncementEvent<'_>,
 	ObjectEvents::Announcement,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ObjectAttributesChangedEvent,
-	ObjectEvents,
+	ObjectAttributesChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::AttributesChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	ObjectAttributesChangedEvent,
+	ObjectAttributesChangedEvent<'_>,
 	ObjectEvents::AttributesChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	RowInsertedEvent,
-	ObjectEvents,
+	RowInsertedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::RowInserted
 );
 impl_try_from_event_for_user_facing_type!(
-	RowInsertedEvent,
+	RowInsertedEvent<'_>,
 	ObjectEvents::RowInserted,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	RowReorderedEvent,
-	ObjectEvents,
+	RowReorderedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::RowReordered
 );
 impl_try_from_event_for_user_facing_type!(
-	RowReorderedEvent,
+	RowReorderedEvent<'_>,
 	ObjectEvents::RowReordered,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	RowDeletedEvent,
-	ObjectEvents,
+	RowDeletedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::RowDeleted
 );
-impl_try_from_event_for_user_facing_type!(RowDeletedEvent, ObjectEvents::RowDeleted, Event::Object);
+impl_try_from_event_for_user_facing_type!(
+	RowDeletedEvent<'_>,
+	ObjectEvents::RowDeleted,
+	Event::Object
+);
 impl_from_user_facing_event_for_interface_event_enum!(
-	ColumnInsertedEvent,
-	ObjectEvents,
+	ColumnInsertedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::ColumnInserted
 );
 impl_try_from_event_for_user_facing_type!(
-	ColumnInsertedEvent,
+	ColumnInsertedEvent<'_>,
 	ObjectEvents::ColumnInserted,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ColumnReorderedEvent,
-	ObjectEvents,
+	ColumnReorderedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::ColumnReordered
 );
 impl_try_from_event_for_user_facing_type!(
-	ColumnReorderedEvent,
+	ColumnReorderedEvent<'_>,
 	ObjectEvents::ColumnReordered,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ColumnDeletedEvent,
-	ObjectEvents,
+	ColumnDeletedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::ColumnDeleted
 );
 impl_try_from_event_for_user_facing_type!(
-	ColumnDeletedEvent,
+	ColumnDeletedEvent<'_>,
 	ObjectEvents::ColumnDeleted,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	TextBoundsChangedEvent,
-	ObjectEvents,
+	TextBoundsChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::TextBoundsChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	TextBoundsChangedEvent,
+	TextBoundsChangedEvent<'_>,
 	ObjectEvents::TextBoundsChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	TextSelectionChangedEvent,
-	ObjectEvents,
+	TextSelectionChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::TextSelectionChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	TextSelectionChangedEvent,
+	TextSelectionChangedEvent<'_>,
 	ObjectEvents::TextSelectionChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	TextAttributesChangedEvent,
-	ObjectEvents,
+	TextAttributesChangedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::TextAttributesChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	TextAttributesChangedEvent,
+	TextAttributesChangedEvent<'_>,
 	ObjectEvents::TextAttributesChanged,
 	Event::Object
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	TextCaretMovedEvent,
-	ObjectEvents,
+	TextCaretMovedEvent<'_>,
+	ObjectEvents<'_>,
 	ObjectEvents::TextCaretMoved
 );
 impl_try_from_event_for_user_facing_type!(
-	TextCaretMovedEvent,
+	TextCaretMovedEvent<'_>,
 	ObjectEvents::TextCaretMoved,
 	Event::Object
 );
 
-impl DBusMatchRule for ObjectEvents {
+impl DBusMatchRule for ObjectEvents<'_> {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Object'";
 }
 
-impl DBusInterface for ObjectEvents {
+impl DBusInterface for ObjectEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Object";
 }
 
-impl RegistryEventString for ObjectEvents {
+impl RegistryEventString for ObjectEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "object:";
 }
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for ObjectEvents {
+impl<'a> EventWrapperMessageConversion<'a> for ObjectEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
@@ -1209,32 +1297,37 @@ impl EventWrapperMessageConversion for ObjectEvents {
 /// It is telling the client "here is a bunch of information to store it in your cache".
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
-pub enum CacheEvents {
+pub enum CacheEvents<'a> {
 	/// See: [`AddAccessibleEvent`].
-	Add(AddAccessibleEvent),
+	#[serde(borrow)]
+	Add(AddAccessibleEvent<'a>),
+
 	/// See: [`LegacyAddAccessibleEvent`].
-	LegacyAdd(LegacyAddAccessibleEvent),
+	#[serde(borrow)]
+	LegacyAdd(LegacyAddAccessibleEvent<'a>),
+
 	/// See: [`RemoveAccessibleEvent`].
-	Remove(RemoveAccessibleEvent),
+	#[serde(borrow)]
+	Remove(RemoveAccessibleEvent<'a>),
 }
 
-impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent, Event::Cache);
-impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent, Event::Cache);
-impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent, Event::Cache);
+impl_from_user_facing_type_for_event_enum!(RemoveAccessibleEvent<'_>, Event::Cache);
+impl_from_user_facing_type_for_event_enum!(AddAccessibleEvent<'_>, Event::Cache);
+impl_from_user_facing_type_for_event_enum!(LegacyAddAccessibleEvent<'_>, Event::Cache);
 
-impl DBusMatchRule for CacheEvents {
+impl DBusMatchRule for CacheEvents<'_> {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Cache'";
 }
 
-impl RegistryEventString for CacheEvents {
+impl RegistryEventString for CacheEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "Cache";
 }
 
-impl DBusInterface for CacheEvents {
+impl DBusInterface for CacheEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Cache";
 }
 
-impl EventTypeProperties for CacheEvents {
+impl EventTypeProperties for CacheEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Add(inner) => inner.member(),
@@ -1265,7 +1358,7 @@ impl EventTypeProperties for CacheEvents {
 	}
 }
 
-impl EventProperties for CacheEvents {
+impl EventProperties for CacheEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Add(inner) => inner.path(),
@@ -1283,9 +1376,9 @@ impl EventProperties for CacheEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for CacheEvents {
+impl<'a> EventWrapperMessageConversion<'a> for CacheEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
@@ -1319,44 +1412,49 @@ impl EventWrapperMessageConversion for CacheEvents {
 	}
 }
 
-impl_tryfrommessage_for_event_wrapper!(CacheEvents);
+impl_tryfrommessage_for_event_wrapper!(CacheEvents<'_>);
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	LegacyAddAccessibleEvent,
-	CacheEvents,
+	LegacyAddAccessibleEvent<'_>,
+	CacheEvents<'_>,
 	CacheEvents::LegacyAdd
 );
 impl_try_from_event_for_user_facing_type!(
-	LegacyAddAccessibleEvent,
+	LegacyAddAccessibleEvent<'_>,
 	CacheEvents::LegacyAdd,
 	Event::Cache
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	AddAccessibleEvent,
-	CacheEvents,
+	AddAccessibleEvent<'_>,
+	CacheEvents<'_>,
 	CacheEvents::Add
 );
-impl_try_from_event_for_user_facing_type!(AddAccessibleEvent, CacheEvents::Add, Event::Cache);
+impl_try_from_event_for_user_facing_type!(AddAccessibleEvent<'_>, CacheEvents::Add, Event::Cache);
 impl_from_user_facing_event_for_interface_event_enum!(
-	RemoveAccessibleEvent,
-	CacheEvents,
+	RemoveAccessibleEvent<'_>,
+	CacheEvents<'_>,
 	CacheEvents::Remove
 );
-impl_try_from_event_for_user_facing_type!(RemoveAccessibleEvent, CacheEvents::Remove, Event::Cache);
-impl_try_from_event_for_interface_enum!(CacheEvents, Event::Cache);
+impl_try_from_event_for_user_facing_type!(
+	RemoveAccessibleEvent<'_>,
+	CacheEvents::Remove,
+	Event::Cache
+);
+impl_try_from_event_for_interface_enum!(CacheEvents<'_>, Event::Cache);
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum FocusEvents {
+pub enum FocusEvents<'a> {
 	/// See: [`FocusEvent`].
-	Focus(FocusEvent),
+	#[serde(borrow)]
+	Focus(FocusEvent<'a>),
 }
 
-impl_tryfrommessage_for_event_wrapper!(FocusEvents);
+impl_tryfrommessage_for_event_wrapper!(FocusEvents<'_>);
 
 impl_from_interface_event_enum_for_event!(FocusEvents, Event::Focus);
-impl_try_from_event_for_user_facing_type!(FocusEvent, FocusEvents::Focus, Event::Focus);
+impl_try_from_event_for_user_facing_type!(FocusEvent<'_>, FocusEvents::Focus, Event::Focus);
 
-impl EventTypeProperties for FocusEvents {
+impl EventTypeProperties for FocusEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Focus(inner) => inner.member(),
@@ -1379,7 +1477,7 @@ impl EventTypeProperties for FocusEvents {
 	}
 }
 
-impl EventProperties for FocusEvents {
+impl EventProperties for FocusEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Focus(inner) => inner.path(),
@@ -1392,16 +1490,20 @@ impl EventProperties for FocusEvents {
 	}
 }
 
-impl_try_from_event_for_interface_enum!(FocusEvents, Event::Focus);
+impl_try_from_event_for_interface_enum!(FocusEvents<'_>, Event::Focus);
 
-impl_from_user_facing_event_for_interface_event_enum!(FocusEvent, FocusEvents, FocusEvents::Focus);
-impl_from_user_facing_type_for_event_enum!(FocusEvent, Event::Focus);
+impl_from_user_facing_event_for_interface_event_enum!(
+	FocusEvent<'_>,
+	FocusEvents<'_>,
+	FocusEvents::Focus
+);
+impl_from_user_facing_type_for_event_enum!(FocusEvent<'_>, Event::Focus);
 event_wrapper_test_cases!(FocusEvents, FocusEvent);
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for FocusEvents {
+impl<'a> EventWrapperMessageConversion<'a> for FocusEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
@@ -1417,36 +1519,45 @@ impl EventWrapperMessageConversion for FocusEvents {
 	}
 }
 
-impl DBusMatchRule for FocusEvents {
+impl DBusMatchRule for FocusEvents<'_> {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Focus'";
 }
 
-impl RegistryEventString for FocusEvents {
+impl RegistryEventString for FocusEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "focus:";
 }
 
-impl DBusInterface for FocusEvents {
+impl DBusInterface for FocusEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Focus";
 }
 
 /// All events related to the `org.a11y.atspi.Event.Terminal` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum TerminalEvents {
+pub enum TerminalEvents<'a> {
 	/// See: [`LineChangedEvent`].
-	LineChanged(LineChangedEvent),
+	#[serde(borrow)]
+	LineChanged(LineChangedEvent<'a>),
+
 	/// See: [`ColumnCountChangedEvent`].
-	ColumnCountChanged(ColumnCountChangedEvent),
+	#[serde(borrow)]
+	ColumnCountChanged(ColumnCountChangedEvent<'a>),
+
 	/// See: [`LineCountChangedEvent`].
-	LineCountChanged(LineCountChangedEvent),
+	#[serde(borrow)]
+	LineCountChanged(LineCountChangedEvent<'a>),
+
 	/// See: [`ApplicationChangedEvent`].
-	ApplicationChanged(ApplicationChangedEvent),
+	#[serde(borrow)]
+	ApplicationChanged(ApplicationChangedEvent<'a>),
+
 	/// See: [`CharWidthChangedEvent`].
-	CharWidthChanged(CharWidthChangedEvent),
+	#[serde(borrow)]
+	CharWidthChanged(CharWidthChangedEvent<'a>),
 }
 
-impl_tryfrommessage_for_event_wrapper!(TerminalEvents);
+impl_tryfrommessage_for_event_wrapper!(TerminalEvents<'_>);
 
-impl EventTypeProperties for TerminalEvents {
+impl EventTypeProperties for TerminalEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::LineChanged(inner) => inner.member(),
@@ -1485,7 +1596,7 @@ impl EventTypeProperties for TerminalEvents {
 	}
 }
 
-impl EventProperties for TerminalEvents {
+impl EventProperties for TerminalEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::LineChanged(inner) => inner.path(),
@@ -1506,34 +1617,34 @@ impl EventProperties for TerminalEvents {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(CharWidthChangedEvent, Event::Terminal);
-impl_from_user_facing_type_for_event_enum!(ApplicationChangedEvent, Event::Terminal);
-impl_from_user_facing_type_for_event_enum!(LineCountChangedEvent, Event::Terminal);
-impl_from_user_facing_type_for_event_enum!(ColumnCountChangedEvent, Event::Terminal);
-impl_from_user_facing_type_for_event_enum!(LineChangedEvent, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(CharWidthChangedEvent<'_>, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(ApplicationChangedEvent<'_>, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(LineCountChangedEvent<'_>, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(ColumnCountChangedEvent<'_>, Event::Terminal);
+impl_from_user_facing_type_for_event_enum!(LineChangedEvent<'_>, Event::Terminal);
 
-impl_try_from_event_for_interface_enum!(TerminalEvents, Event::Terminal);
+impl_try_from_event_for_interface_enum!(TerminalEvents<'_>, Event::Terminal);
 impl_from_interface_event_enum_for_event!(TerminalEvents, Event::Terminal);
 
 event_wrapper_test_cases!(TerminalEvents, LineChangedEvent);
 
-impl DBusMatchRule for TerminalEvents {
+impl DBusMatchRule for TerminalEvents<'_> {
 	const MATCH_RULE_STRING: &'static str =
 		"type='signal',interface='org.a11y.atspi.Event.Terminal'";
 }
 
-impl RegistryEventString for TerminalEvents {
+impl RegistryEventString for TerminalEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "terminal:";
 }
 
-impl DBusInterface for TerminalEvents {
+impl DBusInterface for TerminalEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Terminal";
 }
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for TerminalEvents {
+impl<'a> EventWrapperMessageConversion<'a> for TerminalEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr
@@ -1561,102 +1672,137 @@ impl EventWrapperMessageConversion for TerminalEvents {
 }
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	LineChangedEvent,
-	TerminalEvents,
+	LineChangedEvent<'_>,
+	TerminalEvents<'_>,
 	TerminalEvents::LineChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	LineChangedEvent,
+	LineChangedEvent<'_>,
 	TerminalEvents::LineChanged,
 	Event::Terminal
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ColumnCountChangedEvent,
-	TerminalEvents,
+	ColumnCountChangedEvent<'_>,
+	TerminalEvents<'_>,
 	TerminalEvents::ColumnCountChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	ColumnCountChangedEvent,
+	ColumnCountChangedEvent<'_>,
 	TerminalEvents::ColumnCountChanged,
 	Event::Terminal
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	LineCountChangedEvent,
-	TerminalEvents,
+	LineCountChangedEvent<'_>,
+	TerminalEvents<'_>,
 	TerminalEvents::LineCountChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	LineCountChangedEvent,
+	LineCountChangedEvent<'_>,
 	TerminalEvents::LineCountChanged,
 	Event::Terminal
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	ApplicationChangedEvent,
-	TerminalEvents,
+	ApplicationChangedEvent<'_>,
+	TerminalEvents<'_>,
 	TerminalEvents::ApplicationChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	ApplicationChangedEvent,
+	ApplicationChangedEvent<'_>,
 	TerminalEvents::ApplicationChanged,
 	Event::Terminal
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	CharWidthChangedEvent,
-	TerminalEvents,
+	CharWidthChangedEvent<'_>,
+	TerminalEvents<'_>,
 	TerminalEvents::CharWidthChanged
 );
 impl_try_from_event_for_user_facing_type!(
-	CharWidthChangedEvent,
+	CharWidthChangedEvent<'_>,
 	TerminalEvents::CharWidthChanged,
 	Event::Terminal
 );
 
 /// All events on the `org.a11y.atspi.Event.Window` interface.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub enum WindowEvents {
+pub enum WindowEvents<'a> {
 	/// See: [`WindowPropertyChangeEvent`].
-	PropertyChange(WindowPropertyChangeEvent),
+	#[serde(borrow)]
+	PropertyChange(WindowPropertyChangeEvent<'a>),
+
 	/// See: [`MinimizeEvent`].
-	Minimize(MinimizeEvent),
+	#[serde(borrow)]
+	Minimize(MinimizeEvent<'a>),
+
 	/// See: [`MaximizeEvent`].
-	Maximize(MaximizeEvent),
+	#[serde(borrow)]
+	Maximize(MaximizeEvent<'a>),
+
 	/// See: [`RestoreEvent`].
-	Restore(RestoreEvent),
+	#[serde(borrow)]
+	Restore(RestoreEvent<'a>),
+
 	/// See: [`CloseEvent`].
-	Close(CloseEvent),
+	#[serde(borrow)]
+	Close(CloseEvent<'a>),
 	/// See: [`CreateEvent`].
-	Create(CreateEvent),
+	#[serde(borrow)]
+	Create(CreateEvent<'a>),
+
 	/// See: [`ReparentEvent`].
-	Reparent(ReparentEvent),
+	#[serde(borrow)]
+	Reparent(ReparentEvent<'a>),
+
 	/// See: [`DesktopCreateEvent`].
-	DesktopCreate(DesktopCreateEvent),
+	#[serde(borrow)]
+	DesktopCreate(DesktopCreateEvent<'a>),
+
 	/// See: [`DesktopDestroyEvent`].
-	DesktopDestroy(DesktopDestroyEvent),
+	#[serde(borrow)]
+	DesktopDestroy(DesktopDestroyEvent<'a>),
+
 	/// See: [`DestroyEvent`].
-	Destroy(DestroyEvent),
+	#[serde(borrow)]
+	Destroy(DestroyEvent<'a>),
+
 	/// See: [`ActivateEvent`].
-	Activate(ActivateEvent),
+	#[serde(borrow)]
+	Activate(ActivateEvent<'a>),
+
 	/// See: [`DeactivateEvent`].
-	Deactivate(DeactivateEvent),
+	#[serde(borrow)]
+	Deactivate(DeactivateEvent<'a>),
 	/// See: [`RaiseEvent`].
-	Raise(RaiseEvent),
+	#[serde(borrow)]
+	Raise(RaiseEvent<'a>),
+
 	/// See: [`LowerEvent`].
-	Lower(LowerEvent),
+	#[serde(borrow)]
+	Lower(LowerEvent<'a>),
+
 	/// See: [`MoveEvent`].
-	Move(MoveEvent),
+	#[serde(borrow)]
+	Move(MoveEvent<'a>),
+
 	/// See: [`ResizeEvent`].
-	Resize(ResizeEvent),
+	#[serde(borrow)]
+	Resize(ResizeEvent<'a>),
+
 	/// See: [`ShadeEvent`].
-	Shade(ShadeEvent),
+	#[serde(borrow)]
+	Shade(ShadeEvent<'a>),
+
 	/// See: [`UUshadeEvent`].
-	UUshade(UUshadeEvent),
+	#[serde(borrow)]
+	UUshade(UUshadeEvent<'a>),
+
 	/// See: [`RestyleEvent`].
-	Restyle(RestyleEvent),
+	#[serde(borrow)]
+	Restyle(RestyleEvent<'a>),
 }
 
-impl_tryfrommessage_for_event_wrapper!(WindowEvents);
+impl_tryfrommessage_for_event_wrapper!(WindowEvents<'_>);
 
-impl EventTypeProperties for WindowEvents {
+impl EventTypeProperties for WindowEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::PropertyChange(inner) => inner.member(),
@@ -1751,7 +1897,7 @@ impl EventTypeProperties for WindowEvents {
 	}
 }
 
-impl EventProperties for WindowEvents {
+impl EventProperties for WindowEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::PropertyChange(inner) => inner.path(),
@@ -1800,47 +1946,47 @@ impl EventProperties for WindowEvents {
 	}
 }
 
-impl_from_user_facing_type_for_event_enum!(ReparentEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(CloseEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(RestoreEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(MaximizeEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(MinimizeEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(WindowPropertyChangeEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(RestyleEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(UUshadeEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(ShadeEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(ResizeEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(MoveEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(LowerEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(RaiseEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(DeactivateEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(ActivateEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(DestroyEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(DesktopDestroyEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(DesktopCreateEvent, Event::Window);
-impl_from_user_facing_type_for_event_enum!(CreateEvent, Event::Window);
+impl_from_user_facing_type_for_event_enum!(ReparentEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(CloseEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(RestoreEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(MaximizeEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(MinimizeEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(WindowPropertyChangeEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(RestyleEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(UUshadeEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(ShadeEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(ResizeEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(MoveEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(LowerEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(RaiseEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DeactivateEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(ActivateEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DestroyEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DesktopDestroyEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(DesktopCreateEvent<'_>, Event::Window);
+impl_from_user_facing_type_for_event_enum!(CreateEvent<'_>, Event::Window);
 
-impl_try_from_event_for_interface_enum!(WindowEvents, Event::Window);
+impl_try_from_event_for_interface_enum!(WindowEvents<'_>, Event::Window);
 impl_from_interface_event_enum_for_event!(WindowEvents, Event::Window);
 
 event_wrapper_test_cases!(WindowEvents, MoveEvent);
 
-impl DBusMatchRule for WindowEvents {
+impl DBusMatchRule for WindowEvents<'_> {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Event.Window'";
 }
 
-impl DBusInterface for WindowEvents {
+impl DBusInterface for WindowEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Event.Window";
 }
 
-impl RegistryEventString for WindowEvents {
+impl RegistryEventString for WindowEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "window:";
 }
 
 #[cfg(feature = "zbus")]
-impl EventWrapperMessageConversion for WindowEvents {
+impl<'a> EventWrapperMessageConversion<'a> for WindowEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
@@ -1908,155 +2054,166 @@ impl EventWrapperMessageConversion for WindowEvents {
 }
 
 impl_from_user_facing_event_for_interface_event_enum!(
-	WindowPropertyChangeEvent,
-	WindowEvents,
+	WindowPropertyChangeEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::PropertyChange
 );
 impl_try_from_event_for_user_facing_type!(
-	WindowPropertyChangeEvent,
+	WindowPropertyChangeEvent<'_>,
 	WindowEvents::PropertyChange,
 	Event::Window
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	MinimizeEvent,
-	WindowEvents,
+	MinimizeEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Minimize
 );
-impl_try_from_event_for_user_facing_type!(MinimizeEvent, WindowEvents::Minimize, Event::Window);
+impl_try_from_event_for_user_facing_type!(MinimizeEvent<'_>, WindowEvents::Minimize, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	MaximizeEvent,
-	WindowEvents,
+	MaximizeEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Maximize
 );
-impl_try_from_event_for_user_facing_type!(MaximizeEvent, WindowEvents::Maximize, Event::Window);
+impl_try_from_event_for_user_facing_type!(MaximizeEvent<'_>, WindowEvents::Maximize, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	RestoreEvent,
-	WindowEvents,
+	RestoreEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Restore
 );
-impl_try_from_event_for_user_facing_type!(RestoreEvent, WindowEvents::Restore, Event::Window);
+impl_try_from_event_for_user_facing_type!(RestoreEvent<'_>, WindowEvents::Restore, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	CloseEvent,
-	WindowEvents,
+	CloseEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Close
 );
-impl_try_from_event_for_user_facing_type!(CloseEvent, WindowEvents::Close, Event::Window);
+impl_try_from_event_for_user_facing_type!(CloseEvent<'_>, WindowEvents::Close, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	CreateEvent,
-	WindowEvents,
+	CreateEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Create
 );
-impl_try_from_event_for_user_facing_type!(CreateEvent, WindowEvents::Create, Event::Window);
+impl_try_from_event_for_user_facing_type!(CreateEvent<'_>, WindowEvents::Create, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	ReparentEvent,
-	WindowEvents,
+	ReparentEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Reparent
 );
-impl_try_from_event_for_user_facing_type!(ReparentEvent, WindowEvents::Reparent, Event::Window);
+impl_try_from_event_for_user_facing_type!(ReparentEvent<'_>, WindowEvents::Reparent, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	DesktopCreateEvent,
-	WindowEvents,
+	DesktopCreateEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::DesktopCreate
 );
 impl_try_from_event_for_user_facing_type!(
-	DesktopCreateEvent,
-	WindowEvents::DesktopCreate,
+	DesktopCreateEvent<'_>,
+	WindowEvents::DesktopCreate<'_>,
 	Event::Window
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	DesktopDestroyEvent,
-	WindowEvents,
+	DesktopDestroyEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::DesktopDestroy
 );
 impl_try_from_event_for_user_facing_type!(
-	DesktopDestroyEvent,
-	WindowEvents::DesktopDestroy,
+	DesktopDestroyEvent<'_>,
+	WindowEvents::DesktopDestroy<'_>,
 	Event::Window
 );
 impl_from_user_facing_event_for_interface_event_enum!(
-	DestroyEvent,
-	WindowEvents,
+	DestroyEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Destroy
 );
-impl_try_from_event_for_user_facing_type!(DestroyEvent, WindowEvents::Destroy, Event::Window);
+impl_try_from_event_for_user_facing_type!(DestroyEvent<'_>, WindowEvents::Destroy, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	ActivateEvent,
-	WindowEvents,
+	ActivateEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Activate
 );
-impl_try_from_event_for_user_facing_type!(ActivateEvent, WindowEvents::Activate, Event::Window);
+impl_try_from_event_for_user_facing_type!(ActivateEvent<'_>, WindowEvents::Activate, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	DeactivateEvent,
-	WindowEvents,
+	DeactivateEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Deactivate
 );
-impl_try_from_event_for_user_facing_type!(DeactivateEvent, WindowEvents::Deactivate, Event::Window);
+impl_try_from_event_for_user_facing_type!(
+	DeactivateEvent<'_>,
+	WindowEvents::Deactivate<'_>,
+	Event::Window
+);
 impl_from_user_facing_event_for_interface_event_enum!(
-	RaiseEvent,
-	WindowEvents,
+	RaiseEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Raise
 );
-impl_try_from_event_for_user_facing_type!(RaiseEvent, WindowEvents::Raise, Event::Window);
+impl_try_from_event_for_user_facing_type!(RaiseEvent<'_>, WindowEvents::Raise, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	LowerEvent,
-	WindowEvents,
+	LowerEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Lower
 );
-impl_try_from_event_for_user_facing_type!(LowerEvent, WindowEvents::Lower, Event::Window);
-impl_from_user_facing_event_for_interface_event_enum!(MoveEvent, WindowEvents, WindowEvents::Move);
-impl_try_from_event_for_user_facing_type!(MoveEvent, WindowEvents::Move, Event::Window);
+impl_try_from_event_for_user_facing_type!(LowerEvent<'_>, WindowEvents::Lower, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	ResizeEvent,
-	WindowEvents,
-	WindowEvents::Resize
+	MoveEvent<'_>,
+	WindowEvents<'_>,
+	WindowEvents::Move
 );
-impl_try_from_event_for_user_facing_type!(ResizeEvent, WindowEvents::Resize, Event::Window);
+impl_try_from_event_for_user_facing_type!(MoveEvent<'_>, WindowEvents::Move, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	ShadeEvent,
-	WindowEvents,
+	ResizeEvent<'_>,
+	WindowEvents<'_>,
+	WindowEvents<'_>::Resize
+);
+impl_try_from_event_for_user_facing_type!(ResizeEvent<'_>, WindowEvents::Resize, Event::Window);
+impl_from_user_facing_event_for_interface_event_enum!(
+	ShadeEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Shade
 );
-impl_try_from_event_for_user_facing_type!(ShadeEvent, WindowEvents::Shade, Event::Window);
+impl_try_from_event_for_user_facing_type!(ShadeEvent<'_>, WindowEvents::Shade, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	UUshadeEvent,
-	WindowEvents,
+	UUshadeEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::UUshade
 );
-impl_try_from_event_for_user_facing_type!(UUshadeEvent, WindowEvents::UUshade, Event::Window);
+impl_try_from_event_for_user_facing_type!(UUshadeEvent<'_>, WindowEvents::UUshade, Event::Window);
 impl_from_user_facing_event_for_interface_event_enum!(
-	RestyleEvent,
-	WindowEvents,
+	RestyleEvent<'_>,
+	WindowEvents<'_>,
 	WindowEvents::Restyle
 );
-impl_try_from_event_for_user_facing_type!(RestyleEvent, WindowEvents::Restyle, Event::Window);
+impl_try_from_event_for_user_facing_type!(RestyleEvent<'_>, WindowEvents::Restyle, Event::Window);
 
 /// The events that can be emitted by the registry daemon.
 /// This enum is used to wrap the events that are emitted by the registry daemon.
 /// The events are [`EventListenerRegisteredEvent`] and [`EventListenerDeregisteredEvent`].
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[allow(clippy::module_name_repetitions)]
-pub enum EventListenerEvents {
+pub enum EventListenerEvents<'a> {
 	/// See: [`EventListenerRegisteredEvent`].
-	Registered(EventListenerRegisteredEvent),
+	#[serde(borrow)]
+	Registered(EventListenerRegisteredEvent<'a>),
+
 	/// See: [`EventListenerDeregisteredEvent`].
-	Deregistered(EventListenerDeregisteredEvent),
+	#[serde(borrow)]
+	Deregistered(EventListenerDeregisteredEvent<'a>),
 }
 
-impl_tryfrommessage_for_event_wrapper!(EventListenerEvents);
+impl_tryfrommessage_for_event_wrapper!(EventListenerEvents<'_>);
 
-impl DBusInterface for EventListenerEvents {
+impl DBusInterface for EventListenerEvents<'_> {
 	const DBUS_INTERFACE: &'static str = "org.a11y.atspi.Registry";
 }
 
-impl DBusMatchRule for EventListenerEvents {
+impl DBusMatchRule for EventListenerEvents<'_> {
 	const MATCH_RULE_STRING: &'static str = "type='signal',interface='org.a11y.atspi.Registry'";
 }
 
-impl RegistryEventString for EventListenerEvents {
+impl RegistryEventString for EventListenerEvents<'_> {
 	const REGISTRY_EVENT_STRING: &'static str = "Event";
 }
 
-impl EventTypeProperties for EventListenerEvents {
+impl EventTypeProperties for EventListenerEvents<'_> {
 	fn member(&self) -> &'static str {
 		match self {
 			Self::Registered(inner) => inner.member(),
@@ -2086,7 +2243,7 @@ impl EventTypeProperties for EventListenerEvents {
 	}
 }
 
-impl EventProperties for EventListenerEvents {
+impl EventProperties for EventListenerEvents<'_> {
 	fn path(&self) -> ObjectPath<'_> {
 		match self {
 			Self::Registered(inner) => inner.path(),
@@ -2102,9 +2259,9 @@ impl EventProperties for EventListenerEvents {
 }
 
 #[cfg(feature = "zbus")]
-impl crate::events::traits::EventWrapperMessageConversion for EventListenerEvents {
+impl<'a> EventWrapperMessageConversion<'a> for EventListenerEvents<'a> {
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &zbus::message::Header,
 	) -> Result<Self, crate::AtspiError> {
 		let member = hdr.member().ok_or(AtspiError::MissingMember)?;
@@ -2124,17 +2281,17 @@ impl crate::events::traits::EventWrapperMessageConversion for EventListenerEvent
 	}
 }
 
-impl_try_from_event_for_interface_enum!(EventListenerEvents, Event::Listener);
+impl_try_from_event_for_interface_enum!(EventListenerEvents<'_>, Event::Listener);
 impl_from_interface_event_enum_for_event!(EventListenerEvents, Event::Listener);
 
-impl From<AvailableEvent> for Event {
+impl<'a> From<AvailableEvent<'a>> for Event<'a> {
 	fn from(ev: AvailableEvent) -> Event {
 		Event::Available(ev)
 	}
 }
 
 #[cfg(feature = "zbus")]
-impl TryFrom<Event> for AvailableEvent {
+impl<'a> TryFrom<Event<'a>> for AvailableEvent<'a> {
 	type Error = AtspiError;
 	fn try_from(generic_event: Event) -> Result<AvailableEvent, Self::Error> {
 		if let Event::Available(specific_event) = generic_event {

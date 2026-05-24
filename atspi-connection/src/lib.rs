@@ -11,9 +11,6 @@ use common::{
 	EventProperties, Result as AtspiResult,
 };
 
-#[cfg(feature = "wrappers")]
-use atspi_common::events::Event;
-
 #[cfg(feature = "p2p")]
 mod p2p;
 #[cfg(feature = "p2p")]
@@ -26,6 +23,9 @@ use atspi_proxies::{
 };
 
 #[cfg(feature = "wrappers")]
+#[cfg(feature = "p2p")]
+use crate::p2p::Peers;
+#[cfg(feature = "wrappers")]
 use futures_lite::stream::{Stream, StreamExt};
 use std::ops::Deref;
 use zbus::{
@@ -35,9 +35,6 @@ use zbus::{
 };
 #[cfg(feature = "wrappers")]
 use zbus::{message::Type as MessageType, MessageStream};
-
-#[cfg(feature = "p2p")]
-use crate::p2p::Peers;
 
 /// A connection to the at-spi bus
 #[derive(Clone, Debug)]
@@ -121,9 +118,10 @@ impl AccessibilityConnection {
 		return Ok(Self { registry, dbus_proxy, peers });
 	}
 
-	/// Stream yielding all `Event` types.
+	/// Stream yielding all raw [`zbus::Message`] signal types.
 	///
-	/// Monitor this stream to be notified and receive events on the a11y bus.
+	/// Monitor this stream to be notified and receive messages on the a11y bus,
+	/// and convert them into specific event types as needed.
 	///
 	/// # Example
 	/// Basic use:
@@ -133,7 +131,6 @@ impl AccessibilityConnection {
 	/// use enumflags2::BitFlag;
 	/// use atspi_connection::common::events::{ObjectEvents, object::StateChangedEvent};
 	/// use zbus::{fdo::DBusProxy, MatchRule, message::Type as MessageType};
-	/// use atspi_connection::common::events::Event;
 	/// # use futures_lite::StreamExt;
 	/// # use std::error::Error;
 	///
@@ -181,9 +178,9 @@ impl AccessibilityConnection {
 	/// #       .output()
 	/// #       .unwrap();
 	///
-	///     while let Some(Ok(ev)) = events.next().await {
-	///         // Handle Object events
-	///        if let Ok(event) = StateChangedEvent::try_from(ev) {
+	///     while let Some(Ok(msg)) = events.next().await {
+	///        // Try to convert the raw message into a StateChangedEvent
+	///        if let Ok(event) = StateChangedEvent::try_from(&msg) {
 	/// #        break;
 	///          // do something else here
 	///        } else { continue }
@@ -192,7 +189,7 @@ impl AccessibilityConnection {
 	/// # }
 	/// ```
 	#[cfg(feature = "wrappers")]
-	pub fn event_stream(&self) -> impl Stream<Item = Result<Event, AtspiError>> {
+	pub fn event_stream(&self) -> impl Stream<Item = Result<zbus::Message, AtspiError>> {
 		MessageStream::from(self.registry.inner().connection()).filter_map(|res| {
 			let msg = match res {
 				Ok(m) => m,
@@ -211,11 +208,10 @@ impl AccessibilityConnection {
 				return Some(Err(AtspiError::MissingInterface));
 			};
 
-			// Most events we encounter are sent on an "org.a11y.atspi.Event.*" interface,
-			// but there are exceptions like "org.a11y.atspi.Cache" or "org.a11y.atspi.Registry".
-			// So only signals with a suitable interface name will be parsed.
-			if msg_interface.starts_with("org.a11y.atspi") {
-				Some(Event::try_from(&msg))
+			if msg_interface.starts_with("org.a11y.atspi")
+				&& msg.message_type() == MessageType::Signal
+			{
+				Some(Ok(msg))
 			} else {
 				None
 			}

@@ -11,7 +11,7 @@
 
 use atspi::{
 	events::mouse::ButtonEvent,
-	AtspiError, Event,
+	AtspiError,
 	MouseEvents::{self},
 	NonNullObjectRef, ObjectRefOwned, State,
 };
@@ -178,12 +178,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	// Must use a separate task here to avoid hangs;
 	// zbus's internal buffer can potentially fill up
 	// if you wait too long between events.next.await calls
-	let (tx, mut rx) = tokio::sync::mpsc::channel::<Result<Event, AtspiError>>(1);
+	let (tx, mut rx) = tokio::sync::mpsc::channel::<Result<zbus::Message, AtspiError>>(1);
 	let atspi_clone = atspi.clone();
 	task::spawn(async move {
-		let mut events = atspi_clone.event_stream();
-		while let Some(ev) = events.next().await {
-			tx.send(ev).await.unwrap();
+		let mut messages = atspi_clone.event_stream();
+		while let Some(msg) = messages.next().await {
+			tx.send(msg).await.unwrap();
 		}
 	});
 
@@ -214,8 +214,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	}
 
 	loop {
-		if let Some(ev) = rx.recv().await {
-			if let Ok(ev) = <ButtonEvent>::try_from(ev.unwrap()) {
+		if let Some(msg) = rx.recv().await {
+			let msg = msg.unwrap();
+			if let Ok(ev) = <ButtonEvent>::try_from(&msg) {
 				let active_frame = get_active_frame(root_children.as_slice(), conn).await.unwrap();
 				let Ok(active_frame) = NonNullObjectRef::try_from(active_frame) else { continue };
 

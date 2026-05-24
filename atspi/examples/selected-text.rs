@@ -6,7 +6,7 @@
 //! Authors:
 //!    Colton Loftus
 
-use atspi::{events::object::TextSelectionChangedEvent, NonNullObjectRef, ObjectEvents};
+use atspi::{events::object::TextSelectionChangedEvent, ObjectEvents};
 use atspi_proxies::{accessible::ObjectRefExt, proxy_ext::ProxyExt};
 use futures_lite::stream::StreamExt;
 use std::error::Error;
@@ -27,9 +27,9 @@ smol_macros::main! {
 
 		while let Some(ev) = events.next().await {
 			match ev {
-				Ok(ev) => {
-					if let Ok(ev) = <TextSelectionChangedEvent>::try_from(ev) {
-						let Ok(non_null) = NonNullObjectRef::try_from(ev.item.clone()) else { continue };
+				Ok(ref message) => {
+					if let Ok(ev) = <TextSelectionChangedEvent>::try_from(message) {
+						let non_null = ev.item;
 						let text_proxy = non_null
 							.into_accessible_proxy(conn)
 							.await?

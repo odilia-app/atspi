@@ -14,6 +14,7 @@ pub struct Action {
 }
 
 #[cfg(test)]
+#[allow(clippy::needless_continue)]
 mod test {
 	use super::Action;
 	use zbus_lockstep::method_return_signature;
@@ -23,6 +24,7 @@ mod test {
 		// signature is of type `a(sss)`, where `(sss)` is the type we're validating.
 		let action_signature =
 			method_return_signature!(member: "GetActions", interface: "org.a11y.atspi.Action");
+
 		assert_eq!(Vec::<Action>::SIGNATURE, &action_signature);
 	}
 }

@@ -620,7 +620,7 @@ impl Peers {
 
 /// Trait for P2P connection handling.
 pub trait P2P {
-	/// Returns a P2P connected `AccessibleProxy`for object, _if available_.\
+	/// Returns a P2P connected [`AccessibleProxy`] for object, _if available_.\
 	/// If the application does not support P2P, this returns an `AccessibleProxy` for the object with a bus connection.
 	fn object_as_accessible(
 		&'_ self,
@@ -661,7 +661,7 @@ impl P2P for crate::AccessibilityConnection {
 	/// let name = UniqueName::from_static_str_unchecked(":1.1");
 	/// let path = ObjectPath::from_static_str_unchecked("/org/freedesktop/accessible/root");
 	///
-	/// let object_ref = NonNullObjectRef::new_owned(name, path);
+	/// let object_ref = NonNullObjectRef::try_new_owned(name, path).unwrap();
 	/// let accessible_proxy = conn.object_as_accessible(&object_ref).await;
 	/// assert!(
 	///    accessible_proxy.is_ok(),
@@ -672,8 +672,6 @@ impl P2P for crate::AccessibilityConnection {
 	/// ```
 	///
 	/// # Errors
-	/// If the method is called with a null-reference `ObjectRef`, it will return an `AtspiError::NullRef`.
-	/// Users should ensure that the `ObjectRef` is non-null before calling this method or handle the result.
 	/// If the `AccessibleProxy` cannot be created, or if the object path is invalid.
 	///
 	/// # Note

@@ -402,8 +402,8 @@ impl<'a> EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:  
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// The borrowed variant will error if the following conditions are met:
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn as_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
@@ -417,8 +417,8 @@ impl<'a> EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:  
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// The borrowed variant will error if the following conditions are met:
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn into_owned(self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
@@ -440,7 +440,7 @@ impl<'a> EventBody<'_> {
 
 	/// Take or convert the `kind` field as `String`.
 	///
-	/// With the owned variant, this method takes the `kind` field and replaces it with an empty string.
+	/// With the owned variant, this method takes the `kind` field and replaces it with an empty string.\
 	/// With the borrowed variant, this method clones and allocates the `kind` field.
 	pub fn take_kind(&mut self) -> String {
 		match self {

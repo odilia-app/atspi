@@ -5,7 +5,7 @@
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
 #[cfg(feature = "zbus")]
-use crate::object_ref::ObjectRef;
+use crate::object_ref::NonNullObjectRef;
 #[cfg(feature = "zbus")]
 use crate::EventProperties;
 use crate::{
@@ -36,9 +36,10 @@ const ACCESSIBLE_TABLE_SUMMARY_PROPERTY_NAME: &str = "accessible-table-summary";
 
 /// An event representing a property change on UI item `item` with new value `value`.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct PropertyChangeEvent {
+pub struct PropertyChangeEvent<'a> {
 	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	/// The name of the property.
 	// TODO: this is not necessary since the string is encoded in the `Property` type.
 	pub property: String,
@@ -46,30 +47,26 @@ pub struct PropertyChangeEvent {
 	pub value: Property,
 }
 
-impl_event_type_properties_for_event!(PropertyChangeEvent);
+impl_event_type_properties_for_event!(PropertyChangeEvent<'_>);
 
-impl Hash for PropertyChangeEvent {
+impl Hash for PropertyChangeEvent<'_> {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
 		self.item.hash(state);
 		self.property.hash(state);
 	}
-}
 
-// Do not derive Eq if not all fields implement Eq
-impl Eq for PropertyChangeEvent {}
-
-// TODO: Looks like a false positive Clippy lint
-// Derive me.
-#[allow(clippy::derivable_impls)]
-impl Default for PropertyChangeEvent {
-	fn default() -> Self {
-		Self {
-			item: ObjectRefOwned::default(),
-			property: String::default(),
-			value: Property::default(),
+	fn hash_slice<H: std::hash::Hasher>(data: &[Self], state: &mut H)
+	where
+		Self: Sized,
+	{
+		for piece in data {
+			piece.hash(state);
 		}
 	}
 }
+
+// Do not derive Eq if not all fields implement Eq
+impl Eq for PropertyChangeEvent<'_> {}
 
 /// Any accessibility related property on an [`crate::ObjectRef`].
 /// This is used only in the [`PropertyChangeEvent`]; this event gets triggered if a role or accessible
@@ -77,7 +74,8 @@ impl Default for PropertyChangeEvent {
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[non_exhaustive]
 pub enum Property {
-	/// Name of the element; this can either be the text of a simple UI element like a [`crate::Role::Button`], but it could also be alternative text via [`aria-label`](https://www.w3.org/TR/wai-aria/#aria-label).
+	/// Name of the element; this can either be the text of a simple UI element like a [`crate::Role::Button`],
+	/// but it could also be alternative text via [`aria-label`](https://www.w3.org/TR/wai-aria/#aria-label).
 	Name(String),
 	/// The extended description of an item (usually via [`aria-describedby`](https://www.w3.org/TR/wai-aria/#aria-describedby)).
 	Description(String),
@@ -244,10 +242,10 @@ impl From<Property> for OwnedValue {
 mod test_property {
 	use crate::events::object::{Property, PropertyChangeEvent};
 	use crate::events::{EventBody, EventBodyOwned};
-	use crate::{ObjectRef, Role};
+	use crate::{NonNullObjectRef, ObjectRef, Role};
 
-	static TEST_OBJECT_REF: &ObjectRef =
-		&ObjectRef::from_static_str_unchecked(":0.0", "/org/a11y/atspi/test/path");
+	static NON_NULL_TEST_OBJECT: &NonNullObjectRef =
+		&NonNullObjectRef::from_static_str_unchecked(":0.0", "/org/a11y/atspi/test/path");
 
 	macro_rules! property_subtype_test {
 		($name:ident, $key:expr, $prop:path, $val:expr) => {
@@ -255,7 +253,7 @@ mod test_property {
 			fn $name() {
 				let prop = $prop($val);
 				let prop_ev = PropertyChangeEvent {
-					item: TEST_OBJECT_REF.clone().into(),
+					item: NON_NULL_TEST_OBJECT.clone().into(),
 					property: $key.to_string(),
 					value: prop.clone(),
 				};
@@ -328,29 +326,32 @@ mod test_property {
 ///
 /// 1. due to a re-draw on a window whose size has changed and dynamically adjusted said item's visual size, or
 /// 2. content within the bounds of said item has changed to change its size.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct BoundsChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct BoundsChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(BoundsChangedEvent);
+impl_event_type_properties_for_event!(BoundsChangedEvent<'_>);
 
 /// A link has been selected.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct LinkSelectedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct LinkSelectedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(LinkSelectedEvent);
+impl_event_type_properties_for_event!(LinkSelectedEvent<'_>);
 
 /// A state of an object has been modified.
 /// A [`State`] can be added or removed from any [`crate::ObjectRef`].
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct StateChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct StateChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	/// The state to be enabled/disabled.
 	pub state: State,
 	/// Whether the state was enabled or disabled.
@@ -358,7 +359,7 @@ pub struct StateChangedEvent {
 	pub enabled: bool,
 }
 
-impl_event_type_properties_for_event!(StateChangedEvent);
+impl_event_type_properties_for_event!(StateChangedEvent<'_>);
 
 mod i32_bool_conversion {
 	use serde::{Deserialize, Deserializer, Serializer};
@@ -387,10 +388,11 @@ mod i32_bool_conversion {
 }
 
 /// A child of `item` has been added or removed.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ChildrenChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ChildrenChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// Index to remove from/add to.
@@ -399,156 +401,171 @@ pub struct ChildrenChangedEvent {
 	pub child: ObjectRefOwned,
 }
 
-impl_event_type_properties_for_event!(ChildrenChangedEvent);
+impl_event_type_properties_for_event!(ChildrenChangedEvent<'_>);
 
 /// A change in whether a particular item is visible or invisible (but still present).
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct VisibleDataChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct VisibleDataChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(VisibleDataChangedEvent);
+impl_event_type_properties_for_event!(VisibleDataChangedEvent<'_>);
 
 /// The selection of this item has changed.
 /// For example: when a selection from a series of checkboxes is changed, this will change the state of the child, _and_ cause a [`SelectionChangedEvent`] on the parent.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct SelectionChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct SelectionChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(SelectionChangedEvent);
+impl_event_type_properties_for_event!(SelectionChangedEvent<'_>);
 
 /// An event sent when the method of selecting items in a list/set of options changes.
 /// Also see: <https://docs.gtk.org/gtk4//method.GridView.set_model.html>
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ModelChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ModelChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(ModelChangedEvent);
+impl_event_type_properties_for_event!(ModelChangedEvent<'_>);
 
 /// An event fired when the focus has moved within a tree.
 /// The parent: `item` and descendant (may not be a direct child): `descebdant` are both referenced for convenience.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ActiveDescendantChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ActiveDescendantChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	/// The descendant which is now the active one.
 	pub descendant: ObjectRefOwned,
 }
 
-impl_event_type_properties_for_event!(ActiveDescendantChangedEvent);
+impl_event_type_properties_for_event!(ActiveDescendantChangedEvent<'_>);
 
 /// An announcement with a defined text string and an [ARIA politeness level](https://www.w3.org/TR/2009/WD-wai-aria-20091215/states_and_properties#aria-live).
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct AnnouncementEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct AnnouncementEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	/// Text of the announcement.
 	pub text: String,
 	/// Politeness level.
 	pub live: crate::Politeness,
 }
 
-impl_event_type_properties_for_event!(AnnouncementEvent);
+impl_event_type_properties_for_event!(AnnouncementEvent<'_>);
 
 /// Signal that some attribute of an object (usually styling) has changed.
 /// This event does not encode _what_ has changed about the attributes, merely that they have
 /// changed.
 ///
 /// To query the updated information, use `atspi_proxies::AccessibleProxy`'s `get_attribute` method.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct AttributesChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct AttributesChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(AttributesChangedEvent);
+impl_event_type_properties_for_event!(AttributesChangedEvent<'_>);
 
 /// A row has been added to a table.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct RowInsertedEvent {
-	/// The table which has had a row inserted.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct RowInsertedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(RowInsertedEvent);
+impl_event_type_properties_for_event!(RowInsertedEvent<'_>);
 
 /// A row has been moved within a table.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct RowReorderedEvent {
-	/// The table which has had a row re-ordered.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct RowReorderedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(RowReorderedEvent);
+impl_event_type_properties_for_event!(RowReorderedEvent<'_>);
 
 /// A row has been deleted from a table.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct RowDeletedEvent {
-	/// The table which has had a row removed.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct RowDeletedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(RowDeletedEvent);
+impl_event_type_properties_for_event!(RowDeletedEvent<'_>);
 
 /// A column has been added to a table.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ColumnInsertedEvent {
-	/// The table which has had a column inserted.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ColumnInsertedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(ColumnInsertedEvent);
+impl_event_type_properties_for_event!(ColumnInsertedEvent<'_>);
 
 /// A column has been re-ordered within a table.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ColumnReorderedEvent {
-	/// The table which has had a column re-ordered.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ColumnReorderedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(ColumnReorderedEvent);
+impl_event_type_properties_for_event!(ColumnReorderedEvent<'_>);
 
 /// A column has been removed from a table.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ColumnDeletedEvent {
-	/// The table which has had a column removed.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ColumnDeletedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(ColumnDeletedEvent);
+impl_event_type_properties_for_event!(ColumnDeletedEvent<'_>);
 
 /// The bounds of a piece of text have changed.
 /// This event does _not_ specify what the new bounds are; it is only to notify an AT that the bounds have changed.
 /// To query information about the new state of the selection, use `atspi_proxies::TextProxy`'s `get_bounded_ranges` function.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct TextBoundsChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct TextBoundsChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(TextBoundsChangedEvent);
+impl_event_type_properties_for_event!(TextBoundsChangedEvent<'_>);
 
 /// The user's selection of a piece of text has changed.
 /// This event does _not_ specify what the new selection is, nor its indecies; it is only to notify an AT that the selection has changed.
 /// To query information about the new state of the selection, use `atspi_proxies::TextProxy`'s methods.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct TextSelectionChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct TextSelectionChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(TextSelectionChangedEvent);
+impl_event_type_properties_for_event!(TextSelectionChangedEvent<'_>);
 
 /// Text has changed within the UI element `item`.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct TextChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct TextChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	/// The [`crate::Operation`] being performed.
 	pub operation: crate::Operation,
 	/// starting index of the insertion/deletion
@@ -566,24 +583,26 @@ pub struct TextChangedEvent {
 	pub text: String,
 }
 
-impl_event_type_properties_for_event!(TextChangedEvent);
+impl_event_type_properties_for_event!(TextChangedEvent<'_>);
 
 /// Signal that some attributes about the text (usually styling) have changed.
 /// This event does not encode _what_ has changed about the attributes, merely that they have
 /// changed.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct TextAttributesChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct TextAttributesChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(TextAttributesChangedEvent);
+impl_event_type_properties_for_event!(TextAttributesChangedEvent<'_>);
 
 /// The caret of the user also known as a cursor (not to be confused with mouse pointer) has changed position.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct TextCaretMovedEvent {
-	/// The object on which the caret has been moved on.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct TextCaretMovedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	/// New position of the caret.
 	/// NOTE: this provide the Unicode index (not the byte index) and therefore when referencing
 	/// locations in a string, you should be using the [`std::str::Chars`] iterator, and not use
@@ -593,10 +612,10 @@ pub struct TextCaretMovedEvent {
 	pub position: i32,
 }
 
-impl_event_type_properties_for_event!(TextCaretMovedEvent);
+impl_event_type_properties_for_event!(TextCaretMovedEvent<'_>);
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	PropertyChangeEvent,
+	PropertyChangeEvent<'_>,
 	"PropertyChange",
 	"org.a11y.atspi.Event.Object",
 	"object:property-change",
@@ -604,20 +623,26 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for PropertyChangeEvent {
-	type Body<'b> = EventBody<'b>;
+impl<'a> MessageConversion<'a> for PropertyChangeEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'_>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		let property: String = body.take_kind();
 		let value: Property = body.try_into()?;
-		Ok(Self { item: item.into(), property, value })
+		Ok(Self { item: item.into_owned(), property, value })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -627,7 +652,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	BoundsChangedEvent,
+	BoundsChangedEvent<'_>,
 	"BoundsChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:bounds-changed",
@@ -635,7 +660,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	LinkSelectedEvent,
+	LinkSelectedEvent<'_>,
 	"LinkSelected",
 	"org.a11y.atspi.Event.Object",
 	"object:link-selected",
@@ -643,7 +668,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	StateChangedEvent,
+	StateChangedEvent<'_>,
 	"StateChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:state-changed",
@@ -651,18 +676,24 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for StateChangedEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for StateChangedEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'a>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
 		let body: Self::Body<'_> = body.deserialize_unchecked()?;
-		Ok(Self { item: item.into(), state: body.kind().into(), enabled: body.detail1() > 0 })
+		Ok(Self { item, state: body.kind().into(), enabled: body.detail1() > 0 })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -672,7 +703,7 @@ impl MessageConversion<'_> for StateChangedEvent {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ChildrenChangedEvent,
+	ChildrenChangedEvent<'_>,
 	"ChildrenChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:children-changed",
@@ -680,13 +711,22 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for ChildrenChangedEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for ChildrenChangedEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'_>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		// Needs `traits::MessageConversion::from_message_unchecked_parts` to borrow `DBusBody`
+		// to achieve zero-copy. Without that borrow, DBusBody is put on the stack for
+		// this method and dropped at the end.
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item: item.into(),
+			item: item.into_owned(),
 			operation: body.kind().parse()?,
 			index_in_parent: body.detail1(),
 			child: body.take_any_data().try_into()?,
@@ -694,9 +734,9 @@ impl MessageConversion<'_> for ChildrenChangedEvent {
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -705,7 +745,7 @@ impl MessageConversion<'_> for ChildrenChangedEvent {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	VisibleDataChangedEvent,
+	VisibleDataChangedEvent<'_>,
 	"VisibleDataChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:visible-data-changed",
@@ -713,7 +753,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	SelectionChangedEvent,
+	SelectionChangedEvent<'_>,
 	"SelectionChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:selection-changed",
@@ -721,7 +761,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ModelChangedEvent,
+	ModelChangedEvent<'_>,
 	"ModelChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:model-changed",
@@ -729,7 +769,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ActiveDescendantChangedEvent,
+	ActiveDescendantChangedEvent<'_>,
 	"ActiveDescendantChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:active-descendant-changed",
@@ -737,18 +777,27 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for ActiveDescendantChangedEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for ActiveDescendantChangedEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'_>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		// Needs `traits::MessageConversion::from_message_unchecked_parts` to borrow `DBusBody`
+		// to achieve zero-copy. Without that borrow, DBusBody is put on the stack for
+		// this method and dropped at the end.
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item: item.into(), descendant: body.take_any_data().try_into()? })
+		Ok(Self { item: item.into_owned(), descendant: body.take_any_data().try_into()? })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -757,7 +806,7 @@ impl MessageConversion<'_> for ActiveDescendantChangedEvent {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	AnnouncementEvent,
+	AnnouncementEvent<'_>,
 	"Announcement",
 	"org.a11y.atspi.Event.Object",
 	"object:announcement",
@@ -765,13 +814,22 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for AnnouncementEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for AnnouncementEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'_>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		// Needs `traits::MessageConversion::from_message_unchecked_parts` to borrow `DBusBody`
+		// to achieve zero-copy. Without that borrow, DBusBody is put on the stack for
+		// this method and dropped at the end.
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item: item.into(),
+			item: item.into_owned(),
 			text: body
 				.take_any_data()
 				.try_into()
@@ -781,9 +839,9 @@ impl MessageConversion<'_> for AnnouncementEvent {
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -792,7 +850,7 @@ impl MessageConversion<'_> for AnnouncementEvent {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	AttributesChangedEvent,
+	AttributesChangedEvent<'_>,
 	"AttributesChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:attributes-changed",
@@ -800,7 +858,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	RowInsertedEvent,
+	RowInsertedEvent<'_>,
 	"RowInserted",
 	"org.a11y.atspi.Event.Object",
 	"object:row-inserted",
@@ -808,7 +866,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	RowReorderedEvent,
+	RowReorderedEvent<'_>,
 	"RowReordered",
 	"org.a11y.atspi.Event.Object",
 	"object:row-reordered",
@@ -816,7 +874,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	RowDeletedEvent,
+	RowDeletedEvent<'_>,
 	"RowDeleted",
 	"org.a11y.atspi.Event.Object",
 	"object:row-deleted",
@@ -824,7 +882,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ColumnInsertedEvent,
+	ColumnInsertedEvent<'_>,
 	"ColumnInserted",
 	"org.a11y.atspi.Event.Object",
 	"object:column-inserted",
@@ -832,7 +890,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ColumnReorderedEvent,
+	ColumnReorderedEvent<'_>,
 	"ColumnReordered",
 	"org.a11y.atspi.Event.Object",
 	"object:column-reordered",
@@ -840,7 +898,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ColumnDeletedEvent,
+	ColumnDeletedEvent<'_>,
 	"ColumnDeleted",
 	"org.a11y.atspi.Event.Object",
 	"object:column-deleted",
@@ -848,7 +906,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	TextBoundsChangedEvent,
+	TextBoundsChangedEvent<'_>,
 	"TextBoundsChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:text-bounds-changed",
@@ -856,7 +914,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	TextSelectionChangedEvent,
+	TextSelectionChangedEvent<'_>,
 	"TextSelectionChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:text-selection-changed",
@@ -864,7 +922,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	TextChangedEvent,
+	TextChangedEvent<'_>,
 	"TextChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:text-changed",
@@ -872,13 +930,19 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for TextChangedEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for TextChangedEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
-		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'_>,
+		dbus_body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		let mut body = dbus_body.deserialize_unchecked::<Self::Body<'_>>()?;
 		Ok(Self {
-			item: item.into(),
+			item: item.into_owned(),
 			operation: body.kind().parse()?,
 			start_pos: body.detail1(),
 			length: body.detail2(),
@@ -887,9 +951,9 @@ impl MessageConversion<'_> for TextChangedEvent {
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -898,7 +962,7 @@ impl MessageConversion<'_> for TextChangedEvent {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	TextAttributesChangedEvent,
+	TextAttributesChangedEvent<'_>,
 	"TextAttributesChanged",
 	"org.a11y.atspi.Event.Object",
 	"object:text-attributes-changed",
@@ -906,7 +970,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	TextCaretMovedEvent,
+	TextCaretMovedEvent<'_>,
 	"TextCaretMoved",
 	"org.a11y.atspi.Event.Object",
 	"object:text-caret-moved",
@@ -914,18 +978,26 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for TextCaretMovedEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for TextCaretMovedEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
-		let body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item: item.into(), position: body.detail1() })
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'a>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
+		// Deserialize the body with a short lived anonymous lifetime,
+		// we don't care about its name - we are only interested in a `Copy` type.
+		let body_data = body.deserialize_unchecked::<Self::Body<'_>>()?;
+		Ok(Self { item, position: body_data.detail1() })
 	}
 
-	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
-		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+	fn from_message_unchecked(msg: &'a zbus::Message, header: &Header) -> Result<Self, AtspiError> {
+		let item: NonNullObjectRef<'_> = header.try_into()?;
+		let dbus_body = msg.body();
+		Self::from_message_unchecked_parts(item.into_owned(), dbus_body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -933,18 +1005,18 @@ impl MessageConversion<'_> for TextCaretMovedEvent {
 	}
 }
 
-event_test_cases!(PropertyChangeEvent);
-impl_to_dbus_message!(PropertyChangeEvent);
-impl_from_dbus_message!(PropertyChangeEvent);
-impl_event_properties!(PropertyChangeEvent);
+event_test_cases!(PropertyChangeEvent, [property, value], Auto);
+impl_to_dbus_message!(PropertyChangeEvent<'_>);
+impl_from_dbus_message!(PropertyChangeEvent<'_>);
+impl_event_properties!(PropertyChangeEvent<'_>);
 
-impl From<PropertyChangeEvent> for EventBodyOwned {
+impl From<PropertyChangeEvent<'_>> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned { kind: event.property, any_data: event.value.into(), ..Default::default() }
 	}
 }
 
-impl From<&PropertyChangeEvent> for EventBodyOwned {
+impl From<&PropertyChangeEvent<'_>> for EventBodyOwned {
 	fn from(event: &PropertyChangeEvent) -> Self {
 		EventBodyOwned {
 			kind: event.property.clone(),
@@ -954,30 +1026,30 @@ impl From<&PropertyChangeEvent> for EventBodyOwned {
 	}
 }
 
-impl From<PropertyChangeEvent> for EventBody<'_> {
+impl From<PropertyChangeEvent<'_>> for EventBody<'_> {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned::from(event).into()
 	}
 }
 
 event_test_cases!(BoundsChangedEvent);
-impl_to_dbus_message!(BoundsChangedEvent);
-impl_from_dbus_message!(BoundsChangedEvent);
-impl_event_properties!(BoundsChangedEvent);
-impl_from_object_ref!(BoundsChangedEvent);
+impl_to_dbus_message!(BoundsChangedEvent<'_>);
+impl_from_dbus_message!(BoundsChangedEvent<'_>);
+impl_event_properties!(BoundsChangedEvent<'_>);
+impl_from_object_ref!(BoundsChangedEvent<'_>);
 
 event_test_cases!(LinkSelectedEvent);
-impl_to_dbus_message!(LinkSelectedEvent);
-impl_from_dbus_message!(LinkSelectedEvent);
-impl_event_properties!(LinkSelectedEvent);
-impl_from_object_ref!(LinkSelectedEvent);
+impl_to_dbus_message!(LinkSelectedEvent<'_>);
+impl_from_dbus_message!(LinkSelectedEvent<'_>);
+impl_event_properties!(LinkSelectedEvent<'_>);
+impl_from_object_ref!(LinkSelectedEvent<'_>);
 
-event_test_cases!(StateChangedEvent);
-impl_to_dbus_message!(StateChangedEvent);
-impl_from_dbus_message!(StateChangedEvent);
-impl_event_properties!(StateChangedEvent);
+event_test_cases!(StateChangedEvent, [state, enabled], Auto);
+impl_to_dbus_message!(StateChangedEvent<'_>);
+impl_from_dbus_message!(StateChangedEvent<'_>);
+impl_event_properties!(StateChangedEvent<'_>);
 
-impl From<StateChangedEvent> for EventBodyOwned {
+impl From<StateChangedEvent<'_>> for EventBodyOwned {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned {
 			kind: event.state.to_string(),
@@ -987,7 +1059,7 @@ impl From<StateChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl From<&StateChangedEvent> for EventBodyOwned {
+impl From<&StateChangedEvent<'_>> for EventBodyOwned {
 	fn from(event: &StateChangedEvent) -> Self {
 		EventBodyOwned {
 			kind: event.state.to_string(),
@@ -997,18 +1069,18 @@ impl From<&StateChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl From<StateChangedEvent> for EventBody<'_> {
+impl From<StateChangedEvent<'_>> for EventBody<'_> {
 	fn from(event: StateChangedEvent) -> Self {
 		EventBodyOwned::from(event).into()
 	}
 }
 
-event_test_cases!(ChildrenChangedEvent);
-impl_to_dbus_message!(ChildrenChangedEvent);
-impl_from_dbus_message!(ChildrenChangedEvent);
-impl_event_properties!(ChildrenChangedEvent);
+event_test_cases!(ChildrenChangedEvent, [operation, index_in_parent, child], Auto);
+impl_to_dbus_message!(ChildrenChangedEvent<'_>);
+impl_from_dbus_message!(ChildrenChangedEvent<'_>);
+impl_event_properties!(ChildrenChangedEvent<'_>);
 
-impl From<ChildrenChangedEvent> for EventBodyOwned {
+impl From<ChildrenChangedEvent<'_>> for EventBodyOwned {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
 			kind: event.operation.to_string(),
@@ -1025,7 +1097,7 @@ impl From<ChildrenChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl From<&ChildrenChangedEvent> for EventBodyOwned {
+impl From<&ChildrenChangedEvent<'_>> for EventBodyOwned {
 	fn from(event: &ChildrenChangedEvent) -> Self {
 		EventBodyOwned {
 			kind: event.operation.to_string(),
@@ -1042,35 +1114,36 @@ impl From<&ChildrenChangedEvent> for EventBodyOwned {
 	}
 }
 
-impl From<ChildrenChangedEvent> for EventBody<'_> {
+impl From<ChildrenChangedEvent<'_>> for EventBody<'_> {
 	fn from(event: ChildrenChangedEvent) -> Self {
 		EventBodyOwned::from(event).into()
 	}
 }
 
 event_test_cases!(VisibleDataChangedEvent);
-impl_to_dbus_message!(VisibleDataChangedEvent);
-impl_from_dbus_message!(VisibleDataChangedEvent);
-impl_event_properties!(VisibleDataChangedEvent);
-impl_from_object_ref!(VisibleDataChangedEvent);
+impl_to_dbus_message!(VisibleDataChangedEvent<'_>);
+impl_from_dbus_message!(VisibleDataChangedEvent<'_>);
+impl_event_properties!(VisibleDataChangedEvent<'_>);
+impl_from_object_ref!(VisibleDataChangedEvent<'_>);
 
 event_test_cases!(SelectionChangedEvent);
-impl_to_dbus_message!(SelectionChangedEvent);
-impl_from_dbus_message!(SelectionChangedEvent);
-impl_event_properties!(SelectionChangedEvent);
-impl_from_object_ref!(SelectionChangedEvent);
+impl_to_dbus_message!(SelectionChangedEvent<'_>);
+impl_from_dbus_message!(SelectionChangedEvent<'_>);
+impl_event_properties!(SelectionChangedEvent<'_>);
+impl_from_object_ref!(SelectionChangedEvent<'_>);
 
 event_test_cases!(ModelChangedEvent);
-impl_to_dbus_message!(ModelChangedEvent);
-impl_from_dbus_message!(ModelChangedEvent);
-impl_event_properties!(ModelChangedEvent);
-impl_from_object_ref!(ModelChangedEvent);
+impl_to_dbus_message!(ModelChangedEvent<'_>);
+impl_from_dbus_message!(ModelChangedEvent<'_>);
+impl_event_properties!(ModelChangedEvent<'_>);
+impl_from_object_ref!(ModelChangedEvent<'_>);
 
 event_test_cases!(ActiveDescendantChangedEvent);
-impl_to_dbus_message!(ActiveDescendantChangedEvent);
-impl_from_dbus_message!(ActiveDescendantChangedEvent);
-impl_event_properties!(ActiveDescendantChangedEvent);
-impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
+impl_to_dbus_message!(ActiveDescendantChangedEvent<'_>);
+impl_from_dbus_message!(ActiveDescendantChangedEvent<'_>);
+impl_event_properties!(ActiveDescendantChangedEvent<'_>);
+
+impl From<ActiveDescendantChangedEvent<'_>> for EventBodyOwned {
 	fn from(event: ActiveDescendantChangedEvent) -> Self {
 		EventBodyOwned {
 			// `OwnedValue` is constructed from the `crate::ObjectRef`
@@ -1084,11 +1157,11 @@ impl From<ActiveDescendantChangedEvent> for EventBodyOwned {
 	}
 }
 
-event_test_cases!(AnnouncementEvent);
-impl_to_dbus_message!(AnnouncementEvent);
-impl_from_dbus_message!(AnnouncementEvent);
-impl_event_properties!(AnnouncementEvent);
-impl From<AnnouncementEvent> for EventBodyOwned {
+event_test_cases!(AnnouncementEvent, [text, live], Auto);
+impl_to_dbus_message!(AnnouncementEvent<'_>);
+impl_from_dbus_message!(AnnouncementEvent<'_>);
+impl_event_properties!(AnnouncementEvent<'_>);
+impl From<AnnouncementEvent<'_>> for EventBodyOwned {
 	fn from(event: AnnouncementEvent) -> Self {
 		EventBodyOwned {
 			detail1: event.live as i32,
@@ -1103,69 +1176,65 @@ impl From<AnnouncementEvent> for EventBodyOwned {
 }
 
 event_test_cases!(AttributesChangedEvent);
-impl_to_dbus_message!(AttributesChangedEvent);
-impl_from_dbus_message!(AttributesChangedEvent);
-impl_event_properties!(AttributesChangedEvent);
-impl_from_object_ref!(AttributesChangedEvent);
+impl_to_dbus_message!(AttributesChangedEvent<'_>);
+impl_from_dbus_message!(AttributesChangedEvent<'_>);
+impl_event_properties!(AttributesChangedEvent<'_>);
+impl_from_object_ref!(AttributesChangedEvent<'_>);
 
 event_test_cases!(RowInsertedEvent);
-impl_to_dbus_message!(RowInsertedEvent);
-impl_from_dbus_message!(RowInsertedEvent);
-impl_event_properties!(RowInsertedEvent);
-impl_from_object_ref!(RowInsertedEvent);
+impl_to_dbus_message!(RowInsertedEvent<'_>);
+impl_from_dbus_message!(RowInsertedEvent<'_>);
+impl_event_properties!(RowInsertedEvent<'_>);
+impl_from_object_ref!(RowInsertedEvent<'_>);
 
 event_test_cases!(RowReorderedEvent);
-impl_to_dbus_message!(RowReorderedEvent);
-impl_from_dbus_message!(RowReorderedEvent);
-impl_event_properties!(RowReorderedEvent);
-impl_from_object_ref!(RowReorderedEvent);
+impl_to_dbus_message!(RowReorderedEvent<'_>);
+impl_from_dbus_message!(RowReorderedEvent<'_>);
+impl_event_properties!(RowReorderedEvent<'_>);
+impl_from_object_ref!(RowReorderedEvent<'_>);
 
 event_test_cases!(RowDeletedEvent);
-impl_to_dbus_message!(RowDeletedEvent);
-impl_from_dbus_message!(RowDeletedEvent);
-impl_event_properties!(RowDeletedEvent);
-impl_from_object_ref!(RowDeletedEvent);
+impl_to_dbus_message!(RowDeletedEvent<'_>);
+impl_from_dbus_message!(RowDeletedEvent<'_>);
+impl_event_properties!(RowDeletedEvent<'_>);
+impl_from_object_ref!(RowDeletedEvent<'_>);
 
 event_test_cases!(ColumnInsertedEvent);
-impl_to_dbus_message!(ColumnInsertedEvent);
-impl_from_dbus_message!(ColumnInsertedEvent);
-impl_event_properties!(ColumnInsertedEvent);
-impl_from_object_ref!(ColumnInsertedEvent);
+impl_to_dbus_message!(ColumnInsertedEvent<'_>);
+impl_from_dbus_message!(ColumnInsertedEvent<'_>);
+impl_event_properties!(ColumnInsertedEvent<'_>);
+impl_from_object_ref!(ColumnInsertedEvent<'_>);
 
 event_test_cases!(ColumnReorderedEvent);
-impl_to_dbus_message!(ColumnReorderedEvent);
-impl_from_dbus_message!(ColumnReorderedEvent);
-impl_event_properties!(ColumnReorderedEvent);
-impl_from_object_ref!(ColumnReorderedEvent);
+impl_to_dbus_message!(ColumnReorderedEvent<'_>);
+impl_from_dbus_message!(ColumnReorderedEvent<'_>);
+impl_event_properties!(ColumnReorderedEvent<'_>);
+impl_from_object_ref!(ColumnReorderedEvent<'_>);
 
 event_test_cases!(ColumnDeletedEvent);
-impl_to_dbus_message!(ColumnDeletedEvent);
-impl_from_dbus_message!(ColumnDeletedEvent);
-impl_event_properties!(ColumnDeletedEvent);
-impl_from_object_ref!(ColumnDeletedEvent);
+impl_to_dbus_message!(ColumnDeletedEvent<'_>);
+impl_from_dbus_message!(ColumnDeletedEvent<'_>);
+impl_event_properties!(ColumnDeletedEvent<'_>);
+impl_from_object_ref!(ColumnDeletedEvent<'_>);
 
 event_test_cases!(TextBoundsChangedEvent);
-impl_to_dbus_message!(TextBoundsChangedEvent);
-impl_from_dbus_message!(TextBoundsChangedEvent);
-impl_event_properties!(TextBoundsChangedEvent);
-impl_from_object_ref!(TextBoundsChangedEvent);
+impl_to_dbus_message!(TextBoundsChangedEvent<'_>);
+impl_from_dbus_message!(TextBoundsChangedEvent<'_>);
+impl_event_properties!(TextBoundsChangedEvent<'_>);
+impl_from_object_ref!(TextBoundsChangedEvent<'_>);
 
 event_test_cases!(TextSelectionChangedEvent);
-impl_to_dbus_message!(TextSelectionChangedEvent);
-impl_from_dbus_message!(TextSelectionChangedEvent);
-impl_event_properties!(TextSelectionChangedEvent);
-impl_from_object_ref!(TextSelectionChangedEvent);
+impl_to_dbus_message!(TextSelectionChangedEvent<'_>);
+impl_from_dbus_message!(TextSelectionChangedEvent<'_>);
+impl_event_properties!(TextSelectionChangedEvent<'_>);
+impl_from_object_ref!(TextSelectionChangedEvent<'_>);
 
-event_test_cases!(TextChangedEvent);
+event_test_cases!(TextChangedEvent, [operation, start_pos, length, text], Auto);
+impl_to_dbus_message!(TextChangedEvent<'_>);
+impl_from_dbus_message!(TextChangedEvent<'_>);
+impl_event_properties!(TextChangedEvent<'_>);
 
-assert_impl_all!(TextChangedEvent:Clone,std::fmt::Debug,serde::Serialize,serde::Deserialize<'static>,Default,PartialEq,Eq,std::hash::Hash,crate::EventProperties,crate::EventTypeProperties);
-#[cfg(feature = "zbus")]
-assert_impl_all!(zbus::Message:TryFrom<TextChangedEvent>);
-
-impl_to_dbus_message!(TextChangedEvent);
-impl_from_dbus_message!(TextChangedEvent);
-impl_event_properties!(TextChangedEvent);
-impl From<TextChangedEvent> for EventBodyOwned {
+impl From<TextChangedEvent<'_>> for EventBodyOwned {
 	fn from(event: TextChangedEvent) -> Self {
 		EventBodyOwned {
 			kind: event.operation.to_string(),
@@ -1182,56 +1251,85 @@ impl From<TextChangedEvent> for EventBodyOwned {
 }
 
 event_test_cases!(TextAttributesChangedEvent);
-impl_to_dbus_message!(TextAttributesChangedEvent);
-impl_from_dbus_message!(TextAttributesChangedEvent);
-impl_event_properties!(TextAttributesChangedEvent);
-impl_from_object_ref!(TextAttributesChangedEvent);
+impl_to_dbus_message!(TextAttributesChangedEvent<'_>);
+impl_from_dbus_message!(TextAttributesChangedEvent<'_>);
+impl_event_properties!(TextAttributesChangedEvent<'_>);
+impl_from_object_ref!(TextAttributesChangedEvent<'_>);
 
-event_test_cases!(TextCaretMovedEvent);
-impl_to_dbus_message!(TextCaretMovedEvent);
-impl_from_dbus_message!(TextCaretMovedEvent);
-impl_event_properties!(TextCaretMovedEvent);
-impl From<TextCaretMovedEvent> for EventBodyOwned {
+event_test_cases!(TextCaretMovedEvent, [position], Auto);
+impl_to_dbus_message!(TextCaretMovedEvent<'_>);
+impl_from_dbus_message!(TextCaretMovedEvent<'_>);
+impl_event_properties!(TextCaretMovedEvent<'_>);
+impl From<TextCaretMovedEvent<'_>> for EventBodyOwned {
 	fn from(event: TextCaretMovedEvent) -> Self {
 		EventBodyOwned { detail1: event.position, ..Default::default() }
 	}
 }
 
-impl_msg_conversion_ext_for_target_type!(PropertyChangeEvent);
-impl_msg_conversion_ext_for_target_type!(BoundsChangedEvent);
-impl_msg_conversion_ext_for_target_type!(LinkSelectedEvent);
-impl_msg_conversion_ext_for_target_type!(StateChangedEvent);
-impl_msg_conversion_ext_for_target_type!(ChildrenChangedEvent);
-impl_msg_conversion_ext_for_target_type!(VisibleDataChangedEvent);
-impl_msg_conversion_ext_for_target_type!(SelectionChangedEvent);
-impl_msg_conversion_ext_for_target_type!(ModelChangedEvent);
-impl_msg_conversion_ext_for_target_type!(ActiveDescendantChangedEvent);
-impl_msg_conversion_ext_for_target_type!(AnnouncementEvent);
-impl_msg_conversion_ext_for_target_type!(AttributesChangedEvent);
-impl_msg_conversion_ext_for_target_type!(RowInsertedEvent);
-impl_msg_conversion_ext_for_target_type!(RowReorderedEvent);
-impl_msg_conversion_ext_for_target_type!(RowDeletedEvent);
-impl_msg_conversion_ext_for_target_type!(ColumnInsertedEvent);
-impl_msg_conversion_ext_for_target_type!(ColumnReorderedEvent);
-impl_msg_conversion_ext_for_target_type!(ColumnDeletedEvent);
-impl_msg_conversion_ext_for_target_type!(TextBoundsChangedEvent);
-impl_msg_conversion_ext_for_target_type!(TextSelectionChangedEvent);
-impl_msg_conversion_ext_for_target_type!(TextChangedEvent);
-impl_msg_conversion_ext_for_target_type!(TextAttributesChangedEvent);
-impl_msg_conversion_ext_for_target_type!(TextCaretMovedEvent);
+impl_msg_conversion_ext_for_target_type!(
+	AnnouncementEvent<'_>,
+	ActiveDescendantChangedEvent<'_>,
+	PropertyChangeEvent<'_>,
+	BoundsChangedEvent<'_>,
+	LinkSelectedEvent<'_>,
+	StateChangedEvent<'_>,
+	ChildrenChangedEvent<'_>,
+	VisibleDataChangedEvent<'_>,
+	SelectionChangedEvent<'_>,
+	ModelChangedEvent<'_>,
+	AttributesChangedEvent<'_>,
+	RowInsertedEvent<'_>,
+	RowReorderedEvent<'_>,
+	RowDeletedEvent<'_>,
+	ColumnInsertedEvent<'_>,
+	ColumnReorderedEvent<'_>,
+	ColumnDeletedEvent<'_>,
+	TextBoundsChangedEvent<'_>,
+	TextSelectionChangedEvent<'_>,
+	TextChangedEvent<'_>,
+	TextAttributesChangedEvent<'_>,
+	TextCaretMovedEvent<'_>,
+);
 
-impl_msg_conversion_for_types_built_from_object_ref!(BoundsChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(LinkSelectedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(VisibleDataChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(SelectionChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ModelChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(AttributesChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(RowInsertedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(RowReorderedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(RowDeletedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ColumnInsertedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ColumnReorderedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ColumnDeletedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(TextBoundsChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(TextSelectionChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(TextAttributesChangedEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(
+	BoundsChangedEvent<'_>,
+	LinkSelectedEvent<'_>,
+	VisibleDataChangedEvent<'_>,
+	SelectionChangedEvent<'_>,
+	ModelChangedEvent<'_>,
+	AttributesChangedEvent<'_>,
+	RowInsertedEvent<'_>,
+	RowReorderedEvent<'_>,
+	RowDeletedEvent<'_>,
+	ColumnInsertedEvent<'_>,
+	ColumnReorderedEvent<'_>,
+	ColumnDeletedEvent<'_>,
+	TextBoundsChangedEvent<'_>,
+	TextSelectionChangedEvent<'_>,
+	TextAttributesChangedEvent<'_>,
+);
+
+impl_test_event!(
+	BoundsChangedEvent<'_>,
+	LinkSelectedEvent<'_>,
+	VisibleDataChangedEvent<'_>,
+	SelectionChangedEvent<'_>,
+	ModelChangedEvent<'_>,
+	AttributesChangedEvent<'_>,
+	RowInsertedEvent<'_>,
+	RowReorderedEvent<'_>,
+	RowDeletedEvent<'_>,
+	ColumnInsertedEvent<'_>,
+	ColumnReorderedEvent<'_>,
+	ColumnDeletedEvent<'_>,
+	TextBoundsChangedEvent<'_>,
+	TextSelectionChangedEvent<'_>,
+	TextAttributesChangedEvent<'_>,
+	AnnouncementEvent<'_> { text, live },
+	ActiveDescendantChangedEvent<'_> { descendant },
+	TextCaretMovedEvent<'_> { position },
+	TextChangedEvent<'_> { operation, start_pos, length, text },
+	PropertyChangeEvent<'_> { property, value },
+	StateChangedEvent<'_> { state, enabled },
+	ChildrenChangedEvent<'_> { operation, index_in_parent, child },
+);

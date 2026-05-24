@@ -1,67 +1,80 @@
 use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
-use crate::object_ref::ObjectRefOwned;
 #[cfg(feature = "zbus")]
 use crate::EventProperties;
+use crate::NonNullObjectRef;
 
 #[cfg(feature = "zbus")]
 use crate::AtspiError;
-#[cfg(feature = "zbus")]
-use zbus::message::Header;
 
 /// An event triggered by the completion of a document load action.
 /// For example: a web page has finished loading its initial payload, or
 /// `LibreOffice` has loaded a document from disk.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct LoadCompleteEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct LoadCompleteEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
 /// An event triggered by a reloading of a document.
 /// For example: pressing F5, or `Control + r` will reload a page in a web browser.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ReloadEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ReloadEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
 /// An event triggered by the cancelling of a document load.
 /// For example: during the loading of a large web page, a user may press `Escape` to stop loading the page.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct LoadStoppedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct LoadStoppedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ContentChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ContentChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct AttributesChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct AttributesChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
 /// The focused page has changed.
 ///
 /// This event is usually sent only by document readers, signaling
-/// that the _physical page equivalent is now different.
+/// that the physical page equivalent is now different.
 /// This event does not encode _which_ page is the new one, only that a new page is now the primary
 /// one.
 ///
 /// See `atspi_proxies::document::DocumentProxy::current_page_number` to actively find the
 /// page number.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct PageChangedEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct PageChangedEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
+impl_test_event!(
+	LoadCompleteEvent<'_>,
+	ReloadEvent<'_>,
+	LoadStoppedEvent<'_>,
+	PageChangedEvent<'_>,
+	ContentChangedEvent<'_>,
+	AttributesChangedEvent<'_>
+);
+
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	LoadCompleteEvent,
+	LoadCompleteEvent<'_>,
 	"LoadComplete",
 	"org.a11y.atspi.Event.Document",
 	"document:load-complete",
@@ -69,7 +82,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ReloadEvent,
+	ReloadEvent<'_>,
 	"Reload",
 	"org.a11y.atspi.Event.Document",
 	"document:reload",
@@ -77,7 +90,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	LoadStoppedEvent,
+	LoadStoppedEvent<'_>,
 	"LoadStopped",
 	"org.a11y.atspi.Event.Document",
 	"document:load-stopped",
@@ -86,7 +99,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 
 // TODO confirm registry event string, not found in grep at at-spi2-core
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ContentChangedEvent,
+	ContentChangedEvent<'_>,
 	"ContentChanged",
 	"org.a11y.atspi.Event.Document",
 	"document:content-changed",
@@ -94,7 +107,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	AttributesChangedEvent,
+	AttributesChangedEvent<'_>,
 	"AttributesChanged",
 	"org.a11y.atspi.Event.Document",
 	"document:attributes-changed",
@@ -102,65 +115,69 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	PageChangedEvent,
+	PageChangedEvent<'_>,
 	"PageChanged",
 	"org.a11y.atspi.Event.Document",
 	"document:page-changed",
 	"type='signal',interface='org.a11y.atspi.Event.Document',member='PageChanged'"
 );
 
-impl_event_type_properties_for_event!(LoadCompleteEvent);
-
+impl_event_type_properties_for_event!(LoadCompleteEvent<'_>);
 event_test_cases!(LoadCompleteEvent);
-impl_to_dbus_message!(LoadCompleteEvent);
-impl_from_dbus_message!(LoadCompleteEvent);
-impl_event_properties!(LoadCompleteEvent);
-impl_from_object_ref!(LoadCompleteEvent);
+impl_to_dbus_message!(LoadCompleteEvent<'_>);
+impl_event_properties!(LoadCompleteEvent<'_>);
+impl_from_dbus_message!(LoadCompleteEvent<'_>);
+impl_from_object_ref!(LoadCompleteEvent<'_>);
 
-impl_event_type_properties_for_event!(ReloadEvent);
+impl_event_type_properties_for_event!(ReloadEvent<'_>);
 event_test_cases!(ReloadEvent);
-impl_to_dbus_message!(ReloadEvent);
-impl_from_dbus_message!(ReloadEvent);
-impl_event_properties!(ReloadEvent);
-impl_from_object_ref!(ReloadEvent);
+impl_to_dbus_message!(ReloadEvent<'_>);
+impl_from_dbus_message!(ReloadEvent<'_>);
+impl_event_properties!(ReloadEvent<'_>);
+impl_from_object_ref!(ReloadEvent<'_>);
 
-impl_event_type_properties_for_event!(LoadStoppedEvent);
+impl_event_type_properties_for_event!(LoadStoppedEvent<'_>);
 event_test_cases!(LoadStoppedEvent);
-impl_to_dbus_message!(LoadStoppedEvent);
-impl_from_dbus_message!(LoadStoppedEvent);
-impl_event_properties!(LoadStoppedEvent);
-impl_from_object_ref!(LoadStoppedEvent);
+impl_to_dbus_message!(LoadStoppedEvent<'_>);
+impl_from_dbus_message!(LoadStoppedEvent<'_>);
+impl_event_properties!(LoadStoppedEvent<'_>);
+impl_from_object_ref!(LoadStoppedEvent<'_>);
 
-impl_event_type_properties_for_event!(ContentChangedEvent);
+impl_event_type_properties_for_event!(ContentChangedEvent<'_>);
 event_test_cases!(ContentChangedEvent);
-impl_to_dbus_message!(ContentChangedEvent);
-impl_from_dbus_message!(ContentChangedEvent);
-impl_event_properties!(ContentChangedEvent);
-impl_from_object_ref!(ContentChangedEvent);
+impl_to_dbus_message!(ContentChangedEvent<'_>);
+impl_from_dbus_message!(ContentChangedEvent<'_>);
+impl_event_properties!(ContentChangedEvent<'_>);
+impl_from_object_ref!(ContentChangedEvent<'_>);
 
-impl_event_type_properties_for_event!(AttributesChangedEvent);
+impl_event_type_properties_for_event!(AttributesChangedEvent<'_>);
 event_test_cases!(AttributesChangedEvent);
-impl_to_dbus_message!(AttributesChangedEvent);
-impl_from_dbus_message!(AttributesChangedEvent);
-impl_event_properties!(AttributesChangedEvent);
-impl_from_object_ref!(AttributesChangedEvent);
+impl_to_dbus_message!(AttributesChangedEvent<'_>);
+impl_from_dbus_message!(AttributesChangedEvent<'_>);
+impl_event_properties!(AttributesChangedEvent<'_>);
+impl_from_object_ref!(AttributesChangedEvent<'_>);
 
-impl_event_type_properties_for_event!(PageChangedEvent);
+impl_event_type_properties_for_event!(PageChangedEvent<'_>);
 event_test_cases!(PageChangedEvent);
-impl_to_dbus_message!(PageChangedEvent);
-impl_from_dbus_message!(PageChangedEvent);
-impl_event_properties!(PageChangedEvent);
-impl_from_object_ref!(PageChangedEvent);
-impl_msg_conversion_ext_for_target_type!(LoadCompleteEvent);
-impl_msg_conversion_ext_for_target_type!(ReloadEvent);
-impl_msg_conversion_ext_for_target_type!(LoadStoppedEvent);
-impl_msg_conversion_ext_for_target_type!(ContentChangedEvent);
-impl_msg_conversion_ext_for_target_type!(AttributesChangedEvent);
-impl_msg_conversion_ext_for_target_type!(PageChangedEvent);
+impl_to_dbus_message!(PageChangedEvent<'_>);
+impl_from_dbus_message!(PageChangedEvent<'_>);
+impl_event_properties!(PageChangedEvent<'_>);
+impl_from_object_ref!(PageChangedEvent<'_>);
 
-impl_msg_conversion_for_types_built_from_object_ref!(LoadCompleteEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ReloadEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(LoadStoppedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ContentChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(AttributesChangedEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(PageChangedEvent);
+impl_msg_conversion_ext_for_target_type!(
+	LoadCompleteEvent<'_>,
+	ReloadEvent<'_>,
+	LoadStoppedEvent<'_>,
+	ContentChangedEvent<'_>,
+	AttributesChangedEvent<'_>,
+	PageChangedEvent<'_>,
+);
+
+impl_msg_conversion_for_types_built_from_object_ref!(
+	LoadCompleteEvent<'_>,
+	ReloadEvent<'_>,
+	LoadStoppedEvent<'_>,
+	ContentChangedEvent<'_>,
+	AttributesChangedEvent<'_>,
+	PageChangedEvent<'_>,
+);

@@ -7,175 +7,195 @@ use crate::events::MessageConversion;
 use crate::events::{
 	DBusInterface, DBusMatchRule, DBusMember, EventBodyOwned, RegistryEventString,
 };
-use crate::object_ref::ObjectRefOwned;
 #[cfg(feature = "zbus")]
-use crate::{EventProperties, ObjectRef};
+use crate::object_ref::NonNullObjectRef;
+#[cfg(feature = "zbus")]
+use crate::EventProperties;
 use serde::Deserialize;
 use serde::Serialize;
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct PropertyChangeEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct PropertyChangeEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 	pub property: String,
 }
 
-impl_event_type_properties_for_event!(PropertyChangeEvent);
+impl_event_type_properties_for_event!(PropertyChangeEvent<'_>);
 
 /// The window has been minimized.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct MinimizeEvent {
-	/// The application which has been minimized.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct MinimizeEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(MinimizeEvent);
+impl_event_type_properties_for_event!(MinimizeEvent<'_>);
 
 /// The window has been maximized.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct MaximizeEvent {
-	/// The application which has been maximized.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct MaximizeEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(MaximizeEvent);
+impl_event_type_properties_for_event!(MaximizeEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct RestoreEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct RestoreEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(RestoreEvent);
+impl_event_type_properties_for_event!(RestoreEvent<'_>);
 
 /// A window has been closed.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct CloseEvent {
-	/// The application which has been closed.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct CloseEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(CloseEvent);
+impl_event_type_properties_for_event!(CloseEvent<'_>);
 
 /// A new window has been created.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct CreateEvent {
-	/// An application to query for additional events from.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct CreateEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(CreateEvent);
+impl_event_type_properties_for_event!(CreateEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct ReparentEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct ReparentEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(ReparentEvent);
+impl_event_type_properties_for_event!(ReparentEvent<'_>);
 
 /// A new virtual desktop has been created.
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
-pub struct DesktopCreateEvent {
-	/// A reference to a new desktop
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash)]
+pub struct DesktopCreateEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(DesktopCreateEvent);
+impl_event_type_properties_for_event!(DesktopCreateEvent<'_>);
 
 /// A virtual desktop has been deleted.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct DesktopDestroyEvent {
-	/// A reference to the destroyed desktop.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct DesktopDestroyEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(DesktopDestroyEvent);
+impl_event_type_properties_for_event!(DesktopDestroyEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct DestroyEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct DestroyEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
-impl_event_type_properties_for_event!(DestroyEvent);
+impl_event_type_properties_for_event!(DestroyEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct ActivateEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
-}
-
-impl_event_type_properties_for_event!(ActivateEvent);
-
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct DeactivateEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct ActivateEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(DeactivateEvent);
+impl_event_type_properties_for_event!(ActivateEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct RaiseEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct DeactivateEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(RaiseEvent);
+impl_event_type_properties_for_event!(DeactivateEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct LowerEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct RaiseEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(LowerEvent);
+impl_event_type_properties_for_event!(RaiseEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct MoveEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct LowerEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(MoveEvent);
+impl_event_type_properties_for_event!(LowerEvent<'_>);
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct MoveEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
+}
+
+impl_event_type_properties_for_event!(MoveEvent<'_>);
 
 /// A window has been resized.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct ResizeEvent {
-	/// The application which has been resized.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct ResizeEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(ResizeEvent);
+impl_event_type_properties_for_event!(ResizeEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct ShadeEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct ShadeEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(ShadeEvent);
+impl_event_type_properties_for_event!(ShadeEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct UUshadeEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct UUshadeEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(UUshadeEvent);
+impl_event_type_properties_for_event!(UUshadeEvent<'_>);
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash, Default)]
-pub struct RestyleEvent {
-	/// The [`crate::ObjectRef`] which the event applies to.
-	pub item: ObjectRefOwned,
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Hash)]
+pub struct RestyleEvent<'a> {
+	/// The [`crate::NonNullObjectRef`] which the event applies to.
+	#[serde(borrow)]
+	pub item: NonNullObjectRef<'a>,
 }
 
-impl_event_type_properties_for_event!(RestyleEvent);
+impl_event_type_properties_for_event!(RestyleEvent<'_>);
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	PropertyChangeEvent,
+	PropertyChangeEvent<'_>,
 	"PropertyChange",
 	"org.a11y.atspi.Event.Window",
 	"window:property-change",
@@ -183,18 +203,24 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 #[cfg(feature = "zbus")]
-impl MessageConversion<'_> for PropertyChangeEvent {
-	type Body<'a> = EventBody<'a>;
+impl<'a> MessageConversion<'a> for PropertyChangeEvent<'a> {
+	type Body<'msg>
+		= EventBody<'msg>
+	where
+		Self: 'msg;
 
-	fn from_message_unchecked_parts(item: ObjectRef, body: DbusBody) -> Result<Self, AtspiError> {
+	fn from_message_unchecked_parts(
+		item: NonNullObjectRef<'_>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError> {
 		let mut body = body.deserialize_unchecked::<Self::Body<'_>>()?;
-		Ok(Self { item: item.into(), property: body.take_kind() })
+		Ok(Self { item: item.into_owned(), property: body.take_kind() })
 	}
 
 	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError> {
-		let item = header.try_into()?;
+		let item: NonNullObjectRef<'_> = header.try_into()?;
 		let body = msg.body();
-		Self::from_message_unchecked_parts(item, body)
+		Self::from_message_unchecked_parts(item.into_owned(), body)
 	}
 
 	fn body(&self) -> Self::Body<'_> {
@@ -203,7 +229,7 @@ impl MessageConversion<'_> for PropertyChangeEvent {
 }
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	MinimizeEvent,
+	MinimizeEvent<'_>,
 	"Minimize",
 	"org.a11y.atspi.Event.Window",
 	"window:minimize",
@@ -211,7 +237,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	MaximizeEvent,
+	MaximizeEvent<'_>,
 	"Maximize",
 	"org.a11y.atspi.Event.Window",
 	"window:maximize",
@@ -219,7 +245,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	RestoreEvent,
+	RestoreEvent<'_>,
 	"Restore",
 	"org.a11y.atspi.Event.Window",
 	"window:restore",
@@ -227,7 +253,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	CloseEvent,
+	CloseEvent<'_>,
 	"Close",
 	"org.a11y.atspi.Event.Window",
 	"window:close",
@@ -235,7 +261,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	CreateEvent,
+	CreateEvent<'_>,
 	"Create",
 	"org.a11y.atspi.Event.Window",
 	"window:create",
@@ -243,7 +269,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ReparentEvent,
+	ReparentEvent<'_>,
 	"Reparent",
 	"org.a11y.atspi.Event.Window",
 	"window:reparent",
@@ -251,7 +277,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	DesktopCreateEvent,
+	DesktopCreateEvent<'_>,
 	"DesktopCreate",
 	"org.a11y.atspi.Event.Window",
 	"window:desktop-create",
@@ -259,7 +285,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	DesktopDestroyEvent,
+	DesktopDestroyEvent<'_>,
 	"DesktopDestroy",
 	"org.a11y.atspi.Event.Window",
 	"window:desktop-destroy",
@@ -267,7 +293,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	DestroyEvent,
+	DestroyEvent<'_>,
 	"Destroy",
 	"org.a11y.atspi.Event.Window",
 	"window:destroy",
@@ -275,7 +301,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ActivateEvent,
+	ActivateEvent<'_>,
 	"Activate",
 	"org.a11y.atspi.Event.Window",
 	"window:activate",
@@ -283,7 +309,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	DeactivateEvent,
+	DeactivateEvent<'_>,
 	"Deactivate",
 	"org.a11y.atspi.Event.Window",
 	"window:deactivate",
@@ -291,7 +317,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	RaiseEvent,
+	RaiseEvent<'_>,
 	"Raise",
 	"org.a11y.atspi.Event.Window",
 	"window:raise",
@@ -299,7 +325,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	LowerEvent,
+	LowerEvent<'_>,
 	"Lower",
 	"org.a11y.atspi.Event.Window",
 	"window:lower",
@@ -307,7 +333,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	MoveEvent,
+	MoveEvent<'_>,
 	"Move",
 	"org.a11y.atspi.Event.Window",
 	"window:move",
@@ -315,7 +341,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ResizeEvent,
+	ResizeEvent<'_>,
 	"Resize",
 	"org.a11y.atspi.Event.Window",
 	"window:resize",
@@ -323,7 +349,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	ShadeEvent,
+	ShadeEvent<'_>,
 	"Shade",
 	"org.a11y.atspi.Event.Window",
 	"window:shade",
@@ -331,7 +357,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	UUshadeEvent,
+	UUshadeEvent<'_>,
 	"uUshade",
 	"org.a11y.atspi.Event.Window",
 	"window:uushade",
@@ -339,7 +365,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 impl_member_interface_registry_string_and_match_rule_for_event!(
-	RestyleEvent,
+	RestyleEvent<'_>,
 	"Restyle",
 	"org.a11y.atspi.Event.Window",
 	"window:restyle",
@@ -347,158 +373,184 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 );
 
 event_test_cases!(PropertyChangeEvent);
-impl_to_dbus_message!(PropertyChangeEvent);
-impl_from_dbus_message!(PropertyChangeEvent);
-impl_event_properties!(PropertyChangeEvent);
-impl From<PropertyChangeEvent> for EventBodyOwned {
+impl_to_dbus_message!(PropertyChangeEvent<'_>);
+impl_from_dbus_message!(PropertyChangeEvent<'_>);
+impl_event_properties!(PropertyChangeEvent<'_>);
+impl From<PropertyChangeEvent<'_>> for EventBodyOwned {
 	fn from(event: PropertyChangeEvent) -> Self {
 		EventBodyOwned { kind: event.property, ..Default::default() }
 	}
 }
 
 event_test_cases!(MinimizeEvent);
-impl_to_dbus_message!(MinimizeEvent);
-impl_from_dbus_message!(MinimizeEvent);
-impl_event_properties!(MinimizeEvent);
-impl_from_object_ref!(MinimizeEvent);
+impl_to_dbus_message!(MinimizeEvent<'_>);
+impl_from_dbus_message!(MinimizeEvent<'_>);
+impl_event_properties!(MinimizeEvent<'_>);
+impl_from_object_ref!(MinimizeEvent<'_>);
 
 event_test_cases!(MaximizeEvent);
-impl_to_dbus_message!(MaximizeEvent);
-impl_from_dbus_message!(MaximizeEvent);
-impl_event_properties!(MaximizeEvent);
-impl_from_object_ref!(MaximizeEvent);
+impl_to_dbus_message!(MaximizeEvent<'_>);
+impl_from_dbus_message!(MaximizeEvent<'_>);
+impl_event_properties!(MaximizeEvent<'_>);
+impl_from_object_ref!(MaximizeEvent<'_>);
 
 event_test_cases!(RestoreEvent);
-impl_to_dbus_message!(RestoreEvent);
-impl_from_dbus_message!(RestoreEvent);
-impl_event_properties!(RestoreEvent);
-impl_from_object_ref!(RestoreEvent);
+impl_to_dbus_message!(RestoreEvent<'_>);
+impl_from_dbus_message!(RestoreEvent<'_>);
+impl_event_properties!(RestoreEvent<'_>);
+impl_from_object_ref!(RestoreEvent<'_>);
 
 event_test_cases!(CloseEvent);
-impl_to_dbus_message!(CloseEvent);
-impl_from_dbus_message!(CloseEvent);
-impl_event_properties!(CloseEvent);
-impl_from_object_ref!(CloseEvent);
+impl_to_dbus_message!(CloseEvent<'_>);
+impl_from_dbus_message!(CloseEvent<'_>);
+impl_event_properties!(CloseEvent<'_>);
+impl_from_object_ref!(CloseEvent<'_>);
 
 event_test_cases!(CreateEvent);
-impl_to_dbus_message!(CreateEvent);
-impl_from_dbus_message!(CreateEvent);
-impl_event_properties!(CreateEvent);
-impl_from_object_ref!(CreateEvent);
+impl_to_dbus_message!(CreateEvent<'_>);
+impl_from_dbus_message!(CreateEvent<'_>);
+impl_event_properties!(CreateEvent<'_>);
+impl_from_object_ref!(CreateEvent<'_>);
 
 event_test_cases!(ReparentEvent);
-impl_to_dbus_message!(ReparentEvent);
-impl_from_dbus_message!(ReparentEvent);
-impl_event_properties!(ReparentEvent);
-impl_from_object_ref!(ReparentEvent);
+impl_to_dbus_message!(ReparentEvent<'_>);
+impl_from_dbus_message!(ReparentEvent<'_>);
+impl_event_properties!(ReparentEvent<'_>);
+impl_from_object_ref!(ReparentEvent<'_>);
 
 event_test_cases!(DesktopCreateEvent);
-impl_to_dbus_message!(DesktopCreateEvent);
-impl_from_dbus_message!(DesktopCreateEvent);
-impl_event_properties!(DesktopCreateEvent);
-impl_from_object_ref!(DesktopCreateEvent);
+impl_to_dbus_message!(DesktopCreateEvent<'_>);
+impl_from_dbus_message!(DesktopCreateEvent<'_>);
+impl_event_properties!(DesktopCreateEvent<'_>);
+impl_from_object_ref!(DesktopCreateEvent<'_>);
 
 event_test_cases!(DesktopDestroyEvent);
-impl_to_dbus_message!(DesktopDestroyEvent);
-impl_from_dbus_message!(DesktopDestroyEvent);
-impl_event_properties!(DesktopDestroyEvent);
-impl_from_object_ref!(DesktopDestroyEvent);
+impl_to_dbus_message!(DesktopDestroyEvent<'_>);
+impl_from_dbus_message!(DesktopDestroyEvent<'_>);
+impl_event_properties!(DesktopDestroyEvent<'_>);
+impl_from_object_ref!(DesktopDestroyEvent<'_>);
 
 event_test_cases!(DestroyEvent);
-impl_to_dbus_message!(DestroyEvent);
-impl_from_dbus_message!(DestroyEvent);
-impl_event_properties!(DestroyEvent);
-impl_from_object_ref!(DestroyEvent);
+impl_to_dbus_message!(DestroyEvent<'_>);
+impl_from_dbus_message!(DestroyEvent<'_>);
+impl_event_properties!(DestroyEvent<'_>);
+impl_from_object_ref!(DestroyEvent<'_>);
 
 event_test_cases!(ActivateEvent);
-impl_to_dbus_message!(ActivateEvent);
-impl_from_dbus_message!(ActivateEvent);
-impl_event_properties!(ActivateEvent);
-impl_from_object_ref!(ActivateEvent);
+impl_to_dbus_message!(ActivateEvent<'_>);
+impl_from_dbus_message!(ActivateEvent<'_>);
+impl_event_properties!(ActivateEvent<'_>);
+impl_from_object_ref!(ActivateEvent<'_>);
 
 event_test_cases!(DeactivateEvent);
-impl_to_dbus_message!(DeactivateEvent);
-impl_from_dbus_message!(DeactivateEvent);
-impl_event_properties!(DeactivateEvent);
-impl_from_object_ref!(DeactivateEvent);
+impl_to_dbus_message!(DeactivateEvent<'_>);
+impl_from_dbus_message!(DeactivateEvent<'_>);
+impl_event_properties!(DeactivateEvent<'_>);
+impl_from_object_ref!(DeactivateEvent<'_>);
 
 event_test_cases!(RaiseEvent);
-impl_to_dbus_message!(RaiseEvent);
-impl_from_dbus_message!(RaiseEvent);
-impl_event_properties!(RaiseEvent);
-impl_from_object_ref!(RaiseEvent);
+impl_to_dbus_message!(RaiseEvent<'_>);
+impl_from_dbus_message!(RaiseEvent<'_>);
+impl_event_properties!(RaiseEvent<'_>);
+impl_from_object_ref!(RaiseEvent<'_>);
 
 event_test_cases!(LowerEvent);
-impl_to_dbus_message!(LowerEvent);
-impl_from_dbus_message!(LowerEvent);
-impl_event_properties!(LowerEvent);
-impl_from_object_ref!(LowerEvent);
+impl_to_dbus_message!(LowerEvent<'_>);
+impl_from_dbus_message!(LowerEvent<'_>);
+impl_event_properties!(LowerEvent<'_>);
+impl_from_object_ref!(LowerEvent<'_>);
 
 event_test_cases!(MoveEvent);
-impl_to_dbus_message!(MoveEvent);
-impl_from_dbus_message!(MoveEvent);
-impl_event_properties!(MoveEvent);
-impl_from_object_ref!(MoveEvent);
+impl_to_dbus_message!(MoveEvent<'_>);
+impl_from_dbus_message!(MoveEvent<'_>);
+impl_event_properties!(MoveEvent<'_>);
+impl_from_object_ref!(MoveEvent<'_>);
 
 event_test_cases!(ResizeEvent);
-impl_to_dbus_message!(ResizeEvent);
-impl_from_dbus_message!(ResizeEvent);
-impl_event_properties!(ResizeEvent);
-impl_from_object_ref!(ResizeEvent);
+impl_to_dbus_message!(ResizeEvent<'_>);
+impl_from_dbus_message!(ResizeEvent<'_>);
+impl_event_properties!(ResizeEvent<'_>);
+impl_from_object_ref!(ResizeEvent<'_>);
 
 event_test_cases!(ShadeEvent);
-impl_to_dbus_message!(ShadeEvent);
-impl_from_dbus_message!(ShadeEvent);
-impl_event_properties!(ShadeEvent);
-impl_from_object_ref!(ShadeEvent);
+impl_to_dbus_message!(ShadeEvent<'_>);
+impl_from_dbus_message!(ShadeEvent<'_>);
+impl_event_properties!(ShadeEvent<'_>);
+impl_from_object_ref!(ShadeEvent<'_>);
 
 event_test_cases!(UUshadeEvent);
-impl_to_dbus_message!(UUshadeEvent);
-impl_from_dbus_message!(UUshadeEvent);
-impl_event_properties!(UUshadeEvent);
-impl_from_object_ref!(UUshadeEvent);
+impl_to_dbus_message!(UUshadeEvent<'_>);
+impl_from_dbus_message!(UUshadeEvent<'_>);
+impl_event_properties!(UUshadeEvent<'_>);
+impl_from_object_ref!(UUshadeEvent<'_>);
 
 event_test_cases!(RestyleEvent);
-impl_to_dbus_message!(RestyleEvent);
-impl_from_dbus_message!(RestyleEvent);
-impl_event_properties!(RestyleEvent);
-impl_from_object_ref!(RestyleEvent);
+impl_to_dbus_message!(RestyleEvent<'_>);
+impl_from_dbus_message!(RestyleEvent<'_>);
+impl_event_properties!(RestyleEvent<'_>);
+impl_from_object_ref!(RestyleEvent<'_>);
 
-impl_msg_conversion_ext_for_target_type!(PropertyChangeEvent);
-impl_msg_conversion_ext_for_target_type!(MinimizeEvent);
-impl_msg_conversion_ext_for_target_type!(MaximizeEvent);
-impl_msg_conversion_ext_for_target_type!(RestoreEvent);
-impl_msg_conversion_ext_for_target_type!(CloseEvent);
-impl_msg_conversion_ext_for_target_type!(CreateEvent);
-impl_msg_conversion_ext_for_target_type!(ReparentEvent);
-impl_msg_conversion_ext_for_target_type!(DesktopCreateEvent);
-impl_msg_conversion_ext_for_target_type!(DesktopDestroyEvent);
-impl_msg_conversion_ext_for_target_type!(DestroyEvent);
-impl_msg_conversion_ext_for_target_type!(ActivateEvent);
-impl_msg_conversion_ext_for_target_type!(DeactivateEvent);
-impl_msg_conversion_ext_for_target_type!(RaiseEvent);
-impl_msg_conversion_ext_for_target_type!(LowerEvent);
-impl_msg_conversion_ext_for_target_type!(MoveEvent);
-impl_msg_conversion_ext_for_target_type!(ResizeEvent);
-impl_msg_conversion_ext_for_target_type!(ShadeEvent);
-impl_msg_conversion_ext_for_target_type!(UUshadeEvent);
-impl_msg_conversion_ext_for_target_type!(RestyleEvent);
+impl_msg_conversion_ext_for_target_type!(
+	PropertyChangeEvent<'_>,
+	MinimizeEvent<'_>,
+	MaximizeEvent<'_>,
+	RestoreEvent<'_>,
+	CloseEvent<'_>,
+	CreateEvent<'_>,
+	ReparentEvent<'_>,
+	DesktopCreateEvent<'_>,
+	DesktopDestroyEvent<'_>,
+	DestroyEvent<'_>,
+	ActivateEvent<'_>,
+	DeactivateEvent<'_>,
+	RaiseEvent<'_>,
+	LowerEvent<'_>,
+	MoveEvent<'_>,
+	ResizeEvent<'_>,
+	ShadeEvent<'_>,
+	UUshadeEvent<'_>,
+	RestyleEvent<'_>,
+);
 
-impl_msg_conversion_for_types_built_from_object_ref!(MinimizeEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(MaximizeEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(RestoreEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(CloseEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(CreateEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ReparentEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(DesktopCreateEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(DesktopDestroyEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(DestroyEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ActivateEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(DeactivateEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(RaiseEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(LowerEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(MoveEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ResizeEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(ShadeEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(UUshadeEvent);
-impl_msg_conversion_for_types_built_from_object_ref!(RestyleEvent);
+impl_msg_conversion_for_types_built_from_object_ref!(
+	MinimizeEvent<'_>,
+	MaximizeEvent<'_>,
+	RestoreEvent<'_>,
+	CloseEvent<'_>,
+	CreateEvent<'_>,
+	ReparentEvent<'_>,
+	DesktopCreateEvent<'_>,
+	DesktopDestroyEvent<'_>,
+	DestroyEvent<'_>,
+	ActivateEvent<'_>,
+	DeactivateEvent<'_>,
+	RaiseEvent<'_>,
+	LowerEvent<'_>,
+	MoveEvent<'_>,
+	ResizeEvent<'_>,
+	ShadeEvent<'_>,
+	UUshadeEvent<'_>,
+	RestyleEvent<'_>,
+);
+
+impl_test_event!(
+	PropertyChangeEvent<'_> { property },
+	MinimizeEvent<'_>,
+	MaximizeEvent<'_>,
+	RestoreEvent<'_>,
+	CloseEvent<'_>,
+	CreateEvent<'_>,
+	ReparentEvent<'_>,
+	DesktopCreateEvent<'_>,
+	DesktopDestroyEvent<'_>,
+	DestroyEvent<'_>,
+	ActivateEvent<'_>,
+	DeactivateEvent<'_>,
+	RaiseEvent<'_>,
+	LowerEvent<'_>,
+	MoveEvent<'_>,
+	ResizeEvent<'_>,
+	ShadeEvent<'_>,
+	UUshadeEvent<'_>,
+	RestyleEvent<'_>,
+);

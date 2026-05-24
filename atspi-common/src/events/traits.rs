@@ -1,6 +1,6 @@
 #[cfg(feature = "zbus")]
 use crate::AtspiError;
-use crate::ObjectRef;
+use crate::{NonNullObjectRef, ObjectRef};
 #[cfg(feature = "zbus")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
@@ -41,7 +41,7 @@ pub trait EventProperties {
 	fn sender(&self) -> UniqueName<'_>;
 	fn path(&self) -> ObjectPath<'_>;
 	fn object_ref(&self) -> ObjectRef<'_> {
-		ObjectRef::new(self.sender(), self.path())
+		ObjectRef::new_borrowed(self.sender(), self.path())
 	}
 }
 
@@ -50,15 +50,15 @@ assert_obj_safe!(EventProperties);
 
 /// A way to convert a [`zbus::Message`] without checking its interface.
 #[cfg(all(feature = "zbus", feature = "wrappers"))]
-pub(crate) trait EventWrapperMessageConversion {
+pub(crate) trait EventWrapperMessageConversion<'a> {
 	/// # Errors
 	/// Will fail if no matching member or body signature is found.
 	fn try_from_message_interface_checked(
-		msg: &zbus::Message,
+		msg: &'a zbus::Message,
 		hdr: &Header,
 	) -> Result<Self, AtspiError>
 	where
-		Self: Sized;
+		Self: Sized + 'a;
 }
 
 /// The `DBus` member for the event.
@@ -114,7 +114,7 @@ where
 	///
 	/// See [`MessageConversion::from_message_unchecked`] for info on panic condition that should never
 	/// happen.
-	fn try_from_message(msg: &'a zbus::Message, hdr: &Header) -> Result<Self, AtspiError>
+	fn try_from_message(msg: &'a zbus::Message, hdr: &'a Header) -> Result<Self, AtspiError>
 	where
 		Self: Sized + 'a;
 
@@ -176,8 +176,18 @@ where
 	}
 }
 
+// TODO: For 'zero-copy' development:
+// The MessageConversion signature needs to be changed to distinguish lifetimes
+// of the Message and the Event and stipulate 'event: 'msg
+// to allow borrowing from Message. (I think)
+// 'a: 'msg
+
 #[cfg(feature = "zbus")]
 pub trait MessageConversion<'a>: DBusProperties {
+	// Here the bound on Body, `where Self: 'msg` ("type Self must be valid for 'msg") is required
+	// to be compatible with future changes.
+	// See ["GATs: Decide whether to have defaults for where Self: 'a"](https://github.com/rust-lang/rust/issues/87479)
+
 	/// What is the body type of this event.
 	type Body<'msg>: Type + Deserialize<'msg> + Serialize
 	where
@@ -204,11 +214,11 @@ pub trait MessageConversion<'a>: DBusProperties {
 	///
 	/// It is possible to get a [`type@AtspiError::Zvariant`] error if you do not check the proper
 	/// conditions before calling this.
-	fn from_message_unchecked(msg: &zbus::Message, header: &Header) -> Result<Self, AtspiError>
+	fn from_message_unchecked(msg: &'a zbus::Message, header: &Header) -> Result<Self, AtspiError>
 	where
 		Self: Sized + 'a;
 
-	/// Build an event from an [`ObjectRef`] and [`Self::Body`].
+	/// Build an event from a [`NonNullObjectRef`] and [`Self::Body`].
 	/// This function will not check for any of the following error conditions:
 	///
 	/// - That the message has an interface: [`type@AtspiError::MissingInterface`]
@@ -222,9 +232,12 @@ pub trait MessageConversion<'a>: DBusProperties {
 	///
 	/// Some [`Self::Body`] types may fallibly convert data fields contained in the body.
 	/// If this happens, then the function will return an error.
-	fn from_message_unchecked_parts(obj_ref: ObjectRef, body: DbusBody) -> Result<Self, AtspiError>
+	fn from_message_unchecked_parts(
+		obj_ref: NonNullObjectRef<'a>,
+		body: DbusBody,
+	) -> Result<Self, AtspiError>
 	where
-		Self: Sized;
+		Self: Sized + 'a;
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body<'_>;
