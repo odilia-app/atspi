@@ -135,21 +135,19 @@ impl<'o> NonNullObjectRef<'o> {
 
 	/// Returns the name of the object reference.
 	#[must_use]
-	#[allow(clippy::match_same_arms)] // Arms differ by lifetime
 	pub fn name(&self) -> &UniqueName<'_> {
 		match self {
-			Self::Owned { name, .. } => name,
-			Self::Borrowed { name, .. } => name,
+			Self::Owned { name: owned_name, .. } => owned_name,
+			Self::Borrowed { name: borrowed_name, .. } => borrowed_name,
 		}
 	}
 
 	/// Returns the path of the object reference.
 	#[must_use]
-	#[allow(clippy::match_same_arms)] // Arms differ by lifetime
 	pub fn path(&self) -> &ObjectPath<'_> {
 		match self {
-			Self::Owned { path, .. } => path,
-			Self::Borrowed { path, .. } => path,
+			Self::Owned { path: owned_path, .. } => owned_path,
+			Self::Borrowed { path: borrowed_path, .. } => borrowed_path,
 		}
 	}
 
