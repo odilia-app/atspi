@@ -30,7 +30,10 @@ pub(crate) const TEST_NON_NULL_OBJECT_REF: NonNullObjectRef<'static> =
 /// In AT-SPI2, objects in the applications' UI object tree are uniquely identified
 /// using an application's bus name and object path. "(so)"
 ///
-/// Emitted by `RemoveAccessible` and `Available`
+/// Emitted by [`RemoveAccessible`][rema] and [`Available`][available]
+///
+/// [rema]: crate::events::cache::RemoveAccessibleEvent
+/// [available]: crate::events::registry::AvailableEvent
 #[validate(signal: "Available")]
 #[derive(Clone, Debug, Eq, Type)]
 #[zvariant(signature = "(so)")]
