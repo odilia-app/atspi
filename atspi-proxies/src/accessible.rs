@@ -340,7 +340,7 @@ impl TryFrom<AccessibleProxy<'_>> for ObjectRefOwned {
 	fn try_from(proxy: AccessibleProxy<'_>) -> Result<ObjectRefOwned, Self::Error> {
 		let sender = proxy.inner().destination();
 		let path = proxy.inner().path();
-		let object_ref = ObjectRef::try_from_bus_name_and_path(sender.into(), path.into())?;
+		let object_ref = ObjectRef::try_from_bus_name_and_path(sender, path)?;
 		Ok(ObjectRefOwned::from(object_ref))
 	}
 }

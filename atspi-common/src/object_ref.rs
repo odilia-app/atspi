@@ -9,7 +9,7 @@ use zvariant::{ObjectPath, OwnedValue, Structure, Type, Value};
 // This means rustc is smart enough to deduplicate string slices in the binary if possible.
 // Having strings const and structs static is therefore considered idiomatic.
 pub(crate) const NULL_PATH_STR: &str = "/org/a11y/atspi/null";
-// pub(crate) const NULL_OBJECT_NAME_STR: &str = "";
+pub(crate) const NULL_OBJECT_NAME_STR: &str = "";
 
 pub(crate) static NULL_OBJECT_PATH: &ObjectPath<'static> =
 	&ObjectPath::from_static_str_unchecked(NULL_PATH_STR);
@@ -339,10 +339,14 @@ impl<'o> ObjectRef<'o> {
 	///
 	/// [bn]: zbus::names::BusName
 	/// [op]: zvariant::ObjectPath
-	pub fn try_from_bus_name_and_path(
-		sender: BusName<'o>,
-		path: ObjectPath<'o>,
-	) -> Result<Self, AtspiError> {
+	pub fn try_from_bus_name_and_path<B, O>(sender: B, path: O) -> Result<Self, AtspiError>
+	where
+		B: Into<BusName<'o>>,
+		O: Into<ObjectPath<'o>>,
+	{
+		let sender: BusName<'o> = sender.into();
+		let path: ObjectPath<'o> = path.into();
+
 		// Check whether `BusName` matches `UniqueName`
 		if let BusName::Unique(name) = sender {
 			let non_null = NonNullObjectRef::Borrowed { name, path };
@@ -716,7 +720,7 @@ impl Serialize for ObjectRef<'_> {
 		S: serde::Serializer,
 	{
 		match &self {
-			ObjectRef::Null => ("", NULL_OBJECT_PATH).serialize(serializer),
+			ObjectRef::Null => (NULL_OBJECT_NAME_STR, NULL_OBJECT_PATH).serialize(serializer),
 			ObjectRef::NonNull(non_null) => non_null.serialize(serializer),
 		}
 	}
@@ -1092,7 +1096,7 @@ impl<'o> From<NonNullObjectRef<'o>> for Structure<'o> {
 impl<'o> From<ObjectRef<'o>> for Structure<'_> {
 	fn from(object_ref: ObjectRef<'o>) -> Self {
 		match object_ref {
-			ObjectRef::Null => Structure::from(("", NULL_OBJECT_PATH)),
+			ObjectRef::Null => Structure::from((NULL_OBJECT_NAME_STR, NULL_OBJECT_PATH)),
 			ObjectRef::NonNull(non_null) => {
 				Structure::from((non_null.name().to_owned(), non_null.path().to_owned()))
 			}
