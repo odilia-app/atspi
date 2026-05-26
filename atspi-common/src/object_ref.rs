@@ -33,7 +33,7 @@ pub(crate) const TEST_NON_NULL_OBJECT_REF: NonNullObjectRef<'static> =
 /// Emitted by [`RemoveAccessible`][rema] and [`Available`][available]
 ///
 /// [rema]: crate::events::cache::RemoveAccessibleEvent
-/// [available]: crate::events::registry::AvailableEvent
+/// [available]: crate::events::registry::socket::AvailableEvent
 #[validate(signal: "Available")]
 #[derive(Clone, Debug, Eq, Type)]
 #[zvariant(signature = "(so)")]
@@ -250,7 +250,10 @@ impl<'o> NonNullObjectRef<'o> {
 /// A null-reference may be used either in the accessibility tree or
 /// in method return messages to indicate that there is no object.
 ///
-/// Emitted by `RemoveAccessible` and `Available`
+/// Emitted by signals [`RemoveAccessible`][remove] and [`Available`][available]
+///
+/// [remove]: crate::events::cache::RemoveAccessibleEvent
+/// [available]: crate::events::registry::socket::AvailableEvent
 #[validate(signal: "Available")]
 #[derive(Clone, Debug, Eq, Type)]
 #[zvariant(signature = "(so)")]
@@ -505,13 +508,13 @@ impl Default for ObjectRef<'_> {
 	}
 }
 
-/// A wrapper around the static variant of `ObjectRef`.
+/// A wrapper around the static variant of [`ObjectRef`].
 #[validate(signal: "Available")]
 #[derive(Clone, Debug, Default, Eq, Type)]
 pub struct ObjectRefOwned(pub(crate) ObjectRef<'static>);
 
 impl From<ObjectRef<'_>> for ObjectRefOwned {
-	/// Convert an `ObjectRef<'_>` into an `ObjectRefOwned`.
+	/// Convert an [`ObjectRef<'_>`] into an [`ObjectRefOwned`].
 	///
 	/// # Extending lifetime 'magic' (from 'o -> 'static')
 	///
@@ -525,13 +528,13 @@ impl From<ObjectRef<'_>> for ObjectRefOwned {
 }
 
 impl ObjectRefOwned {
-	/// Create a new `ObjectRefOwned` from a static `ObjectRef`.
+	/// Create a new [`ObjectRefOwned`] from a static [`ObjectRef`].
 	#[must_use]
 	pub const fn new(object_ref: ObjectRef<'static>) -> Self {
 		ObjectRefOwned(object_ref)
 	}
 
-	/// Create a new `ObjectRefOwned` from `&'static str` unchecked.
+	/// Create a new [`ObjectRefOwned`] from `&'static str` unchecked.
 	///
 	/// # Safety
 	/// The caller must ensure that the strings are valid.
@@ -839,12 +842,57 @@ impl<'de> Deserialize<'de> for ObjectRefOwned {
 	}
 }
 
+// NonNullObjectRef's hash must not consider (differentiate between) the variant (Owned/Borrowed),
+// because PartialEq does not either.
+//
+// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
+impl Hash for NonNullObjectRef<'_> {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.name().hash(state);
+		self.path().hash(state);
+	}
+}
+
+// ObjectRef's hash must differentiate between variant (Null / NonNull) but
+// not differentiate the variant (Owned/Borrowed),
+//
+// because PartialEq does not either. We say a borrowed and Owned
+// object reference with the same name and path are equal.
+//
+// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
+impl Hash for ObjectRef<'_> {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		match self {
+			// If the reference is Null, we return a Null-hash
+			ObjectRef::Null => {
+				// Hashing a Null object reference.
+				"Null".hash(state);
+			}
+			// If the reference is NonNull, we hash the non-null hashing,
+			// which does not differentiate between Owned and Borrowed variants.
+			ObjectRef::NonNull(non_null) => {
+				non_null.hash(state);
+			}
+		}
+	}
+}
+
+// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
+// We lean on `ObjectRef`'s impl to stay congruent over reference types.
+impl Hash for ObjectRefOwned {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.0.hash(state);
+	}
+}
+
+// Define eq for NonNullObjectRefs
 impl PartialEq for NonNullObjectRef<'_> {
 	fn eq(&self, other: &Self) -> bool {
 		self.name() == other.name() && self.path() == other.path()
 	}
 }
 
+// Define eq for ObjectRefs
 impl PartialEq for ObjectRef<'_> {
 	fn eq(&self, other: &Self) -> bool {
 		match (self, other) {
@@ -856,61 +904,58 @@ impl PartialEq for ObjectRef<'_> {
 	}
 }
 
-// NonNullObjectRef's hash must not consider the variant (Owned/Borrowed),
-// because PartialEq does not consider it either.
-//
-// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
-impl Hash for NonNullObjectRef<'_> {
-	fn hash<H: Hasher>(&self, state: &mut H) {
-		self.name().hash(state);
-		self.path().hash(state);
-	}
-}
-
-// ObjectRef's hash must not consider the variant (Null / Borrowed),
-// because PartialEq does not consider it either. We say a borrowed and owned
-// object reference with the same name and path are equal.
-//
-// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
-impl Hash for ObjectRef<'_> {
-	fn hash<H: Hasher>(&self, state: &mut H) {
-		match self {
-			ObjectRef::Null => {
-				// Hashing a Null object reference.
-				"Null".hash(state);
-			}
-			ObjectRef::NonNull(non_null) => {
-				non_null.hash(state);
-			}
-		}
-	}
-}
-
-// ObjectRefOwned's hash must not consider the variant (Owned/Borrowed),
-// because PartialEq does not consider it either.
-//
-// This to uphold the contract that if a == b, then a.hash() == b.hash() must hold true.
-impl Hash for ObjectRefOwned {
-	fn hash<H: Hasher>(&self, state: &mut H) {
-		self.0.hash(state);
-	}
-}
-
+// Define eq for ObjectRefOwneds
 impl PartialEq for ObjectRefOwned {
 	fn eq(&self, other: &Self) -> bool {
 		self.0 == other.0
 	}
 }
 
+// Define eq for ObjectRefOwned vs ObjectRef and vice versa.
 impl PartialEq<ObjectRef<'_>> for ObjectRefOwned {
 	fn eq(&self, other: &ObjectRef<'_>) -> bool {
 		self.0 == *other
 	}
 }
-
 impl PartialEq<ObjectRefOwned> for ObjectRef<'_> {
 	fn eq(&self, other: &ObjectRefOwned) -> bool {
 		*self == other.0
+	}
+}
+
+// Define eq for NonNullObjectRef vs ObjectRef and vice versa.
+impl PartialEq<NonNullObjectRef<'_>> for ObjectRef<'_> {
+	fn eq(&self, other: &NonNullObjectRef<'_>) -> bool {
+		match self {
+			ObjectRef::NonNull(self_non_null) => self_non_null == other,
+			ObjectRef::Null => false, // What NonNull cannot be
+		}
+	}
+}
+impl PartialEq<ObjectRef<'_>> for NonNullObjectRef<'_> {
+	fn eq(&self, other: &ObjectRef<'_>) -> bool {
+		match other {
+			ObjectRef::NonNull(other_non_null) => self == other_non_null,
+			ObjectRef::Null => false, // What NonNull cannot be
+		}
+	}
+}
+
+// Define eq for NonNullObjectRef vs ObjectRefOwned and vice versa.
+impl PartialEq<ObjectRefOwned> for NonNullObjectRef<'_> {
+	fn eq(&self, other: &ObjectRefOwned) -> bool {
+		match &other.0 {
+			ObjectRef::NonNull(other_non_null) => self == other_non_null,
+			ObjectRef::Null => false, // What NonNull cannot be
+		}
+	}
+}
+impl PartialEq<NonNullObjectRef<'_>> for ObjectRefOwned {
+	fn eq(&self, other: &NonNullObjectRef<'_>) -> bool {
+		match &self.0 {
+			ObjectRef::NonNull(self_non_null) => other == self_non_null,
+			ObjectRef::Null => false, // What NonNull cannot be
+		}
 	}
 }
 
@@ -948,6 +993,7 @@ impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for ObjectRef<'o> {
 		Ok(ObjectRef::new_borrowed(name, path))
 	}
 }
+
 #[cfg(feature = "zbus")]
 impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for NonNullObjectRef<'o> {
 	type Error = crate::AtspiError;
@@ -1005,7 +1051,6 @@ impl TryFrom<&zbus::message::Header<'_>> for ObjectRefOwned {
 // We cannot derive TryFrom with `Value` derive macro, for `NonNullObjectRef` because `NonNullObjectRef`
 // contains non-unit variants.
 // The derive macros `Value` and `OwnedValue` do not support struct-like variants.
-
 impl<'v> TryFrom<Value<'v>> for NonNullObjectRef<'v> {
 	type Error = AtspiError;
 
@@ -1036,7 +1081,7 @@ impl<'v> TryFrom<Value<'v>> for ObjectRef<'v> {
 			Ok(ObjectRef::Null)
 		} else {
 			assert!(
-				!name.as_str().is_empty(),
+				!name.is_empty(),
 				"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
 			);
 			Ok(ObjectRef::new_borrowed(name, path))
@@ -1054,7 +1099,7 @@ impl TryFrom<OwnedValue> for ObjectRef<'static> {
 			Ok(ObjectRef::Null)
 		} else {
 			assert!(
-				!name.as_str().is_empty(),
+				!name.is_empty(),
 				"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
 			);
 			Ok(ObjectRef::new_owned(name, path))
@@ -1115,7 +1160,7 @@ impl From<ObjectRefOwned> for Value<'static> {
 #[cfg(test)]
 mod tests {
 	use crate::object_ref::{NULL_OBJECT_PATH, NULL_PATH_STR};
-	use crate::{NonNullObjectRef, ObjectRef};
+	use crate::{NonNullObjectRef, ObjectRef, ObjectRefOwned};
 	use std::hash::{DefaultHasher, Hash, Hasher};
 	use zbus::zvariant;
 	use zbus::{names::UniqueName, zvariant::ObjectPath};
@@ -1442,5 +1487,196 @@ mod tests {
 		let encoded = to_bytes(ctxt, &object_ref).unwrap();
 
 		let (_obj, _) = encoded.deserialize::<ObjectRef>().unwrap();
+	}
+
+	#[test]
+	fn object_equality_across_types() {
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		// We have three variants
+		// NonNUll, ObjectRef and ObjectRefOwned, a thin wrapper around ObjectRef
+		let non_null_owned = NonNullObjectRef::try_new_owned(name.clone(), path.clone()).unwrap();
+		let non_null_borrowed =
+			NonNullObjectRef::Borrowed { name: name.clone(), path: path.clone() };
+
+		let object_ref_borrowed: ObjectRef<'_> =
+			ObjectRef::try_new(name.clone(), path.clone()).unwrap();
+		let object_ref_owned: ObjectRef<'static> = object_ref_borrowed.clone().into_owned();
+		let object_ref_null = ObjectRef::default();
+
+		let object_ref_owned_wrapped: ObjectRefOwned =
+			ObjectRefOwned::new(object_ref_owned.clone());
+		let object_ref_owned_wrapped_null = ObjectRefOwned::new(object_ref_null.clone());
+
+		// In order of implementation:
+		assert_eq!(non_null_owned, non_null_owned);
+		assert_eq!(non_null_owned, non_null_borrowed);
+		assert_eq!(non_null_borrowed, non_null_owned);
+
+		assert_eq!(non_null_borrowed, non_null_borrowed);
+		assert_eq!(object_ref_borrowed, object_ref_borrowed);
+		assert_eq!(object_ref_owned, object_ref_owned);
+		assert_eq!(object_ref_null, object_ref_null);
+
+		assert_eq!(object_ref_owned_wrapped, object_ref_owned_wrapped);
+		assert_eq!(object_ref_owned_wrapped_null, object_ref_owned_wrapped_null);
+
+		assert_eq!(object_ref_owned_wrapped, object_ref_borrowed);
+		assert_eq!(object_ref_borrowed, object_ref_owned_wrapped);
+
+		assert_eq!(object_ref_owned_wrapped, object_ref_owned);
+		assert_eq!(object_ref_owned, object_ref_owned_wrapped);
+
+		assert_eq!(object_ref_owned_wrapped_null, object_ref_null);
+		assert_ne!(object_ref_owned_wrapped, object_ref_owned_wrapped_null);
+		assert_ne!(object_ref_owned_wrapped, object_ref_null);
+		assert_ne!(object_ref_owned_wrapped_null, object_ref_borrowed);
+		assert_ne!(object_ref_owned_wrapped_null, object_ref_owned);
+
+		assert_eq!(non_null_owned, object_ref_owned);
+		assert_eq!(non_null_borrowed, object_ref_borrowed);
+		assert_eq!(non_null_owned, object_ref_borrowed);
+		assert_eq!(non_null_borrowed, object_ref_owned);
+
+		assert_ne!(non_null_owned, object_ref_null);
+		assert_ne!(non_null_borrowed, object_ref_null);
+		assert_ne!(object_ref_null, object_ref_borrowed);
+		assert_ne!(object_ref_null, object_ref_owned);
+
+		assert_eq!(object_ref_owned_wrapped, non_null_owned);
+		assert_eq!(object_ref_owned_wrapped, non_null_borrowed);
+		assert_eq!(non_null_owned, object_ref_owned_wrapped);
+		assert_eq!(non_null_borrowed, object_ref_owned_wrapped);
+
+		assert_ne!(object_ref_owned_wrapped_null, non_null_owned);
+		assert_ne!(object_ref_owned_wrapped_null, non_null_borrowed);
+		assert_ne!(non_null_owned, object_ref_owned_wrapped_null);
+		assert_ne!(non_null_borrowed, object_ref_owned_wrapped_null);
+	}
+
+	#[test]
+	fn object_inequality_with_distinct_objects() {
+		let name_1 = UniqueName::from_static_str_unchecked(":1.23");
+		let path_1 = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		let name_2 = UniqueName::from_static_str_unchecked(":1.24");
+		let path_2 = ObjectPath::from_static_str_unchecked("/org/a11y/atspi/accessible/1977");
+
+		// Helper: ne in both directions.
+		macro_rules! assert_symmetric_ne {
+			($a:expr, $b:expr) => {{
+				assert_ne!($a, $b);
+				assert_ne!($b, $a);
+			}};
+		}
+
+		// --- Object 1 in all variants
+		let nn1_owned = NonNullObjectRef::try_new_owned(name_1.clone(), path_1.clone()).unwrap();
+		let nn1_borrowed =
+			NonNullObjectRef::Borrowed { name: name_1.clone(), path: path_1.clone() };
+		let or1_borrowed: ObjectRef<'_> =
+			ObjectRef::try_new(name_1.clone(), path_1.clone()).unwrap();
+		let or1_owned: ObjectRef<'static> = or1_borrowed.clone().into_owned();
+		let oro1: ObjectRefOwned = ObjectRefOwned::new(or1_owned.clone());
+
+		// --- Object 2 in all variants
+		let nn2_owned = NonNullObjectRef::try_new_owned(name_2.clone(), path_2.clone()).unwrap();
+		let nn2_borrowed =
+			NonNullObjectRef::Borrowed { name: name_2.clone(), path: path_2.clone() };
+		let or2_borrowed: ObjectRef<'_> =
+			ObjectRef::try_new(name_2.clone(), path_2.clone()).unwrap();
+		let or2_owned: ObjectRef<'static> = or2_borrowed.clone().into_owned();
+		let oro2: ObjectRefOwned = ObjectRefOwned::new(or2_owned.clone());
+
+		// --- NonNullObjectRef vs NonNullObjectRef (variant-agnostisch) ---
+		assert_symmetric_ne!(nn1_owned, nn2_owned);
+		assert_symmetric_ne!(nn1_owned, nn2_borrowed);
+		assert_symmetric_ne!(nn1_borrowed, nn2_owned);
+		assert_symmetric_ne!(nn1_borrowed, nn2_borrowed);
+
+		// --- ObjectRef vs ObjectRef (variant-agnostisch) ---
+		assert_symmetric_ne!(or1_borrowed, or2_borrowed);
+		assert_symmetric_ne!(or1_borrowed, or2_owned);
+		assert_symmetric_ne!(or1_owned, or2_borrowed);
+		assert_symmetric_ne!(or1_owned, or2_owned);
+
+		// --- ObjectRefOwned vs ObjectRefOwned ---
+		assert_symmetric_ne!(oro1, oro2);
+
+		// --- NonNullObjectRef vs ObjectRef (cross-type, both directions) ---
+		assert_symmetric_ne!(nn1_owned, or2_owned);
+		assert_symmetric_ne!(nn1_owned, or2_borrowed);
+		assert_symmetric_ne!(nn1_borrowed, or2_owned);
+		assert_symmetric_ne!(nn1_borrowed, or2_borrowed);
+
+		// --- NonNullObjectRef vs ObjectRefOwned (cross-type, both directions) ---
+		assert_symmetric_ne!(nn1_owned, oro2);
+		assert_symmetric_ne!(nn1_borrowed, oro2);
+
+		// --- ObjectRef vs ObjectRefOwned (cross-type, beide richtingen) ---
+		assert_symmetric_ne!(or1_borrowed, oro2);
+		assert_symmetric_ne!(or1_owned, oro2);
+	}
+
+	#[test]
+	fn object_equality_requires_object_hash_equality() {
+		use std::collections::hash_map::DefaultHasher;
+
+		fn hash_of<T: Hash>(value: &T) -> u64 {
+			let mut hasher = DefaultHasher::new();
+			value.hash(&mut hasher);
+			hasher.finish()
+		}
+
+		macro_rules! assert_eq_implies_hash_eq {
+			($a:expr, $b:expr) => {{
+				assert_eq!($a, $b, "expected equality precondition");
+				assert_eq!($b, $a, "equality must be symmetric");
+				assert_eq!(hash_of(&$a), hash_of(&$b), "equal values must hash equally");
+			}};
+		}
+
+		let name = UniqueName::from_static_str_unchecked(":1.23");
+		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
+
+		// One object in all shapes.
+		let non_null_owned = NonNullObjectRef::try_new_owned(name.clone(), path.clone()).unwrap();
+		let non_null_borrowed =
+			NonNullObjectRef::Borrowed { name: name.clone(), path: path.clone() };
+
+		let object_ref_borrowed: ObjectRef<'_> =
+			ObjectRef::try_new(name.clone(), path.clone()).unwrap();
+		let object_ref_owned: ObjectRef<'static> = object_ref_borrowed.clone().into_owned();
+		let object_ref_null = ObjectRef::default();
+
+		let object_ref_owned_wrapped = ObjectRefOwned::new(object_ref_owned.clone());
+		let object_ref_owned_wrapped_null = ObjectRefOwned::new(object_ref_null.clone());
+
+		// --- Within NonNullObjectRef: Owned/Borrowed hash must be equal ---
+		assert_eq_implies_hash_eq!(non_null_owned, non_null_borrowed);
+
+		// --- Within ObjectRef
+		assert_eq_implies_hash_eq!(object_ref_borrowed, object_ref_owned);
+		assert_eq_implies_hash_eq!(object_ref_null, object_ref_null);
+
+		// --- ObjectRefOwned ---
+		assert_eq_implies_hash_eq!(object_ref_owned_wrapped, object_ref_owned_wrapped);
+		assert_eq_implies_hash_eq!(object_ref_owned_wrapped_null, object_ref_owned_wrapped_null);
+
+		// --- NonNullObjectRef <-> ObjectRef ---
+		assert_eq_implies_hash_eq!(non_null_owned, object_ref_owned);
+		assert_eq_implies_hash_eq!(non_null_owned, object_ref_borrowed);
+		assert_eq_implies_hash_eq!(non_null_borrowed, object_ref_owned);
+		assert_eq_implies_hash_eq!(non_null_borrowed, object_ref_borrowed);
+
+		// --- NonNullObjectRef <-> ObjectRefOwned ---
+		assert_eq_implies_hash_eq!(non_null_owned, object_ref_owned_wrapped);
+		assert_eq_implies_hash_eq!(non_null_borrowed, object_ref_owned_wrapped);
+
+		// --- ObjectRef <-> ObjectRefOwned ---
+		assert_eq_implies_hash_eq!(object_ref_owned, object_ref_owned_wrapped);
+		assert_eq_implies_hash_eq!(object_ref_borrowed, object_ref_owned_wrapped);
+		assert_eq_implies_hash_eq!(object_ref_null, object_ref_owned_wrapped_null);
 	}
 }
