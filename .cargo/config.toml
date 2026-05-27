@@ -1,0 +1,19 @@
+# This [net] section filters the Cargo.lock to reduce the "Bill of Materials" (BOM)
+# by excluding dependencies for unsupported platforms like Windows and macOS.
+
+[net]
+filter-platform = [
+    # Linux & Android targets
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "i686-unknown-linux-gnu",
+    "armv7-unknown-linux-gnueabihf",
+
+    # BSD variants
+    "x86_64-unknown-freebsd",
+    "x86_64-unknown-netbsd",
+    "x86_64-unknown-openbsd",
+
+    # WebAssembly (for atspi-common)
+    "wasm32-unknown-unknown"
+]
