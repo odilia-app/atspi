@@ -14,7 +14,7 @@ use zvariant::Type;
 /// - `DBus` interface name
 ///
 /// Together, the member and interface name can describe a specific event _type_.
-/// Likewise, the path and sender bus name collectively make up an [`ObjectRef`], which is a way to uniquely identify an individual accessible item available to `atspi`.
+/// Likewise, the path and sender bus name make an [`ObjectRef`][crate::ObjectRef], which is a unique identifier for an individual accessible item available to `atspi`.
 /// The latter is available via the [`EventProperties`] trait.
 ///
 /// This can also be generalized, for example this is implemented for [`crate::Event`] by dispatching to the matching variants.
@@ -32,7 +32,7 @@ pub trait EventTypeProperties {
 ///
 /// - The `DBUs` name which sent the event.
 /// - The `ObjectPath`, a unique id for a given application.
-/// - Collectively, this is called an [`ObjectRef`].
+/// - Paired, this is called an [`ObjectRef`][crate::ObjectRef].
 ///
 /// This trait *is* object-safe.
 pub trait EventProperties {

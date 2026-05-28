@@ -171,11 +171,8 @@ impl<'o> NonNullObjectRef<'o> {
 	/// Create a new `NonNullObjectRef`, unchecked.
 	///
 	/// # Safety
-	/// The caller must ensure that the provided strings are valid for [`UniqueName`][un] and [`ObjectPath`][op] types\
+	/// The caller must ensure that the provided strings are valid for [`UniqueName`] and [`ObjectPath`] types\
 	/// and **neither** null path ("/org/a11y/atspi/null") nor null name ("") is provided.
-	///
-	/// [un]: zbus::names::UniqueName
-	/// [op]: zvariant::ObjectPath
 	#[must_use]
 	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
 		let name = UniqueName::from_static_str_unchecked(name);
@@ -263,16 +260,13 @@ pub enum ObjectRef<'o> {
 }
 
 impl<'o> ObjectRef<'o> {
-	/// Create a new `ObjectRef::Borrowed` from a [`UniqueName`][un] and [`ObjectPath`][op].
+	/// Create a new `ObjectRef::Borrowed` from a [`UniqueName`] and [`ObjectPath`].
 	///
 	/// This method cannot be used to create a Null variant.
 	///
 	/// # Errors
 	/// Returns an error if the path is null.
 	/// Name is guaranteed to be non-null as `UniqueName` cannot be constructed from an empty string.
-	///
-	/// [un]: zbus::names::UniqueName
-	/// [op]: zvariant::ObjectPath
 	pub fn try_new<N, P>(name: N, path: P) -> Result<Self, AtspiError>
 	where
 		N: Into<UniqueName<'o>>,
@@ -336,13 +330,10 @@ impl<'o> ObjectRef<'o> {
 		Self::NonNull(non_null)
 	}
 
-	/// Create a new [`ObjectRef`], from [`BusName`][bn] and [`ObjectPath`][op].
+	/// Create a new [`ObjectRef`], from [`BusName`] and [`ObjectPath`].
 	///
 	/// # Errors
 	/// Will fail if the `sender` is not a `UniqueName`.
-	///
-	/// [bn]: zbus::names::BusName
-	/// [op]: zvariant::ObjectPath
 	pub fn try_from_bus_name_and_path<B, O>(sender: B, path: O) -> Result<Self, AtspiError>
 	where
 		B: Into<BusName<'o>>,
@@ -363,10 +354,7 @@ impl<'o> ObjectRef<'o> {
 	/// Create a new [`ObjectRef`], **unchecked**.
 	///
 	/// # Safety
-	/// The caller **must** ensure that the strings are valid representations for [`UniqueName`][un] and [`ObjectPath`][op] types.
-	///
-	/// [un]: zbus::names::UniqueName
-	/// [op]: zvariant::ObjectPath
+	/// The caller **must** ensure that the strings are valid representations for [`UniqueName`] and [`ObjectPath`] types.
 	#[must_use]
 	pub const fn from_static_str_unchecked(name: &'static str, path: &'static str) -> Self {
 		let non_null = NonNullObjectRef::from_static_str_unchecked(name, path);
@@ -651,10 +639,7 @@ impl<'o> From<NonNullObjectRef<'o>> for ObjectRef<'o> {
 }
 
 impl From<NonNullObjectRef<'_>> for ObjectRefOwned {
-	/// Convert a [`NonNullObjectRef<'_>`][nnor] into an [`ObjectRefOwned`][or].
-	///
-	/// [nnor]: NonNullObjectRef
-	/// [or]: ObjectRefOwned
+	/// Convert a [`NonNullObjectRef<'_>`] into an [`ObjectRefOwned`].
 	fn from(non_null: NonNullObjectRef<'_>) -> Self {
 		match non_null {
 			// Somehow the compiler does not see that if we match on Owned, non_null must be owned.
@@ -670,13 +655,10 @@ impl From<NonNullObjectRef<'_>> for ObjectRefOwned {
 impl<'o> TryFrom<ObjectRef<'o>> for NonNullObjectRef<'o> {
 	type Error = AtspiError;
 
-	/// Convert an [`ObjectRef<'o>`][or] into a [`NonNullObjectRef<'o>`][nnor].
+	/// Convert an [`ObjectRef<'o>`] into a [`NonNullObjectRef<'o>`].
 	///
 	/// # Errors
 	/// Will return an `AtspiError::ParseError` if the `ObjectRef` is `Null`.
-	///
-	/// [nnor]: NonNullObjectRef
-	/// [or]: ObjectRef
 	fn try_from(object_ref: ObjectRef<'o>) -> Result<Self, Self::Error> {
 		match object_ref {
 			ObjectRef::NonNull(non_null) => Ok(non_null),
@@ -688,13 +670,10 @@ impl<'o> TryFrom<ObjectRef<'o>> for NonNullObjectRef<'o> {
 impl TryFrom<ObjectRefOwned> for NonNullObjectRef<'static> {
 	type Error = AtspiError;
 
-	/// Convert an [`ObjectRefOwned`][or] into a [`NonNullObjectRef<'static>`][nnor].
+	/// Convert an [`ObjectRefOwned`] into a [`NonNullObjectRef<'static>`].
 	///
 	/// # Errors
 	/// Will return an `AtspiError::ParseError` if the inner `ObjectRef` is `Null`.
-	///
-	/// [nnor]: NonNullObjectRef
-	/// [or]: ObjectRefOwned
 	fn try_from(object_ref: ObjectRefOwned) -> Result<Self, Self::Error> {
 		NonNullObjectRef::try_from(object_ref.0)
 	}
