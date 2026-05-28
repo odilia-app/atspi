@@ -22,7 +22,6 @@ use atspi_proxies::{
 	registry::RegistryProxy,
 };
 
-#[cfg(feature = "wrappers")]
 #[cfg(feature = "p2p")]
 use crate::p2p::Peers;
 #[cfg(feature = "wrappers")]
