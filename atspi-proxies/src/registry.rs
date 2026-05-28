@@ -155,7 +155,11 @@
 //! [ac_de]: ../../atspi-connection/struct.AccessibilityConnection.html#method.deregister_event
 //! [ac]: ../../atspi-connection/struct.AccessibilityConnection.html
 
+use atspi_common::object_ref::ObjectRefOwned;
 use zbus::names::OwnedBusName;
+
+use crate::accessible::{AccessibleProxy, ObjectRefExt};
+use crate::AtspiError;
 
 // The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
 // The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
@@ -177,4 +181,85 @@ pub trait Registry {
 
 	/// `RegisterEvent` method
 	fn register_event(&self, event: &str) -> zbus::Result<()>;
+}
+
+impl RegistryProxy<'_> {
+	/// Find application roots whose accessible `Name` equals `name`.
+	///
+	/// Walks the registry's children and returns every match. More than one
+	/// connection may publish a root with the same `Name`, so multiple
+	/// matches are possible; the `Vec` is empty when nothing matches.
+	///
+	/// Per-child failures (process gone, denied property read, transient
+	/// `DBus` error) are skipped rather than surfaced.
+	///
+	/// For non-exact matching, see [`find_by_name_with`].
+	///
+	/// [`find_by_name_with`]: RegistryProxy::find_by_name_with
+	///
+	/// # Errors
+	///
+	/// Errors if the registry view cannot be built or [`get_children`] fails.
+	///
+	/// [`get_children`]: crate::accessible::AccessibleProxy#method.get_children
+	pub async fn find_by_name(&self, name: &str) -> Result<Vec<ObjectRefOwned>, AtspiError> {
+		self.find_by_name_with(|candidate| candidate == name).await
+	}
+
+	/// Find application roots whose accessible `Name` is accepted by `predicate`.
+	///
+	/// User-defined-match variant of [`find_by_name`]; use for case-insensitive,
+	/// prefix, or regex matching. The predicate is invoked once per registry
+	/// child; children that fail to materialize are skipped without calling it.
+	///
+	/// [`find_by_name`]: RegistryProxy::find_by_name
+	///
+	/// # Errors
+	///
+	/// Errors if the registry view cannot be built or [`get_children`] fails.
+	///
+	/// [`get_children`]: crate::accessible::AccessibleProxy#method.get_children
+	pub async fn find_by_name_with<F>(
+		&self,
+		mut predicate: F,
+	) -> Result<Vec<ObjectRefOwned>, AtspiError>
+	where
+		F: FnMut(&str) -> bool,
+	{
+		let inner = self.inner();
+		let conn = inner.connection();
+
+		// `get_children` lives on `Accessible`, not `Registry`, and application
+		// roots are children of the root accessible. Build an `AccessibleProxy`
+		// view of the root accessible (the registry's well-known name plus the
+		// standard root path), with caching disabled because the registry's
+		// `Properties` impl is incomplete. Mirrors
+		// `AccessibilityConnection::root_accessible_on_registry`.
+		let root_accessible = AccessibleProxy::builder(conn)
+			.destination(inner.destination().clone())?
+			.path(atspi_common::ACCESSIBLE_ROOT_PATH)?
+			.cache_properties(zbus::proxy::CacheProperties::No)
+			.build()
+			.await?;
+
+		let children = root_accessible.get_children().await?;
+
+		let mut matches = Vec::new();
+		for child in children {
+			// Skip per-child failures (process gone, denied read, `DBus` hiccup);
+			// the walk continues.
+			let Ok(child_proxy) = child.as_accessible_proxy(conn).await else {
+				continue;
+			};
+			let Ok(child_name) = child_proxy.name().await else {
+				continue;
+			};
+
+			if predicate(child_name.as_str()) {
+				matches.push(child);
+			}
+		}
+
+		Ok(matches)
+	}
 }
