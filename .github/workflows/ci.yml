@@ -14,7 +14,7 @@ jobs:
     outputs:
       version: ${{ steps.step2.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: step2
         run: echo "version=`cat Cargo.toml | sed -n 's/rust-version = "\(.*\)"/\1/p' | xargs`" >> "$GITHUB_OUTPUT"
   benchmarks:
@@ -22,7 +22,7 @@ jobs:
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Cache cargo home
         uses: actions/cache@v3
         env:
@@ -46,7 +46,7 @@ jobs:
     name: nightly Clippy
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Cache cargo home
         uses: actions/cache@v3
         env:
@@ -73,7 +73,7 @@ jobs:
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Cache cargo home
         uses: actions/cache@v3
         env:
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
@@ -115,7 +115,7 @@ jobs:
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Cache cargo home
         uses: actions/cache@v3
         env:
@@ -140,7 +140,7 @@ jobs:
     needs: [rustfmt]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Cache cargo home
         uses: actions/cache@v3
         env:
@@ -171,7 +171,7 @@ jobs:
     needs: [rustfmt]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Cache cargo home
         uses: actions/cache@v3
         env:
@@ -198,7 +198,7 @@ jobs:
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Cache cargo home
         uses: actions/cache@v3
         env:
@@ -232,7 +232,7 @@ jobs:
         with:
           toolchain: ${{ needs.find-msrv.outputs.version }}
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Check MSRV Compliance
         run: cargo test --workspace --no-run --all-features
   wasm-compatible-common-crate:
@@ -240,7 +240,7 @@ jobs:
     needs: [rustfmt]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
@@ -256,7 +256,7 @@ jobs:
     needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
@@ -281,7 +281,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install nightly toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -295,12 +295,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout main project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: main
 
       - name: Git checkout test project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           repository: luukvanderduim/test-atspi-p2p
           path: test-atspi-p2p
