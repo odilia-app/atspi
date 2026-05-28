@@ -38,6 +38,8 @@ pub trait EventTypeProperties {
 pub trait EventProperties {
 	fn sender(&self) -> UniqueName<'_>;
 	fn path(&self) -> ObjectPath<'_>;
+	/// # Errors
+	/// Sender is a [`UniqueName`], no errors expected.
 	fn object_ref(&self) -> Result<NonNullObjectRef<'_>, AtspiError> {
 		NonNullObjectRef::try_from_bus_name_and_path(self.sender().into(), self.path())
 	}
