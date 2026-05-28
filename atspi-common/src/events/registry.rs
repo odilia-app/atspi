@@ -2,7 +2,6 @@
 //! The events are [`EventListenerRegisteredEvent`] and [`EventListenerDeregisteredEvent`].
 
 use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
-#[cfg(feature = "zbus")]
 use crate::object_ref::NonNullObjectRef;
 #[cfg(feature = "zbus")]
 use crate::{error::AtspiError, events::MessageConversion, EventProperties};
@@ -173,7 +172,6 @@ pub mod socket {
 	use crate::AtspiError;
 	#[cfg(feature = "zbus")]
 	use crate::EventProperties;
-	#[cfg(feature = "zbus")]
 	use crate::NonNullObjectRef;
 	use serde::{Deserialize, Serialize};
 	#[cfg(feature = "zbus")]

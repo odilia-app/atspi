@@ -4,7 +4,6 @@
 
 #[cfg(feature = "zbus")]
 use crate::events::MessageConversion;
-#[cfg(feature = "zbus")]
 use crate::object_ref::NonNullObjectRef;
 #[cfg(feature = "zbus")]
 use crate::EventProperties;

@@ -3,5 +3,17 @@
     "TOML": {
       "format_on_save": "off"
     }
+  },
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "check": {
+          "overrideCommand": [
+            "sh",
+            "/home/luuk/code/atspi-objectref/atspi/.zed/racheck.sh"
+          ]
+        }
+      }
+    }
   }
 }

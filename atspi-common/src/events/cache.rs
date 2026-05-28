@@ -2,10 +2,9 @@ use crate::cache::{CacheItem, LegacyCacheItem};
 #[cfg(feature = "zbus")]
 use crate::error::AtspiError;
 use crate::events::{DBusInterface, DBusMatchRule, DBusMember, RegistryEventString};
-#[cfg(feature = "zbus")] // TODO: Should this be behind a feature, really?
-use crate::object_ref::NonNullObjectRef;
 #[cfg(feature = "zbus")]
 use crate::EventProperties;
+use crate::NonNullObjectRef;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};

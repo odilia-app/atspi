@@ -722,6 +722,7 @@ macro_rules! zbus_message_test_case {
 	};
 }
 
+#[cfg(feature = "zbus")]
 /// Generates test cases for event wrapper conversions.
 ///
 /// This macro verifies the round-trip conversion between a user-facing event type (UFTE),
@@ -1104,7 +1105,7 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 				Self::validate_interface(header)?;
 				Self::validate_member(header)?;
 
-				let item = crate::object_ref::NonNullObjectRef::try_from(header)?;
+				let item = crate::NonNullObjectRef::try_from(header)?;
 				let msg_body = msg.body();
 				let signature = msg_body.signature();
 
@@ -1141,7 +1142,7 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 				Self::validate_interface(header)?;
 				Self::validate_member(header)?;
 
-				let item = crate::object_ref::NonNullObjectRef::try_from(header)?;
+				let item = crate::NonNullObjectRef::try_from(header)?;
 				let msg_body = msg.body();
 				let signature = msg_body.signature();
 
@@ -1162,6 +1163,7 @@ macro_rules! impl_msg_conversion_ext_for_target_type {
 	};
 }
 
+#[cfg(feature = "zbus")]
 /// Implements `TryFromMessage` for a given event wrapper type.
 ///
 /// This macro handles the top-level conversion from a raw `zbus::Message` to
@@ -1266,14 +1268,14 @@ macro_rules! impl_msg_conversion_for_types_built_from_object_ref {
 			type Body<'msg> = crate::events::EventBody<'msg> where Self: 'msg;
 
 			fn from_message_unchecked_parts(
-				obj_ref: crate::object_ref::NonNullObjectRef<'a>,
+				obj_ref: crate::NonNullObjectRef<'a>,
 				_body: zbus::message::Body,
 			) -> Result<Self, crate::error::AtspiError> {
 				Ok(Self { item: obj_ref })
 			}
 
 			fn from_message_unchecked(_: &'a zbus::Message, header: &zbus::message::Header) -> Result<Self, crate::error::AtspiError> {
-				let obj_ref: crate::object_ref::NonNullObjectRef<'_> = header.try_into()?;
+				let obj_ref: crate::NonNullObjectRef<'_> = header.try_into()?;
 				Ok( Self { item: obj_ref.into_owned() })
 			}
 
@@ -1292,14 +1294,14 @@ macro_rules! impl_msg_conversion_for_types_built_from_object_ref {
 			type Body<'msg> = crate::events::EventBody<'msg> where Self: 'msg;
 
 			fn from_message_unchecked_parts(
-				obj_ref: crate::object_ref::NonNullObjectRef<'a>,
+				obj_ref: crate::NonNullObjectRef<'a>,
 				_body: zbus::message::Body,
 			) -> Result<Self, crate::error::AtspiError> {
 				Ok(Self { item: obj_ref.into_owned() })
 			}
 
 			fn from_message_unchecked(_: &'a zbus::Message, header: &zbus::message::Header) -> Result<Self, crate::error::AtspiError> {
-				let obj_ref: crate::object_ref::NonNullObjectRef<'_> = header.try_into()?;
+				let obj_ref: crate::NonNullObjectRef<'_> = header.try_into()?;
 				Ok( Self { item: obj_ref.into_owned() })
 			}
 

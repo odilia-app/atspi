@@ -1571,7 +1571,7 @@ mod tests {
 			}};
 		}
 
-		// --- Object 1 in all variants
+		// --- Object 1 - all variants
 		let nn1_owned = NonNullObjectRef::try_new_owned(name_1.clone(), path_1.clone()).unwrap();
 		let nn1_borrowed =
 			NonNullObjectRef::Borrowed { name: name_1.clone(), path: path_1.clone() };
@@ -1580,7 +1580,7 @@ mod tests {
 		let or1_owned: ObjectRef<'static> = or1_borrowed.clone().into_owned();
 		let oro1: ObjectRefOwned = ObjectRefOwned::new(or1_owned.clone());
 
-		// --- Object 2 in all variants
+		// --- Object 2 - all variants
 		let nn2_owned = NonNullObjectRef::try_new_owned(name_2.clone(), path_2.clone()).unwrap();
 		let nn2_borrowed =
 			NonNullObjectRef::Borrowed { name: name_2.clone(), path: path_2.clone() };
@@ -1589,13 +1589,13 @@ mod tests {
 		let or2_owned: ObjectRef<'static> = or2_borrowed.clone().into_owned();
 		let oro2: ObjectRefOwned = ObjectRefOwned::new(or2_owned.clone());
 
-		// --- NonNullObjectRef vs NonNullObjectRef (variant-agnostisch) ---
+		// --- NonNullObjectRef vs NonNullObjectRef (variant-agnostic) ---
 		assert_symmetric_ne!(nn1_owned, nn2_owned);
 		assert_symmetric_ne!(nn1_owned, nn2_borrowed);
 		assert_symmetric_ne!(nn1_borrowed, nn2_owned);
 		assert_symmetric_ne!(nn1_borrowed, nn2_borrowed);
 
-		// --- ObjectRef vs ObjectRef (variant-agnostisch) ---
+		// --- ObjectRef vs ObjectRef (variant-agnostic) ---
 		assert_symmetric_ne!(or1_borrowed, or2_borrowed);
 		assert_symmetric_ne!(or1_borrowed, or2_owned);
 		assert_symmetric_ne!(or1_owned, or2_borrowed);
@@ -1614,7 +1614,7 @@ mod tests {
 		assert_symmetric_ne!(nn1_owned, oro2);
 		assert_symmetric_ne!(nn1_borrowed, oro2);
 
-		// --- ObjectRef vs ObjectRefOwned (cross-type, beide richtingen) ---
+		// --- ObjectRef vs ObjectRefOwned (cross-type, both directions) ---
 		assert_symmetric_ne!(or1_borrowed, oro2);
 		assert_symmetric_ne!(or1_owned, oro2);
 	}
