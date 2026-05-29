@@ -201,7 +201,6 @@ impl AccessibilityConnection {
 	/// #    Ok(())
 	/// # }
 	/// ```
-	#[cfg(feature = "wrappers")]
 	pub fn event_stream(&self) -> impl Stream<Item = Result<zbus::Message, AtspiError>> {
 		MessageStream::from(self.registry.inner().connection()).filter_map(|res| {
 			let msg = match res {
