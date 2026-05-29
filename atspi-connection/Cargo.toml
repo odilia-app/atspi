@@ -29,3 +29,4 @@ zbus.workspace = true
 [dev-dependencies]
 enumflags2.workspace = true
 tokio-test           = "0.4.2"
+tokio-stream         = { version = "0.1.1", default-features = false, features = ["time"] }

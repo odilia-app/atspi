@@ -253,6 +253,7 @@ dependencies = [
  "atspi-proxies",
  "enumflags2",
  "futures-lite",
+ "tokio-stream",
  "tokio-test",
  "tracing",
  "zbus",

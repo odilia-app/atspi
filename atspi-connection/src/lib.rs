@@ -134,7 +134,7 @@ impl AccessibilityConnection {
 	/// # use std::error::Error;
 	///
 	/// # fn main() {
-	/// #   assert!(tokio_test::block_on(example()).is_ok());
+	/// #   tokio_test::block_on(example()).unwrap();
 	/// # }
 	///
 	/// # async fn example() -> Result<(), Box<dyn Error>> {
@@ -142,7 +142,9 @@ impl AccessibilityConnection {
 	///     atspi.register_event::<ObjectEvents>().await?;
 	///
 	///     let mut events = atspi.event_stream();
-	///     std::pin::pin!(&mut events);
+	///     let mut events = std::pin::pin!(events);
+	/// #   let mut timeout_events = tokio_stream::StreamExt::timeout(atspi.event_stream(), std::time::Duration::from_secs(10));
+	/// #   let mut timeout_events = std::pin::pin!(timeout_events);
 	/// #   let output = std::process::Command::new("busctl")
 	/// #       .arg("--user")
 	/// #       .arg("call")
@@ -164,7 +166,7 @@ impl AccessibilityConnection {
 	/// #       .arg("--address")
 	/// #       .arg(addr_str)
 	/// #       .arg("emit")
-	/// #       .arg("/org/a11y/atspi/null")
+	/// #       .arg("/org/a11y/atspi/object/12345")
 	/// #       .arg("org.a11y.atspi.Event.Object")
 	/// #       .arg("StateChanged")
 	/// #       .arg("siiva{sv}")
@@ -177,13 +179,25 @@ impl AccessibilityConnection {
 	/// #       .output()
 	/// #       .unwrap();
 	///
+	/// #   while let Some(res) = timeout_events.next().await {
+	/// #       let msg_result = res.expect("timeout occurred");
+	/// #       if let Ok(msg) = msg_result {
+	/// #           match StateChangedEvent::try_from(&msg) {
+	/// #               Ok(_) => break, // Succes!
+	/// #               Err(atspi_connection::common::AtspiError::InterfaceMatch(_))
+	/// #               | Err(atspi_connection::common::AtspiError::MemberMatch(_)) => continue, // Not a StateChanged event
+	/// #               Err(e) => return Err(e.into()), // Echte fout in ons event, crash de test!
+	/// #           }
+	/// #       }
+	/// #   }
+	/// #   if false {
 	///     while let Some(Ok(msg)) = events.next().await {
 	///        // Try to convert the raw message into a StateChangedEvent
 	///        if let Ok(event) = StateChangedEvent::try_from(&msg) {
-	/// #        break;
 	///          // do something else here
 	///        } else { continue }
 	///     }
+	/// #   }
 	/// #    Ok(())
 	/// # }
 	/// ```
