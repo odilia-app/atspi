@@ -15,14 +15,14 @@ version                = "0.14.0"
 
 [features]
 default  = ["p2p", "wrappers"]
-p2p      = ["dep:futures-lite", "zbus/p2p"]
+p2p      = ["zbus/p2p"]
 tracing  = ["dep:tracing"]
-wrappers = ["atspi-common/wrappers", "dep:futures-lite"]
+wrappers = ["atspi-common/wrappers"]
 
 [dependencies]
 atspi-common   = { path = "../atspi-common/", version = "0.14.0", default-features = false, features = ["zbus"] }
 atspi-proxies  = { path = "../atspi-proxies/", version = "0.14.0" }
-futures-lite   = { version = "2.6.0", default-features = false, optional = true }
+futures-lite   = { version = "2.6.0", default-features = false}
 tracing        = { optional = true, workspace = true }
 zbus.workspace = true
 

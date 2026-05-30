@@ -24,16 +24,15 @@ use atspi_proxies::{
 
 #[cfg(feature = "p2p")]
 use crate::p2p::Peers;
-#[cfg(feature = "wrappers")]
 use futures_lite::stream::{Stream, StreamExt};
+
 use std::ops::Deref;
 use zbus::{
 	fdo::DBusProxy,
+	message::Type as MessageType,
 	proxy::{CacheProperties, Defaults},
-	Address, MatchRule,
+	Address, MatchRule, MessageStream,
 };
-#[cfg(feature = "wrappers")]
-use zbus::{message::Type as MessageType, MessageStream};
 
 /// A connection to the at-spi bus
 #[derive(Clone, Debug)]
