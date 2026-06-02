@@ -9,7 +9,7 @@
 
 use atspi::{
 	connection::set_session_accessibility, proxy::accessible::AccessibleProxy,
-	AccessibilityConnection, NonNullObjectRef, Role,
+	AccessibilityConnection, NonNullObjectRef, ObjectRefOwned, Role,
 };
 use atspi_connection::P2P;
 use atspi_proxies::accessible::ObjectRefExt;
@@ -81,9 +81,7 @@ impl A11yNode {
 					let mut children_proxies: Vec<AccessibleProxy> =
 						Vec::with_capacity(children.len());
 
-					for child in children.into_iter() {
-						let Ok(child) = NonNullObjectRef::try_from(child) else { continue };
-
+					for child in children.into_iter().filter_map(ObjectRefOwned::into_non_null) {
 						match a11y.object_as_accessible(&child).await {
 							Ok(proxy) => children_proxies.push(proxy),
 							Err(e) => {
@@ -195,7 +193,7 @@ impl A11yNode {
 			let mut children_proxies = try_join_all(
 				child_objects
 					.into_iter()
-					.filter_map(|child| NonNullObjectRef::try_from(child).ok()) // Filter out null and convert
+					.filter_map(ObjectRefOwned::into_non_null) // Filter out null and convert
 					.map(|child| child.into_accessible_proxy(&connection)),
 			)
 			.await?;
@@ -311,7 +309,7 @@ async fn main() -> Result<()> {
 
 	let p2p_par_line = format!(
 		"{:<DESC_WIDTH$} {:<NODE_COUNT_WIDTH$} {:<TIME_WIDTH$.2?}",
-		"Building tree (P2P parallel)",
+		"Building tree (P2P \"parallel\" )",
 		_tree_par.node_count(),
 		p2p_par_elapsed.as_secs_f64() * 1000.0
 	);

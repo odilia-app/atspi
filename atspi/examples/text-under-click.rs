@@ -27,20 +27,16 @@ use tokio::task;
 async fn get_active_frame(
 	apps: &[ObjectRefOwned],
 	conn: &zbus::Connection,
-) -> Result<ObjectRefOwned, Box<dyn Error>> {
-	for app in apps {
-		// Skip null reference and convert to NonNullObjectRef.
-		let Ok(non_null_ref) = NonNullObjectRef::try_from(app.clone()) else { continue };
-		let proxy = non_null_ref.into_accessible_proxy(conn).await?;
-
+) -> Result<NonNullObjectRef<'static>, Box<dyn Error>> {
+	for app in apps.iter().cloned().filter_map(ObjectRefOwned::into_non_null) {
+		let proxy = app.as_accessible_proxy(conn).await?;
 		let state = proxy.get_state().await?;
 
 		assert!(!state.contains(State::Active), "The top level application should never have active state; only its associated frames should have this state");
 
-		for frame in proxy.get_children().await? {
-			let Ok(non_null) = NonNullObjectRef::try_from(frame.clone()) else { continue };
-			let candidate = non_null.into_accessible_proxy(conn).await?;
-
+		let frames = proxy.get_children().await?;
+		for frame in frames.into_iter().filter_map(ObjectRefOwned::into_non_null) {
+			let candidate = frame.as_accessible_proxy(conn).await?;
 			if candidate.get_state().await?.contains(State::Active) {
 				return Ok(frame);
 			}
@@ -214,14 +210,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	}
 
 	loop {
-		if let Some(msg) = rx.recv().await {
-			let msg = msg.unwrap();
+		if let Some(Ok(msg)) = rx.recv().await {
 			if let Ok(ev) = <ButtonEvent>::try_from(&msg) {
 				let active_frame = get_active_frame(root_children.as_slice(), conn).await.unwrap();
-				let Ok(active_frame) = NonNullObjectRef::try_from(active_frame) else { continue };
-
-				let active_frame_proxy =
-					active_frame.clone().into_accessible_proxy(conn).await.unwrap();
+				let active_frame_proxy = active_frame.as_accessible_proxy(conn).await.unwrap();
 
 				let (width, height) = active_frame_proxy
 					.proxies()

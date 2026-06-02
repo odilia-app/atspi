@@ -356,21 +356,11 @@ impl TryFrom<&AccessibleProxy<'_>> for ObjectRefOwned {
 }
 
 pub trait ObjectRefExt {
-	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
-	///
-	/// # Errors
-	/// If the `ObjectRef` is null, this method returns an error.
-	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
 	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
 
-	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
-	///
-	/// # Errors
-	/// If the `ObjectRef` is null, this method returns an error.
-	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
@@ -378,6 +368,16 @@ pub trait ObjectRefExt {
 }
 
 impl ObjectRefExt for NonNullObjectRef<'_> {
+	/// Returns an [`AccessibleProxy`], borrowing the destination and path from `self`.
+	///
+	/// The returned proxy borrows the underlying string data of the object reference,
+	/// meaning the proxy **cannot outlive** `self`. This avoids memory allocations
+	/// for the object path.
+	///
+	/// # Errors
+	/// Because `NonNullObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// and because atspi proxies opt-out of zbus' property caching,
+	/// it is highly unlikely that this method will return an error.
 	async fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
@@ -394,12 +394,22 @@ impl ObjectRefExt for NonNullObjectRef<'_> {
 			.map_err(AtspiError::from)
 	}
 
+	/// Converts to [`AccessibleProxy`], consuming `self` and producing a fully owned, `'static` proxy.
+	/// Use this if you need to store the proxy or send it to another thread.
+	///
+	/// # Errors
+	/// Because `NonNullObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// and because atspi proxies opt-out of zbus' property caching,
+	/// it is highly unlikely that this method will return an error.
 	async fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		let name: BusName = self.name().clone().to_owned().into();
-		let path = self.path().to_owned();
+		// Consume and deconstruct self
+		let (name, path) = match self {
+			NonNullObjectRef::Owned { name, path } => (name, path),
+			NonNullObjectRef::Borrowed { name, path } => (name.to_owned(), path.to_owned()),
+		};
 
 		AccessibleProxy::builder(conn)
 			.destination(name)?
@@ -412,46 +422,161 @@ impl ObjectRefExt for NonNullObjectRef<'_> {
 }
 
 impl ObjectRefExt for ObjectRef<'_> {
+	/// Returns an [`AccessibleProxy`], borrowing the destination and path from `self`.
+	///
+	/// The returned proxy borrows the underlying string data of the object reference,
+	/// meaning the proxy **cannot outlive** `self`. This avoids memory allocations
+	/// for the object path.
+	///
+	/// # Errors
+	/// If `self` is [`ObjectRef::Null`], this method will return [`AtspiError::ParseError`].
+	///
+	/// Otherwise, because `ObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// and atspi proxies opt-out of zbus' property caching, this method is highly unlikely to return an error.
 	async fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().into();
-		let path = self.path();
-
-		AccessibleProxy::builder(conn)
-			.destination(name)?
-			.path(path)?
-			.cache_properties(zbus::proxy::CacheProperties::No)
-			.build()
-			.await
-			.map_err(AtspiError::from)
+		match self {
+			ObjectRef::NonNull(non_null) => non_null.as_accessible_proxy(conn).await,
+			ObjectRef::Null => Err(AtspiError::ParseError("Expected NonNullObjectRef, found Null")),
+		}
 	}
 
+	/// Converts to an [`AccessibleProxy`], consuming `self` and producing a fully owned, `'static` proxy.
+	/// Use this if you need to store the proxy or send it to another thread.
+	///
+	/// # Errors
+	/// If `self` is [`ObjectRef::Null`], this method will return [`AtspiError::ParseError`].
+	///
+	/// Because `ObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// and because atspi proxies opt-out of zbus' property caching,
+	/// this method is otherwise highly unlikely to return an error.
 	async fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
 	) -> Result<AccessibleProxy<'_>, AtspiError> {
-		let name: BusName = self.name().ok_or(AtspiError::MissingName)?.clone().to_owned().into();
-		let path = self.path().to_owned();
+		// ObjectRef can be Null
+		let non_null: NonNullObjectRef<'_> = self.try_into()?;
+		non_null.into_accessible_proxy(conn).await
+	}
+}
 
-		AccessibleProxy::builder(conn)
-			.destination(name)?
-			.path(path)?
-			.cache_properties(zbus::proxy::CacheProperties::No)
-			.build()
-			.await
-			.map_err(AtspiError::from)
+impl ObjectRefExt for ObjectRefOwned {
+	/// Returns an [`AccessibleProxy`], borrowing the destination and path from `self`.
+	///
+	/// The returned proxy borrows the underlying string data of the object reference,
+	/// meaning the proxy **cannot outlive** `self`. This avoids memory allocations
+	/// for the object path.
+	///
+	/// # Errors
+	/// If `self` is [`ObjectRefOwned::Null`], this method will return [`AtspiError::ParseError`].
+	///
+	/// Otherwise, because `ObjectRefOwned` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// and atspi proxies opt-out of zbus' property caching, this method is highly unlikely to return an error.
+	async fn as_accessible_proxy(
+		&self,
+		conn: &zbus::Connection,
+	) -> Result<AccessibleProxy<'_>, AtspiError> {
+		// Match directly on the inner reference &self.0 to avoid temporary variables
+		match self.as_inner() {
+			ObjectRef::NonNull(non_null) => non_null.as_accessible_proxy(conn).await,
+			ObjectRef::Null => Err(AtspiError::ParseError("Expected NonNullObjectRef, found Null")),
+		}
+	}
+
+	/// Converts to an [`AccessibleProxy`], consuming `self` and producing a fully owned, `'static` proxy.
+	/// Use this if you need to store the proxy or send it to another thread.
+	///
+	/// # Errors
+	/// If `self` is [`ObjectRefOwned::Null`], this method will return [`AtspiError::ParseError`].
+	///
+	/// Because `ObjectRefOwned` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// and because atspi proxies opt-out of zbus' property caching,
+	/// this method is otherwise highly unlikely to return an error.
+	async fn into_accessible_proxy(
+		self,
+		conn: &zbus::Connection,
+	) -> Result<AccessibleProxy<'_>, AtspiError> {
+		// ObjectRefOwned can be Null
+		let non_null: NonNullObjectRef = self.try_into()?;
+		non_null.into_accessible_proxy(conn).await
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::accessible::Role;
+	use crate::accessible::ObjectRefExt;
+	use crate::bus::BusProxy;
+	use atspi_common::{NonNullObjectRef, ObjectRef, ObjectRefOwned, Role};
+	use zbus::connection::Builder;
+	use zbus::fdo::DBusProxy;
+	use zbus::names::{BusName, OwnedUniqueName};
+	use zbus::zvariant::ObjectPath;
 
 	#[test]
 	fn test_output_of_role_name() {
 		assert_eq!(Role::Invalid.name(), "invalid");
 		assert_eq!(Role::PushButtonMenu.name(), "push button menu");
+	}
+
+	async fn get_a11y_connection() -> Result<zbus::Connection, zbus::Error> {
+		let session_bus = zbus::Connection::session().await?;
+		let bus_proxy = BusProxy::new(&session_bus).await?;
+		let a11y_bus_addr = bus_proxy.get_address().await?;
+		let addr: zbus::Address = a11y_bus_addr.parse()?;
+		Builder::address(addr)?.build().await
+	}
+
+	#[tokio::test]
+	async fn test_object_ref_ext_integration() {
+		let a11y_conn = match get_a11y_connection().await {
+			Ok(conn) => conn,
+			Err(e) => {
+				eprintln!("Skipping integration test: Accessibility bus is not available: {e}");
+				return;
+			}
+		};
+
+		// Resolve the well-known name "org.a11y.atspi.Registry" to its actual unique name
+		let Some(unique_name): Option<OwnedUniqueName> = (async {
+			let dbus_proxy = DBusProxy::new(&a11y_conn).await.ok()?;
+			dbus_proxy
+				.get_name_owner(BusName::from_static_str("org.a11y.atspi.Registry").unwrap())
+				.await
+				.ok()
+		})
+		.await
+		else {
+			eprintln!("Skipping integration test: Could not resolve unique name for Registry.");
+			return;
+		};
+
+		let path = "/org/a11y/atspi/accessible/root";
+		let object_path = ObjectPath::from_static_str_unchecked(path);
+
+		let non_null = NonNullObjectRef::try_new_owned(unique_name, object_path.clone()).unwrap();
+		let non_null_owned = non_null.clone().into_owned();
+		let proxy_borrowed_res = non_null_owned.as_accessible_proxy(&a11y_conn).await;
+		assert!(
+			proxy_borrowed_res.is_ok(),
+			"Failed to build borrowed proxy from NonNullObjectRef: {:?}",
+			proxy_borrowed_res.err()
+		);
+		let proxy = proxy_borrowed_res.unwrap();
+
+		if let Ok(role) = proxy.get_role().await {
+			assert_eq!(role, Role::DesktopFrame);
+		}
+
+		// Test B: Using ObjectRef (borrowing proxy builder)
+		let object_ref = ObjectRef::from(non_null.clone());
+		let proxy_from_ref = object_ref.as_accessible_proxy(&a11y_conn).await;
+		assert!(proxy_from_ref.is_ok());
+
+		// Test C: Using ObjectRefOwned (consuming owned proxy builder)
+		let object_ref_owned = ObjectRefOwned::from(non_null.clone());
+		let proxy_from_owned = object_ref_owned.into_accessible_proxy(&a11y_conn).await;
+		assert!(proxy_from_owned.is_ok());
 	}
 }

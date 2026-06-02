@@ -3,7 +3,7 @@
 //! "This example requires the  `proxies-tokio`, `tokio` and `zbus` features to be enabled:
 //!
 //! ```sh
-//! cargo run --example bus-tree --features zbus,proxies-tokio,tokio
+//! cargo run --example tree --features zbus,tokio
 //! ```
 //! Authors:
 //!    Luuk van der Duim,
@@ -12,7 +12,7 @@
 use atspi::{
 	connection::set_session_accessibility,
 	proxy::accessible::{AccessibleProxy, ObjectRefExt},
-	AccessibilityConnection, NonNullObjectRef, Role,
+	AccessibilityConnection, ObjectRefOwned, Role,
 };
 use futures::future::{join_all, try_join_all};
 use std::fmt::{self, Display, Formatter};
@@ -121,7 +121,7 @@ impl A11yNode {
 			let mut children_proxies = try_join_all(
 				child_objects
 					.into_iter()
-					.filter_map(|child| NonNullObjectRef::try_from(child).ok()) // Filter out null children
+					.filter_map(ObjectRefOwned::into_non_null) // Filter out null children
 					.map(|child| child.into_accessible_proxy(&connection)),
 			)
 			.await?;

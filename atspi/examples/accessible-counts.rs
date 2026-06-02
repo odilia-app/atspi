@@ -7,12 +7,12 @@
 //! ```
 //! Authors:
 //!    Colton Loftus
+
 use atspi::connection::set_session_accessibility;
 use atspi::proxy::accessible::ObjectRefExt;
-use atspi::NonNullObjectRef;
-use atspi_common::ObjectRefOwned;
+use atspi::ObjectRefOwned;
 use futures::future::try_join_all;
-use std::collections::{hash_map, HashMap};
+use std::collections::HashMap;
 use std::error::Error;
 
 #[tokio::main]
@@ -29,16 +29,12 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 	// but not the natural language name of the associated app;
 	// thus we need this to map the id to the natural language name
 	let mut id_to_name = HashMap::new();
+	let children = root.get_children().await?;
 
-	// by getting the names of the children of the root
-	// we can get the names of all applications currently running
-	for child in root
-		.get_children()
-		.await?
-		.into_iter()
-		.filter_map(ObjectRefOwned::into_non_null)
-	{
-		let proxy = child.into_accessible_proxy(conn).await?;
+	// by getting the names of root's children
+	// we can get the names of all currently running applications.
+	for child in children.into_iter().filter_map(ObjectRefOwned::into_non_null) {
+		let proxy = child.as_accessible_proxy(conn).await?;
 		let natural_name = proxy.name().await?;
 		let id = proxy
 			.get_application()
@@ -61,7 +57,7 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 		let children_proxies = try_join_all(
 			child_objects
 				.into_iter()
-				.filter_map(|child| NonNullObjectRef::try_from(child).ok()) // Filter null and convert
+				.filter_map(ObjectRefOwned::into_non_null)
 				.map(|child| child.into_accessible_proxy(conn)),
 		)
 		.await?;
@@ -71,17 +67,9 @@ async fn main() -> std::result::Result<(), Box<dyn Error>> {
 				.get_application()
 				.await?
 				.name()
-				.expect("root object has a name")
+				.expect("root object has a bus name")
 				.to_string();
-			match id_to_accessible_count.entry(application_name) {
-				hash_map::Entry::Vacant(e) => {
-					e.insert(1);
-				}
-				hash_map::Entry::Occupied(mut e) => {
-					let count = e.get_mut();
-					*count += 1;
-				}
-			}
+			*id_to_accessible_count.entry(application_name).or_insert(0) += 1;
 		}
 		tmp_stack.extend(children_proxies);
 	}

@@ -1,5 +1,6 @@
 use atspi::events::object::StateChangedEvent;
 use atspi::events::ObjectEvents;
+use atspi::State;
 use std::error::Error;
 use tokio_stream::StreamExt;
 
@@ -14,7 +15,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	while let Some(Ok(ref message)) = events.next().await {
 		let Ok(change) = <StateChangedEvent>::try_from(message) else { continue };
 
-		if change.state == "focused".into() && change.enabled {
+		if change.state == State::Focused && change.enabled {
 			let bus_name = change.item.name();
 			println!("Accessible belonging to {bus_name}  focused!");
 		}

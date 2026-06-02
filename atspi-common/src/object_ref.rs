@@ -151,7 +151,7 @@ impl<'o> NonNullObjectRef<'o> {
 		}
 	}
 
-	/// Create a new `NonNullObjectRef`, from `BusName` and `ObjectPath`.
+	/// Create a new [`NonNullObjectRef`], from [`BusName`] and [`ObjectPath`].
 	///
 	/// # Errors
 	/// If a null path is provided.
@@ -168,7 +168,7 @@ impl<'o> NonNullObjectRef<'o> {
 		}
 	}
 
-	/// Create a new `NonNullObjectRef`, unchecked.
+	/// Create a new [`NonNullObjectRef`], unchecked.
 	///
 	/// # Safety
 	/// The caller must ensure that the provided strings are valid for [`UniqueName`] and [`ObjectPath`] types\
@@ -234,6 +234,29 @@ impl<'o> NonNullObjectRef<'o> {
 				path.as_str()
 			}
 		}
+	}
+
+	/// Returns [`NonNullObjectRef`] from an [`ObjectRef`].
+	///
+	/// Returns [`None`] if the object reference is null.
+	///
+	/// # Example
+	/// ```
+	/// use atspi_common::object_ref::{ObjectRef, NonNullObjectRef};
+	/// let objs = vec![ ObjectRef::from_static_str_unchecked(":1.2", "/org/a11y/atspi/object/123"),
+	///     ObjectRef::from_static_str_unchecked(":1.3", "/org/a11y/atspi/object/123"),
+	///     ObjectRef::default()];
+	///
+	/// for obj in objs.into_iter().filter_map(NonNullObjectRef::from_obj_ref) {
+	///     let path = obj.path_as_str();
+	///     assert!(path.ends_with("/object/123"));
+	/// }
+	/// ```
+	pub fn from_obj_ref<O>(obj: O) -> Option<NonNullObjectRef<'o>>
+	where
+		O: Into<ObjectRef<'o>>,
+	{
+		obj.into().into()
 	}
 }
 
@@ -531,9 +554,27 @@ impl ObjectRefOwned {
 		ObjectRefOwned(ObjectRef::from_static_str_unchecked(name, path))
 	}
 
+	/// Create a new [`ObjectRefOwned`], from [`BusName`] and [`ObjectPath`].
+	///
+	/// # Errors
+	/// If a null path is provided.
+	/// If the `sender` is not a [`UniqueName`].
+	pub fn try_from_bus_name_and_path(
+		sender: BusName<'_>,
+		path: ObjectPath<'_>,
+	) -> Result<Self, AtspiError> {
+		// Check whether `BusName` matches `UniqueName`
+		if let BusName::Unique(name) = sender {
+			let nnor = NonNullObjectRef::try_new_owned(name.into_owned(), path.into_owned())?;
+			Ok(ObjectRefOwned(nnor.into()))
+		} else {
+			Err(AtspiError::ParseError("Expected UniqueName"))
+		}
+	}
+
 	/// Returns `true` if the object reference is `Null`, otherwise returns `false`.
 	#[must_use]
-	pub fn is_null(&self) -> bool {
+	pub const fn is_null(&self) -> bool {
 		matches!(self.0, ObjectRef::Null)
 	}
 
@@ -541,6 +582,12 @@ impl ObjectRefOwned {
 	#[must_use]
 	pub fn into_inner(self) -> ObjectRef<'static> {
 		self.0
+	}
+
+	/// Returns a reference to the inner [`ObjectRef`].
+	#[must_use]
+	pub const fn as_inner(&self) -> &ObjectRef<'static> {
+		&self.0
 	}
 
 	/// Returns the name of the object reference.
@@ -619,12 +666,54 @@ impl ObjectRefOwned {
 	}
 
 	/// Converts to `Option<NonNullObjectRef<'static>>`, returning `None` if null.
+	///
+	/// Maybe useful to filter a collection of `ObjectRef` to `Option<NonNullObjectRef<'static>>`.
+	///
+	/// # Examples
+	/// ```rust
+	/// use atspi_common::{ObjectRefOwned, NonNullObjectRef};
+	///
+	/// let objects = [
+	///     ObjectRefOwned::from_static_str_unchecked(":1.0", "/path/123"),
+	///     ObjectRefOwned::from_static_str_unchecked(":1.1", "/path/124"),
+	///     ObjectRefOwned::default(), // Null!
+	/// ];
+	///
+	/// let mut iter = objects.into_iter().filter_map(ObjectRefOwned::into_non_null);
+	///
+	/// assert_eq!(iter.next(), Some(NonNullObjectRef::from_static_str_unchecked(":1.0", "/path/123")));
+	/// assert_eq!(iter.next(), Some(NonNullObjectRef::from_static_str_unchecked(":1.1", "/path/124")));
+	/// assert_eq!(iter.next(), None);
+	/// ```
 	#[must_use]
 	pub fn into_non_null(self) -> Option<NonNullObjectRef<'static>> {
-		match self.0 {
-			ObjectRef::NonNull(non_null) => Some(non_null),
-			ObjectRef::Null => None,
-		}
+		self.into()
+	}
+
+	/// Presents the reference as an [`Option<&NonNullObjectRef<'static>>`].
+	///
+	/// Returns `None` if the underlying object reference is null.
+	/// This provides a cheap, allocation-free way to obtain a view of the non-null reference.
+	///
+	/// # Examples
+	/// ```rust
+	/// use atspi_common::{ObjectRefOwned, NonNullObjectRef};
+	///
+	/// let objects = [
+	///     ObjectRefOwned::from_static_str_unchecked(":1.0", "/path/123"),
+	///     ObjectRefOwned::from_static_str_unchecked(":1.1", "/path/124"),
+	///     ObjectRefOwned::default(), // Null!
+	/// ];
+	///
+	/// let mut iter = objects.iter().filter_map(ObjectRefOwned::as_non_null);
+	///
+	/// assert_eq!(iter.next(), Some(&NonNullObjectRef::from_static_str_unchecked(":1.0", "/path/123")));
+	/// assert_eq!(iter.next(), Some(&NonNullObjectRef::from_static_str_unchecked(":1.1", "/path/124")));
+	/// assert_eq!(iter.next(), None);
+	/// ```
+	#[must_use]
+	pub fn as_non_null(&self) -> Option<&NonNullObjectRef<'static>> {
+		self.into()
 	}
 }
 
@@ -676,6 +765,38 @@ impl TryFrom<ObjectRefOwned> for NonNullObjectRef<'static> {
 	/// Will return an `AtspiError::ParseError` if the inner `ObjectRef` is `Null`.
 	fn try_from(object_ref: ObjectRefOwned) -> Result<Self, Self::Error> {
 		NonNullObjectRef::try_from(object_ref.0)
+	}
+}
+
+impl<'o> From<ObjectRef<'o>> for Option<NonNullObjectRef<'o>> {
+	fn from(object_ref: ObjectRef<'o>) -> Self {
+		match object_ref {
+			ObjectRef::NonNull(non_null) => Some(non_null),
+			ObjectRef::Null => None,
+		}
+	}
+}
+
+impl<'o, 'r> From<&'r ObjectRef<'o>> for Option<&'r NonNullObjectRef<'o>> {
+	fn from(object_ref: &'r ObjectRef<'o>) -> Self {
+		match object_ref {
+			ObjectRef::NonNull(non_null) => Some(non_null),
+			ObjectRef::Null => None,
+		}
+	}
+}
+
+// Delegated impl on `ObjectRefOwned` owned.
+impl From<ObjectRefOwned> for Option<NonNullObjectRef<'static>> {
+	fn from(object_ref: ObjectRefOwned) -> Self {
+		object_ref.0.into()
+	}
+}
+
+// Delegated impl on `ObjectRefOwned` reference.
+impl<'r> From<&'r ObjectRefOwned> for Option<&'r NonNullObjectRef<'static>> {
+	fn from(object_ref: &'r ObjectRefOwned) -> Self {
+		(&object_ref.0).into()
 	}
 }
 
@@ -1138,7 +1259,7 @@ impl From<ObjectRefOwned> for Value<'static> {
 
 #[cfg(test)]
 mod tests {
-	use crate::object_ref::{NULL_OBJECT_PATH, NULL_PATH_STR};
+	use crate::object_ref::{NULL_OBJECT_PATH, NULL_PATH_STR, TEST_NON_NULL_OBJECT_REF};
 	use crate::{NonNullObjectRef, ObjectRef, ObjectRefOwned};
 	use std::hash::{DefaultHasher, Hash, Hasher};
 	use zbus::zvariant;
@@ -1657,5 +1778,62 @@ mod tests {
 		assert_eq_implies_hash_eq!(object_ref_owned, object_ref_owned_wrapped);
 		assert_eq_implies_hash_eq!(object_ref_borrowed, object_ref_owned_wrapped);
 		assert_eq_implies_hash_eq!(object_ref_null, object_ref_owned_wrapped_null);
+	}
+
+	#[test]
+	fn convert_object_ref_owned_to_option_non_null() {
+		let object_ref = ObjectRef::from(TEST_NON_NULL_OBJECT_REF);
+		let object_ref_owned = ObjectRefOwned::new(object_ref);
+		let option_non_null: Option<NonNullObjectRef<'static>> = object_ref_owned.into();
+		assert!(option_non_null.is_some());
+	}
+
+	#[test]
+	fn convert_object_ref_owned_to_option_null() {
+		let object_ref_owned = ObjectRefOwned::new(ObjectRef::Null);
+		let option_non_null: Option<NonNullObjectRef<'static>> = object_ref_owned.into();
+		assert!(option_non_null.is_none());
+	}
+
+	#[test]
+	fn convert_ref_owned_to_option_non_null() {
+		let object_ref_owned = &ObjectRefOwned::new(ObjectRef::from(TEST_NON_NULL_OBJECT_REF));
+		let option_non_null: Option<&NonNullObjectRef<'static>> = object_ref_owned.into();
+		assert!(option_non_null.is_some());
+	}
+
+	#[test]
+	fn convert_ref_owned_to_option_null() {
+		let object_ref_owned = &ObjectRefOwned::new(ObjectRef::Null);
+		let option_non_null: Option<&NonNullObjectRef<'static>> = object_ref_owned.into();
+		assert!(option_non_null.is_none());
+	}
+
+	#[test]
+	fn convert_object_ref_to_option_non_null() {
+		let object_ref = ObjectRef::from(TEST_NON_NULL_OBJECT_REF);
+		let option_non_null: Option<NonNullObjectRef<'static>> = object_ref.into();
+		assert!(option_non_null.is_some());
+	}
+
+	#[test]
+	fn convert_object_ref_to_option_null() {
+		let object_ref = ObjectRef::Null;
+		let option_non_null: Option<NonNullObjectRef<'static>> = object_ref.into();
+		assert!(option_non_null.is_none());
+	}
+
+	#[test]
+	fn convert_ref_object_ref_to_option_non_null() {
+		let ref_object_ref = &ObjectRef::from(TEST_NON_NULL_OBJECT_REF);
+		let option_non_null: Option<&NonNullObjectRef<'static>> = ref_object_ref.into();
+		assert!(option_non_null.is_some());
+	}
+
+	#[test]
+	fn convert_ref_object_ref_to_option_null() {
+		let ref_object_ref = &ObjectRef::Null;
+		let option_non_null: Option<&NonNullObjectRef<'static>> = ref_object_ref.into();
+		assert!(option_non_null.is_none());
 	}
 }

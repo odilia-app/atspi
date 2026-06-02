@@ -1,4 +1,4 @@
-use atspi::{events::object::StateChangedEvent, ObjectEvents};
+use atspi::{events::object::StateChangedEvent, ObjectEvents, State};
 use futures_lite::stream::StreamExt;
 use std::{error::Error, pin::pin};
 
@@ -13,9 +13,9 @@ smol_macros::main! {
 		while let Some(Ok(ref message)) = events.next().await {
 			let Ok(change) = <StateChangedEvent>::try_from(message) else { continue };
 
-			if change.state == "focused".into() && change.enabled {
+			if change.state == State::Focused && change.enabled {
 				let bus_name = change.item.name_as_str();
-				println!("Accessible belonging to {bus_name}  focused!");
+				println!("Accessible belonging to {bus_name} focused!");
 			}
 		}
 		Ok(())
