@@ -375,9 +375,12 @@ impl ObjectRefExt for NonNullObjectRef<'_> {
 	/// for the object path.
 	///
 	/// # Errors
-	/// Because `NonNullObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// Because `NonNullObjectRef` contains valid [`UniqueName`][un] and [`ObjectPath`][op],
 	/// and because atspi proxies opt-out of zbus' property caching,
 	/// it is highly unlikely that this method will return an error.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zbus::zvariant::ObjectPath
 	async fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
@@ -398,9 +401,12 @@ impl ObjectRefExt for NonNullObjectRef<'_> {
 	/// Use this if you need to store the proxy or send it to another thread.
 	///
 	/// # Errors
-	/// Because `NonNullObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// Because [`NonNullObjectRef`] contains valid [`UniqueName`][un] and [`ObjectPath`][op],
 	/// and because atspi proxies opt-out of zbus' property caching,
 	/// it is highly unlikely that this method will return an error.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zbus::zvariant::ObjectPath
 	async fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
@@ -431,8 +437,11 @@ impl ObjectRefExt for ObjectRef<'_> {
 	/// # Errors
 	/// If `self` is [`ObjectRef::Null`], this method will return [`AtspiError::ParseError`].
 	///
-	/// Otherwise, because `ObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// Otherwise, because [`ObjectRef`] contains valid [`UniqueName`][un] and [`ObjectPath`][op],
 	/// and atspi proxies opt-out of zbus' property caching, this method is highly unlikely to return an error.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zbus::zvariant::ObjectPath
 	async fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
@@ -449,9 +458,12 @@ impl ObjectRefExt for ObjectRef<'_> {
 	/// # Errors
 	/// If `self` is [`ObjectRef::Null`], this method will return [`AtspiError::ParseError`].
 	///
-	/// Because `ObjectRef` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// Because [`ObjectRef`] contains valid [`UniqueName`][un] and [`ObjectPath`][op],
 	/// and because atspi proxies opt-out of zbus' property caching,
 	/// this method is otherwise highly unlikely to return an error.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zbus::zvariant::ObjectPath
 	async fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
@@ -470,10 +482,13 @@ impl ObjectRefExt for ObjectRefOwned {
 	/// for the object path.
 	///
 	/// # Errors
-	/// If `self` is [`ObjectRefOwned::Null`], this method will return [`AtspiError::ParseError`].
+	/// If `self.0` is [`ObjectRef::Null`], this method will return [`AtspiError::ParseError`].
 	///
-	/// Otherwise, because `ObjectRefOwned` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// Otherwise, because `ObjectRefOwned` contains valid [`UniqueName`][un] and [`ObjectPath`][op],
 	/// and atspi proxies opt-out of zbus' property caching, this method is highly unlikely to return an error.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zbus::zvariant::ObjectPath
 	async fn as_accessible_proxy(
 		&self,
 		conn: &zbus::Connection,
@@ -489,11 +504,14 @@ impl ObjectRefExt for ObjectRefOwned {
 	/// Use this if you need to store the proxy or send it to another thread.
 	///
 	/// # Errors
-	/// If `self` is [`ObjectRefOwned::Null`], this method will return [`AtspiError::ParseError`].
+	/// If `self.0` is [`ObjectRef::Null`], this method will return [`AtspiError::ParseError`].
 	///
-	/// Because `ObjectRefOwned` contains valid [`UniqueName`] and [`ObjectPath`],
+	/// Because [`ObjectRefOwned`] contains valid [`UniqueName`][un] and [`ObjectPath`][op],
 	/// and because atspi proxies opt-out of zbus' property caching,
 	/// this method is otherwise highly unlikely to return an error.
+	///
+	/// [un]: zbus::names::UniqueName
+	/// [op]: zbus::zvariant::ObjectPath
 	async fn into_accessible_proxy(
 		self,
 		conn: &zbus::Connection,
