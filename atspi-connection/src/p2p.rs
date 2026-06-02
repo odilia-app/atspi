@@ -450,17 +450,25 @@ impl Peers {
 	///
 	/// # Note
 	/// This function is called internally by `AccessibilityConnection::new()`.
+	#[allow(clippy::too_many_lines)]
 	pub(crate) fn spawn_peer_listener_task(&self, conn: &zbus::Connection) {
 		// Clone the `Peers` and `Connection` to move them into the async task.
 		// This is necessary because the async task needs to own these values.
 		let peers = self.clone();
 		let conn = conn.clone();
-		let dbus_proxy = futures_lite::future::block_on(DBusProxy::new(&conn))
-			.expect("Failed to create DBusProxy");
-
 		let executor = conn.executor().clone();
 
 		executor.spawn(async move {
+    		let dbus_proxy = match DBusProxy::new(&conn).await {
+    			Ok(proxy) => proxy,
+    			#[allow(unused_variables)]
+    			Err(err) => { // `err` use depends on `tracing`, so allow(unused_variables)
+    				#[cfg(feature = "tracing")]
+    				tracing::error!("Failed to create DBusProxy for peer listener: {err}");
+    				return;
+    			}
+    		};
+
 			let Ok(mut name_owner_changed_stream) = dbus_proxy.receive_name_owner_changed().await.inspect_err(|#[allow(unused_variables)] err| {
 				#[cfg(feature = "tracing")]
 				debug!("Failed to receive `NameOwnerChanged` stream: {err}");
