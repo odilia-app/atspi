@@ -3,7 +3,7 @@
 //! The `org.a11y.atspi.Cache` interface provides a way to cache
 //! `CacheItem`s for use by AT-SPI clients, such as screen-readers.
 //!
-//! `CacheItem`s are sent as part of [`CacheEvent`]s which may
+//! `CacheItem`s are sent as part of [`AddAccessibleEvent`][cae]s which may
 //! be used to update a screen-reader's cache.
 //!
 //! This interface also implements a method to help populate
@@ -19,6 +19,8 @@
 //!
 //! No default service makes sense for this proxy, thus the macro is
 //! instructed explicitly not to generate the defaults.
+//!
+//! [cae]: atspi_common::events::cache::AddAccessibleEvent
 
 use crate::common::{CacheItem, LegacyCacheItem};
 
