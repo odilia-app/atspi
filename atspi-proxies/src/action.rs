@@ -1,4 +1,4 @@
-//! # [`ActionProxy`]
+//! # `ActionProxy`
 //!
 //! A handle for a remote object implementing the `org.a11y.atspi.Action`
 //! interface.
@@ -12,6 +12,17 @@
 //! Components which are not "passive" providers of UI information should
 //! implement this interface, unless there is a more specialized interface for
 //! interaction like [`org.a11y.atspi.Text`][TextProxy] or [`org.a11y.atspi.Value`][ValueProxy].
+//!
+//! ## Defaults
+//!
+//! "org.a11y.atspi.Action" may be implemented for individual nodes in the
+//! application's UI-tree.
+//!
+//! Service and path are either provided by the builder or inherited from the
+//! [`zbus::Proxy`] this `ActionProxy` is derived from.
+//!
+//! No default service or default path makes sense for this proxy, thus
+//! the macro is instructed explicitly not to generate the defaults.
 //!
 //! [ActionProxy]: crate::action::ActionProxy
 //! [TextProxy]: crate::text::TextProxy

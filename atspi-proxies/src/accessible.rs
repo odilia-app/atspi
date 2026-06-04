@@ -5,6 +5,16 @@
 //!
 //! Accessible is the interface which is implemented by all accessible objects.
 //!
+//! ## Defaults
+//!
+//! "org.a11y.atspi.Accessible" is always implemented, for each individual
+//! node in the application's UI-tree.
+//!
+//! Because the root node is a commonly used path and every application has
+//! a root path, this is chosen as default path.
+//!
+//! A default service does not make sense for this proxy, thus the macro is
+//! instructed explicitly not to generate the defaults.
 
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;

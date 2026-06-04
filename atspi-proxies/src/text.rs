@@ -1,16 +1,15 @@
 //! # `TextProxy`
 //!
-//! `org.a11y.atspi.Text` provides methods to interact with
-//! text UI elements.
+//! `org.a11y.atspi.Text` provides methods to interact with text UI elements.
 //!
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Table" may be implemented for individual nodes
+//! "org.a11y.atspi.Text" may be implemented for individual nodes
 //! in the application's UI-tree.
 //!
 //! Service and path are either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `TableProxy` is derived from.
+//! [`zbus::Proxy`] this `TextProxy` is derived from.
 //!
 //! No default service or default path makes sense for this proxy, thus
 //! the macro is instructed explicitly not to generate the defaults.

@@ -1,6 +1,7 @@
-//! # `org.a11y.atspi.Component`
+//! # `ComponentProxy`
 //!
-//! Component provides methods to obtain information about a UI component.
+//! `org.a11y.atspi.Component` provides methods to obtain information about a
+//! UI component.
 //!
 //! ## Defaults
 //!

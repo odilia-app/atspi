@@ -711,6 +711,7 @@ impl P2P for crate::AccessibilityConnection {
 		if let Some(peer) = lookup {
 			// If a peer is found, create an `AccessibleProxy` with a P2P connection
 			AccessibleProxy::builder(peer.connection())
+				.destination(name)?
 				.path(path)?
 				.cache_properties(CacheProperties::No)
 				.build()
@@ -719,7 +720,9 @@ impl P2P for crate::AccessibilityConnection {
 		} else {
 			// If _no_ peer was found, fall back to the bus connection
 			let conn = self.connection();
+
 			AccessibleProxy::builder(conn)
+				.destination(name)?
 				.path(path)?
 				.cache_properties(CacheProperties::No)
 				.build()

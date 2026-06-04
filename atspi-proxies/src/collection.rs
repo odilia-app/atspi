@@ -1,4 +1,4 @@
-//! # [`CollectionProxy`]
+//! # `CollectionProxy`
 //!
 //! A handle to a remote object implementing the `org.a11y.atspi.Collection`
 //! interface.

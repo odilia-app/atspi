@@ -3,6 +3,9 @@
 //! `org.a11y.Bus` (the service) exposes two interfaces on the session bus.
 //! This small eaemon is AT-SPI2's only handle on the session bus.
 //!
+//! `org.a11y.Status` provides a simple status interface, while `org.a11y.Bus`
+//! offers a single method to obtain the address of the accessibility bus.
+//!
 //! ## Defaults
 //!
 //! The service is a single small daemon provided by the AT-SPI implementation.
