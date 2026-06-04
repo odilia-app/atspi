@@ -21,7 +21,7 @@ use zbus::names::BusName;
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Accessible",
 	default_path = "/org/a11y/atspi/accessible/root",
-	assume_defaults = true
+	assume_defaults = false
 )]
 pub trait Accessible {
 	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
@@ -262,7 +262,7 @@ impl TryFrom<&AccessibleProxy<'_>> for ObjectRefOwned {
 pub trait ObjectRefExt {
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
-	/// # Errors  
+	/// # Errors
 	/// If the `ObjectRef` is null, this method returns an error.
 	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn as_accessible_proxy(
@@ -272,7 +272,7 @@ pub trait ObjectRefExt {
 
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
-	/// # Errors  
+	/// # Errors
 	/// If the `ObjectRef` is null, this method returns an error.
 	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn into_accessible_proxy(

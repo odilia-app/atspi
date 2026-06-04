@@ -6,7 +6,11 @@
 
 use crate::common::{CacheItem, LegacyCacheItem};
 
-#[zbus::proxy(interface = "org.a11y.atspi.Cache", default_path = "/org/a11y/atspi/cache")]
+#[zbus::proxy(
+	interface = "org.a11y.atspi.Cache",
+	default_path = "/org/a11y/atspi/cache",
+	assume_defaults = false
+)]
 pub trait Cache {
 	/// `GetItems` method
 	fn get_items(&self) -> zbus::Result<Vec<CacheItem>>;

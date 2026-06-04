@@ -1,4 +1,4 @@
-//! # [`ApplicationProxy`]
+//! # `ApplicationProxy`
 //!
 //! A handle for a remote object implementing the `org.a11y.atspi.Application`
 //! interface.
@@ -30,9 +30,20 @@
 //! [`toolkit_name`]: ApplicationProxy#method.toolkit_name
 //! [`version`]: ApplicationProxy#method.version
 //!
+//! ## Defaults
+//!
+//! "org.a11y.atspi.Application" is implemented on the root node in the
+//! application's UI-tree.
+//!
+//! Service should be provided by the builder or inherited from the
+//! [`zbus::Proxy`] this `ApplicationProxy` is derived from.
+//!
+//! No default service makes sense for this proxy, thus the macro is
+//! instructed explicitly not to generate the defaults.
 
-/// `Application` is the interface which is implemented by each accessible application.
-/// It is implemented for the root object of an application.
+/// `Application` is the interface which is implemented by each
+/// accessible application. It is implemented for the root object
+/// of an application.
 ///
 /// It provides information about the application itself.
 ///
@@ -60,7 +71,7 @@
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Application",
 	default_path = "/org/a11y/atspi/accessible/root",
-	assume_defaults = true
+	assume_defaults = false
 )]
 pub trait Application {
 	/// Method to retrieve the application's locale.

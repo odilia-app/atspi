@@ -12,13 +12,28 @@
 //! * [`get_matches_from`](struct.CollectionProxy.html#method.get_matches_from)
 //! * [`get_matches_to`](struct.CollectionProxy.html#method.get_matches_to)
 //!
+//! ## Defaults
+//!
+//! "org.a11y.atspi.Collection" may be implemented for the root node in the
+//! application's UI-tree.
+//!
+//! Service is either provided by the builder or inherited from the
+//! [`zbus::Proxy`] this `ActionProxy` is derived from.
+//!
+//! No default service makes sense for this proxy, thus
+//! the macro is instructed explicitly not to generate the defaults.
+//!
 //! [`CollectionProxy`]: crate::collection::CollectionProxy
 
 use atspi_common::object_ref::ObjectRefOwned;
 
 use crate::common::{ObjectMatchRule, SortOrder, TreeTraversalType};
 
-#[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = true)]
+#[zbus::proxy(
+	interface = "org.a11y.atspi.Collection",
+	default_path = "/org/a11y/atspi/collection",
+	assume_defaults = false
+)]
 pub trait Collection {
 	/// The active descendant of the given object.
 	///

@@ -15,7 +15,8 @@ use atspi_common::object_ref::ObjectRefOwned;
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Socket",
 	default_path = "/org/a11y/atspi/accessible/root",
-	default_service = "org.a11y.atspi.Registry"
+	default_service = "org.a11y.atspi.Registry",
+	assume_defaults = false
 )]
 pub trait Socket {
 	/// @plug: a string for the unique bus name of the application, and an object path

@@ -35,6 +35,12 @@ impl<'a> ProxyExt<'a> for AccessibleProxy<'a> {
 }
 
 impl<'a> Proxies<'a> {
+	/// Get the `InterfaceSet` for the proxies.
+	#[must_use]
+	pub fn interfaces(&self) -> InterfaceSet {
+		self.interfaces
+	}
+
 	/// Get the `Action` interface proxy.
 	///
 	/// # Errors
