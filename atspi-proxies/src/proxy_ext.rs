@@ -69,9 +69,9 @@ impl<'a> Proxies<'a> {
 			Ok(ApplicationProxy::builder(self.proxy.connection())
 				.cache_properties(zbus::proxy::CacheProperties::No)
 				.destination(self.proxy.destination())?
-				.path(self.proxy.path())?
 				.build()
 				.await?)
+		// Relies on ApplicationProxy default root path
 		} else {
 			Err(AtspiError::InterfaceNotAvailable("Application"))
 		}
@@ -87,9 +87,9 @@ impl<'a> Proxies<'a> {
 			Ok(CacheProxy::builder(self.proxy.connection())
 				.cache_properties(zbus::proxy::CacheProperties::No)
 				.destination(self.proxy.destination())?
-				.path(self.proxy.path())?
 				.build()
 				.await?)
+		// Relies on CacheProxy default path
 		} else {
 			Err(AtspiError::InterfaceNotAvailable("Cache"))
 		}
@@ -105,9 +105,9 @@ impl<'a> Proxies<'a> {
 			Ok(CollectionProxy::builder(self.proxy.connection())
 				.cache_properties(zbus::proxy::CacheProperties::No)
 				.destination(self.proxy.destination())?
-				.path(self.proxy.path())?
 				.build()
 				.await?)
+		// Relies on CacheProxy default path
 		} else {
 			Err(AtspiError::InterfaceNotAvailable("Collection"))
 		}
