@@ -772,9 +772,11 @@ impl P2P for crate::AccessibilityConnection {
 			})
 			.cloned();
 
+		// This method relies on the default root path of AccessibleProxy
 		if let Some(peer) = lookup {
 			// If a peer is found, create an AccessibleProxy with a P2P connection
 			AccessibleProxy::builder(peer.connection())
+				.destination(peer.unique_name().clone())?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
@@ -782,7 +784,9 @@ impl P2P for crate::AccessibilityConnection {
 		} else {
 			// If no peer is found, fall back to the bus connection
 			let conn = self.connection();
+
 			AccessibleProxy::builder(conn)
+				.destination(name.to_owned())?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
