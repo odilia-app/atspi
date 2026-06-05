@@ -1,19 +1,55 @@
 //! # `TableProxy`
 //!
-//! `org.a11y.atspi.Table` provides methods to interact with
-//! table-like UI elements.
+//! A handle for a remote object implementing the `org.a11y.atspi.Table`
+//! interface.
+//!
+//! The `Table` interface provides methods to interact with two-dimensional
+//! grids and table-like UI elements. This includes querying rows and columns,
+//! accessing cells at specific coordinates ([`get_accessible_at`]), retrieving
+//! row/column headers, and managing selections (such as [`get_selected_rows`]
+//! and [`get_selected_columns`]).
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Table" may be implemented for individual nodes
-//! in the application's UI-tree.
+//! The `Table` interface is implemented on individual, variable nodes within the
+//! application's UI-tree. As a consequence, the object path varies per node and
+//! no default path is applicable for this proxy.
 //!
-//! Service and path are either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `TableProxy` is derived from.
+//! ## How to obtain a `TableProxy`
 //!
-//! No default service or default path makes sense for this proxy, thus
-//! the macro is instructed explicitly not to generate the defaults.
+//! There are two idiomatic ways to obtain a `TableProxy`:
 //!
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you already have an [`AccessibleProxy`][ap] for a tabular node, you can safely
+//! query and convert it using the [`ProxyExt`][pe] trait:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = accessible_node.proxies().await?;
+//! let table = proxies.table().await?;
+//! ```
+//!
+//! All proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting any P2P configuration if applicable.
+//!
+//! ### 2. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,ignore
+//! let table = TableProxy::builder(&connection)
+//!     .destination(service_name)?
+//!     .path(object_path)?
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! [`get_accessible_at`]: TableProxy#method.get_accessible_at
+//! [`get_selected_rows`]: TableProxy#method.get_selected_rows
+//! [`get_selected_columns`]: TableProxy#method.get_selected_columns
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [ap]: crate::accessible::AccessibleProxy
 
 use atspi_common::object_ref::ObjectRefOwned;
 

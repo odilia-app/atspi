@@ -1,18 +1,56 @@
 //! # `TableCellProxy`
 //!
-//! `org.a11y.atspi.TableCell` provides methods to interact with
-//! table cell-like UI elements.
+//! A handle for a remote object implementing the `org.a11y.atspi.TableCell`
+//! interface.
+//!
+//! The `TableCell` interface provides methods to interact with individual cells inside
+//! a table-like element. This includes retrieving its table-relative position ([`position`]),
+//! row and column spans ([`row_span`], [`column_span`]), and associated header cells
+//! (via [`get_row_header_cells`] or [`get_column_header_cells`]).
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Table" may be implemented for individual nodes
-//! in the application's UI-tree.
+//! The `TableCell` interface is implemented on individual, variable nodes within the
+//! application's UI-tree. As a consequence, the object path varies per node and
+//! no default path is applicable for this proxy.
 //!
-//! Service and path are either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `TableProxy` is derived from.
+//! ## How to obtain a `TableCellProxy`
 //!
-//! No default service or default path makes sense for this proxy, thus
-//! the macro is instructed explicitly not to generate the defaults.
+//! There are two idiomatic ways to obtain a `TableCellProxy`:
+//!
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you already have an [`AccessibleProxy`][ap] representing a cell, you can safely
+//! query and convert it using the [`ProxyExt`][pe] trait:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = accessible_node.proxies().await?;
+//! let table_cell = proxies.table_cell().await?;
+//! ```
+//!
+//! All proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting any P2P configuration if applicable.
+//!
+//! ### 2. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,ignore
+//! let table_cell = TableCellProxy::builder(&connection)
+//!     .destination(service_name)?
+//!     .path(object_path)?
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! [`position`]: TableCellProxy#method.position
+//! [`row_span`]: TableCellProxy#method.row_span
+//! [`column_span`]: TableCellProxy#method.column_span
+//! [`get_row_header_cells`]: TableCellProxy#method.get_row_header_cells
+//! [`get_column_header_cells`]: TableCellProxy#method.get_column_header_cells
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [ap]: crate::accessible::AccessibleProxy
 
 use atspi_common::object_ref::ObjectRefOwned;
 
