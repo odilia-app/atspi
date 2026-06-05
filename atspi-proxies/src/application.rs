@@ -3,71 +3,70 @@
 //! A handle for a remote object implementing the `org.a11y.atspi.Application`
 //! interface.
 //!
-//! `Application` is the interface which is implemented by each accessible application.
-//! It is implemented for the root object of an application.
+//! `Application` is the interface implemented by each accessible application's
+//! root object. It provides metadata and runtime information about the application
+//! itself (such as its name, version, and the toolkit used to build it).
 //!
-//! It provides information about the application itself.
+//! ## Status and Deprecations
 //!
-//! ## Status
+//! Several methods and properties of this interface are legacy or considered
+//! deprecated, and should be avoided in modern implementations:
 //!
-//! A number of methods and properties of this interface have fallen in disuse or
-//! are / may be deprecated in the future.
+//! * [`id`](ApplicationProxy#method.id) & [`set_id`](ApplicationProxy#method.set_id)
+//! * [`atspi_version`](ApplicationProxy#method.atspi_version)
+//! * [`get_locale`](ApplicationProxy#method.get_locale)
 //!
-//! * [`id`]
-//! * [`set_id`]
-//! * [`atspi_version`]
-//! * [`get_locale`]
+//! Active and supported properties you should rely on:
 //!
-//! [`toolkit_name`] and [`version`] are still in use.
-//!
-//! See the documentation of the individual methods and properties for details.
-//!
-//! [`ApplicationProxy`]: crate::application::ApplicationProxy
-//! [`id`]: ApplicationProxy#method.id
-//! [`set_id`]: ApplicationProxy#method.set_id
-//! [`atspi_version`]: ApplicationProxy#method.atspi_version
-//! [`get_locale`]: ApplicationProxy#method.get_locale
-//! [`toolkit_name`]: ApplicationProxy#method.toolkit_name
-//! [`version`]: ApplicationProxy#method.version
+//! * [`toolkit_name`](ApplicationProxy#method.toolkit_name)
+//! * [`version`](ApplicationProxy#method.version)
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Application" is implemented on the root node in the
-//! application's UI-tree.
+//! The `Application` interface is always implemented on the **root node** of an
+//! application's UI-tree. Because this root object path is fixed across all
+//! AT-SPI2 applications, the proxy defines a fixed default path:
+//! `/org/a11y/atspi/accessible/root`.
 //!
-//! Service should be provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `ApplicationProxy` is derived from.
+//! ## How to obtain an `ApplicationProxy`
 //!
-//! No default service makes sense for this proxy, thus the macro is
-//! instructed explicitly not to generate the defaults.
+//! There are three idiomatic ways to obtain an `ApplicationProxy`:
+//!
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you have an [`AccessibleProxy`][ap] pointing to the application's root node,
+//! you can query its interfaces and convert it safely:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = root_node.proxies().await?;
+//! let application = proxies.application().await?;
+//! ```
+//!
+//! ### 2. Manual construction using the `builder` (Fixed Path)
+//! Because the object path of the `Application` interface is fixed, you only need
+//! to supply the application's unique D-Bus service destination. The builder will
+//! automatically use the default path:
+//!
+//! ```rust,ignore
+//! let application = ApplicationProxy::builder(&connection)
+//!     .destination(service_name)?
+//!     // No path is specified; the default root path is used automatically
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! ### 3. Construction using `new`
+//! Alternatively, you can instantiate the proxy directly using the short-hand
+//! `new` constructor, which requires only the connection and destination:
+//!
+//! ```rust,ignore
+//! let application = ApplicationProxy::new(&connection, service_name).await?;
+//! ```
+//!
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [ap]: crate::accessible::AccessibleProxy
 
-/// `Application` is the interface which is implemented by each
-/// accessible application. It is implemented for the root object
-/// of an application.
-///
-/// It provides information about the application itself.
-///
-/// ## Status
-///
-/// A number of methods and properties of this interface have fallen in disuse or
-/// are / may be deprecated in the future.
-///
-/// * [`id`]
-/// * [`set_id`]
-/// * [`atspi_version`]
-/// * [`get_locale`]
-///
-/// [`toolkit_name`] and [`version`] are still in use.
-///
-/// See the documentation of the individual methods and properties for details.
-///
-/// [`id`]: ApplicationProxy#method.id
-/// [`set_id`]: ApplicationProxy#method.set_id
-/// [`atspi_version`]: ApplicationProxy#method.atspi_version
-/// [`get_locale`]: ApplicationProxy#method.get_locale
-/// [`toolkit_name`]: ApplicationProxy#method.toolkit_name
-/// [`version`]: ApplicationProxy#method.version
-///
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Application",
 	default_path = "/org/a11y/atspi/accessible/root",
