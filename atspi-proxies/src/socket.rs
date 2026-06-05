@@ -1,17 +1,61 @@
 //! # `SocketProxy`
 //!
-//! `org.a11y.atspi.Socket` provides methods for accessible applications to
-//! register and deregister with the `Registry`.
+//! A handle for the object on the `Registry` service for the `org.a11y.atspi.Socket`
+//! interface.
+//!
+//! The `Socket` interface is part of AT-SPI2's **Socket/Plug mechanism**, which is
+//! used to seamlessly stitch together two distinct accessibility trees managed by
+//! separate, out-of-process applications.
+//!
+//! ## The Socket/Plug Stitching Mechanism
+//!
+//! In modern desktop environments, applications often isolate their UI components
+//! across process boundaries for security and stability. A prime example of this
+//! is **GNOME Web (Epiphany)** and **`WebKitGTK`**:
+//!
+//! * **The Browser Shell** (the outer window, tabs, and URL bar) runs in one process.
+//! * **The Web View** (the actual rendered HTML content) runs in a separate, sandboxed
+//!   web process.
+//!
+//! To assistive technologies (like screen readers), these must appear as a single,
+//! contiguous UI-tree.
+//!
+//! The entry point for the Plug/Embed mechanism is the `Embedded` method.
+//!
+//! 1. The `Embed` method is called by a socket application to inform the plug
+//!    application that it is being embedded.
+//!
+//! 2. The registry imforms the plug application of the socket object.
+//! 3. The plug application sets the socket object as its parent.
+//! 4. The plug application calls `Socket::Embed` to identify itself.
+//! 5. The Registry sets the `Id` property on the `org.a11y.atspi.Application`
+//!    interface on the plug object.
+//! 6. The method `Socket::Embed` returns with name and object path of the
+//!    Registry's root object.
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Spcket" is implemented for once on the `Registry`
+//! The AT-SPI registry implements `Socket` on a known default path, the service
+//! is also known.
 //!
-//! All three, interface, `default_service` and `default_path` are provided to the
-//! macro that builds `RegistryProxy`, so no defaults need to be derived.
+//! * **Service Destination**: `org.a11y.atspi.Registry`
+//! * **Object Path**: `/org/a11y/atspi/accessible/root`
+//!
+//! Because these defaults are defined on the proxy, you can instantiate the global
+//! registry socket with zero-configuration using `new`.
+//!
+//! ## How to instantiate the proxy
+//!
+//! ### 1. Shorthand construction using `new` (Default Registry Socket)
+//!
+//! ```rust,ignore
+//! let socket = SocketProxy::new(&connection).await?;
+//! ```
 
 use atspi_common::object_ref::ObjectRefOwned;
 
+// `assume_defaults = false` to avoid the macro deriving defaults for
+//  `default_service` and `default_path`
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Socket",
 	default_path = "/org/a11y/atspi/accessible/root",
