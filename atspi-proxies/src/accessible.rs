@@ -3,23 +3,72 @@
 //! A handle for a remote object implementing the `org.a11y.atspi.Accessible`
 //! interface.
 //!
-//! Accessible is the interface which is implemented by all accessible objects.
+//! `Accessible` is the base interface implemented by all accessible objects in the
+//! AT-SPI2 UI-tree.
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Accessible" is always implemented, for each individual
-//! node in the application's UI-tree.
+//! Because `Accessible` is implemented on every individual node in the application's
+//! UI-tree, the path will vary for almost all nodes. However, every application has
+//! a root node, which is why a default root path is defined.
 //!
-//! Because the root node is a commonly used path and every application has
-//! a root path, this is chosen as default path.
+//! ## How to obtain an `AccessibleProxy`
 //!
-//! A default service does not make sense for this proxy, thus the macro is
-//! instructed explicitly not to generate the defaults.
+//! There are three idiomatic ways to obtain an `AccessibleProxy`:
+//!
+//! ### 1. From an [`ObjectRef`] using [`ObjectRefExt`] (Recommended)
+//! If you have an [`ObjectRef`] pointing to a node, you can resolve it to an
+//! [`AccessibleProxy`] using the [`ObjectRefExt`] trait:
+//!
+//! ```rust,ignore
+//! use atspi::ObjectRefExt;
+//!
+//! let accessible = object_ref.as_accessible_proxy(&connection).await?;
+//! ```
+//!
+//! ### 2. Transitioning to other interface proxies via [`ProxyExt`][pe]
+//! Since all accessible objects implement `Accessible`, you can use [`ProxyExt`][pe]
+//! on an [`AccessibleProxy`] to safely obtain any other interface proxy (such as
+//! [`TextProxy`][tp], [`ComponentProxy`][cp], or [`ValueProxy`][vp]) that the node
+//! implements:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = accessible_node.proxies().await?;
+//!
+//! if proxies.interfaces().contains(atspi::Interface::Text) {
+//!     let text_proxy = proxies.text().await?;
+//! }
+//! ```
+//!
+//! Note that all proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting the same P2P configuration if applicable.
+//!
+//! ### 3. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,ignore
+//! let accessible = AccessibleProxy::builder(&connection)
+//!     .destination(service_name)?
+//!     .path(object_path)?
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [tp]: crate::text::TextProxy
+//! [cp]: crate::component::ComponentProxy
+//! [vp]: crate::value::ValueProxy
 
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
 use atspi_common::object_ref::ObjectRefOwned;
 use zbus::names::BusName;
+
+// An auto-derived default service does not make sense for this proxy,
+// thus the macro is instructed explicitly not to generate the defaults.
 
 /// # `AccessibleProxy`
 ///
