@@ -1,19 +1,59 @@
-//! # `EditableText`
+//! # `EditableTextProxy`
 //!
-//! `org.a11y.atspi.EditableText` provides access to the text content of an
-//! editable text field.
+//! A handle for a remote object implementing the `org.a11y.atspi.EditableText`
+//! interface. This interface provides access to and modification of the text
+//! content of editable text fields (such as text boxes or editors).
 //!
-//! ## Defaults
+//! ## How to obtain an `EditableTextProxy`
 //!
-//! "org.a11y.atspi.EditableText" may be implemented for individual nodes
-//! in the application's UI-tree.
+//! Because `EditableText` is implemented on individual, variable nodes within
+//! the UI-tree, you rarely instantiate it directly. Instead, there are three
+//! idiomatic ways to obtain a proxy:
 //!
-//! Service and path are either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `DocumentProxy` is derived from.
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you already have an [`AccessibleProxy`][ap] for a node, you can safely query
+//! and convert it to an `EditableTextProxy` using the [`ProxyExt`][pe] trait:
 //!
-//! No default service or default path makes sense for this proxy, thus
-//! the macro is instructed explicitly not to generate the defaults.
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = accessible_node.proxies().await?;
+//! let editable_text = proxies.editable_text().await?;
+//! ```
+//!
+//! Note that proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`]. As a consequence, if the [`AccessibleProxy`][ap]'s underlying
+//! connection is a P2P connection, the proxies obtained through [`ProxyExt`][pe]
+//! will also share that same P2P `zbus::Connection`.
+//!
+//! ### 2. Fast resolution via [`AccessibilityConnection`][ac] (P2P)
+//! If the `p2p` feature is enabled and you have an [`ObjectRef`][or], you can resolve
+//! it directly via the [`AccessibilityConnection`][ac] for maximum performance:
+//!
+//! ```rust,ignore
+//! let editable_text = connection.object_as_accessible(&object_ref).await?;
+//! ```
+//!
+//! ### 3. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,ignore
+//! let editable_text = EditableTextProxy::builder(&connection)
+//!     .destination(service_name)?
+//!     .path(object_path)?
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! [ac]: atspi-connection::AccessibilityConnection
+//! [ap]: atspi-proxies::AccessibilityProxy
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [or]: atspi_common::ObjectRef
+//! [tp]: crate::text::TextProxy
 
+// No default service or default path makes sense for this proxy, thus
+// the macro is instructed explicitly not to generate the defaults.
 #[zbus::proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = false)]
 pub trait EditableText {
 	/// `CopyText` method
