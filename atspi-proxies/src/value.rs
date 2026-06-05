@@ -1,19 +1,59 @@
 //! # `ValueProxy`
 //!
-//! `org.a11y.atspi.Value` provides methods to interact with UI elements that
-//! represent a value.
+//! A handle for a remote object implementing the `org.a11y.atspi.Value`
+//! interface.
+//!
+//! The `Value` interface provides properties to interact with UI elements that represent
+//! a numeric value, a range, or a bounded scale (such as sliders, scrollbars, volume
+//! controls, and progress bars). It allows querying the minimum ([`minimum_value`]) and
+//! maximum ([`maximum_value`]) limits, checking the smallest allowed step size
+//! ([`minimum_increment`]), and getting or setting the current numeric state ([`current_value`], [`set_current_value`]).
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Value" may be implemented for individual nodes
-//! in the application's UI-tree.
+//! The `Value` interface is implemented on individual, variable nodes within the
+//! application's UI-tree. As a consequence, the object path varies per node and
+//! no default path or service is applicable for this proxy.
 //!
-//! Service and path are either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `TableProxy` is derived from.
+//! ## How to obtain a `ValueProxy`
 //!
-//! No default service or default path makes sense for this proxy, thus
-//! the macro is instructed explicitly not to generate the defaults.
+//! There are two idiomatic ways to obtain a `ValueProxy`:
+//!
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you already have an [`AccessibleProxy`][ap] pointing to a value-representing node,
+//! you can safely query and convert it using the [`ProxyExt`][pe] trait:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = accessible_node.proxies().await?;
+//! let value = proxies.value().await?;
+//! ```
+//!
+//! All proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting any P2P configuration if applicable.
+//!
+//! ### 2. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,ignore
+//! let value = ValueProxy::builder(&connection)
+//!     .destination(bus_name)?
+//!     .path(object_path)?
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! [`current_value`]: ValueProxy#method.current_value
+//! [`set_current_value`]: ValueProxy#method.set_current_value
+//! [`minimum_value`]: ValueProxy#method.minimum_value
+//! [`maximum_value`]: ValueProxy#method.maximum_value
+//! [`minimum_increment`]: ValueProxy#method.minimum_increment
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [ap]: crate::accessible::AccessibleProxy
 
+// `assume_defaults = false` to avoid generating defaults service and path
 #[zbus::proxy(interface = "org.a11y.atspi.Value", assume_defaults = false)]
 pub trait Value {
 	/// `CurrentValue` property
