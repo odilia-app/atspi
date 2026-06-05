@@ -1,23 +1,67 @@
 //! # `TextProxy`
 //!
-//! `org.a11y.atspi.Text` provides methods to interact with text UI elements.
+//! A handle for a remote object implementing the `org.a11y.atspi.Text`
+//! interface.
 //!
+//! The `Text` interface is one of the most widely used AT-SPI2 interfaces. It provides
+//! methods to query and manipulate accessible text content, including reading text
+//! blocks or segments ([`get_text`], [`get_string_at_offset`]), managing text selections,
+//! resolving character/range bounding box coordinates ([`get_character_extents`], [`get_range_extents`]),
+//! manipulating the cursor ([`caret_offset`], [`set_caret_offset`]), and retrieving rich formatting
+//! and style properties ([`get_attributes`]).
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Text" may be implemented for individual nodes
-//! in the application's UI-tree.
+//! The `Text` interface is implemented on individual, variable nodes within the
+//! application's UI-tree (such as labels, text fields, or paragraphs). As a consequence,
+//! the object path varies per node and no default path or service is applicable for this proxy.
 //!
-//! Service and path are either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `TextProxy` is derived from.
+//! ## How to obtain a `TextProxy`
 //!
-//! No default service or default path makes sense for this proxy, thus
-//! the macro is instructed explicitly not to generate the defaults.
+//! There are two idiomatic ways to obtain a `TextProxy`:
+//!
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you already have an [`AccessibleProxy`][ap] pointing to a node containing text,
+//! you can safely query and convert it using the [`ProxyExt`][pe] trait:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = accessible_node.proxies().await?;
+//! let text = proxies.text().await?;
+//! ```
+//!
+//! All proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting any P2P configuration if applicable.
+//!
+//! ### 2. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,ignore
+//! let text = TextProxy::builder(&connection)
+//!     .destination(bus_name)?
+//!     .path(object_path)?
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! [`get_text`]: TextProxy#method.get_text
+//! [`get_string_at_offset`]: TextProxy#method.get_string_at_offset
+//! [`get_character_extents`]: TextProxy#method.get_character_extents
+//! [`get_range_extents`]: TextProxy#method.get_range_extents
+//! [`caret_offset`]: TextProxy#method.caret_offset
+//! [`set_caret_offset`]: TextProxy#method.set_caret_offset
+//! [`get_attributes`]: TextProxy#method.get_attributes
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [ap]: crate::accessible::AccessibleProxy
+
 #![allow(clippy::too_many_arguments)]
 // this is to silence clippy due to zbus expanding parameter expressions
 
 use crate::common::{ClipType, CoordType, Granularity};
 
+// `assume_defaults = false` to not auto-generate default service and path
 #[zbus::proxy(interface = "org.a11y.atspi.Text", assume_defaults = false)]
 pub trait Text {
 	/// `AddSelection` method
