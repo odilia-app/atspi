@@ -1,9 +1,46 @@
 //! # `DeviceEventControllerProxy`
 //!
-//! `org.a11y.atspi.DeviceEventController` provides methods to .. TODO
+//! A handle for a remote object implementing the `org.a11y.atspi.DeviceEventController`
+//! interface.
+//!
+//! Historically, the `DeviceEventController` (DEC) interface, hosted by the central
+//! AT-SPI registry daemon, allowed assistive technologies (like screen readers) to
+//! intercept global hardware input events (keystrokes, mouse buttons, pointer moves)
+//! and synthesize input events (keyboard and mouse macros).
+//!
+//! ## ⚠️ Deprecation & Wayland Warning (Legacy Only)
+//!
+//! **This interface is legacy and largely obsolete in modern Linux desktop environments.**
+//!
+//! 1. **Wayland Incompatibility**: Under Wayland, security protocols strictly prevent ordinary
+//!    D-Bus clients from listening globally to user keystrokes (keylogging) or injecting
+//!    synthetic input. Therefore, this interface is **non-functional on Wayland**.
+//! 2. **Disabled in Core**: In modern versions of `at-spi2-core` (version 2.46+), general
+//!    device event listeners (`register_device_event_listener`) have been **completely
+//!    removed and disabled** due to security concerns (see GNOME `at-spi2-core` issue #94).
+//! 3. **What Orca does**: While Orca historically used `RegisterKeystrokeListener` on X11 to
+//!    intercept its modifier shortcuts, on modern Wayland systems it relies on compositor-native
+//!    key-grabbing protocols (such as GNOME Mutter's key-binding interfaces) rather than AT-SPI.
+//!
+//! For modern input synthesis, use secure alternatives like **`libei`** (Emulated Input).
+//! For global shortcuts, use compositor-native portal APIs.
 //!
 //! ## Defaults
 //!
+//! Since the Device Event Controller is a single global daemon hosted by the AT-SPI Registry,
+//! it has a fixed D-Bus address on the accessibility bus:
+//!
+//! * **Service Destination**: `org.a11y.atspi.Registry`
+//! * **Object Path**: `/org/a11y/atspi/registry/deviceeventcontroller`
+//!
+//! Due to these fixed defaults, the proxy can be constructed directly using `new` or `builder`.
+//!
+//! ## How to instantiate the proxy (X11 only)
+//!
+//! ```rust,ignore
+//! // Note: This will only work on legacy X11 sessions where the registry daemon supports it.
+//! let dec = DeviceEventControllerProxy::new(&connection).await?;
+//! ```
 
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
