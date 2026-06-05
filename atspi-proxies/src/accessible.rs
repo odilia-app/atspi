@@ -9,8 +9,9 @@
 //! ## Defaults
 //!
 //! Because `Accessible` is implemented on every individual node in the application's
-//! UI-tree, the path will vary for almost all nodes. However, every application has
-//! a root node, which is why a default root path is defined.
+//! UI-tree, the path will vary for almost all nodes, except for the root node.
+//!
+//! The root node's path is [`ACCESSIBLE_ROOT_PATH`].
 //!
 //! ## How to obtain an `AccessibleProxy`
 //!
@@ -67,8 +68,13 @@ use crate::AtspiError;
 use atspi_common::object_ref::ObjectRefOwned;
 use zbus::names::BusName;
 
+pub const ACCESSIBLE_ROOT_PATH: &str = "/org/a11y/atspi/accessible/root";
+
 // An auto-derived default service does not make sense for this proxy,
-// thus the macro is instructed explicitly not to generate the defaults.
+// Considering most objects are not `root` it is undesirable to have the
+// (fixed) root path as default.
+//
+// Therefor the macro's `assume_defaults` option is set to `false`.
 
 /// # `AccessibleProxy`
 ///
@@ -77,11 +83,7 @@ use zbus::names::BusName;
 ///
 /// Accessible is the interface which is implemented by all accessible objects.
 ///
-#[zbus::proxy(
-	interface = "org.a11y.atspi.Accessible",
-	default_path = "/org/a11y/atspi/accessible/root",
-	assume_defaults = false
-)]
+#[zbus::proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = false)]
 pub trait Accessible {
 	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.

@@ -103,11 +103,11 @@ impl<'a> Proxies<'a> {
 	pub async fn collection(&self) -> Result<CollectionProxy<'a>> {
 		if self.interfaces.contains(Interface::Collection) {
 			Ok(CollectionProxy::builder(self.proxy.connection())
+				.path(self.proxy.path())?
 				.cache_properties(zbus::proxy::CacheProperties::No)
 				.destination(self.proxy.destination())?
 				.build()
 				.await?)
-		// Relies on CacheProxy default path
 		} else {
 			Err(AtspiError::InterfaceNotAvailable("Collection"))
 		}

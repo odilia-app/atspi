@@ -14,9 +14,8 @@
 //!
 //! ## Defaults
 //!
-//! The `Collection` interface is implemented for the root object of the
-//! application's UI-tree. Because this object path is fixed across all applications,
-//! the proxy defines a fixed default path: `/org/a11y/atspi/collection`.
+//! The `Collection` interface may be implented for any arbitrary node in the UI-tree.
+//! This means the bus name and path will vary.
 //!
 //! ## How to obtain a `CollectionProxy`
 //!
@@ -90,13 +89,8 @@ use atspi_common::object_ref::ObjectRefOwned;
 
 use crate::common::{ObjectMatchRule, SortOrder, TreeTraversalType};
 // We don't want the proxy macro to auto-derive
-// defaults, so assume_defaults is explicitly
-// set to false.
-#[zbus::proxy(
-	interface = "org.a11y.atspi.Collection",
-	default_path = "/org/a11y/atspi/collection",
-	assume_defaults = false
-)]
+// defaults, so assume_defaults is explicitly set to false.
+#[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = false)]
 pub trait Collection {
 	/// The active descendant of the given object.
 	///
