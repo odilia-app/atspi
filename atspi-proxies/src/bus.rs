@@ -1,18 +1,82 @@
-//! # `BusProxy`
+//! # `BusProxy` & `StatusProxy`
 //!
-//! `org.a11y.Bus` (the service) exposes two interfaces on the session bus.
-//! This small eaemon is AT-SPI2's only handle on the session bus.
+//! Handles for the remote objects implementing the `org.a11y.Bus` and
+//! `org.a11y.Status` interfaces on the D-Bus session bus.
 //!
-//! `org.a11y.Status` provides a simple status interface, while `org.a11y.Bus`
-//! offers a single method to obtain the address of the accessibility bus.
+//! Together, these interfaces are exposed by a small, central broker daemon
+//! (`at-spi-bus-launcher`) which acts as the entry point for AT-SPI2 accessibility
+//! on the user's session.
+//!
+//! * **`org.a11y.Bus`**: Offers a single method ([`get_address`]) to obtain the
+//!   address of the dedicated, private accessibility bus where all application UI
+//!   nodes actually live.
+//! * **`org.a11y.Status`**: Provides properties to check and modify the global
+//!   accessibility status, such as whether accessibility ([`is_enabled`]) or the
+//!   screen reader ([`screen_reader_enabled`]) are currently active.
 //!
 //! ## Defaults
 //!
-//! The service is a single small daemon provided by the AT-SPI implementation.
-//! Both interfaces have a fixed service name, path and interface.
+//! Unlike UI-tree proxies, both of these interfaces are hosted by a single, static
+//! daemon on the user's session bus. Therefore, they have fixed well-known D-Bus
+//! addresses:
 //!
-//! All three, interface, `default_service` and `default_path` are provided to the
-//! macro that builds `BusProxy`, so no defaults need to be derived.
+//! * **Service Destination**: `org.a11y.Bus`
+//! * **Object Path**: `/org/a11y/bus`
+//!
+//! Due to these fixed defaults, both proxies can be constructed with zero-configuration
+//! using the shorthand `new` constructor.
+//!
+//! ## How to instantiate the proxies
+//!
+//! Because these are central services, you never obtain them from UI-nodes or
+//! [`ObjectRef`][or]s. Instead, you instantiate them directly on the **session bus**:
+//!
+//! ### 1. Shorthand construction using `new` (Recommended)
+//!
+//! ```rust,ignore
+//! let session_bus = zbus::Connection::session().await?;
+//!
+//! // Obtain the private accessibility bus address:
+//! let bus_proxy = BusProxy::new(&session_bus).await?;
+//! let a11y_address = bus_proxy.get_address().await?;
+//!
+//! // Check or toggle global accessibility status:
+//! let status_proxy = StatusProxy::new(&session_bus).await?;
+//! if status_proxy.is_enabled().await? {
+//!     println!("AT-SPI2 accessibility is active.");
+//! }
+//! ```
+//!
+//! ### 2. Construction using the `builder`
+//! If you need custom proxy configuration, you can use the builder. You do not
+//! need to specify the path or destination, as the defaults are automatically
+//! filled in:
+//!
+//! ```rust,ignore
+//! let bus_proxy = BusProxy::builder(&session_bus)
+//!     .cache_properties(zbus::proxy::CacheProperties::No)
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! ## High-level Helpers
+//!
+//! If you only need to read or set the global session accessibility status, you
+//! do not need to manually construct `StatusProxy` at all. The `atspi-connection`
+//! crate offers two convenient, high-level helper functions that handle the
+//! session bus connection and status check/toggle on your behalf:
+//!
+//! * **[`read_session_accessibility`][rsa]**: Directly queries whether AT-SPI2
+//!   accessibility is enabled on the session bus.
+//! * **[`set_session_accessibility`][ssa]**: Enables or disables AT-SPI2 accessibility
+//!   on the session bus.
+//!
+//! [`get_address`]: BusProxy#method.get_address
+//! [`is_enabled`]: StatusProxy#method.is_enabled
+//! [`screen_reader_enabled`]: StatusProxy#method.screen_reader_enabled
+//! [or]: atspi-common::ObjectRef
+//! [rsa]: atspi-connection::read_session_accessibility
+//! [ssa]: atspi-connection::set_session_accessibility
 
 #[zbus::proxy(
 	interface = "org.a11y.Status",
