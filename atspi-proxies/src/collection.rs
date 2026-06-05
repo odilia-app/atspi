@@ -1,34 +1,97 @@
 //! # `CollectionProxy`
 //!
-//! A handle to a remote object implementing the `org.a11y.atspi.Collection`
+//! A handle for a remote object implementing the `org.a11y.atspi.Collection`
 //! interface.
 //!
-//! `Collection` is the interface which is implemented by objects that contain
-//! other objects, such as a window or a table.
+//! The `Collection` interface is an incredibly powerful query-engine for
+//! accessibility builders. Instead of manually traversing the entire UI-tree
+//! recursively (which requires making countless synchronous D-Bus calls), the
+//! `Collection` interface allows clients to perform advanced search queries
+//! (like "find all focusable buttons") in a single D-Bus round-trip.
 //!
-//! See the documentation on the individual methods for details:
-//!
-//! * [`get_matches`](struct.CollectionProxy.html#method.get_matches)
-//! * [`get_matches_from`](struct.CollectionProxy.html#method.get_matches_from)
-//! * [`get_matches_to`](struct.CollectionProxy.html#method.get_matches_to)
+//! Searches are configured using [`ObjectMatchRule`]s, which are easily
+//! constructed using the [`ObjectMatchRuleBuilder`][mrb].
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Collection" may be implemented for the root node in the
-//! application's UI-tree.
+//! The `Collection` interface is implemented for the root object of the
+//! application's UI-tree. Because this object path is fixed across all applications,
+//! the proxy defines a fixed default path: `/org/a11y/atspi/collection`.
 //!
-//! Service is either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `ActionProxy` is derived from.
+//! ## How to obtain a `CollectionProxy`
 //!
-//! No default service makes sense for this proxy, thus
-//! the macro is instructed explicitly not to generate the defaults.
+//! There are three idiomatic ways to obtain a `CollectionProxy`:
 //!
-//! [`CollectionProxy`]: crate::collection::CollectionProxy
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you have an [`AccessibleProxy`][ap] pointing to the application's root node,
+//! you can query its interfaces and convert it safely:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = root_node.proxies().await?;
+//! let collection = proxies.collection().await?;
+//! ```
+//!
+//! All proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting any P2P configuration if applicable.
+//!
+//! ### 2. Manual construction using the `builder` (Fixed Path)
+//! Because the object path of the `Collection` interface is fixed, you only need
+//! to supply the application's unique D-Bus service destination. The builder will
+//! automatically use the default path:
+//!
+//! ```rust,ignore
+//! let collection = CollectionProxy::builder(&connection)
+//!     .destination(service_name)?
+//!     // No path is specified; the default path is used automatically
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! ### 3. Construction using `new` (Shorthand)
+//! Alternatively, you can instantiate the proxy directly using the short-hand
+//! `new` constructor, which requires only the connection and destination:
+//!
+//! ```rust,ignore
+//! let collection = CollectionProxy::new(&connection, service_name).await?;
+//! ```
+//!
+//! ## Search Example
+//!
+//! This example demonstrates how to find all buttons inside a collection:
+//!
+//! ```rust,ignore
+//! use atspi::{ObjectMatchRule, SortOrder, MatchType, Role};
+//!
+//! // 1. Build a search rule for PushButtons
+//! let rule = ObjectMatchRule::builder()
+//!     .roles(&[Role::PushButton], MatchType::All)
+//!     .build();
+//!
+//! // 2. Query the collection (0 means return all matches)
+//! let matches = collection.get_matches(
+//!     rule,
+//!     SortOrder::Canonical,
+//!     0,
+//!     true, // traverse (not supported, pass true/false)
+//! ).await?;
+//!
+//! for node_ref in matches {
+//!     println!("Found matching actionable node: {node_ref:?}");
+//! }
+//! ```
+//!
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [ap]: crate::accessible::AccessibleProxy
+//! [mrb]: atspi-common::object_match::ObjectMatchRuleBuilder
 
 use atspi_common::object_ref::ObjectRefOwned;
 
 use crate::common::{ObjectMatchRule, SortOrder, TreeTraversalType};
-
+// We don't want the proxy macro to auto-derive
+// defaults, so assume_defaults is explicitly
+// set to false.
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Collection",
 	default_path = "/org/a11y/atspi/collection",
