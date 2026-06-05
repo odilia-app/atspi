@@ -4,29 +4,53 @@
 //! interface.
 //!
 //! The `Action` interface allows exploring and invoking the actions of a
-//! user-actionable UI component.
+//! user-actionable UI component. For example, a button may expose a "click"
+//! action, while a popup menu may expose an "open" action.
 //!
-//! For example, a button may expose a "click" action - a popup menu may
-//! expose an "open" action.
-//!
-//! Components which are not "passive" providers of UI information should
+//! Active components that are not "passive" providers of UI information should
 //! implement this interface, unless there is a more specialized interface for
-//! interaction like [`org.a11y.atspi.Text`][TextProxy] or [`org.a11y.atspi.Value`][ValueProxy].
+//! interaction (such as [`TextProxy`][tp] or [`ValueProxy`][vp]).
 //!
 //! ## Defaults
 //!
-//! "org.a11y.atspi.Action" may be implemented for individual nodes in the
-//! application's UI-tree.
+//! The `Action` interface is implemented on individual, variable nodes within the
+//! application's UI-tree. As a consequence, the object path varies per node and
+//! no default path is applicable for this proxy.
 //!
-//! Service and path are either provided by the builder or inherited from the
-//! [`zbus::Proxy`] this `ActionProxy` is derived from.
+//! ## How to obtain an `ActionProxy`
 //!
-//! No default service or default path makes sense for this proxy, thus
-//! the macro is instructed explicitly not to generate the defaults.
+//! There are two idiomatic ways to obtain an `ActionProxy`:
 //!
-//! [ActionProxy]: crate::action::ActionProxy
-//! [TextProxy]: crate::text::TextProxy
-//! [ValueProxy]: crate::value::ValueProxy
+//! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
+//! If you already have an [`AccessibleProxy`][ap] for an actionable node, you can
+//! safely query and convert it using the [`ProxyExt`][pe] trait:
+//!
+//! ```rust,ignore
+//! use atspi::ProxyExt;
+//!
+//! let proxies = accessible_node.proxies().await?;
+//! let action = proxies.action().await?;
+//! ```
+//!
+//! All proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting any P2P configuration if applicable.
+//!
+//! ### 2. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,ignore
+//! let action = ActionProxy::builder(&connection)
+//!     .destination(service_name)?
+//!     .path(object_path)?
+//!     .build()
+//!     .await?;
+//! ```
+//!
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [ap]: crate::accessible::AccessibleProxy
+//! [tp]: crate::text::TextProxy
+//! [vp]: crate::value::ValueProxy
 
 use atspi_common::Action;
 
