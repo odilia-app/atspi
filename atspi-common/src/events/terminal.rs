@@ -103,31 +103,31 @@ event_test_cases!(LineChangedEvent);
 impl_to_dbus_message!(LineChangedEvent<'_>);
 impl_from_dbus_message!(LineChangedEvent<'_>);
 impl_event_properties!(LineChangedEvent<'_>);
-impl_from_object_ref!(LineChangedEvent<'_>);
+impl_from_non_null_object_ref!(LineChangedEvent<'_>);
 
 event_test_cases!(ColumnCountChangedEvent);
 impl_to_dbus_message!(ColumnCountChangedEvent<'_>);
 impl_from_dbus_message!(ColumnCountChangedEvent<'_>);
 impl_event_properties!(ColumnCountChangedEvent<'_>);
-impl_from_object_ref!(ColumnCountChangedEvent<'_>);
+impl_from_non_null_object_ref!(ColumnCountChangedEvent<'_>);
 
 event_test_cases!(LineCountChangedEvent);
 impl_to_dbus_message!(LineCountChangedEvent<'_>);
 impl_from_dbus_message!(LineCountChangedEvent<'_>);
 impl_event_properties!(LineCountChangedEvent<'_>);
-impl_from_object_ref!(LineCountChangedEvent<'_>);
+impl_from_non_null_object_ref!(LineCountChangedEvent<'_>);
 
 event_test_cases!(ApplicationChangedEvent);
 impl_to_dbus_message!(ApplicationChangedEvent<'_>);
 impl_from_dbus_message!(ApplicationChangedEvent<'_>);
 impl_event_properties!(ApplicationChangedEvent<'_>);
-impl_from_object_ref!(ApplicationChangedEvent<'_>);
+impl_from_non_null_object_ref!(ApplicationChangedEvent<'_>);
 
 event_test_cases!(CharWidthChangedEvent);
 impl_to_dbus_message!(CharWidthChangedEvent<'_>);
 impl_from_dbus_message!(CharWidthChangedEvent<'_>);
 impl_event_properties!(CharWidthChangedEvent<'_>);
-impl_from_object_ref!(CharWidthChangedEvent<'_>);
+impl_from_non_null_object_ref!(CharWidthChangedEvent<'_>);
 
 impl_msg_conversion_ext_for_target_type!(
 	LineChangedEvent<'_>,

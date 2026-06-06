@@ -31,5 +31,5 @@ event_test_cases!(FocusEvent);
 impl_to_dbus_message!(FocusEvent<'_>);
 impl_from_dbus_message!(FocusEvent<'_>);
 impl_event_properties!(FocusEvent<'_>);
-impl_from_object_ref!(FocusEvent<'_>);
+impl_from_non_null_object_ref!(FocusEvent<'_>);
 impl_test_event!(FocusEvent<'_>);

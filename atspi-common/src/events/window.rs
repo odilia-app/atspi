@@ -385,109 +385,109 @@ event_test_cases!(MinimizeEvent);
 impl_to_dbus_message!(MinimizeEvent<'_>);
 impl_from_dbus_message!(MinimizeEvent<'_>);
 impl_event_properties!(MinimizeEvent<'_>);
-impl_from_object_ref!(MinimizeEvent<'_>);
+impl_from_non_null_object_ref!(MinimizeEvent<'_>);
 
 event_test_cases!(MaximizeEvent);
 impl_to_dbus_message!(MaximizeEvent<'_>);
 impl_from_dbus_message!(MaximizeEvent<'_>);
 impl_event_properties!(MaximizeEvent<'_>);
-impl_from_object_ref!(MaximizeEvent<'_>);
+impl_from_non_null_object_ref!(MaximizeEvent<'_>);
 
 event_test_cases!(RestoreEvent);
 impl_to_dbus_message!(RestoreEvent<'_>);
 impl_from_dbus_message!(RestoreEvent<'_>);
 impl_event_properties!(RestoreEvent<'_>);
-impl_from_object_ref!(RestoreEvent<'_>);
+impl_from_non_null_object_ref!(RestoreEvent<'_>);
 
 event_test_cases!(CloseEvent);
 impl_to_dbus_message!(CloseEvent<'_>);
 impl_from_dbus_message!(CloseEvent<'_>);
 impl_event_properties!(CloseEvent<'_>);
-impl_from_object_ref!(CloseEvent<'_>);
+impl_from_non_null_object_ref!(CloseEvent<'_>);
 
 event_test_cases!(CreateEvent);
 impl_to_dbus_message!(CreateEvent<'_>);
 impl_from_dbus_message!(CreateEvent<'_>);
 impl_event_properties!(CreateEvent<'_>);
-impl_from_object_ref!(CreateEvent<'_>);
+impl_from_non_null_object_ref!(CreateEvent<'_>);
 
 event_test_cases!(ReparentEvent);
 impl_to_dbus_message!(ReparentEvent<'_>);
 impl_from_dbus_message!(ReparentEvent<'_>);
 impl_event_properties!(ReparentEvent<'_>);
-impl_from_object_ref!(ReparentEvent<'_>);
+impl_from_non_null_object_ref!(ReparentEvent<'_>);
 
 event_test_cases!(DesktopCreateEvent);
 impl_to_dbus_message!(DesktopCreateEvent<'_>);
 impl_from_dbus_message!(DesktopCreateEvent<'_>);
 impl_event_properties!(DesktopCreateEvent<'_>);
-impl_from_object_ref!(DesktopCreateEvent<'_>);
+impl_from_non_null_object_ref!(DesktopCreateEvent<'_>);
 
 event_test_cases!(DesktopDestroyEvent);
 impl_to_dbus_message!(DesktopDestroyEvent<'_>);
 impl_from_dbus_message!(DesktopDestroyEvent<'_>);
 impl_event_properties!(DesktopDestroyEvent<'_>);
-impl_from_object_ref!(DesktopDestroyEvent<'_>);
+impl_from_non_null_object_ref!(DesktopDestroyEvent<'_>);
 
 event_test_cases!(DestroyEvent);
 impl_to_dbus_message!(DestroyEvent<'_>);
 impl_from_dbus_message!(DestroyEvent<'_>);
 impl_event_properties!(DestroyEvent<'_>);
-impl_from_object_ref!(DestroyEvent<'_>);
+impl_from_non_null_object_ref!(DestroyEvent<'_>);
 
 event_test_cases!(ActivateEvent);
 impl_to_dbus_message!(ActivateEvent<'_>);
 impl_from_dbus_message!(ActivateEvent<'_>);
 impl_event_properties!(ActivateEvent<'_>);
-impl_from_object_ref!(ActivateEvent<'_>);
+impl_from_non_null_object_ref!(ActivateEvent<'_>);
 
 event_test_cases!(DeactivateEvent);
 impl_to_dbus_message!(DeactivateEvent<'_>);
 impl_from_dbus_message!(DeactivateEvent<'_>);
 impl_event_properties!(DeactivateEvent<'_>);
-impl_from_object_ref!(DeactivateEvent<'_>);
+impl_from_non_null_object_ref!(DeactivateEvent<'_>);
 
 event_test_cases!(RaiseEvent);
 impl_to_dbus_message!(RaiseEvent<'_>);
 impl_from_dbus_message!(RaiseEvent<'_>);
 impl_event_properties!(RaiseEvent<'_>);
-impl_from_object_ref!(RaiseEvent<'_>);
+impl_from_non_null_object_ref!(RaiseEvent<'_>);
 
 event_test_cases!(LowerEvent);
 impl_to_dbus_message!(LowerEvent<'_>);
 impl_from_dbus_message!(LowerEvent<'_>);
 impl_event_properties!(LowerEvent<'_>);
-impl_from_object_ref!(LowerEvent<'_>);
+impl_from_non_null_object_ref!(LowerEvent<'_>);
 
 event_test_cases!(MoveEvent);
 impl_to_dbus_message!(MoveEvent<'_>);
 impl_from_dbus_message!(MoveEvent<'_>);
 impl_event_properties!(MoveEvent<'_>);
-impl_from_object_ref!(MoveEvent<'_>);
+impl_from_non_null_object_ref!(MoveEvent<'_>);
 
 event_test_cases!(ResizeEvent);
 impl_to_dbus_message!(ResizeEvent<'_>);
 impl_from_dbus_message!(ResizeEvent<'_>);
 impl_event_properties!(ResizeEvent<'_>);
-impl_from_object_ref!(ResizeEvent<'_>);
+impl_from_non_null_object_ref!(ResizeEvent<'_>);
 
 event_test_cases!(ShadeEvent);
 impl_to_dbus_message!(ShadeEvent<'_>);
 impl_from_dbus_message!(ShadeEvent<'_>);
 impl_event_properties!(ShadeEvent<'_>);
-impl_from_object_ref!(ShadeEvent<'_>);
+impl_from_non_null_object_ref!(ShadeEvent<'_>);
 
 event_test_cases!(UUshadeEvent);
 impl_to_dbus_message!(UUshadeEvent<'_>);
 impl_from_dbus_message!(UUshadeEvent<'_>);
 impl_event_properties!(UUshadeEvent<'_>);
-impl_from_object_ref!(UUshadeEvent<'_>);
+impl_from_non_null_object_ref!(UUshadeEvent<'_>);
 
 event_test_cases!(RestyleEvent);
 impl_to_dbus_message!(RestyleEvent<'_>);
 impl_from_dbus_message!(RestyleEvent<'_>);
 impl_event_properties!(RestyleEvent<'_>);
-impl_from_object_ref!(RestyleEvent<'_>);
+impl_from_non_null_object_ref!(RestyleEvent<'_>);
 
 impl_msg_conversion_ext_for_target_type!(
 	PropertyChangeEvent<'_>,

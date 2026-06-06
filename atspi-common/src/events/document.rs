@@ -127,42 +127,42 @@ event_test_cases!(LoadCompleteEvent);
 impl_to_dbus_message!(LoadCompleteEvent<'_>);
 impl_event_properties!(LoadCompleteEvent<'_>);
 impl_from_dbus_message!(LoadCompleteEvent<'_>);
-impl_from_object_ref!(LoadCompleteEvent<'_>);
+impl_from_non_null_object_ref!(LoadCompleteEvent<'_>);
 
 impl_event_type_properties_for_event!(ReloadEvent<'_>);
 event_test_cases!(ReloadEvent);
 impl_to_dbus_message!(ReloadEvent<'_>);
 impl_from_dbus_message!(ReloadEvent<'_>);
 impl_event_properties!(ReloadEvent<'_>);
-impl_from_object_ref!(ReloadEvent<'_>);
+impl_from_non_null_object_ref!(ReloadEvent<'_>);
 
 impl_event_type_properties_for_event!(LoadStoppedEvent<'_>);
 event_test_cases!(LoadStoppedEvent);
 impl_to_dbus_message!(LoadStoppedEvent<'_>);
 impl_from_dbus_message!(LoadStoppedEvent<'_>);
 impl_event_properties!(LoadStoppedEvent<'_>);
-impl_from_object_ref!(LoadStoppedEvent<'_>);
+impl_from_non_null_object_ref!(LoadStoppedEvent<'_>);
 
 impl_event_type_properties_for_event!(ContentChangedEvent<'_>);
 event_test_cases!(ContentChangedEvent);
 impl_to_dbus_message!(ContentChangedEvent<'_>);
 impl_from_dbus_message!(ContentChangedEvent<'_>);
 impl_event_properties!(ContentChangedEvent<'_>);
-impl_from_object_ref!(ContentChangedEvent<'_>);
+impl_from_non_null_object_ref!(ContentChangedEvent<'_>);
 
 impl_event_type_properties_for_event!(AttributesChangedEvent<'_>);
 event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent<'_>);
 impl_from_dbus_message!(AttributesChangedEvent<'_>);
 impl_event_properties!(AttributesChangedEvent<'_>);
-impl_from_object_ref!(AttributesChangedEvent<'_>);
+impl_from_non_null_object_ref!(AttributesChangedEvent<'_>);
 
 impl_event_type_properties_for_event!(PageChangedEvent<'_>);
 event_test_cases!(PageChangedEvent);
 impl_to_dbus_message!(PageChangedEvent<'_>);
 impl_from_dbus_message!(PageChangedEvent<'_>);
 impl_event_properties!(PageChangedEvent<'_>);
-impl_from_object_ref!(PageChangedEvent<'_>);
+impl_from_non_null_object_ref!(PageChangedEvent<'_>);
 
 impl_msg_conversion_ext_for_target_type!(
 	LoadCompleteEvent<'_>,

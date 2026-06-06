@@ -1035,13 +1035,13 @@ event_test_cases!(BoundsChangedEvent);
 impl_to_dbus_message!(BoundsChangedEvent<'_>);
 impl_from_dbus_message!(BoundsChangedEvent<'_>);
 impl_event_properties!(BoundsChangedEvent<'_>);
-impl_from_object_ref!(BoundsChangedEvent<'_>);
+impl_from_non_null_object_ref!(BoundsChangedEvent<'_>);
 
 event_test_cases!(LinkSelectedEvent);
 impl_to_dbus_message!(LinkSelectedEvent<'_>);
 impl_from_dbus_message!(LinkSelectedEvent<'_>);
 impl_event_properties!(LinkSelectedEvent<'_>);
-impl_from_object_ref!(LinkSelectedEvent<'_>);
+impl_from_non_null_object_ref!(LinkSelectedEvent<'_>);
 
 event_test_cases!(StateChangedEvent, [state, enabled], Auto);
 impl_to_dbus_message!(StateChangedEvent<'_>);
@@ -1123,19 +1123,19 @@ event_test_cases!(VisibleDataChangedEvent);
 impl_to_dbus_message!(VisibleDataChangedEvent<'_>);
 impl_from_dbus_message!(VisibleDataChangedEvent<'_>);
 impl_event_properties!(VisibleDataChangedEvent<'_>);
-impl_from_object_ref!(VisibleDataChangedEvent<'_>);
+impl_from_non_null_object_ref!(VisibleDataChangedEvent<'_>);
 
 event_test_cases!(SelectionChangedEvent);
 impl_to_dbus_message!(SelectionChangedEvent<'_>);
 impl_from_dbus_message!(SelectionChangedEvent<'_>);
 impl_event_properties!(SelectionChangedEvent<'_>);
-impl_from_object_ref!(SelectionChangedEvent<'_>);
+impl_from_non_null_object_ref!(SelectionChangedEvent<'_>);
 
 event_test_cases!(ModelChangedEvent);
 impl_to_dbus_message!(ModelChangedEvent<'_>);
 impl_from_dbus_message!(ModelChangedEvent<'_>);
 impl_event_properties!(ModelChangedEvent<'_>);
-impl_from_object_ref!(ModelChangedEvent<'_>);
+impl_from_non_null_object_ref!(ModelChangedEvent<'_>);
 
 event_test_cases!(ActiveDescendantChangedEvent);
 impl_to_dbus_message!(ActiveDescendantChangedEvent<'_>);
@@ -1178,55 +1178,55 @@ event_test_cases!(AttributesChangedEvent);
 impl_to_dbus_message!(AttributesChangedEvent<'_>);
 impl_from_dbus_message!(AttributesChangedEvent<'_>);
 impl_event_properties!(AttributesChangedEvent<'_>);
-impl_from_object_ref!(AttributesChangedEvent<'_>);
+impl_from_non_null_object_ref!(AttributesChangedEvent<'_>);
 
 event_test_cases!(RowInsertedEvent);
 impl_to_dbus_message!(RowInsertedEvent<'_>);
 impl_from_dbus_message!(RowInsertedEvent<'_>);
 impl_event_properties!(RowInsertedEvent<'_>);
-impl_from_object_ref!(RowInsertedEvent<'_>);
+impl_from_non_null_object_ref!(RowInsertedEvent<'_>);
 
 event_test_cases!(RowReorderedEvent);
 impl_to_dbus_message!(RowReorderedEvent<'_>);
 impl_from_dbus_message!(RowReorderedEvent<'_>);
 impl_event_properties!(RowReorderedEvent<'_>);
-impl_from_object_ref!(RowReorderedEvent<'_>);
+impl_from_non_null_object_ref!(RowReorderedEvent<'_>);
 
 event_test_cases!(RowDeletedEvent);
 impl_to_dbus_message!(RowDeletedEvent<'_>);
 impl_from_dbus_message!(RowDeletedEvent<'_>);
 impl_event_properties!(RowDeletedEvent<'_>);
-impl_from_object_ref!(RowDeletedEvent<'_>);
+impl_from_non_null_object_ref!(RowDeletedEvent<'_>);
 
 event_test_cases!(ColumnInsertedEvent);
 impl_to_dbus_message!(ColumnInsertedEvent<'_>);
 impl_from_dbus_message!(ColumnInsertedEvent<'_>);
 impl_event_properties!(ColumnInsertedEvent<'_>);
-impl_from_object_ref!(ColumnInsertedEvent<'_>);
+impl_from_non_null_object_ref!(ColumnInsertedEvent<'_>);
 
 event_test_cases!(ColumnReorderedEvent);
 impl_to_dbus_message!(ColumnReorderedEvent<'_>);
 impl_from_dbus_message!(ColumnReorderedEvent<'_>);
 impl_event_properties!(ColumnReorderedEvent<'_>);
-impl_from_object_ref!(ColumnReorderedEvent<'_>);
+impl_from_non_null_object_ref!(ColumnReorderedEvent<'_>);
 
 event_test_cases!(ColumnDeletedEvent);
 impl_to_dbus_message!(ColumnDeletedEvent<'_>);
 impl_from_dbus_message!(ColumnDeletedEvent<'_>);
 impl_event_properties!(ColumnDeletedEvent<'_>);
-impl_from_object_ref!(ColumnDeletedEvent<'_>);
+impl_from_non_null_object_ref!(ColumnDeletedEvent<'_>);
 
 event_test_cases!(TextBoundsChangedEvent);
 impl_to_dbus_message!(TextBoundsChangedEvent<'_>);
 impl_from_dbus_message!(TextBoundsChangedEvent<'_>);
 impl_event_properties!(TextBoundsChangedEvent<'_>);
-impl_from_object_ref!(TextBoundsChangedEvent<'_>);
+impl_from_non_null_object_ref!(TextBoundsChangedEvent<'_>);
 
 event_test_cases!(TextSelectionChangedEvent);
 impl_to_dbus_message!(TextSelectionChangedEvent<'_>);
 impl_from_dbus_message!(TextSelectionChangedEvent<'_>);
 impl_event_properties!(TextSelectionChangedEvent<'_>);
-impl_from_object_ref!(TextSelectionChangedEvent<'_>);
+impl_from_non_null_object_ref!(TextSelectionChangedEvent<'_>);
 
 event_test_cases!(TextChangedEvent, [operation, start_pos, length, text], Auto);
 impl_to_dbus_message!(TextChangedEvent<'_>);
@@ -1253,7 +1253,7 @@ event_test_cases!(TextAttributesChangedEvent);
 impl_to_dbus_message!(TextAttributesChangedEvent<'_>);
 impl_from_dbus_message!(TextAttributesChangedEvent<'_>);
 impl_event_properties!(TextAttributesChangedEvent<'_>);
-impl_from_object_ref!(TextAttributesChangedEvent<'_>);
+impl_from_non_null_object_ref!(TextAttributesChangedEvent<'_>);
 
 event_test_cases!(TextCaretMovedEvent, [position], Auto);
 impl_to_dbus_message!(TextCaretMovedEvent<'_>);

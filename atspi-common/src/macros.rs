@@ -1,5 +1,5 @@
 /// Expands to implement the required methods for the [`crate::EventProperties`] trait.
-/// This depends on the struct to have an `item` field of type [`crate::ObjectRefOwned`].
+/// This depends on the struct having an `item` field of type [`crate::NonNullObjectRef`].
 ///
 /// # Example
 /// ```ignore
@@ -32,7 +32,7 @@ macro_rules! impl_event_properties {
 	};
 }
 
-/// Expands to implement `From` for [`crate::NonNullObjectRef<'o>`] for a given event type.
+/// Expands to implement `From<crate::NonNullObjectRef<'o>>` for a given event type.
 /// This macro is only applicable to event types without extra body data.
 ///
 /// For types with a lifetime, it preserves the borrow.
@@ -41,10 +41,10 @@ macro_rules! impl_event_properties {
 /// # Example
 /// ```ignore
 /// // owned:
-/// impl_from_object_ref!(TextAttributesChangedEvent);
+/// !(TextAttributesChangedEvent);
 ///
 /// // borrowed:
-/// impl_from_object_ref!(AddAccessibleEvent<'_>);
+/// impl_from_non_null_object_ref!(AddAccessibleEvent<'_>);
 /// ```
 ///
 /// expands to:
@@ -64,7 +64,7 @@ macro_rules! impl_event_properties {
 ///     }
 /// }
 /// ```
-macro_rules! impl_from_object_ref {
+macro_rules! impl_from_non_null_object_ref {
 	// Pattern for types with a lifetime parameter: LoadCompleteEvent<'_>
 	// The trick is to match `$target` as identifier with or without a lifetime parameter, then use `Self: 'o` to bind `Self` to `'o`
 	($target:ident<'_>) => {
@@ -445,20 +445,15 @@ macro_rules! impl_from_dbus_message {
 }
 
 // We decorate the macro with a `#[cfg(test)]` attribute.
-// This prevents Clippy from complaining about the macro not being used.
-// It is being used, but only in test mode.
+// This prevents Clippy from complaining about the macro not being used:
+// it is used, but only in test mode.
 //
-/// Tests `Default` and `BusProperties::from_message_unchecked` for a given event struct.
+/// Generates the `generic_event_uses` test for a given event type.
 ///
-/// Obtains a default for the given event struct.
-/// Asserts that the path and sender are the default.
-///
-/// Breaks the struct down into item (the associated object) and body.
-/// Then tests `BusProperties::from_message_unchecked` with the item and body.
-/// A macro to generate a test case for generic event properties.
-///
-/// It verifies that an event can be deconstructed into its parts (path, sender, body)
-/// and reconstructed from a message without losing information.
+/// Builds a test instance via `new_test_event`, asserts that its path and sender match the
+/// test constants, then deconstructs it into its body, rebuilds a `zbus::Message` from those
+/// parts, and reconstructs the event via `MessageConversion::from_message_unchecked`.
+/// Asserts that this round-trip is lossless.
 #[cfg(test)]
 macro_rules! generic_event_test_case {
 	($ufet:ty, [ $($field:ident),* ]) => {
@@ -895,7 +890,7 @@ macro_rules! zbus_message_test_case {
 	};
 }
 
-#[cfg(feature = "zbus")]
+#[cfg(feature = "wrappers")]
 /// Generates test cases for event wrapper conversions.
 ///
 /// This macro verifies the round-trip conversion between a user-facing event type (UFTE),
@@ -923,7 +918,9 @@ macro_rules! event_wrapper_test_cases {
 		#[cfg(test)]
 		#[rename_item::rename(name($iface_enum), prefix = "events_tests_", case = "snake")]
 		mod test_module {
-			use super::{$ufet, $iface_enum, AtspiError, Event, MessageConversion};
+		    use super::{$ufet, $iface_enum, AtspiError, Event};
+            #[cfg(feature = "zbus")]
+            use super::MessageConversion;
 			use crate::object_ref::{NonNullObjectRef, TEST_OBJECT_BUS_NAME, TEST_OBJECT_PATH_STR};
 			use assert_matches::assert_matches;
 
