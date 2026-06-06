@@ -625,7 +625,49 @@ macro_rules! zbus_message_qtspi_test_case {
 	($type:ty, [ $($field:ident),* ], Explicit) => {};
 }
 
-/// Generates test cases for zbus Message conversion.
+/// Generates `zbus::Message` round-trip and failure-mode conversion tests for a single event type.
+///
+/// This macro is expanded inside the module created by [`event_test_cases`]; all tests below end up
+/// in that type's `event_tests_{snake_case}` module. It also forwards to
+/// [`zbus_message_qtspi_test_case`] for the QTSPI-body variants.
+///
+/// All generated tests are gated behind the `zbus` feature.
+///
+/// # Generated Tests
+///
+/// Successful round-trips:
+/// * `zbus_msg_conversion_to_specific_event_type`: event -> `Message` -> same event type.
+/// * `zbus_msg_conversion_to_event_enum_type`: event -> `Message` -> global `Event` enum.
+///
+/// Failure modes (each builds a deliberately mismatched `Message` and asserts the exact error):
+/// * `zbus_msg_conversion_failure_fake_msg`: bogus interface and member -> `Err(_)`.
+/// * `zbus_msg_conversion_validated_message_with_body`: valid body but wrong header; verifies
+///   `from_message_unchecked` succeeds because it skips interface/member validation.
+/// * `zbus_msg_conversion_failure_correct_interface`: correct interface, wrong member
+///   -> `AtspiError::MemberMatch`.
+/// * `zbus_msg_conversion_failure_correct_interface_and_member`: correct interface and member,
+///   empty body -> `AtspiError::SignatureMatch`.
+/// * `zbus_msg_conversion_failure_correct_interface_and_member_invalid_body`: correct interface and
+///   member, wrongly-typed body -> `AtspiError::SignatureMatch`.
+/// * `zbus_msg_conversion_failure_correct_body`: correct body, wrong interface and member
+///   -> `Err(_)`.
+/// * `zbus_msg_conversion_failure_correct_body_and_member`: correct body and member, wrong interface
+///   -> `AtspiError::InterfaceMatch`.
+/// * `zbus_msg_conversion_failure_correct_body_and_interface`: correct body and interface, wrong
+///   member -> `AtspiError::MemberMatch`.
+///
+/// Forwarded to [`zbus_message_qtspi_test_case`] (only emitted for `Auto` bodies):
+/// * `zbus_message_conversion_qtspi`: a QTSPI-style body converts into the specific event type.
+/// * `zbus_message_conversion_qtspi_event_enum`: a QTSPI-style body converts into the `Event` enum.
+///
+/// # Arguments
+///
+/// * `$type`: the user-facing event type under test.
+/// * `[ $($field:ident),* ]`: the type's fields besides the mandatory `item`, used to build a test
+///   instance via `new_test_event`.
+/// * `$extra`: body-handling mode forwarded to [`zbus_message_qtspi_test_case`]. `Auto` (the
+///   default, used by the two-argument arm) emits the QTSPI tests; `Explicit` suppresses them for
+///   types with bespoke body types.
 #[cfg(test)]
 macro_rules! zbus_message_test_case {
 	($type:ty, [ $($field:ident),* ]) => {
@@ -718,6 +760,137 @@ macro_rules! zbus_message_test_case {
 			let hdr = fake_msg.header();
 			let event = <$type>::from_message_unchecked(&fake_msg, &hdr);
 			event.expect("from_message_unchecked should work despite mismatching interface/member");
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_interface() {
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				<$type as crate::events::traits::DBusInterface>::DBUS_INTERFACE,
+				"MadeUpMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&())
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
+			assert_matches::assert_matches!(event, Err(crate::AtspiError::MemberMatch(_)), "Wrong kind of error");
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_interface_and_member() {
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				<$type as crate::events::traits::DBusInterface>::DBUS_INTERFACE,
+				<$type as crate::events::traits::DBusMember>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&())
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
+			assert_matches::assert_matches!(event, Err(crate::AtspiError::SignatureMatch(_)), "Wrong kind of error");
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_interface_and_member_invalid_body() {
+			// known invalid body for AT-SPI events
+			let invalid_body: (i32, u64, String, String) = (0, 0, String::new(), String::new());
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				<$type as crate::events::traits::DBusInterface>::DBUS_INTERFACE,
+				<$type as crate::events::traits::DBusMember>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&invalid_body)
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
+			assert_matches::assert_matches!(event, Err(crate::AtspiError::SignatureMatch(_)), "Wrong kind of error");
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_body() {
+			use crate::events::traits::MessageConversion;
+			use crate::object_ref::{NonNullObjectRef, TEST_OBJECT_BUS_NAME, TEST_OBJECT_PATH_STR};
+
+			let test_origin = NonNullObjectRef::from_static_str_unchecked(
+				TEST_OBJECT_BUS_NAME,
+				TEST_OBJECT_PATH_STR,
+			);
+			let event_to_test = <$type>::new_test_event(&test_origin);
+
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				"org.a11y.atspi.accessible.technically.valid",
+				"FakeMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&event_to_test.body())
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
+			assert_matches::assert_matches!(event, Err(_));
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_body_and_member() {
+			use crate::events::traits::MessageConversion;
+			use crate::object_ref::{NonNullObjectRef, TEST_OBJECT_BUS_NAME, TEST_OBJECT_PATH_STR};
+
+			let test_origin = NonNullObjectRef::from_static_str_unchecked(
+				TEST_OBJECT_BUS_NAME,
+				TEST_OBJECT_PATH_STR,
+			);
+			let event_to_test = <$type>::new_test_event(&test_origin);
+
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				"org.a11y.atspi.accessible.technically.valid",
+				<$type as crate::events::traits::DBusMember>::DBUS_MEMBER,
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&event_to_test.body())
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
+			assert_matches::assert_matches!(event, Err(crate::AtspiError::InterfaceMatch(_)), "Wrong kind of error");
+		}
+
+		#[cfg(feature = "zbus")]
+		#[test]
+		fn zbus_msg_conversion_failure_correct_body_and_interface() {
+			use crate::events::traits::MessageConversion;
+			use crate::object_ref::{NonNullObjectRef, TEST_OBJECT_BUS_NAME, TEST_OBJECT_PATH_STR};
+
+			let test_origin = NonNullObjectRef::from_static_str_unchecked(
+				TEST_OBJECT_BUS_NAME,
+				TEST_OBJECT_PATH_STR,
+			);
+			let event_to_test = <$type>::new_test_event(&test_origin);
+
+			let fake_msg = zbus::Message::signal(
+				"/org/a11y/sixtynine/fourtwenty",
+				<$type as crate::events::traits::DBusInterface>::DBUS_INTERFACE,
+				"MadeUpMember",
+			)
+			.unwrap()
+			.sender(":0.0")
+			.unwrap()
+			.build(&event_to_test.body())
+			.unwrap();
+			let event = <$type>::try_from(&fake_msg);
+			assert_matches::assert_matches!(event, Err(crate::AtspiError::MemberMatch(_)), "Wrong kind of error");
 		}
 	};
 }
@@ -887,27 +1060,39 @@ macro_rules! event_wrapper_test_cases {
 	};
 }
 
-/// Generates several tests for a specific event type.
+/// Generates the full test suite for a single user-facing event type.
 ///
-/// This macro creates a module named `event_tests_{ufet_snake_case}` containing several tests
-/// that ensure the event type correctly implements standard AT-SPI properties and conversions.
+/// This is the top-level orchestrator: it creates a module named `event_tests_{ufet_snake_case}`
+/// and populates it by expanding several focused sub-macros. The list of generated tests below is
+/// intentionally not exhaustive per sub-macro; consult each one for the precise tests it emits.
 ///
 /// # Generated Tests
 ///
-/// * `event_enum_conversion`: Verifies round-trip conversion between the specific event type and the global `Event` enum.
-/// * `event_enum_transparency_test_case`: Checks that `DBus` properties (member, interface, etc.) match between the specific type and its `Event` wrapper.
-/// * `event_has_matching_xml_definition`: Validates that the interface and member names match the project's `DBus` XML definitions.
-/// * `generic_event_uses`: Verifies deconstruction and reconstruction of the event from its constituent parts.
-/// * `zbus_msg_conversion_to_specific_event_type`: Ensures the event can be converted to a `zbus::Message` and back.
-/// * `zbus_msg_conversion_to_event_enum_type`: Verifies conversion from a `zbus::Message` to the global `Event` enum.
-/// * `zbus_msg_conversion_failure_fake_msg`: Confirms that invalid messages fail to parse.
-/// * `zbus_msg_conversion_validated_message_with_body`: Tests message parsing with a valid body but potentially mismatching headers.
+/// Defined directly by this macro (gated behind the `wrappers` feature):
+/// * `event_enum_conversion`: round-trips the event through the global `Event` enum and back.
+/// * `event_enum_transparency_test_case`: asserts that the `DBus` properties (member, interface,
+///   registry string, match rule, path, sender) are identical on the specific type and its
+///   `Event` wrapper.
+///
+/// Delegated to sub-macros (each expanded into the same module):
+/// * `zbus_message_test_case`: `zbus::Message` round-trip and failure-mode conversion tests,
+///   plus the forwarded QTSPI-body tests. See [`zbus_message_test_case`] for the full list.
+/// * `event_has_matching_xml_definition`: validates the interface and member names against the
+///   project's `DBus` XML definitions. See [`event_has_matching_xml_definition`].
+/// * `generic_event_test_case`: deconstructs and reconstructs the event from its constituent parts.
+///   See [`generic_event_test_case`].
+///
+/// This macro additionally emits `assert_impl_all!` checks ensuring the type implements the
+/// expected traits (`Clone`, `Debug`, `Serialize`/`Deserialize`, `Eq`, `Hash`, the AT-SPI event
+/// traits, and `TryFrom<$ufet> for zbus::Message` under the `zbus` feature).
 ///
 /// # Arguments
 ///
-/// * `$ufet`: The user-facing event struct type.
-/// * `[ $($field:ident),* ]`: (Optional) A list of fields in the struct (excluding `item`) to be initialized with `Default::default()` during tests.
-/// * `$qt`: (Optional) Body handling mode. Can be `Auto` (default) or `Explicit` for non-generic body types.
+/// * `$ufet`: the user-facing event struct type.
+/// * `[ $($field:ident),* ]`: (optional) the struct's fields besides the mandatory `item`, each
+///   initialized with `Default::default()` when building test instances via `new_test_event`.
+/// * `$qt`: (optional) body-handling mode forwarded to [`zbus_message_test_case`]. `Auto` (the
+///   default) emits the QTSPI tests; `Explicit` suppresses them for bespoke body types.
 ///
 /// # Examples
 ///
