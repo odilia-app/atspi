@@ -32,6 +32,10 @@
 
 use crate::device_event_controller::DeviceEvent;
 
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(interface = "org.a11y.atspi.DeviceEventListener", assume_defaults = false)]
 pub trait DeviceEventListener {
 	/// `NotifyEvent` method

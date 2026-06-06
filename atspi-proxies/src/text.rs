@@ -61,7 +61,10 @@
 
 use crate::common::{ClipType, CoordType, Granularity};
 
-// `assume_defaults = false` to not auto-generate default service and path
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(interface = "org.a11y.atspi.Text", assume_defaults = false)]
 pub trait Text {
 	/// `AddSelection` method

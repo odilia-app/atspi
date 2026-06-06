@@ -78,6 +78,10 @@
 //! [rsa]: atspi-connection::read_session_accessibility
 //! [ssa]: atspi-connection::set_session_accessibility
 
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(
 	interface = "org.a11y.Status",
 	default_service = "org.a11y.Bus",
@@ -98,6 +102,7 @@ pub trait Status {
 	fn set_screen_reader_enabled(&self, value: bool) -> zbus::Result<()>;
 }
 
+// See note on `assume_defaults` on `org.a11y.Status`
 #[zbus::proxy(
 	interface = "org.a11y.Bus",
 	default_service = "org.a11y.Bus",

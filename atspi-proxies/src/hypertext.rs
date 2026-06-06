@@ -47,7 +47,7 @@
 //!
 //! ```rust,ignore
 //! let hypertext = HypertextProxy::builder(&connection)
-//!     .destination(service_name)?
+//!     .destination(bus_name)?
 //!     .path(object_path)?
 //!     .build()
 //!     .await?;
@@ -63,7 +63,10 @@
 
 use atspi_common::object_ref::ObjectRefOwned;
 
-// We explicitly disable the `assume_defaults` option to avoid generating default service/path defaults.
+// `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/latest/source/src/proxy.rs#197-199>
 #[zbus::proxy(interface = "org.a11y.atspi.Hypertext", assume_defaults = false)]
 pub trait Hypertext {
 	/// `GetLink` method

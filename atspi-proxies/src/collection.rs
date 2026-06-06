@@ -42,7 +42,7 @@
 //!
 //! ```rust,ignore
 //! let collection = CollectionProxy::builder(&connection)
-//!     .destination(service_name)?
+//!     .destination(bus_name)?
 //!     // No path is specified; the default path is used automatically
 //!     .build()
 //!     .await?;
@@ -85,11 +85,13 @@
 //! [ap]: crate::accessible::AccessibleProxy
 //! [mrb]: atspi-common::object_match::ObjectMatchRuleBuilder
 
+use crate::common::{ObjectMatchRule, SortOrder, TreeTraversalType};
 use atspi_common::object_ref::ObjectRefOwned;
 
-use crate::common::{ObjectMatchRule, SortOrder, TreeTraversalType};
-// We don't want the proxy macro to auto-derive
-// defaults, so assume_defaults is explicitly set to false.
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(interface = "org.a11y.atspi.Collection", assume_defaults = false)]
 pub trait Collection {
 	/// The active descendant of the given object.

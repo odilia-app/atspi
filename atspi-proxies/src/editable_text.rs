@@ -40,7 +40,7 @@
 //!
 //! ```rust,ignore
 //! let editable_text = EditableTextProxy::builder(&connection)
-//!     .destination(service_name)?
+//!     .destination(bus_name)?
 //!     .path(object_path)?
 //!     .build()
 //!     .await?;
@@ -52,8 +52,10 @@
 //! [or]: atspi_common::ObjectRef
 //! [tp]: crate::text::TextProxy
 
-// No default service or default path makes sense for this proxy, thus
-// the macro is instructed explicitly not to generate the defaults.
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(interface = "org.a11y.atspi.EditableText", assume_defaults = false)]
 pub trait EditableText {
 	/// `CopyText` method

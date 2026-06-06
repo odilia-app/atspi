@@ -41,7 +41,7 @@
 //!
 //! ```rust,ignore
 //! let action = ActionProxy::builder(&connection)
-//!     .destination(service_name)?
+//!     .destination(bus_name)?
 //!     .path(object_path)?
 //!     .build()
 //!     .await?;
@@ -53,6 +53,11 @@
 //! [vp]: crate::value::ValueProxy
 
 use atspi_common::Action;
+
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 
 /// A handle for a remote object implementing the `org.a11y.atspi.Action`
 /// interface.

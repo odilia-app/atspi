@@ -47,7 +47,7 @@
 //!
 //! ```rust,ignore
 //! let cache = CacheProxy::builder(&connection)
-//!     .destination(service_name)?
+//!     .destination(bus_name)?
 //!     // No path is specified; the default path is used automatically
 //!     .build()
 //!     .await?;
@@ -70,9 +70,10 @@
 
 use crate::common::{CacheItem, LegacyCacheItem};
 
-// No default service makes sense for this proxy,
-// but the interface does have a default path.
-// The macro is explicitly set to not assume_defaults.
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(
 	interface = "org.a11y.atspi.Cache",
 	default_path = "/org/a11y/atspi/cache",

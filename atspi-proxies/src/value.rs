@@ -53,7 +53,10 @@
 //! [pe]: crate::proxy_ext::ProxyExt
 //! [ap]: crate::accessible::AccessibleProxy
 
-// `assume_defaults = false` to avoid generating defaults service and path
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(interface = "org.a11y.atspi.Value", assume_defaults = false)]
 pub trait Value {
 	/// `CurrentValue` property
