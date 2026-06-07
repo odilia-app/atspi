@@ -1,67 +1,43 @@
-//! # `RegistryProxy`
-//!
-//! A handle for a remote object implementing the `org.a11y.atspi.Registry`
-//! interface.
-//!
-//! The `Registry` interface is the event-driven backbone of the entire AT-SPI2
-//! ecosystem. Running centrally on the dedicated **accessibility bus**, its primary
-//! responsibility is to coordinate and dispatch global accessibility events from
-//! applications to assistive technologies (such as screen readers).
-//!
-//! Using the `Registry`, clients can:
-//!
-//! * **Register for Events**: Subscribe globally to specific event streams (such as
-//!   `object:state-changed:focused` or `document:load-complete`) using [`register_event`].
-//! * **Deregister**: Unsubscribe when those events are no longer needed using [`deregister_event`].
-//! * **Query**: Inspect which clients have subscribed to which events via [`registered_events`].
-//!
-//! Once registered, the central registry daemon will ensure that whenever an application
-//! triggers the matching event, a D-Bus signal is routed to your client.
-//!
-//! ## 💡 Why register events here? (Why not just use D-Bus Match Rules?)
-//!
-//! While the standard D-Bus broker already has "Match Rules" to filter and route signals,
-//! AT-SPI2 requires an additional registry layer for **performance and event silencing**:
-//!
-//! 1. **Zero-Overhead when Idle**: To save CPU and memory, applications (servers) on the desktop
-//!    normally **do not emit any AT-SPI2 signals** at all. The accessibility layer is virtually silent.
-//! 2. **On-Demand Activation**: When you call [`register_event`], the `Registry` daemon not only
-//!    sets up D-Bus routing, but also notifies all applications on the bus that a client is now
-//!    interested in that event.
-//! 3. **Dynamic Signal Generation**: Only *after* this registration do applications start spending CPU
-//!    cycles to serialize and transmit those high-frequency events (like caret movements or focus changes)
-//!    over the D-Bus socket.
-//!
-//! This cooperative pub-sub architecture ensures the desktop remains fast and responsive when
-//! no assistive technologies are active.
-//!
-//! ## Defaults
-//!
-//! Because the `Registry` is a single, central service hosting the accessibility bus,
-//! it has a fixed well-known D-Bus address:
-//!
-//! * **Service Destination**: `org.a11y.atspi.Registry`
-//! * **Object Path**: `/org/a11y/atspi/registry`
-//!
 //! Due to these fixed defaults, the proxy can be constructed with zero-configuration
 //! using the shorthand `new` constructor.
 //!
-//! ## How to instantiate the proxy
+//! ## [`AccessibilityConnection`][ac] & [`Deref`] Integration
 //!
-//! Because the `Registry` is a central service, you never obtain it from UI-nodes or
-//! [`ObjectRef`][or]s. Instead, you instantiate it directly on the **accessibility bus**:
+//! If you are using the high-level `AccessibilityConnection` from the `atspi-connection`
+//! crate, you rarely need to instantiate `RegistryProxy` manually:
+//!
+//! 1. **Automatic Deref**: `AccessibilityConnection` implements `Deref` with
+//!    `RegistryProxy<'static>` as its target. Any method on `RegistryProxy` (like the
+//!    string-based [`register_event`]) can be called directly on an `AccessibilityConnection` instance.
+//! 2. **Type-Safe Helpers**: `AccessibilityConnection` also provides type-safe, generic
+//!    overloads of [`register_event` on `AccessibilityConnection`][ac_re] and
+//!    [`deregister_event` on `AccessibilityConnection`][ac_de] to subscribe to strongly-typed
+//!    Rust event structs (rather than raw D-Bus strings).
+//!
+//! ## How to instantiate the proxy manually
+//!
+//! If you are not using `AccessibilityConnection` but want to instantiate `RegistryProxy`
+//! directly on the **accessibility bus**:
 //!
 //! ### 1. Shorthand construction using `new` (Recommended)
 //!
-//! ```rust,ignore
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::registry::RegistryProxy;
+//!
+//! # block_on( async {
 //! // 1. Open a connection to the dedicated accessibility bus:
-//! let a11y_connection = atspi::AccessibilityConnection::open().await?;
+//! let a11y_connection = AccessibilityConnection::new().await?;
+//! let conn = a11y_connection.connection();
 //!
 //! // 2. Create the RegistryProxy:
-//! let registry = RegistryProxy::new(a11y_connection.connection()).await?;
+//! let registry = RegistryProxy::new(conn).await?;
 //!
 //! // 3. Register for global focus changes across the desktop:
 //! registry.register_event("object:state-changed:focused").await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ### 2. Construction using the `builder`
@@ -69,17 +45,32 @@
 //! need to specify the path or destination, as the defaults are automatically
 //! filled in:
 //!
-//! ```rust,ignore
-//! let registry = RegistryProxy::builder(a11y_connection.connection())
-//!     .cache_properties(zbus::proxy::CacheProperties::No)
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::registry::RegistryProxy;
+//! use zbus::proxy::CacheProperties;
+//!
+//! # block_on( async {
+//! let a11y_connection = AccessibilityConnection::new().await?;
+//! let conn = a11y_connection.connection();
+//!
+//! let registry = RegistryProxy::builder(conn)
+//!     .cache_properties(CacheProperties::No) // Caching uitgeschakeld!
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [`register_event`]: RegistryProxy#method.register_event
 //! [`deregister_event`]: RegistryProxy#method.deregister_event
 //! [`registered_events`]: RegistryProxy#method.registered_events
-//! [or]: atspi_common::ObjectRef
+//! [or]: crate::common::ObjectRef
+//! [deref]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+//! [ac_re]: crate::connection::AccessibilityConnection::deregister_event
+//! [ac_de]: crate::connection::AccessibilityConnection::deregister_event
+//! [ac]: crate::connection::AccessibilityConnection
 
 use zbus::names::OwnedBusName;
 
