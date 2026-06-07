@@ -16,7 +16,7 @@
 //!
 //! ## Defaults
 //!
-//! The `Hyperlink` interface is implemented on individual, variable nodes within the
+//! The `Hyperlink` interface can be implemented on any individual node within the
 //! application's UI-tree. As a consequence, the object path varies per node and
 //! no default path is applicable for this proxy.
 //!
@@ -28,40 +28,90 @@
 //! Usually, you discover hyperlinks by querying a [`Hypertext`][ht] container.
 //! Once you have a link's index, you can retrieve its object reference and resolve it:
 //!
-//! ```rust,ignore
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! # use atspi_proxies::proxy_ext::ProxyExt;
+//! # use atspi_proxies::accessible::ObjectRefExt;
+//! # use atspi_common::ObjectRefOwned;
+//! use atspi_connection::{AccessibilityConnection, P2P};
+//! use atspi_proxies::hyperlink::HyperlinkProxy;
+//! use zbus::proxy::CacheProperties;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Establish an `AccessibleProxy` pointing to a node with hypertext
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! let root_node = obj_ref.into_accessible_proxy(&conn).await?;
+//! let proxies = root_node.proxies().await?;
+//! let hypertext = proxies.hypertext().await?;
+//!
 //! // Get the reference of the first link in the hypertext container:
 //! let link_ref = hypertext.get_link(0).await?;
 //!
 //! // Resolve it directly (P2P-aware):
-//! let hyperlink = connection.object_as_accessible(&link_ref).await?;
+//! let _hyperlink = a11y.object_as_accessible(&link_ref).await?;
 //!
 //! // Or manually instantiate using the builder:
-//! let hyperlink = HyperlinkProxy::builder(&connection)
-//!     .destination(link_ref.name)?
-//!     .path(link_ref.path)?
+//! let _hyperlink = HyperlinkProxy::builder(&conn)
+//!     .destination(link_ref.name().ok_or(atspi_common::AtspiError::MissingName)?.clone())?
+//!     .path(link_ref.path().clone())?
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ### 2. Safe conversion via [`ProxyExt`][pe]
 //! If you already have an [`AccessibleProxy`][ap] for a link node, you can safely
 //! convert it using the [`ProxyExt`][pe] trait:
 //!
-//! ```rust,ignore
-//! use atspi::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Establish an `AccessibleProxy` for the link node
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! let accessible_node = obj_ref.into_accessible_proxy(&conn).await?;
 //!
 //! let proxies = accessible_node.proxies().await?;
 //! let hyperlink = proxies.hyperlink().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ### 3. Manual construction using the `builder`
 //!
-//! ```rust,ignore
-//! let hyperlink = HyperlinkProxy::builder(&connection)
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::hyperlink::HyperlinkProxy;
+//! use zbus::proxy::CacheProperties;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//! let object_path = "/org/a11y/atspi/accessible/root";
+//!
+//! let hyperlink = HyperlinkProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     .path(object_path)?
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [`get_uri`]: HyperlinkProxy#method.get_uri
