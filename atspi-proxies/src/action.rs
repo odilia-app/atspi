@@ -13,8 +13,8 @@
 //!
 //! ## Defaults
 //!
-//! The `Action` interface is implemented on individual, variable nodes within the
-//! application's UI-tree. As a consequence, the object path varies per node and
+//! The `Action` interface can be implemented on any individual node within the
+//! application's UI-tree. As a consequence, the object path vary per node and
 //! no default path is applicable for this proxy.
 //!
 //! ## How to obtain an `ActionProxy`
@@ -25,11 +25,26 @@
 //! If you already have an [`AccessibleProxy`][ap] for an actionable node, you can
 //! safely query and convert it using the [`ProxyExt`][pe] trait:
 //!
-//! ```rust,ignore
-//! use atspi::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
 //!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Establish an `AccessibleProxy` for the node
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked("1:1000", "/org/a11y/atspi/accessible/root");
+//! let accessible_node = obj_ref.into_accessible_proxy(&conn).await?;
+//!
+//! // Get the associated interface proxies
 //! let proxies = accessible_node.proxies().await?;
 //! let action = proxies.action().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! All proxies obtained through [`ProxyExt`][pe] share their underlying
@@ -39,12 +54,25 @@
 //! If you know the exact D-Bus service destination and object path, you can
 //! construct the proxy manually:
 //!
-//! ```rust,ignore
-//! let action = ActionProxy::builder(&connection)
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::action::ActionProxy;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//! let object_path = "/org/a11y/atspi/accessible/root";
+//!
+//! let action = ActionProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     .path(object_path)?
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [pe]: crate::proxy_ext::ProxyExt
