@@ -13,8 +13,13 @@ pub mod bus;
 pub mod cache;
 pub mod collection;
 pub mod component;
+
+#[cfg(feature = "x11-legacy")]
 pub mod device_event_controller;
+
+#[cfg(feature = "x11-legacy")]
 pub mod device_event_listener;
+
 pub mod document;
 pub mod editable_text;
 pub mod proxy_ext;

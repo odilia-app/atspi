@@ -18,6 +18,7 @@ release = true
 
 [features]
 default  = ["wrappers"]
+x11-legacy = []
 wrappers = []
 
 [dependencies]

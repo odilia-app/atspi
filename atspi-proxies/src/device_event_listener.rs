@@ -24,8 +24,18 @@
 //! D-Bus object to receive notifications. The generated proxy allows calling the listener
 //! remotely:
 //!
-//! ```rust,ignore
-//! let listener = DeviceEventListenerProxy::new(&connection, destination, path).await?;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! # use atspi_connection::AccessibilityConnection;
+//! # use atspi_proxies::device_event_listener::DeviceEventListenerProxy;
+//! # block_on(async {
+//! # let a11y = AccessibilityConnection::new().await?;
+//! # let conn = a11y.connection();
+//! # let destination = ":1.1001";
+//! # let path = "/org/a11y/atspi/listeners/listener";
+//! let listener = DeviceEventListenerProxy::new(&conn, destination, path).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [`notify_event`]: DeviceEventListenerProxy#method.notify_event
@@ -37,6 +47,10 @@ use crate::device_event_controller::DeviceEvent;
 // see:
 // <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 #[zbus::proxy(interface = "org.a11y.atspi.DeviceEventListener", assume_defaults = false)]
+#[deprecated(
+	since = "0.14.0",
+	note = "The DeviceEventListener interface is legacy and deprecated. Modern desktop environments do not support global device event listeners."
+)]
 pub trait DeviceEventListener {
 	/// `NotifyEvent` method
 	fn notify_event(&self, event: &DeviceEvent<'_>) -> zbus::Result<bool>;

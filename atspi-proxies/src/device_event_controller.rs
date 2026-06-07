@@ -8,7 +8,7 @@
 //! intercept global hardware input events (keystrokes, mouse buttons, pointer moves)
 //! and synthesize input events (keyboard and mouse macros).
 //!
-//! ## ⚠️ Deprecation & Wayland Warning (Legacy Only)
+//! ## Deprecation & Wayland Warning (Legacy Only)
 //!
 //! **This interface is legacy and largely obsolete in modern Linux desktop environments.**
 //!
@@ -37,10 +37,22 @@
 //!
 //! ## How to instantiate the proxy (X11 only)
 //!
-//! ```rust,ignore
-//! // Note: This will only work on legacy X11 sessions where the registry daemon supports it.
-//! let dec = DeviceEventControllerProxy::new(&connection).await?;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! # use atspi_connection::AccessibilityConnection;
+//! # use atspi_proxies::device_event_controller::DeviceEventControllerProxy;
+//! # block_on(async {
+//! # let a11y = AccessibilityConnection::new().await?;
+//! # let conn = a11y.connection();
+//! let dec = DeviceEventControllerProxy::new(&conn).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
+
+use serde::{Deserialize, Serialize};
+use zbus::zvariant::Type;
+
+// ... (EventType en KeySynthType blijven ongewijzigd hier tussenin) ...
 
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
@@ -109,6 +121,10 @@ pub struct KeyDefinition<'a> {
 	default_path = "/org/a11y/atspi/registry/deviceeventcontroller",
 	default_service = "org.a11y.atspi.Registry",
 	assume_defaults = false
+)]
+#[deprecated(
+	since = "0.14.0",
+	note = "The DeviceEventController interface is legacy and largely obsolete in modern Linux desktop environments. It does not work on Wayland."
 )]
 pub trait DeviceEventController {
 	/// `DeregisterDeviceEventListener` method
