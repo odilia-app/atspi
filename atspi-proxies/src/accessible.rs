@@ -11,7 +11,7 @@
 //! Because `Accessible` is implemented on every individual node in the application's
 //! UI-tree, the path will vary for almost all nodes, except for the root node.
 //!
-//! The root node's path can be obtained with [`AccessibleProxy::root_path()`].
+//! The root node's path can be found at [`atspi_common::ACCESSIBLE_ROOT_PATH`].
 //!
 //! ## How to obtain an `AccessibleProxy`
 //!
@@ -97,11 +97,10 @@
 //! [pe]: crate::proxy_ext::ProxyExt
 //! [tp]: crate::text::TextProxy
 
-use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
-use crate::AtspiError;
-use atspi_common::object_ref::ObjectRefOwned;
+use atspi_common::{
+	AtspiError, InterfaceSet, ObjectRef, ObjectRefOwned, RelationType, Role, StateSet,
+};
 use zbus::names::BusName;
-use zbus::zvariant::ObjectPath;
 
 // The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
 // The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
@@ -372,12 +371,6 @@ pub trait ObjectRefExt {
 		self,
 		conn: &zbus::Connection,
 	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
-
-	/// The default root path for any object in the accessible UI-tree.
-	#[must_use]
-	fn root_path() -> ObjectPath<'static> {
-		ObjectPath::from_static_str_unchecked(atspi_common::ACCESSIBLE_ROOT_PATH)
-	}
 }
 
 impl ObjectRefExt for ObjectRefOwned {
