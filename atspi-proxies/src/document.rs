@@ -19,7 +19,7 @@
 //!
 //! ## Defaults
 //!
-//! The `Document` interface is implemented on individual, variable nodes within the
+//! The `Document` interface can be implemented on any individual node within the
 //! application's UI-tree. As a consequence, the object path varies per node and
 //! no default path is applicable for this proxy.
 //!
@@ -31,11 +31,26 @@
 //! If you already have an [`AccessibleProxy`][ap] for a document node, you can safely
 //! query and convert it using the [`ProxyExt`][pe] trait:
 //!
-//! ```rust,ignore
-//! use atspi::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
 //!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Establish an `AccessibleProxy` for the document node
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! let accessible_node = obj_ref.into_accessible_proxy(&conn).await?;
+//!
+//! // Convert to `DocumentProxy` safely
 //! let proxies = accessible_node.proxies().await?;
 //! let document = proxies.document().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! All proxies obtained through [`ProxyExt`][pe] share their underlying
@@ -45,20 +60,34 @@
 //! If you know the exact D-Bus service destination and object path, you can
 //! construct the proxy manually:
 //!
-//! ```rust,ignore
-//! let document = DocumentProxy::builder(&connection)
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::document::DocumentProxy;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//! let object_path = "/org/a11y/atspi/accessible/root";
+//!
+//! let document = DocumentProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     .path(object_path)?
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [pe]: crate::proxy_ext::ProxyExt
 //! [ap]: crate::accessible::AccessibleProxy
 //! [tp]: crate::text::TextProxy
 //! [etp]: crate::editable_text::EditableTextProxy
-//! [lc]: atspi_common::events::document::LoadCompleteEvent
-//! [rl]: atspi_common::events::document::ReloadEvent
+//! [lc]: https://docs.rs/atspi-common/latest/atspi_common/events/document/struct.LoadCompleteEvent.html
+//! [rl]: https://docs.rs/atspi-common/latest/atspi_common/events/document/struct.ReloadEvent.html
 
 use crate::common::TextSelection;
 
