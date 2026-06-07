@@ -263,6 +263,7 @@ name = "atspi-proxies"
 version = "0.14.0"
 dependencies = [
  "atspi-common",
+ "atspi-connection",
  "byteorder",
  "futures-lite",
  "rename-item",

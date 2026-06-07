@@ -13,9 +13,9 @@
 //! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
 //! (So picking smol won't necessarily make your application small in the context of P2P.)
 
-use atspi_common::{object_ref::ObjectRefOwned, AtspiError};
+use atspi_common::{object_ref::ObjectRefOwned, AtspiError, ACCESSIBLE_ROOT_PATH};
 use atspi_proxies::{
-	accessible::{AccessibleProxy, ObjectRefExt, ACCESSIBLE_ROOT_PATH},
+	accessible::{AccessibleProxy, ObjectRefExt},
 	application::{self, ApplicationProxy},
 	proxy_ext::ProxyExt,
 	registry::RegistryProxy,

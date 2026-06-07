@@ -11,7 +11,7 @@
 //! Because `Accessible` is implemented on every individual node in the application's
 //! UI-tree, the path will vary for almost all nodes, except for the root node.
 //!
-//! The root node's path is [`ACCESSIBLE_ROOT_PATH`].
+//! The root node's path can be obtained with [`AccessibleProxy::root_path()`].
 //!
 //! ## How to obtain an `AccessibleProxy`
 //!
@@ -22,25 +22,46 @@
 //! [`AccessibleProxy`] using the [`ObjectRefExt`] trait:
 //!
 //! ```rust,ignore
-//! use atspi::ObjectRefExt;
+//! use atspi::ObjectRef;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
 //!
-//! let accessible = object_ref.as_accessible_proxy(&connection).await?;
+//! # futures_lite::block_on( async {
+//! let obj_ref = ObjectRef::from_static_str_unchecked("1:1000", "/org/a11y/atspi/accessible/root");
+//!
+//! let accessible = obj_ref.as_accessible_proxy(&connection).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ### 2. Transitioning to other interface proxies via [`ProxyExt`][pe]
-//! Since all accessible objects implement `Accessible`, you can use [`ProxyExt`][pe]
-//! on an [`AccessibleProxy`] to safely obtain any other interface proxy (such as
-//! [`TextProxy`][tp], [`ComponentProxy`][cp], or [`ValueProxy`][vp]) that the node
+//! Since all accessible objects implement the `Accessible` omterface,
+//! you can use [`ProxyExt`][pe] on an [`AccessibleProxy`] to safely obtain
+//! any other interface proxy (such as [`TextProxy`][tp]) that the node
 //! implements:
 //!
-//! ```rust,ignore
-//! use atspi::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
 //!
-//! let proxies = accessible_node.proxies().await?;
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
 //!
-//! if proxies.interfaces().contains(atspi::Interface::Text) {
-//!     let text_proxy = proxies.text().await?;
-//! }
+//! // Convert an example object into `AccessibleProxy`.
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked("1:1000", "/org/a11y/atspi/accessible/root");
+//! let accessible_proxy = obj_ref.into_accessible_proxy(&conn).await?;
+//!
+//! // Convert the `AccesssibleProxy` to [`Proxies`][prxs], a safe conversion type:
+//! let proxies = accessible_proxy.proxies().await?;
+//!
+//! // Convert a to `TextProxy`, this will return an error if `TextProxy` is not implemented.
+//! let text_proxy = proxies.text().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! Note that all proxies obtained through [`ProxyExt`][pe] share their underlying
@@ -50,25 +71,37 @@
 //! If you know the exact D-Bus service destination and object path, you can
 //! construct the proxy manually:
 //!
-//! ```rust,ignore
-//! let accessible = AccessibleProxy::builder(&connection)
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::accessible::AccessibleProxy;
+//! use zbus::proxy::CacheProperties;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//! let object_path = "/org/a11y/atspi/accesible/root";
+//!
+//! let accessible = AccessibleProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     .path(object_path)?
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [pe]: crate::proxy_ext::ProxyExt
 //! [tp]: crate::text::TextProxy
-//! [cp]: crate::component::ComponentProxy
-//! [vp]: crate::value::ValueProxy
 
 use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
 use crate::AtspiError;
 use atspi_common::object_ref::ObjectRefOwned;
 use zbus::names::BusName;
-
-pub const ACCESSIBLE_ROOT_PATH: &str = "/org/a11y/atspi/accessible/root";
+use zbus::zvariant::ObjectPath;
 
 // The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
 // The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
@@ -339,6 +372,12 @@ pub trait ObjectRefExt {
 		self,
 		conn: &zbus::Connection,
 	) -> impl std::future::Future<Output = Result<AccessibleProxy<'_>, AtspiError>> + Send;
+
+	/// The default root path for any object in the accessible UI-tree.
+	#[must_use]
+	fn root_path() -> ObjectPath<'static> {
+		ObjectPath::from_static_str_unchecked(atspi_common::ACCESSIBLE_ROOT_PATH)
+	}
 }
 
 impl ObjectRefExt for ObjectRefOwned {

@@ -9,6 +9,8 @@
 //! Any type ending in `*Proxy` is in `atspi-proxies`.
 //!
 
+pub const ACCESSIBLE_ROOT_PATH: &str = "/org/a11y/atspi/accessible/root";
+
 #[macro_use]
 extern crate static_assertions;
 #[macro_use]

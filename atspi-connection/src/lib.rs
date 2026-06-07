@@ -392,7 +392,7 @@ impl AccessibilityConnection {
 			.expect("Registry default_service is set");
 		let registry = AccessibleProxy::builder(self.connection())
 			.destination(registry_well_known_name)?
-			.path(atspi_proxies::accessible::ACCESSIBLE_ROOT_PATH)?
+			.path(atspi_common::ACCESSIBLE_ROOT_PATH)?
 			// registry has an incomplete implementation of the DBus interface
 			// and therefore cannot be cached; thus we always disable caching it
 			.cache_properties(CacheProperties::No)
