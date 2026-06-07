@@ -33,18 +33,24 @@
 //!
 //! ### 1. Shorthand construction using `new` (Recommended)
 //!
-//! ```rust,ignore
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_proxies::bus::{BusProxy, StatusProxy};
+//!
+//! # block_on( async {
 //! let session_bus = zbus::Connection::session().await?;
 //!
 //! // Obtain the private accessibility bus address:
 //! let bus_proxy = BusProxy::new(&session_bus).await?;
-//! let a11y_address = bus_proxy.get_address().await?;
+//! let _a11y_address = bus_proxy.get_address().await?;
 //!
 //! // Check or toggle global accessibility status:
 //! let status_proxy = StatusProxy::new(&session_bus).await?;
 //! if status_proxy.is_enabled().await? {
 //!     println!("AT-SPI2 accessibility is active.");
 //! }
+//! # Ok::<(), zbus::Error>(())
+//! # });
 //! ```
 //!
 //! ### 2. Construction using the `builder`
@@ -52,11 +58,19 @@
 //! need to specify the path or destination, as the defaults are automatically
 //! filled in:
 //!
-//! ```rust,ignore
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_proxies::bus::BusProxy;
+//!
+//! # block_on( async {
+//! let session_bus = zbus::Connection::session().await?;
+//!
 //! let bus_proxy = BusProxy::builder(&session_bus)
 //!     .cache_properties(zbus::proxy::CacheProperties::No)
 //!     .build()
 //!     .await?;
+//! # Ok::<(), zbus::Error>(())
+//! # });
 //! ```
 //!
 //! ## High-level Helpers
@@ -74,9 +88,9 @@
 //! [`get_address`]: BusProxy#method.get_address
 //! [`is_enabled`]: StatusProxy#method.is_enabled
 //! [`screen_reader_enabled`]: StatusProxy#method.screen_reader_enabled
-//! [or]: atspi-common::ObjectRef
-//! [rsa]: atspi-connection::read_session_accessibility
-//! [ssa]: atspi-connection::set_session_accessibility
+//! [or]: crate::common::ObjectRef
+//! [rsa]: https://docs.rs/atspi-connection/latest/atspi_connection/fn.read_session_accessibility.html
+//! [ssa]: https://docs.rs/atspi-connection/latest/atspi_connection/fn.set_session_accessibility.html
 
 // The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
 // The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
