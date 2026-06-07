@@ -61,12 +61,13 @@
 //! ```rust,no_run
 //! # use futures_lite::future::block_on;
 //! use atspi_proxies::bus::BusProxy;
+//! use zbus::proxy::CacheProperties;
 //!
 //! # block_on( async {
 //! let session_bus = zbus::Connection::session().await?;
 //!
 //! let bus_proxy = BusProxy::builder(&session_bus)
-//!     .cache_properties(zbus::proxy::CacheProperties::No)
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
 //! # Ok::<(), zbus::Error>(())

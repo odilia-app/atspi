@@ -64,6 +64,7 @@
 //! # use futures_lite::future::block_on;
 //! use atspi_connection::AccessibilityConnection;
 //! use atspi_proxies::cache::CacheProxy;
+//! use zbus::proxy::CacheProperties;
 //!
 //! # block_on( async {
 //! let a11y = AccessibilityConnection::new().await?;
@@ -74,6 +75,7 @@
 //! let cache = CacheProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     // No path is specified; the default path is used automatically
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
 //! # Ok::<(), atspi_common::AtspiError>(())

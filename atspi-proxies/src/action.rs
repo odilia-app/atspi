@@ -58,6 +58,7 @@
 //! # use futures_lite::future::block_on;
 //! use atspi_connection::AccessibilityConnection;
 //! use atspi_proxies::action::ActionProxy;
+//! use zbus::proxy::CacheProperties;
 //!
 //! # block_on( async {
 //! let a11y = AccessibilityConnection::new().await?;
@@ -69,6 +70,7 @@
 //! let action = ActionProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     .path(object_path)?
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
 //! # Ok::<(), atspi_common::AtspiError>(())

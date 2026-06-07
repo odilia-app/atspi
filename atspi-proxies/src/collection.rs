@@ -63,6 +63,7 @@
 //! # block_on( async {
 //! let a11y = AccessibilityConnection::new().await?;
 //! let conn = a11y.connection();
+//! use zbus::proxy::CacheProperties;
 //!
 //! let bus_name = ":1.1001";
 //! let object_path = "/org/a11y/atspi/accessible/root";
@@ -70,6 +71,7 @@
 //! let collection = CollectionProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     .path(object_path)?
+//!     .cache_properties(CacheProperties::No)
 //!     .build()
 //!     .await?;
 //! # Ok::<(), atspi_common::AtspiError>(())
