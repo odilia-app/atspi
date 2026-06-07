@@ -30,11 +30,26 @@
 //! If you have an [`AccessibleProxy`][ap] pointing to the application's root node,
 //! you can query its interfaces and convert it safely:
 //!
-//! ```rust,ignore
-//! use atspi::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
 //!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Establish an `AccessibleProxy` pointing to the application's root node
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! let root_node = obj_ref.into_accessible_proxy(&conn).await?;
+//!
+//! // Convert to `CacheProxy` safely
 //! let proxies = root_node.proxies().await?;
 //! let cache = proxies.cache().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! All proxies obtained through [`ProxyExt`][pe] share their underlying
@@ -45,20 +60,44 @@
 //! to supply the application's unique D-Bus service destination. The builder will
 //! automatically use the default path:
 //!
-//! ```rust,ignore
-//! let cache = CacheProxy::builder(&connection)
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::cache::CacheProxy;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//!
+//! let cache = CacheProxy::builder(&conn)
 //!     .destination(bus_name)?
 //!     // No path is specified; the default path is used automatically
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ### 3. Construction using `new` (Shorthand)
 //! Alternatively, you can instantiate the proxy directly using the short-hand
 //! `new` constructor, which requires only the connection and destination:
 //!
-//! ```rust,ignore
-//! let cache = CacheProxy::new(&connection, service_name).await?;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::cache::CacheProxy;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//!
+//! let cache = CacheProxy::new(&conn, bus_name).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [`get_items`]: CacheProxy#method.get_items

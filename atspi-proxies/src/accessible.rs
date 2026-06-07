@@ -97,7 +97,7 @@
 //! [pe]: crate::proxy_ext::ProxyExt
 //! [tp]: crate::text::TextProxy
 
-use atspi_common::{
+use crate::common::{
 	AtspiError, InterfaceSet, ObjectRef, ObjectRefOwned, RelationType, Role, StateSet,
 };
 use zbus::names::BusName;
