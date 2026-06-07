@@ -52,11 +52,6 @@
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 
-// ... (EventType en KeySynthType blijven ongewijzigd hier tussenin) ...
-
-use serde::{Deserialize, Serialize};
-use zbus::zvariant::Type;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[repr(u32)]
 pub enum EventType {

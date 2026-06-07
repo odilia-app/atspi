@@ -3,6 +3,7 @@
 
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
 #![allow(clippy::multiple_crate_versions)]
+#![allow(deprecated)] // Allow our deprecations - to not trip `cargo hack`
 
 pub use atspi_common as common;
 
