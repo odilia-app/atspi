@@ -3,10 +3,10 @@
 //! A handle for a remote object implementing the `org.a11y.atspi.Collection`
 //! interface.
 //!
-//! The `Collection` interface is an incredibly powerful query-engine for
+//! The `Collection` interface is an can be a powerful query-engine for
 //! accessibility builders. Instead of manually traversing the entire UI-tree
-//! recursively (which requires making countless synchronous D-Bus calls), the
-//! `Collection` interface allows clients to perform advanced search queries
+//! recursively (which requires making countless D-Bus calls), the
+//! `Collection` interface allows clients to perform search queries
 //! (like "find all focusable buttons") in a single D-Bus round-trip.
 //!
 //! Searches are configured using [`ObjectMatchRule`]s, which are easily
@@ -14,58 +14,90 @@
 //!
 //! ## Defaults
 //!
-//! The `Collection` interface may be implented for any arbitrary node in the UI-tree.
-//! This means the bus name and path will vary.
+//! The `Collection` interface can be found implemented on any individual node
+//! within the application's UI-tree. As a consequence, the object path varies
+//! per node and no default path is applicable for this proxy.
 //!
 //! ## How to obtain a `CollectionProxy`
 //!
-//! There are three idiomatic ways to obtain a `CollectionProxy`:
+//! There are two idiomatic ways to obtain a `CollectionProxy`:
 //!
 //! ### 1. Safe conversion via [`ProxyExt`][pe] (Recommended)
-//! If you have an [`AccessibleProxy`][ap] pointing to the application's root node,
+//! If you already have an [`AccessibleProxy`][ap] pointing to a node that supports collections,
 //! you can query its interfaces and convert it safely:
 //!
-//! ```rust,ignore
-//! use atspi::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
 //!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Establish an `AccessibleProxy` for the node
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! let root_node = obj_ref.into_accessible_proxy(&conn).await?;
+//!
+//! // Convert to `CollectionProxy` safely
 //! let proxies = root_node.proxies().await?;
 //! let collection = proxies.collection().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! All proxies obtained through [`ProxyExt`][pe] share their underlying
 //! [`zbus::Connection`], inheriting any P2P configuration if applicable.
 //!
-//! ### 2. Manual construction using the `builder` (Fixed Path)
-//! Because the object path of the `Collection` interface is fixed, you only need
-//! to supply the application's unique D-Bus service destination. The builder will
-//! automatically use the default path:
+//! ### 2. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
 //!
-//! ```rust,ignore
-//! let collection = CollectionProxy::builder(&connection)
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::collection::CollectionProxy;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//! let object_path = "/org/a11y/atspi/accessible/root";
+//!
+//! let collection = CollectionProxy::builder(&conn)
 //!     .destination(bus_name)?
-//!     // No path is specified; the default path is used automatically
+//!     .path(object_path)?
 //!     .build()
 //!     .await?;
-//! ```
-//!
-//! ### 3. Construction using `new` (Shorthand)
-//! Alternatively, you can instantiate the proxy directly using the short-hand
-//! `new` constructor, which requires only the connection and destination:
-//!
-//! ```rust,ignore
-//! let collection = CollectionProxy::new(&connection, service_name).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ## Search Example
 //!
 //! This example demonstrates how to find all buttons inside a collection:
 //!
-//! ```rust,ignore
-//! use atspi::{ObjectMatchRule, SortOrder, MatchType, Role};
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! # use atspi_connection::AccessibilityConnection;
+//! # use atspi_proxies::proxy_ext::ProxyExt;
+//! # use atspi_proxies::accessible::ObjectRefExt;
+//! # use atspi_common::ObjectRefOwned;
+//! use atspi_common::{ObjectMatchRule, SortOrder, MatchType, Role};
 //!
-//! // 1. Build a search rule for PushButtons
+//! # block_on( async {
+//! # let a11y = AccessibilityConnection::new().await?;
+//! # let conn = a11y.connection();
+//! # let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! # let root_node = obj_ref.into_accessible_proxy(&conn).await?;
+//! # let proxies = root_node.proxies().await?;
+//! # let collection = proxies.collection().await?;
+//! // 1. Build a search rule for Buttons
 //! let rule = ObjectMatchRule::builder()
-//!     .roles(&[Role::PushButton], MatchType::All)
+//!     .roles(&[Role::Button], MatchType::All)
 //!     .build();
 //!
 //! // 2. Query the collection (0 means return all matches)
@@ -79,14 +111,15 @@
 //! for node_ref in matches {
 //!     println!("Found matching actionable node: {node_ref:?}");
 //! }
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [pe]: crate::proxy_ext::ProxyExt
 //! [ap]: crate::accessible::AccessibleProxy
-//! [mrb]: atspi-common::object_match::ObjectMatchRuleBuilder
+//! [mrb]: atspi_common::object_match::ObjectMatchRuleBuilder
 
-use crate::common::{ObjectMatchRule, SortOrder, TreeTraversalType};
-use atspi_common::object_ref::ObjectRefOwned;
+use crate::common::{ObjectMatchRule, ObjectRefOwned, SortOrder, TreeTraversalType};
 
 // The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
 // The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
