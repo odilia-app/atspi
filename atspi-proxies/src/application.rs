@@ -36,11 +36,26 @@
 //! If you have an [`AccessibleProxy`][ap] pointing to the application's root node,
 //! you can query its interfaces and convert it safely:
 //!
-//! ```rust,ignore
-//! use atspi::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
 //!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Establish an `AccessibleProxy` pointing to the application's root node
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! let root_node = obj_ref.into_accessible_proxy(&conn).await?;
+//!
+//! // Convert to `ApplicationProxy` safely
 //! let proxies = root_node.proxies().await?;
 //! let application = proxies.application().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ### 2. Manual construction using the `builder` (Fixed Path)
@@ -48,20 +63,44 @@
 //! to supply the application's unique D-Bus service destination. The builder will
 //! automatically use the default path:
 //!
-//! ```rust,ignore
-//! let application = ApplicationProxy::builder(&connection)
-//!     .destination(bus_namev)?
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::application::ApplicationProxy;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//!
+//! let application = ApplicationProxy::builder(&conn)
+//!     .destination(bus_name)?
 //!     // No path is specified; the default root path is used automatically
 //!     .build()
 //!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! ### 3. Construction using `new`
 //! Alternatively, you can instantiate the proxy directly using the short-hand
 //! `new` constructor, which requires only the connection and destination:
 //!
-//! ```rust,ignore
-//! let application = ApplicationProxy::new(&connection, service_name).await?;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::application::ApplicationProxy;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//!
+//! let application = ApplicationProxy::new(&conn, bus_name).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 //!
 //! [pe]: crate::proxy_ext::ProxyExt
@@ -92,6 +131,7 @@ pub trait Application {
 	/// member: `GetLocale`, type: method
 	///
 	/// [`locale`]: crate::accessible::AccessibleProxy#method.locale
+	#[deprecated(note = "`AccessibleProxy::locale` is available.")]
 	fn get_locale(&self, lctype: u32) -> zbus::Result<String>;
 
 	/// retrieves AT-SPI2 version.
@@ -99,11 +139,12 @@ pub trait Application {
 	/// Applications are advised to return "2.1" here, thus that is what
 	/// users should expect.
 	///
-	/// This was intended to be the version of the atspi interfaces
-	/// that the application supports, but atspi will probably move to
+	/// This was intended to be the version of the `AT-SPI2` interfaces
+	/// that the application supports, but `AT-SPI2` will probably move to
 	/// using versioned interface names instead.
 	///
 	/// member: `AtspiVersion`, type: property
+	#[deprecated(note = "No longer in use.")]
 	#[zbus(property)]
 	fn atspi_version(&self) -> zbus::Result<String>;
 
@@ -135,12 +176,13 @@ pub trait Application {
 	///
 	/// [`embed`]: crate::socket::SocketProxy#method.embed
 	/// [`org.a11y.atspi.Socket`]: crate::socket::SocketProxy
+	#[deprecated(note = "No longer in use: unique names are assigned by the bus.")]
 	#[zbus(property)]
 	fn id(&self) -> zbus::Result<i32>;
 
 	/// Set ID of the application.
 	///
-	/// This method is used by the accessibility registry to set the
+	/// This method was used by the accessibility registry to set the
 	/// application's id.
 	///
 	/// ## status
@@ -152,6 +194,7 @@ pub trait Application {
 	/// member: `Id`, type: property
 	///
 	/// [`id`]: crate::application::ApplicationProxy#method.id
+	#[deprecated(note = "No longer in use: unique names are assigned by the bus.")]
 	#[zbus(property)]
 	fn set_id(&self, value: i32) -> zbus::Result<()>;
 
