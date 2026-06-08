@@ -255,10 +255,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [clippy, no-unused-dependencies]
     steps:
-      - name: Import Codecov GPG public key
-        run: |
-          curl -s https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import || \
-          curl -s https://uploader.codecov.io/latest/linux/codecov.pub | gpg --import
       - name: Git checkout
         uses: actions/checkout@v6
       - name: Install nightly
