@@ -1,7 +1,7 @@
 //! Due to these fixed defaults, the proxy can be constructed with zero-configuration
 //! using the shorthand `new` constructor.
 //!
-//! ## [`AccessibilityConnection`][ac] & [`Deref`] Integration
+//! ## [`AccessibilityConnection`][ac] & [`Deref`][deref] Integration
 //!
 //! If you are using the high-level `AccessibilityConnection` from the `atspi-connection`
 //! crate, you rarely need to instantiate `RegistryProxy` manually:
@@ -68,9 +68,9 @@
 //! [`registered_events`]: RegistryProxy#method.registered_events
 //! [or]: crate::common::ObjectRef
 //! [deref]: https://doc.rust-lang.org/std/ops/trait.Deref.html
-//! [ac_re]: crate::connection::AccessibilityConnection::deregister_event
-//! [ac_de]: crate::connection::AccessibilityConnection::deregister_event
-//! [ac]: crate::connection::AccessibilityConnection
+//! [ac_re]: atspi-connection::AccessibilityConnection::register_event
+//! [ac_de]: atspi-connection::AccessibilityConnection::deregister_event
+//! [ac]: atspi-connection::AccessibilityConnection
 
 use zbus::names::OwnedBusName;
 

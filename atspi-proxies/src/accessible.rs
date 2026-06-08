@@ -21,15 +21,18 @@
 //! If you have an [`ObjectRef`] pointing to a node, you can resolve it to an
 //! [`AccessibleProxy`] using the [`ObjectRefExt`] trait:
 //!
-//! ```rust,ignore
-//! use atspi::ObjectRef;
-//! use atspi_proxies::proxy_ext::ProxyExt;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! # use atspi_connection::AccessibilityConnection;
+//! use atspi_common::ObjectRefOwned;
 //! use atspi_proxies::accessible::ObjectRefExt;
 //!
-//! # futures_lite::block_on( async {
-//! let obj_ref = ObjectRef::from_static_str_unchecked("1:1000", "/org/a11y/atspi/accessible/root");
+//! # block_on( async {
+//! # let a11y = AccessibilityConnection::new().await?;
+//! # let conn = a11y.connection();
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
 //!
-//! let accessible = obj_ref.as_accessible_proxy(&connection).await?;
+//! let _accessible = obj_ref.as_accessible_proxy(conn).await?;
 //! # Ok::<(), atspi_common::AtspiError>(())
 //! # });
 //! ```
