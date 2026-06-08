@@ -3,35 +3,27 @@
 //! A handle for the object on the `Registry` service for the `org.a11y.atspi.Socket`
 //! interface.
 //!
-//! The `Socket` interface is part of AT-SPI2's **Socket/Plug mechanism**, which is
-//! used to seamlessly stitch together two distinct accessibility trees managed by
-//! separate, out-of-process applications.
+//! The `Socket` D-Bus interface bundles two largely unrelated concerns:
+//!
+//!  - General application registration (`Embed`, which every server app calls on the registry).
+//!  - The cross-process stitching (`Embedded`).
+//!
+//! Only `Embedded` is part of the actual stitching.
 //!
 //! ## The Socket/Plug Stitching Mechanism
 //!
-//! In modern desktop environments, applications often isolate their UI components
-//! across process boundaries for security and stability. A prime example of this
-//! is **GNOME Web (Epiphany)** and **`WebKitGTK`**:
+//! The Socket/Plug mechanism bridges the accessibility trees of two independent,
+//! server-side processes — a **host (the socket)** and an **embedded app (the plug)** —
+//! so that an assistive technology sees a single, contiguous tree. This is purely a
+//! server-side orchestration; assistive technologies only consume the stitched result
+//! and do not take part in it.
 //!
-//! * **The Browser Shell** (the outer window, tabs, and URL bar) runs in one process.
-//! * **The Web View** (the actual rendered HTML content) runs in a separate, sandboxed
-//!   web process.
+//! As far as we can tell from the reference implementation, the embedding itself happens
+//! directly between the host and the plug; the registry is only involved in the separate,
+//! general registration step. For a step-by-step walkthrough with a sequence diagram and
+//! source references, see the [Socket/Plug Stitching Mechanism] document.
 //!
-//! To assistive technologies (like screen readers), these must appear as a single,
-//! contiguous UI-tree.
-//!
-//! The entry point for the Plug/Embed mechanism is the `Embedded` method.
-//!
-//! 1. The `Embed` method is called by a socket application to inform the plug
-//!    application that it is being embedded.
-//!
-//! 2. The registry imforms the plug application of the socket object.
-//! 3. The plug application sets the socket object as its parent.
-//! 4. The plug application calls `Socket::Embed` to identify itself.
-//! 5. The Registry sets the `Id` property on the `org.a11y.atspi.Application`
-//!    interface on the plug object.
-//! 6. The method `Socket::Embed` returns with name and object path of the
-//!    Registry's root object.
+//! [Socket/Plug Stitching Mechanism]: https://github.com/odilia-app/atspi/blob/main/atspi-proxies/doc/socket-plug.md
 //!
 //! ## Defaults
 //!
@@ -48,8 +40,18 @@
 //!
 //! ### 1. Shorthand construction using `new` (Default Registry Socket)
 //!
-//! ```rust,ignore
-//! let socket = SocketProxy::new(&connection).await?;
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::socket::SocketProxy;
+//!
+//! # block_on( async {
+//! let a11y_connection = AccessibilityConnection::new().await?;
+//! let conn = a11y_connection.connection();
+//!
+//! let _socket = SocketProxy::new(conn).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
 //! ```
 
 use atspi_common::object_ref::ObjectRefOwned;
@@ -65,31 +67,46 @@ use atspi_common::object_ref::ObjectRefOwned;
 	assume_defaults = false
 )]
 pub trait Socket {
-	/// @plug: a string for the unique bus name of the application, and an object path
-	/// for the application's' root object.
+	/// Registers an application against the accessibility registry.
 	///
-	/// This is the entry point for an application that wants to register itself against
-	/// the accessibility registry.  The application's root object, which it passes in
-	/// @plug, must support the org.a11y.atspi.Application interface.
+	/// `plug` is an `(so)` reference (bus name + object path) to the application's root
+	/// object, which must implement `org.a11y.atspi.Application`.
 	///
-	/// When an application calls this method on the registry, the following handshake happens:
+	/// Despite living on the `Socket` interface, this call is the *general application
+	/// registration* that every server app performs on startup; on its own it is not the
+	/// cross-process plug/socket stitching (see the module-level docs).
 	///
-	/// * Application calls this method on the registry to identify itself.
-	/// * The registry sets the "Id" property on the org.a11y.atspi.Application interface on the @plug object.
-	/// * The Embed method returns with the bus name and object path for the registry's root object.
-	/// Returns: the bus name and object path of the registry's root object.
-	fn embed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<ObjectRefOwned>;
+	/// On success, the registry assigns the application its `Id` (on the
+	/// `org.a11y.atspi.Application` interface) and returns its own root object reference.
+	///
+	/// member: `Embed`, type: method
+	fn embed(&self, plug: &ObjectRefOwned) -> zbus::Result<ObjectRefOwned>;
 
-	/// This method is called by a socket to inform the plug that it is being
-	/// embedded. The plug should register the embedding socket as its parent.
-	fn embedded(&self, path: zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
-
-	/// Unembed method
-	/// @plug: a string for the unique bus name of the application, and an object path
-	/// for the application's' root object.
+	/// Informs a plug that it is being embedded by a socket.
 	///
-	/// Unregisters an application from the accesibility registry.  It is not necessary to
-	/// call this method; the accessibility registry detects when an application
+	/// Called by the host (socket) directly on the embedded application's (plug) root
+	/// object. On receiving this call, the plug registers the embedding socket as its parent,
+	/// after which it emits `object:property-change:accessible-parent`. This is the entry
+	/// point of the actual plug/socket stitching (see the module-level docs).
+	///
+	/// # Wire type note
+	///
+	/// `path` is the socket's *object path*, but the D-Bus interface declares the argument
+	/// as a plain string (`s`), not an object path (`o`). It is therefore typed as `&str`
+	/// so the marshalled signature matches the server; passing an `ObjectPath` would send
+	/// `o` and the call would fail.
+	///
+	/// See: [at-spi2-core XML definitions on Socket::Embedded](https://gitlab.gnome.org/GNOME/at-spi2-core/-/blob/main/xml/Socket.xml#L51-54)
+	///
+	/// member: `Embedded`, type: method
+	fn embedded(&self, path: &str) -> zbus::Result<()>;
+
+	/// Unregisters an application from the accessibility registry.
+	///
+	/// `plug` is an `(so)` reference (bus name + object path) to the application's root
+	/// object. Calling this is optional: the registry also detects when an application
 	/// disconnects from the bus.
-	fn unembed(&self, plug: &(&str, zbus::zvariant::ObjectPath<'_>)) -> zbus::Result<()>;
+	///
+	/// member: `Unembed`, type: method
+	fn unembed(&self, plug: &ObjectRefOwned) -> zbus::Result<()>;
 }

@@ -65,7 +65,6 @@
 //! use atspi_connection::AccessibilityConnection;
 //! use atspi_proxies::document::DocumentProxy;
 //! use zbus::proxy::CacheProperties;
-//! use atspi_proxies::accessible::ObjectRefExt;
 //!
 //! # block_on( async {
 //! let a11y = AccessibilityConnection::new().await?;
