@@ -11,11 +11,12 @@
 //! * **Alternative Text**: A textual description of what the image represents ([`image_description`]).
 //! * **Spatial Bounds**: The exact position and size of the image on the screen or window ([`get_image_extents`]).
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! The `Image` interface can be implemented on any individual node within the
-//! application's UI-tree. As a consequence, the object path varies per node and
-//! no default path is applicable for this proxy.
+//! Since this interface is implemented dynamically on individual nodes within an
+//! application's UI-tree, its D-Bus addressing (the unique bus name and object path)
+//! varies per node. There is no static, well-known service destination or object path
+//! applicable; address details must be resolved dynamically at runtime.
 //!
 //! ## How to obtain an `ImageProxy`
 //!

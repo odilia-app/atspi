@@ -21,12 +21,13 @@
 //! * [`toolkit_name`](ApplicationProxy#method.toolkit_name)
 //! * [`version`](ApplicationProxy#method.version)
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! The `Application` interface is always implemented on the **root node** of an
-//! application's UI-tree. Because this root object path is fixed across all
-//! AT-SPI2 applications, the proxy defines a fixed default path:
-//! `/org/a11y/atspi/accessible/root`.
+//! The `Application` interface is implemented on the root node of each
+//! application's UI-tree. Because this root path is consistent across all AT-SPI2
+//! applications, it resides at a standardized, well-known path:
+//!
+//! * **Object Path**: `/org/a11y/atspi/accessible/root`
 //!
 //! ## How to obtain an `ApplicationProxy`
 //!

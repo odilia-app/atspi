@@ -25,16 +25,32 @@
 //!
 //! [Socket/Plug Stitching Mechanism]: https://github.com/odilia-app/atspi/blob/main/atspi-proxies/doc/socket-plug.md
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! The AT-SPI registry implements `Socket` on a known default path, the service
-//! is also known.
+//! For Assistive Technology (AT) clients—such as screen readers—the `Socket` interface
+//! is not directly relevant. ATs act purely as consumers on the accessibility bus; they
+//! do not register as accessible servers, and the socket/plug stitching is handled
+//! entirely on the application side.
+//!
+//! For accessible applications exposing a UI, the interface serves two distinct purposes:
+//!
+//! ### 1. Central Registry Socket (General Application Registration)
+//! Every application must register on startup by calling `embed` on the central registry.
+//! In this role, the interface is hosted by the central registry daemon at a fixed,
+//! well-known location:
 //!
 //! * **Service Destination**: `org.a11y.atspi.Registry`
 //! * **Object Path**: `/org/a11y/atspi/accessible/root`
 //!
-//! Because these defaults are defined on the proxy, you can instantiate the global
-//! registry socket with zero-configuration using `new`.
+//! Because these central details are standardized on the proxy, the global registry
+//! socket can be instantiated directly using the shorthand `new` constructor.
+//!
+//! ### 2. Plug Process Socket (Cross-Process Stitching)
+//! During cross-process embedding, a host process calls `embedded` directly on the
+//! embedded plug's root object. Here, the plug must implement the `Socket` interface
+//! locally. The D-Bus destination and object path are dynamic, pointing to the unique
+//! bus name and root path of the plug process. To communicate with the plug, the proxy
+//! must be instantiated manually using the `builder` to supply these runtime coordinates.
 //!
 //! ## How to instantiate the proxy
 //!

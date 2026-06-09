@@ -9,11 +9,12 @@
 //! maximum ([`maximum_value`]) limits, checking the smallest allowed step size
 //! ([`minimum_increment`]), and getting or setting the current numeric state ([`current_value`], [`set_current_value`]).
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! The `Value` interface can be implemented on any individual node within the
-//! application's UI-tree (such as sliders or progress bars). As a consequence, the
-//! object path varies per node and no default path is applicable for this proxy.
+//! Since this interface is implemented dynamically on individual nodes within an
+//! application's UI-tree, its D-Bus addressing (the unique bus name and object path)
+//! varies per node. There is no static, well-known service destination or object path
+//! applicable; address details must be resolved dynamically at runtime.
 //!
 //! ## How to obtain a `ValueProxy`
 //!

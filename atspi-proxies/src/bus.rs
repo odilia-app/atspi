@@ -14,17 +14,17 @@
 //!   accessibility status, such as whether accessibility ([`is_enabled`]) or the
 //!   screen reader ([`screen_reader_enabled`]) are currently active.
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! Unlike UI-tree proxies, both of these interfaces are hosted by a single, static
-//! daemon on the user's session bus. Therefore, they have fixed well-known D-Bus
+//! Unlike dynamic UI-tree proxies, both interfaces are hosted by a single,
+//! static daemon on the D-Bus session bus. They reside at fixed, well-known
 //! addresses:
 //!
 //! * **Service Destination**: `org.a11y.Bus`
 //! * **Object Path**: `/org/a11y/bus`
 //!
-//! Due to these fixed defaults, both proxies can be constructed with zero-configuration
-//! using the shorthand `new` constructor.
+//! Because these locations are standardized, both proxies can be instantiated
+//! directly using the shorthand `new` constructor.
 //!
 //! ## How to instantiate the proxies
 //!

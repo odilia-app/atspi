@@ -25,15 +25,16 @@
 //! For modern input synthesis, use secure alternatives like **`libei`** (Emulated Input).
 //! For global shortcuts, use compositor-native portal APIs.
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! Since the Device Event Controller is a single global daemon hosted by the AT-SPI Registry,
-//! it has a fixed D-Bus address on the accessibility bus:
+//! Since the Device Event Controller is a single global daemon hosted by the central
+//! AT-SPI Registry, it resides at a fixed, well-known address on the accessibility bus:
 //!
 //! * **Service Destination**: `org.a11y.atspi.Registry`
 //! * **Object Path**: `/org/a11y/atspi/registry/deviceeventcontroller`
 //!
-//! Due to these fixed defaults, the proxy can be constructed directly using `new` or `builder`.
+//! Because these addressing details are standardized, the proxy can be instantiated
+//! directly using the shorthand `new` constructor.
 //!
 //! ## How to instantiate the proxy (X11 only)
 //!

@@ -17,11 +17,12 @@
 //!   found in `atspi-common/events/document.rs`) focus on the lifecycle states of
 //!   loading, saving, and rendering rather than active text editing.
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! The `Document` interface can be implemented on any individual node within the
-//! application's UI-tree. As a consequence, the object path varies per node and
-//! no default path is applicable for this proxy.
+//! Since this interface is implemented dynamically on individual nodes within an
+//! application's UI-tree, its D-Bus addressing (the unique bus name and object path)
+//! varies per node. There is no static, well-known service destination or object path
+//! applicable; address details must be resolved dynamically at runtime.
 //!
 //! ## How to obtain a `DocumentProxy`
 //!

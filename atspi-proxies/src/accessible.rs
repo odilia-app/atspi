@@ -6,12 +6,13 @@
 //! `Accessible` is the base interface implemented by all accessible objects in the
 //! AT-SPI2 UI-tree.
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! Because `Accessible` is implemented on every individual node in the application's
-//! UI-tree, the path will vary for almost all nodes, except for the root node.
+//! Because `Accessible` is implemented on every individual node within an
+//! application's UI-tree, the D-Bus object path varies dynamically per node, except
+//! for the root node.
 //!
-//! The root node's path can be found at [`atspi_common::ACCESSIBLE_ROOT_PATH`].
+//! The root node's path is fixed and can be resolved using [`atspi_common::ACCESSIBLE_ROOT_PATH`].
 //!
 //! ## How to obtain an `AccessibleProxy`
 //!

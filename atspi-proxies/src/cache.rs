@@ -16,11 +16,13 @@
 //!    [`RemoveAccessibleEvent`][remove] to dynamically update the local cache
 //!    when UI elements appear or disappear.
 //!
-//! ## Defaults
+//! ## D-Bus Addressing
 //!
-//! The `Cache` interface is implemented for a single, central object in the
-//! application's UI-tree. Because this object path is fixed across all applications,
-//! the proxy defines a fixed default path: `/org/a11y/atspi/cache`.
+//! The `Cache` interface is implemented on a single, central object within each
+//! application's UI-tree. Because this object path is consistent across all AT-SPI2
+//! applications, it resides at a standardized, well-known path:
+//!
+//! * **Object Path**: `/org/a11y/atspi/cache`
 //!
 //! ## How to obtain a `CacheProxy`
 //!
