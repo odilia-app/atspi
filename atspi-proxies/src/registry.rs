@@ -150,10 +150,10 @@
 //! [`deregister_event`]: RegistryProxy#method.deregister_event
 //! [`registered_events`]: RegistryProxy#method.registered_events
 //! [or]: crate::common::ObjectRef
-//! [deref]: https://doc.rust-lang.org/std/ops/trait.Deref.html
-//! [ac_re]: atspi-connection::AccessibilityConnection::register_event
-//! [ac_de]: atspi-connection::AccessibilityConnection::deregister_event
-//! [ac]: atspi-connection::AccessibilityConnection
+//! [deref]: std::ops::Deref
+//! [ac_re]: ../../atspi-connection/struct.AccessibilityConnection.html#method.register_event
+//! [ac_de]: ../../atspi-connection/struct.AccessibilityConnection.html#method.deregister_event
+//! [ac]: ../../atspi-connection/struct.AccessibilityConnection.html
 
 use zbus::names::OwnedBusName;
 
