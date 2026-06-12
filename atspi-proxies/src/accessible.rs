@@ -3,13 +3,113 @@
 //! A handle for a remote object implementing the `org.a11y.atspi.Accessible`
 //! interface.
 //!
-//! Accessible is the interface which is implemented by all accessible objects.
+//! `Accessible` is the base interface implemented by all accessible objects in the
+//! AT-SPI2 UI-tree.
 //!
+//! ## D-Bus Addressing
+//!
+//! Because `Accessible` is implemented on every individual node within an
+//! application's UI-tree, the D-Bus object path varies dynamically per node, except
+//! for the root node.
+//!
+//! The root node's path is fixed and can be resolved using [`atspi_common::ACCESSIBLE_ROOT_PATH`].
+//!
+//! ## How to obtain an `AccessibleProxy`
+//!
+//! There are three idiomatic ways to obtain an `AccessibleProxy`:
+//!
+//! ### 1. From an [`ObjectRef`] using [`ObjectRefExt`] (Recommended)
+//! If you have an [`ObjectRef`] pointing to a node, you can resolve it to an
+//! [`AccessibleProxy`] using the [`ObjectRefExt`] trait:
+//!
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! # use atspi_connection::AccessibilityConnection;
+//! use atspi_common::ObjectRefOwned;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//!
+//! # block_on( async {
+//! # let a11y = AccessibilityConnection::new().await?;
+//! # let conn = a11y.connection();
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//!
+//! let _accessible = obj_ref.as_accessible_proxy(conn).await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
+//! ```
+//!
+//! ### 2. Transitioning to other interface proxies via [`ProxyExt`][pe]
+//! Since all accessible objects implement the `Accessible` omterface,
+//! you can use [`ProxyExt`][pe] on an [`AccessibleProxy`] to safely obtain
+//! any other interface proxy (such as [`TextProxy`][tp]) that the node
+//! implements:
+//!
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::proxy_ext::ProxyExt;
+//! use atspi_proxies::accessible::ObjectRefExt;
+//! use atspi_common::ObjectRefOwned;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! // Convert an example object into `AccessibleProxy`.
+//! let obj_ref = ObjectRefOwned::from_static_str_unchecked("1:1000", "/org/a11y/atspi/accessible/root");
+//! let accessible_proxy = obj_ref.into_accessible_proxy(&conn).await?;
+//!
+//! // Convert the `AccesssibleProxy` to [`Proxies`][prxs], a safe conversion type:
+//! let proxies = accessible_proxy.proxies().await?;
+//!
+//! // Convert a to `TextProxy`, this will return an error if `TextProxy` is not implemented.
+//! let text_proxy = proxies.text().await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
+//! ```
+//!
+//! Note that all proxies obtained through [`ProxyExt`][pe] share their underlying
+//! [`zbus::Connection`], inheriting the same P2P configuration if applicable.
+//!
+//! ### 3. Manual construction using the `builder`
+//! If you know the exact D-Bus service destination and object path, you can
+//! construct the proxy manually:
+//!
+//! ```rust,no_run
+//! # use futures_lite::future::block_on;
+//! use atspi_connection::AccessibilityConnection;
+//! use atspi_proxies::accessible::AccessibleProxy;
+//! use zbus::proxy::CacheProperties;
+//!
+//! # block_on( async {
+//! let a11y = AccessibilityConnection::new().await?;
+//! let conn = a11y.connection();
+//!
+//! let bus_name = ":1.1001";
+//! let object_path = "/org/a11y/atspi/accesible/root";
+//!
+//! let accessible = AccessibleProxy::builder(&conn)
+//!     .destination(bus_name)?
+//!     .path(object_path)?
+//!     .cache_properties(CacheProperties::No)
+//!     .build()
+//!     .await?;
+//! # Ok::<(), atspi_common::AtspiError>(())
+//! # });
+//! ```
+//!
+//! [pe]: crate::proxy_ext::ProxyExt
+//! [tp]: crate::text::TextProxy
 
-use crate::common::{InterfaceSet, ObjectRef, RelationType, Role, StateSet};
-use crate::AtspiError;
-use atspi_common::object_ref::ObjectRefOwned;
+use crate::common::{
+	AtspiError, InterfaceSet, ObjectRef, ObjectRefOwned, RelationType, Role, StateSet,
+};
 use zbus::names::BusName;
+
+// The proxy macro attribute `assume_defaults = false` to avoid generating defaults service and path
+// The generated defaults don't make sense in AT-SPI2 / accessibility-bus context
+// see:
+// <https://docs.rs/crate/zbus_macros/5.11.0/source/src/proxy.rs#191-193>
 
 /// # `AccessibleProxy`
 ///
@@ -18,11 +118,7 @@ use zbus::names::BusName;
 ///
 /// Accessible is the interface which is implemented by all accessible objects.
 ///
-#[zbus::proxy(
-	interface = "org.a11y.atspi.Accessible",
-	default_path = "/org/a11y/atspi/accessible/root",
-	assume_defaults = true
-)]
+#[zbus::proxy(interface = "org.a11y.atspi.Accessible", assume_defaults = false)]
 pub trait Accessible {
 	/// Returns an [`ObjectRef`] which refers to the `Application` object of the application.
 	/// This object will have [`Application`] interface implemented.
@@ -262,7 +358,7 @@ impl TryFrom<&AccessibleProxy<'_>> for ObjectRefOwned {
 pub trait ObjectRefExt {
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
-	/// # Errors  
+	/// # Errors
 	/// If the `ObjectRef` is null, this method returns an error.
 	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn as_accessible_proxy(
@@ -272,7 +368,7 @@ pub trait ObjectRefExt {
 
 	/// Returns an [`AccessibleProxy`], the handle to the object's  `Accessible` interface.
 	///
-	/// # Errors  
+	/// # Errors
 	/// If the `ObjectRef` is null, this method returns an error.
 	/// Users are advised to check if the `ObjectRef` is null before calling this method.
 	fn into_accessible_proxy(

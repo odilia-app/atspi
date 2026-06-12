@@ -23,6 +23,7 @@ connection = ["dep:atspi-connection"]
 p2p        = ["atspi-connection/p2p"]
 tokio      = ["zbus/tokio"]
 tracing    = ["atspi-connection/tracing"]
+x11-legacy = ["atspi-proxies/x11-legacy"]
 
 [dependencies]
 atspi-common     = { path = "../atspi-common", version = "0.14.0", default-features = false }

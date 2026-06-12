@@ -13,7 +13,7 @@
 //! Consequently, on anything but tokio, applications will get an extra thread with an `async_executor` for each connection!
 //! (So picking smol won't necessarily make your application small in the context of P2P.)
 
-use atspi_common::{object_ref::ObjectRefOwned, AtspiError};
+use atspi_common::{object_ref::ObjectRefOwned, AtspiError, ACCESSIBLE_ROOT_PATH};
 use atspi_proxies::{
 	accessible::{AccessibleProxy, ObjectRefExt},
 	application::{self, ApplicationProxy},
@@ -171,6 +171,7 @@ impl Peer {
 		conn: &zbus::Connection,
 	) -> AtspiResult<Self> {
 		// Get the application proxy for the bus name
+		// ApplicationProxy has a valid default path.
 		let application_proxy = ApplicationProxy::builder(conn)
 			.destination(&bus_name)?
 			.cache_properties(CacheProperties::No)
@@ -192,6 +193,7 @@ impl Peer {
 	) -> AtspiResult<atspi_proxies::proxy_ext::Proxies<'_>> {
 		let accessible_proxy = AccessibleProxy::builder(&self.p2p_connection)
 			.path(path.to_owned())?
+			.destination(&self.unique_name)?
 			.cache_properties(CacheProperties::No)
 			.build()
 			.await?;
@@ -204,7 +206,10 @@ impl Peer {
 	/// # Errors
 	/// In case of an invalid connection.
 	pub async fn as_root_accessible_proxy(&self) -> AtspiResult<AccessibleProxy<'_>> {
+		let bus_name = self.unique_name.as_ref();
 		AccessibleProxy::builder(&self.p2p_connection)
+			.path(ACCESSIBLE_ROOT_PATH)?
+			.destination(bus_name)?
 			.cache_properties(CacheProperties::No)
 			.build()
 			.await
@@ -220,9 +225,10 @@ impl Peer {
 		obj: &ObjectRefOwned,
 	) -> AtspiResult<AccessibleProxy<'_>> {
 		let path = obj.path();
-
+		let bus_name = self.unique_name.as_ref();
 		AccessibleProxy::builder(&self.p2p_connection)
 			.path(path)?
+			.destination(bus_name)?
 			.cache_properties(CacheProperties::No)
 			.build()
 			.await
@@ -238,6 +244,7 @@ pub(crate) trait BusNameExt {
 
 impl BusNameExt for BusName<'_> {
 	async fn get_p2p_address(&self, conn: &zbus::Connection) -> AtspiResult<Address> {
+		// This relies on the default path for `ApplicationProxy`.
 		let application_proxy = application::ApplicationProxy::builder(conn)
 			.destination(self)?
 			.cache_properties(CacheProperties::No)
@@ -278,6 +285,7 @@ impl Peers {
 			.as_ref()
 			.expect("RegistryProxy `default_destination` is not set");
 		let reg_accessible = AccessibleProxy::builder(conn)
+			.path(ACCESSIBLE_ROOT_PATH)?
 			.destination(registry_well_known_name)?
 			.cache_properties(CacheProperties::No)
 			.build()
@@ -711,6 +719,7 @@ impl P2P for crate::AccessibilityConnection {
 		if let Some(peer) = lookup {
 			// If a peer is found, create an `AccessibleProxy` with a P2P connection
 			AccessibleProxy::builder(peer.connection())
+				.destination(name)?
 				.path(path)?
 				.cache_properties(CacheProperties::No)
 				.build()
@@ -719,7 +728,9 @@ impl P2P for crate::AccessibilityConnection {
 		} else {
 			// If _no_ peer was found, fall back to the bus connection
 			let conn = self.connection();
+
 			AccessibleProxy::builder(conn)
+				.destination(name)?
 				.path(path)?
 				.cache_properties(CacheProperties::No)
 				.build()
@@ -772,17 +783,23 @@ impl P2P for crate::AccessibilityConnection {
 			})
 			.cloned();
 
+		// This method relies on the default root path of AccessibleProxy
 		if let Some(peer) = lookup {
 			// If a peer is found, create an AccessibleProxy with a P2P connection
 			AccessibleProxy::builder(peer.connection())
+				.path(ACCESSIBLE_ROOT_PATH)?
+				.destination(peer.unique_name().clone())?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await
 				.map_err(Into::into)
 		} else {
-			// If no peer is found, fall back to the bus connection
+			// If _no_ peer is found, fall back to the bus connection
 			let conn = self.connection();
+
 			AccessibleProxy::builder(conn)
+				.path(ACCESSIBLE_ROOT_PATH)?
+				.destination(name.to_owned())?
 				.cache_properties(CacheProperties::No)
 				.build()
 				.await

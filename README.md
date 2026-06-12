@@ -26,12 +26,18 @@ We use the asynchronous zbus API, so to use atspi, you will need to run an async
 
 ## Feature Flags
 
-- `default`: `proxies`, `connection`.
-- `proxies`: enable re-export of the `atspi-proxies` crate; this allows you to directly communicate with DBus.
-- `connection`: enable re-export of the `atspi-connection` crate; this gives some nice abstractions over DBus when receiving only. `proxies` will still be needed to query information actively.
-- `tokio`: enable support for the `tokio` runtime; other runtimes can be used without an integration feature.
-    - One exception on `glomio` as it has its own types not related to how other runtimes work; `atspi` is **_not_** compatible with `glomio` (PRs welcome though)
-- `tracing`: enable support for the `tracing` logger.
+| Flag | Default | Description |
+|------|:-------:|-------------|
+| `proxies` | Yes | Re-exports the `atspi-proxies` crate, letting you actively communicate with (query) D-Bus. |
+| `connection` | Yes | Re-exports the `atspi-connection` crate, providing convenient abstractions over D-Bus for *receiving*. Note that active queries still require `proxies`. |
+| `p2p` | Yes | Extends `AccessibilityConnection` with peer-to-peer capabilities: direct, per-application connections that bypass the bus for *queries*. Events remain bus broadcasts. |
+| `wrappers` | Yes | Enables the event wrapper enums (e.g. `Event`, `ObjectEvents`) and the conversions between the generic `Event` type and the user-facing event structs. |
+| `tokio` | No | Enables support for the `tokio` runtime. Rather than starting its own runtime, zbus spawns its task on the host runtime. |
+| `tracing` | No | Enables support for the `tracing` logger. |
+| `x11-legacy` | No | Enables the deprecated X11-era interfaces `DeviceEventController` and `DeviceEventListener`. |
+
+> **Note:** `atspi` is **not** compatible with the [`glommio`](https://crates.io/crates/glommio) runtime, as it uses its own types unrelated to how other runtimes work. (PRs welcome!)
+
 
 ## D-Bus type validation
 

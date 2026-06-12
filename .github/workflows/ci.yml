@@ -290,7 +290,7 @@ jobs:
         # Create a lockfile with minimal direct versions for reproducible builds.
         # See advisory: https://blog.rust-lang.org/2023/08/29/committing-lockfiles/
         run: cargo +nightly generate-lockfile -Z direct-minimal-versions
-        
+
   run-test-atspi-p2p:
     runs-on: ubuntu-latest
     steps:
@@ -308,7 +308,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable    
+          toolchain: stable
 
       - name: Install Dependencies
         run: |
@@ -332,7 +332,7 @@ jobs:
           # Start virtual display
           Xvfb :99 -screen 0 1024x768x24 &
           sleep 2
-          
+
           # Set the display for this step
           export DISPLAY=:99
 
@@ -346,14 +346,14 @@ jobs:
           # Start a desktop shell to provide the root desktop object
           caja &
           sleep 2
-          
+
           # Start AT-SPI bus and registry the standard way
           /usr/libexec/at-spi-bus-launcher --launch-immediately &
           sleep 5
-          
+
           # Explicitly enable accessibility
           gsettings set org.gnome.desktop.interface toolkit-accessibility true
-          
+
           # Export environment for subsequent steps
           echo "DISPLAY=:99" >> $GITHUB_ENV
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
@@ -366,7 +366,7 @@ jobs:
           cargo add --path ../main/atspi-connection
           cargo add --path ../main/atspi-common
           cargo add --path ../main/atspi-proxies
-          
+
           # Run with both GTK apps to see which one works
           GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gnome-calculator --sleep 5 || \
           GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gedit --sleep 5

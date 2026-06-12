@@ -3,6 +3,7 @@
 
 #![deny(clippy::all, clippy::pedantic, clippy::cargo, unsafe_code, rustdoc::all)]
 #![allow(clippy::multiple_crate_versions)]
+#![allow(deprecated)] // Allow our deprecations - to not trip `cargo hack`
 
 pub use atspi_common as common;
 
@@ -13,8 +14,13 @@ pub mod bus;
 pub mod cache;
 pub mod collection;
 pub mod component;
+
+#[cfg(feature = "x11-legacy")]
 pub mod device_event_controller;
+
+#[cfg(feature = "x11-legacy")]
 pub mod device_event_listener;
+
 pub mod document;
 pub mod editable_text;
 pub mod proxy_ext;
