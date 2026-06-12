@@ -1,29 +1,16 @@
 //! # `SocketProxy`
 //!
-//! A handle for the object on the `Registry` service for the `org.a11y.atspi.Socket`
-//! interface.
+//! A handle for the object on the `Registry` service or on the 'plug' process implementing the
+//! `org.a11y.atspi.Socket` interface.
 //!
 //! The `Socket` D-Bus interface bundles two largely unrelated concerns:
 //!
 //!  - General application registration (`Embed`, which every server app calls on the registry).
 //!  - The cross-process stitching (`Embedded`).
 //!
-//! Only `Embedded` is part of the actual stitching.
+//! Only the `Embedded` method call is part of the actual stitching.
 //!
-//! ## The Socket/Plug Stitching Mechanism
-//!
-//! The Socket/Plug mechanism bridges the accessibility trees of two independent,
-//! server-side processes — a **host (the socket)** and an **embedded app (the plug)** —
-//! so that an assistive technology sees a single, contiguous tree. This is purely a
-//! server-side orchestration; assistive technologies only consume the stitched result
-//! and do not take part in it.
-//!
-//! As far as we can tell from the reference implementation, the embedding itself happens
-//! directly between the host and the plug; the registry is only involved in the separate,
-//! general registration step. For a step-by-step walkthrough with a sequence diagram and
-//! source references, see the [Socket/Plug Stitching Mechanism] document.
-//!
-//! [Socket/Plug Stitching Mechanism]: https://github.com/odilia-app/atspi/blob/main/atspi-proxies/doc/socket-plug.md
+#![doc = include_str!("../doc/socket-plug.md")]
 //!
 //! ## D-Bus Addressing
 //!
