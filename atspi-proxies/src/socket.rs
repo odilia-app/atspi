@@ -1,16 +1,14 @@
 //! # `SocketProxy`
 //!
-//! A handle for the object on the `Registry` service for the `org.a11y.atspi.Socket`
-//! interface.
+//! A handle for the object on the `Registry` service or on the 'plug' process implementing the
+//! `org.a11y.atspi.Socket` interface.
 //!
 //! The `Socket` D-Bus interface bundles two largely unrelated concerns:
 //!
 //!  - General application registration (`Embed`, which every server app calls on the registry).
 //!  - The cross-process stitching (`Embedded`).
 //!
-//! Only `Embedded` is part of the actual stitching.
-//!
-//! ## The Socket/Plug Stitching Mechanism
+//! Only the `Embedded` method call is part of the actual stitching.
 //!
 #![doc = include_str!("../doc/socket-plug.md")]
 //!
