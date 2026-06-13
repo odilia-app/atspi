@@ -329,6 +329,8 @@ pub enum Role {
 	Suggestion,
 	/// A specialized push button to open a menu.
 	PushButtonMenu,
+	/// An on/off switch.
+	Switch,
 }
 
 impl TryFrom<u32> for Role {
@@ -469,6 +471,7 @@ impl TryFrom<u32> for Role {
 			127 => Mark,
 			128 => Suggestion,
 			129 => PushButtonMenu,
+			130 => Switch,
 			_ => return Err(AtspiError::UnknownRole(value)),
 		};
 		Ok(res)
@@ -606,6 +609,7 @@ const ROLE_NAMES: &[&str] = &[
 	"mark",
 	"suggestion",
 	"push button menu",
+	"switch",
 ];
 
 impl Role {
@@ -887,7 +891,7 @@ pub mod tests {
 	use zvariant::serialized::Context;
 	use zvariant::{to_bytes, LE};
 
-	const HIGHEST_ROLE_VALUE: u32 = 129;
+	const HIGHEST_ROLE_VALUE: u32 = 130;
 
 	#[test]
 	fn test_serialization_matches_from_impl() {

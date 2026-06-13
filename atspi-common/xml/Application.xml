@@ -55,5 +55,13 @@
       <arg direction="out" type="s"/>
     </method>
 
+	<!-- Get the application's AT-SPI bus id to communicate directly with the application.
+
+	This allows for communication without being proxied by the daemon.
+	-->
+	<method name="GetApplicationBusAddress">
+		<arg direction="out" type="s"/>
+	</method>
+
   </interface>
 </node>
