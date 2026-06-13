@@ -33,7 +33,7 @@
 //! # use futures_lite::future::block_on;
 //! # use atspi_proxies::proxy_ext::ProxyExt;
 //! # use atspi_proxies::accessible::ObjectRefExt;
-//! # use atspi_common::ObjectRefOwned;
+//! # use atspi_common::{NonNullObjectRef, ObjectRefOwned};
 //! use atspi_connection::{AccessibilityConnection, P2P};
 //! use atspi_proxies::hyperlink::HyperlinkProxy;
 //! use zbus::proxy::CacheProperties;
@@ -50,13 +50,14 @@
 //!
 //! // Get the reference of the first link in the hypertext container:
 //! let link_ref = hypertext.get_link(0).await?;
+//! let link_ref: NonNullObjectRef = link_ref.try_into().expect("No null reference expected");
 //!
 //! // Resolve it directly (P2P-aware):
 //! let _hyperlink = a11y.object_as_accessible(&link_ref).await?;
 //!
 //! // Or manually instantiate using the builder:
 //! let _hyperlink = HyperlinkProxy::builder(&conn)
-//!     .destination(link_ref.name().ok_or(atspi_common::AtspiError::MissingName)?.clone())?
+//!     .destination(link_ref.name().clone())?
 //!     .path(link_ref.path().clone())?
 //!     .cache_properties(CacheProperties::No)
 //!     .build()

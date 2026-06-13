@@ -53,12 +53,12 @@
 //! ```rust,no_run
 //! # use futures_lite::future::block_on;
 //! use atspi_connection::{AccessibilityConnection, P2P};
-//! use atspi_common::ObjectRefOwned;
+//! use atspi_common::NonNullObjectRef;
 //! use atspi_proxies::proxy_ext::ProxyExt;
 //!
 //! # block_on( async {
 //! let connection = AccessibilityConnection::new().await?;
-//! let object_ref = ObjectRefOwned::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
+//! let object_ref = NonNullObjectRef::from_static_str_unchecked(":1.1000", "/org/a11y/atspi/accessible/root");
 //!
 //! // Obtain the P2P connected `AccessibleProxy`
 //! let accessible = connection.object_as_accessible(&object_ref).await?;
