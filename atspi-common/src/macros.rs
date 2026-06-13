@@ -1073,9 +1073,9 @@ macro_rules! event_wrapper_test_cases {
 ///
 /// Delegated to sub-macros (each expanded into the same module):
 /// * `zbus_message_test_case`: `zbus::Message` round-trip and failure-mode conversion tests,
-///   plus the forwarded QTSPI-body tests. See [`zbus_message_test_case`] for the full list.
+///   plus the forwarded QTSPI-body tests. See `zbus_message_test_case` for the full list.
 /// * `event_has_matching_xml_definition`: validates the interface and member names against the
-///   project's `DBus` XML definitions. See [`atspi_common::macros::event_has_matching_xml_definition`].
+///   project's `DBus` XML definitions. See macro `event_has_matching_xml_definition`.
 /// * `generic_event_test_case`: deconstructs and reconstructs the event from its constituent parts.
 ///   See [`generic_event_test_case`].
 ///
@@ -1088,7 +1088,7 @@ macro_rules! event_wrapper_test_cases {
 /// * `$ufet`: the user-facing event struct type.
 /// * `[ $($field:ident),* ]`: (optional) the struct's fields besides the mandatory `item`, each
 ///   initialized with `Default::default()` when building test instances via `new_test_event`.
-/// * `$qt`: (optional) body-handling mode forwarded to [`atspi_common::macros::zbus_message_test_case`]. `Auto` (the
+/// * `$qt`: (optional) body-handling mode forwarded to `zbus_message_test_case`. `Auto` (the
 ///   default) emits the QTSPI tests; `Explicit` suppresses them for bespoke body types.
 ///
 /// # Examples
