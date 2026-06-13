@@ -234,6 +234,19 @@ impl Peer {
 			.await
 			.map_err(AtspiError::from)
 	}
+
+	fn matches_name(&self, name: &BusName) -> bool {
+		match name {
+			BusName::Unique(unique_name) if unique_name == self.unique_name() => true,
+			// one is an Option<OwnedT> the other is BorrowedT
+			BusName::WellKnown(well_known_name)
+				if self.well_known_name().is_some_and(|w| w == well_known_name) =>
+			{
+				true
+			}
+			_ => false,
+		}
+	}
 }
 
 // A trait is needed to extend functionality on `BusName` for P2P address lookup.
@@ -765,21 +778,10 @@ impl P2P for crate::AccessibilityConnection {
 			.iter()
 			.find_map(|peer| {
 				// If sought-after peer is found, only get the  `Connection`.
-				match name {
-					BusName::Unique(unique_name) => {
-						if peer.unique_name() == unique_name {
-							Some(peer.connection())
-						} else {
-							None
-						}
-					}
-					BusName::WellKnown(well_known_name) => {
-						if peer.well_known_name().is_some_and(|w| w == well_known_name) {
-							Some(peer.connection())
-						} else {
-							None
-						}
-					}
+				if peer.matches_name(name) {
+					Some(peer.connection())
+				} else {
+					None
 				}
 			})
 			.cloned();
