@@ -134,6 +134,8 @@ jobs:
         with:
           toolchain: nightly
       - name: Generate Documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
         run: cargo doc --workspace --no-deps --document-private-items
   cargo-deny:
     runs-on: ubuntu-latest
