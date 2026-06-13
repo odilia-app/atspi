@@ -237,14 +237,11 @@ impl Peer {
 
 	fn matches_name(&self, name: &BusName) -> bool {
 		match name {
-			BusName::Unique(unique_name) if unique_name == self.unique_name() => true,
-			// one is an Option<OwnedT> the other is BorrowedT
-			BusName::WellKnown(well_known_name)
-				if self.well_known_name().is_some_and(|w| w == well_known_name) =>
-			{
-				true
+			BusName::Unique(unique_name) => unique_name == self.unique_name(),
+			// one is an Option<OwnedT> the other is Borrowed
+			BusName::WellKnown(well_known_name) => {
+				self.well_known_name().is_some_and(|w| w == well_known_name)
 			}
-			_ => false,
 		}
 	}
 }
