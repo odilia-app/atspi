@@ -1077,7 +1077,7 @@ macro_rules! event_wrapper_test_cases {
 /// * `event_has_matching_xml_definition`: validates the interface and member names against the
 ///   project's `DBus` XML definitions. See macro `event_has_matching_xml_definition`.
 /// * `generic_event_test_case`: deconstructs and reconstructs the event from its constituent parts.
-///   See [`generic_event_test_case`].
+///   See `generic_event_test_case`.
 ///
 /// This macro additionally emits `assert_impl_all!` checks ensuring the type implements the
 /// expected traits (`Clone`, `Debug`, `Serialize`/`Deserialize`, `Eq`, `Hash`, the AT-SPI event
