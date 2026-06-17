@@ -184,8 +184,8 @@ impl ObjectMatchRuleBuilder {
 	}
 }
 
-// `Empty` or `Invalid`
-// https://github.com/GNOME/at-spi2-core/blob/main/atk-adaptor/adaptors/collection-adaptor.c#L190-L214
+// `Empty` or `Invalid` have no filter functions implemented and are ignored, invalidating the match rule.
+// <https://github.com/GNOME/at-spi2-core/blob/main/atk-adaptor/adaptors/collection-adaptor.c#L190-L214>
 
 /// Enumeration used by [`ObjectMatchRule`] to specify how to select for [`ObjectRef`] objects.
 ///
@@ -199,28 +199,32 @@ impl ObjectMatchRuleBuilder {
 pub enum MatchType {
 	/// No objects match under this criterion.
 	///
-	/// *Note:* This will invalidate the entire `ObjectMatchRule`.
+	/// *Note:* This will invalidate the entire `ObjectMatchRule`.\
+	/// There is no filter function implemented in the reference
+	/// implementation [`atk-adaptor`](https://github.com/GNOME/at-spi2-core/blob/main/atk-adaptor/adaptors/collection-adaptor.c#L190-L214).
+	/// This variant is ignored.
 	///
 	/// This represents an invalid or uninitialized match criterion.
-	#[default]
 	Invalid = 0,
 
-	/// All objects that meet all of the specified criteria match.
+	/// Objects meeting all of the specified criteria match.
 	///
 	/// If the set is empty, all objects match.
+	#[default]
 	All = 1,
 
-	/// All objects that meet at least one of the specified criteria match.
+	/// Objects meeting at least one of the specified criteria match.
 	Any = 2,
 
-	/// All objects that meet none of the specified criteria match.
+	/// Objects meeting none of the specified criteria match.
 	None = 3,
 
-	/// All objects that meet all criteria match if the criteria set is non-empty;
-	/// for empty criteria, only objects that also have an empty set for this property match.
+	/// No objects match under this criterion.
 	///
-	/// *Note:* This is currently unimplemented in the upstream server-side C library,
-	/// behaving identically to `Invalid`, matching no objects for the entire `ObjectMatchRule`.
+	/// # Unimplemented
+	/// This is unimplemented in the upstream server-side C library,
+	/// Use of this variant is ignored, just as `Invalid`, using `Empty` as `MatchType` in
+	/// an [`ObjectMatchRule`] will invalidate the match rule.
 	Empty = 4,
 }
 
