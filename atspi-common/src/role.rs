@@ -1,4 +1,9 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+	de::{Deserializer, Visitor},
+	ser::{SerializeSeq, Serializer},
+	Deserialize, Serialize,
+};
+use std::fmt;
 use zvariant::Type;
 
 use crate::AtspiError;
@@ -617,6 +622,249 @@ impl std::fmt::Display for Role {
 	}
 }
 
+//#[allow(clippy::module_name_repetitions)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
+/// The bitflag representation of all roles an object may have.
+pub struct RoleSet([i32; 5]);
+
+impl RoleSet {
+	/// Create a new `RoleSet` from a collection of roles.
+	pub fn new<I>(roles: I) -> Self
+	where
+		I: IntoIterator<Item = Role>,
+	{
+		let mut set = Self::empty();
+		for role in roles {
+			set.insert(role);
+		}
+		set
+	}
+
+	/// Create an empty `RoleSet`.
+	#[must_use]
+	pub fn empty() -> Self {
+		Self([0; 5])
+	}
+
+	/// Checks if all roles are unset.
+	#[must_use]
+	pub fn is_empty(&self) -> bool {
+		self.0.iter().all(|&bits| bits == 0)
+	}
+
+	/// Checks if a specific [`Role`] is in the set.
+	#[must_use]
+	pub fn contains(&self, role: Role) -> bool {
+		let role_val = role as usize;
+		let index = role_val / 32; // index into the array
+		let bit = role_val % 32;
+		// residual: the bit position within the array element note that residual can never exceed 32
+		if let Some(&bits) = self.0.get(index) {
+			(bits & (1 << bit)) != 0
+		} else {
+			false
+		}
+	}
+
+	/// Inserts a [`Role`] into the set.
+	pub fn insert(&mut self, role: Role) {
+		let role_val = role as usize;
+		let index = role_val / 32;
+		let bit = role_val % 32;
+		if let Some(bits) = self.0.get_mut(index) {
+			*bits |= 1 << bit;
+		}
+	}
+
+	/// Removes a [`Role`] from the set.
+	pub fn remove(&mut self, role: Role) {
+		let role_val = role as usize;
+		let index = role_val / 32;
+		let bit = role_val % 32;
+		if let Some(bits) = self.0.get_mut(index) {
+			*bits &= !(1 << bit);
+		}
+	}
+
+	/// Toggles a [`Role`] in the set.
+	pub fn toggle(&mut self, role: Role) {
+		let role_val = role as usize;
+		let index = role_val / 32;
+		let bit = role_val % 32;
+		if let Some(bits) = self.0.get_mut(index) {
+			*bits ^= 1 << bit;
+		}
+	}
+
+	/// Returns the raw bits representing the set.
+	#[must_use]
+	pub fn bits(&self) -> [i32; 5] {
+		self.0
+	}
+
+	/// Returns an iterator yielding each set [`Role`].
+	#[must_use]
+	pub fn iter(&self) -> RoleSetIter {
+		RoleSetIter { set: *self, index: 0 }
+	}
+}
+
+impl IntoIterator for RoleSet {
+	type IntoIter = RoleSetIter;
+	type Item = Role;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl IntoIterator for &RoleSet {
+	type IntoIter = RoleSetIter;
+	type Item = Role;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl FromIterator<Role> for RoleSet {
+	fn from_iter<I: IntoIterator<Item = Role>>(iter: I) -> Self {
+		let mut set = Self::empty();
+		for role in iter {
+			set.insert(role);
+		}
+		set
+	}
+}
+
+impl<'a> FromIterator<&'a Role> for RoleSet {
+	fn from_iter<I: IntoIterator<Item = &'a Role>>(iter: I) -> Self {
+		let mut set = Self::empty();
+		for &role in iter {
+			set.insert(role);
+		}
+		set
+	}
+}
+
+impl From<Role> for RoleSet {
+	fn from(value: Role) -> Self {
+		let mut set = Self::empty();
+		set.insert(value);
+		set
+	}
+}
+
+impl std::ops::BitXor for RoleSet {
+	type Output = RoleSet;
+
+	fn bitxor(self, other: Self) -> Self::Output {
+		RoleSet(std::array::from_fn(|i| self.0[i] ^ other.0[i]))
+	}
+}
+
+impl std::ops::BitXorAssign for RoleSet {
+	fn bitxor_assign(&mut self, other: Self) {
+		*self = *self ^ other;
+	}
+}
+
+impl std::ops::BitOr for RoleSet {
+	type Output = RoleSet;
+
+	fn bitor(self, other: Self) -> Self::Output {
+		RoleSet(std::array::from_fn(|i| self.0[i] | other.0[i]))
+	}
+}
+
+impl std::ops::BitOrAssign for RoleSet {
+	fn bitor_assign(&mut self, other: Self) {
+		*self = *self | other;
+	}
+}
+
+impl std::ops::BitAnd for RoleSet {
+	type Output = RoleSet;
+
+	fn bitand(self, other: Self) -> Self::Output {
+		RoleSet(std::array::from_fn(|i| self.0[i] & other.0[i]))
+	}
+}
+
+impl std::ops::BitAndAssign for RoleSet {
+	fn bitand_assign(&mut self, other: Self) {
+		*self = *self & other;
+	}
+}
+
+#[derive(Clone, Debug)]
+pub struct RoleSetIter {
+	set: RoleSet,
+	index: usize,
+}
+
+impl Iterator for RoleSetIter {
+	type Item = Role;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		while self.index < 160 {
+			let current = u32::try_from(self.index).ok()?;
+			self.index += 1;
+			if let Ok(role) = Role::try_from(current) {
+				if self.set.contains(role) {
+					return Some(role);
+				}
+			}
+		}
+		None
+	}
+}
+
+impl<'de> Deserialize<'de> for RoleSet {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		struct RoleSetVisitor;
+
+		impl<'de> Visitor<'de> for RoleSetVisitor {
+			type Value = RoleSet;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter
+					.write_str("a sequence comprised of five i32 that represents a valid RoleSet")
+			}
+
+			fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+			where
+				D: Deserializer<'de>,
+			{
+				let arr = <[i32; 5] as Deserialize>::deserialize(deserializer)?;
+				Ok(RoleSet(arr))
+			}
+		}
+
+		deserializer.deserialize_newtype_struct("RoleSet", RoleSetVisitor)
+	}
+}
+
+impl Serialize for RoleSet {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		let mut seq = serializer.serialize_seq(Some(5))?;
+		for &bits in &self.0 {
+			seq.serialize_element(&bits)?;
+		}
+		seq.end()
+	}
+}
+
+impl Type for RoleSet {
+	const SIGNATURE: &'static zvariant::Signature = <Vec<i32> as Type>::SIGNATURE;
+}
+
 #[cfg(test)]
 pub mod tests {
 	use super::Role;
@@ -647,5 +895,97 @@ pub mod tests {
 				from_role as u32
 			);
 		}
+	}
+
+	#[test]
+	fn test_role_set_operations() {
+		use super::RoleSet;
+
+		let mut set = RoleSet::empty();
+		assert!(set.is_empty());
+
+		set.insert(Role::Alert);
+		assert!(!set.is_empty());
+		assert!(set.contains(Role::Alert));
+		assert!(!set.contains(Role::Button));
+
+		set.insert(Role::Button);
+		assert!(set.contains(Role::Button));
+
+		set.remove(Role::Alert);
+		assert!(!set.contains(Role::Alert));
+		assert!(set.contains(Role::Button));
+
+		let roles: Vec<Role> = set.iter().collect();
+		assert_eq!(roles, vec![Role::Button]);
+	}
+
+	#[test]
+	fn test_role_set_bitops() {
+		use super::RoleSet;
+
+		let set1 = RoleSet::new([Role::Alert, Role::Button]);
+		let set2 = RoleSet::new([Role::Button, Role::Window]);
+		let result = set1 ^ set2;
+		assert!(result.contains(Role::Alert));
+		assert!(result.contains(Role::Window));
+		assert!(!result.contains(Role::Button));
+
+		let result = set1 & set2;
+		assert!(!result.contains(Role::Alert));
+		assert!(!result.contains(Role::Window));
+		assert!(result.contains(Role::Button));
+
+		let result = set1 | set2;
+		assert!(result.contains(Role::Alert));
+		assert!(result.contains(Role::Window));
+		assert!(result.contains(Role::Button));
+
+		let mut set1_clone = set1;
+		set1_clone ^= set2;
+		assert!(set1_clone.contains(Role::Alert));
+		assert!(set1_clone.contains(Role::Window));
+		assert!(!set1_clone.contains(Role::Button));
+
+		let mut set1_clone = set1;
+		set1_clone &= set2;
+		assert!(!set1_clone.contains(Role::Alert));
+		assert!(!set1_clone.contains(Role::Window));
+		assert!(set1_clone.contains(Role::Button));
+
+		let mut set2_clone = set2;
+		set2_clone |= set1;
+		assert!(set2_clone.contains(Role::Alert));
+		assert!(set2_clone.contains(Role::Window));
+		assert!(set2_clone.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_serialization_deserialization() {
+		use super::RoleSet;
+		use zvariant::serialized::Data;
+
+		let mut set = RoleSet::empty();
+		set.insert(Role::Alert); // Role::Alert is index 2, bit 2 inside the first i32 element.
+		set.insert(Role::Button); // Role::Button is index 43, bit 11 inside the second i32 element (43 - 32 = 11).
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &set).unwrap();
+
+		let expected_bytes = &[
+			20, 0, 0, 0, // D-Bus array length header = 20 bytes
+			4, 0, 0, 0, // Index 0: 1 << 2 = 4
+			0, 8, 0, 0, // Index 1: 1 << 11 = 2048 (0x0800 in Little-Endian)
+			0, 0, 0, 0, // Index 2: 0
+			0, 0, 0, 0, // Index 3: 0
+			0, 0, 0, 0, // Index 4: 0
+		];
+		assert_eq!(encoded.bytes(), expected_bytes);
+
+		let data = Data::new::<&[u8]>(expected_bytes, ctxt);
+		let (decoded, _) = data.deserialize::<RoleSet>().unwrap();
+		assert_eq!(decoded, set);
+		assert!(decoded.contains(Role::Alert));
+		assert!(decoded.contains(Role::Button));
 	}
 }
