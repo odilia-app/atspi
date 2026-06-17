@@ -657,10 +657,11 @@ impl RoleSet {
 	pub fn contains(&self, role: Role) -> bool {
 		let role_val = role as usize;
 		let index = role_val / 32; // index into the array
+		debug_assert!(index < self.0.len());
 		let bit = role_val % 32;
 		// residual: the bit position within the array element note that residual can never exceed 32
 		if let Some(&bits) = self.0.get(index) {
-			(bits & (1 << bit)) != 0
+			(bits >> bit) & 0b1 == 0b1
 		} else {
 			false
 		}
@@ -670,6 +671,7 @@ impl RoleSet {
 	pub fn insert(&mut self, role: Role) {
 		let role_val = role as usize;
 		let index = role_val / 32;
+		debug_assert!(index < self.0.len());
 		let bit = role_val % 32;
 		if let Some(bits) = self.0.get_mut(index) {
 			*bits |= 1 << bit;
@@ -680,6 +682,7 @@ impl RoleSet {
 	pub fn remove(&mut self, role: Role) {
 		let role_val = role as usize;
 		let index = role_val / 32;
+		debug_assert!(index < self.0.len());
 		let bit = role_val % 32;
 		if let Some(bits) = self.0.get_mut(index) {
 			*bits &= !(1 << bit);
@@ -690,6 +693,7 @@ impl RoleSet {
 	pub fn toggle(&mut self, role: Role) {
 		let role_val = role as usize;
 		let index = role_val / 32;
+		debug_assert!(index < self.0.len());
 		let bit = role_val % 32;
 		if let Some(bits) = self.0.get_mut(index) {
 			*bits ^= 1 << bit;
@@ -807,8 +811,10 @@ impl Iterator for RoleSetIter {
 	type Item = Role;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		while self.index < 160 {
+		let bitfield_length = std::mem::size_of_val(&self.set.0) * (u8::BITS as usize);
+		while self.index < bitfield_length {
 			let current = u32::try_from(self.index).ok()?;
+
 			self.index += 1;
 			if let Ok(role) = Role::try_from(current) {
 				if self.set.contains(role) {
