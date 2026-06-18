@@ -140,7 +140,7 @@ impl ObjectMatchRuleBuilder {
 	/// Insert a slice of `Role`s
 	#[must_use]
 	pub fn roles(mut self, roles: &[Role], mt: MatchType) -> Self {
-		self.roles = RoleSet::new(roles.iter().copied());
+		self.roles = RoleSet::from_iter(roles);
 		self.roles_mt = mt;
 		self
 	}
@@ -183,9 +183,6 @@ impl ObjectMatchRuleBuilder {
 		}
 	}
 }
-
-// `Empty` or `Invalid` have no filter functions implemented and are ignored, invalidating the match rule.
-// <https://github.com/GNOME/at-spi2-core/blob/main/atk-adaptor/adaptors/collection-adaptor.c#L190-L214>
 
 /// Enumeration used by [`ObjectMatchRule`] to specify how to select for [`ObjectRef`] objects.
 ///
