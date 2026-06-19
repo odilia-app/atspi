@@ -234,6 +234,16 @@ impl Peer {
 			.await
 			.map_err(AtspiError::from)
 	}
+
+	fn matches_name(&self, name: &BusName) -> bool {
+		match name {
+			BusName::Unique(unique_name) => unique_name == self.unique_name(),
+			// one is an Option<OwnedT> the other is Borrowed
+			BusName::WellKnown(well_known_name) => {
+				self.well_known_name().is_some_and(|w| w == well_known_name)
+			}
+		}
+	}
 }
 
 // A trait is needed to extend functionality on `BusName` for P2P address lookup.
@@ -707,36 +717,27 @@ impl P2P for crate::AccessibilityConnection {
 		let name = OwnedUniqueName::from(name);
 		let path = obj.path();
 
-		let lookup = self
+		let conn = self
 			.peers
 			.peers
 			.lock()
 			.expect("lock already held by current thread")
 			.iter()
-			.find(|peer| &name == peer.unique_name())
-			.cloned();
+			.find_map(
+				|peer| if &name == peer.unique_name() { Some(peer.connection()) } else { None },
+			)
+			.cloned(); // Connection has a cheap `Arc` clone.
 
-		if let Some(peer) = lookup {
-			// If a peer is found, create an `AccessibleProxy` with a P2P connection
-			AccessibleProxy::builder(peer.connection())
-				.destination(name)?
-				.path(path)?
-				.cache_properties(CacheProperties::No)
-				.build()
-				.await
-				.map_err(Into::into)
-		} else {
-			// If _no_ peer was found, fall back to the bus connection
-			let conn = self.connection();
+		// Use p2p-connection or fall-back bus connection.
+		let conn = conn.unwrap_or_else(|| self.connection().clone());
 
-			AccessibleProxy::builder(conn)
-				.destination(name)?
-				.path(path)?
-				.cache_properties(CacheProperties::No)
-				.build()
-				.await
-				.map_err(Into::into)
-		}
+		AccessibleProxy::builder(&conn)
+			.destination(name)?
+			.path(path)?
+			.cache_properties(CacheProperties::No)
+			.build()
+			.await
+			.map_err(Into::into)
 	}
 
 	/// Returns a P2P connected [`AccessibleProxy`] to the root accessible object for the given bus name _if available_.\
@@ -766,45 +767,32 @@ impl P2P for crate::AccessibilityConnection {
 		name: &BusName<'_>,
 	) -> AtspiResult<AccessibleProxy<'_>> {
 		// Look up peer by bus name
-		let lookup = self
+		let conn = self
 			.peers
 			.peers
 			.lock()
 			.expect("lock already held by current thread")
 			.iter()
-			.find(|peer| {
-				// Check if the peer's unique name matches the bus name
-				match name {
-					BusName::Unique(unique_name) => peer.unique_name() == unique_name,
-					BusName::WellKnown(well_known_name) => {
-						peer.well_known_name().is_some_and(|w| w == well_known_name)
-					}
+			.find_map(|peer| {
+				// If sought-after peer is found, only get the  `Connection`.
+				if peer.matches_name(name) {
+					Some(peer.connection())
+				} else {
+					None
 				}
 			})
 			.cloned();
 
-		// This method relies on the default root path of AccessibleProxy
-		if let Some(peer) = lookup {
-			// If a peer is found, create an AccessibleProxy with a P2P connection
-			AccessibleProxy::builder(peer.connection())
-				.path(ACCESSIBLE_ROOT_PATH)?
-				.destination(peer.unique_name().clone())?
-				.cache_properties(CacheProperties::No)
-				.build()
-				.await
-				.map_err(Into::into)
-		} else {
-			// If _no_ peer is found, fall back to the bus connection
-			let conn = self.connection();
+		// Use p2p-connection or fall-back bus connection.
+		let conn = conn.unwrap_or_else(|| self.connection().clone());
 
-			AccessibleProxy::builder(conn)
-				.path(ACCESSIBLE_ROOT_PATH)?
-				.destination(name.to_owned())?
-				.cache_properties(CacheProperties::No)
-				.build()
-				.await
-				.map_err(Into::into)
-		}
+		AccessibleProxy::builder(&conn)
+			.path(ACCESSIBLE_ROOT_PATH)?
+			.destination(name.to_owned())?
+			.cache_properties(CacheProperties::No)
+			.build()
+			.await
+			.map_err(Into::into)
 	}
 
 	/// Get the currently connected P2P capable peers.
