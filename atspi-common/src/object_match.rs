@@ -108,7 +108,7 @@ impl ObjectMatchRuleBuilder {
 	where
 		I: IntoIterator<Item = State>,
 	{
-		self.states = states.into_iter().collect();
+		self.states = StateSet::from_iter(states);
 		self.states_mt = mt;
 		self
 	}
