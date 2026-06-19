@@ -88,7 +88,7 @@ impl ObjectMatchRule {
 
 /// The 'builder' type for `MatchRule`.
 /// Use its methods to set match criteria.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ObjectMatchRuleBuilder {
 	states: StateSet,
 	states_mt: MatchType,
@@ -99,22 +99,6 @@ pub struct ObjectMatchRuleBuilder {
 	ifaces: InterfaceSet,
 	ifaces_mt: MatchType,
 	invert: bool,
-}
-
-impl Default for ObjectMatchRuleBuilder {
-	fn default() -> Self {
-		Self {
-			states: StateSet::default(),
-			states_mt: MatchType::All,
-			attr: HashMap::default(),
-			attr_mt: MatchType::All,
-			roles: RoleSet::default(),
-			roles_mt: MatchType::All,
-			ifaces: InterfaceSet::default(),
-			ifaces_mt: MatchType::All,
-			invert: false,
-		}
-	}
 }
 
 impl ObjectMatchRuleBuilder {
