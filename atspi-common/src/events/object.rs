@@ -59,8 +59,11 @@ impl Hash for PropertyChangeEvent {
 impl Eq for PropertyChangeEvent {}
 
 // TODO: Looks like a false positive Clippy lint
-// Derive me.
-#[allow(clippy::derivable_impls)]
+// Derive me after removing string from event.
+#[expect(
+	clippy::derivable_impls,
+	reason = "Cannot derive `Default` because `String::default` != `Property::default`"
+)]
 impl Default for PropertyChangeEvent {
 	fn default() -> Self {
 		Self {
@@ -374,9 +377,10 @@ mod i32_bool_conversion {
 
 	/// Convert a boolean flag to an integer.
 	/// returns 0 if false and 1 if true
-	// TODO: Will the world REALLY fall apart if we were not to use a reference here?
-	// In other words, see if &bool can be replaced with bool.
-	#[allow(clippy::trivially_copy_pass_by_ref)]
+	#[expect(
+		clippy::trivially_copy_pass_by_ref,
+		reason = "The reference is required by serde for attribute derive impls"
+	)]
 	pub fn serialize<S>(b: &bool, ser: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,

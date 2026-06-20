@@ -7,7 +7,7 @@ use zbus_lockstep_macros::validate;
 use zvariant::Type;
 
 /// The item type provided by `Cache:Add` signals
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "repeated module name in item")]
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 #[validate(signal: "AddAccessible")]
 pub struct CacheItem {
@@ -60,7 +60,6 @@ impl Default for CacheItem {
 }
 
 /// The item type provided by `Cache:Add` signals
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct LegacyCacheItem {
 	/// The accessible object (within the application)   (so)

@@ -1208,7 +1208,6 @@ impl EventWrapperMessageConversion for ObjectEvents {
 /// Note that these are not telling the client that an item *has been added* to a cache.
 /// It is telling the client "here is a bunch of information to store it in your cache".
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
-#[allow(clippy::module_name_repetitions)]
 pub enum CacheEvents {
 	/// See: [`AddAccessibleEvent`].
 	Add(AddAccessibleEvent),
@@ -2034,7 +2033,6 @@ impl_try_from_event_for_user_facing_type!(RestyleEvent, WindowEvents::Restyle, E
 /// This enum is used to wrap the events that are emitted by the registry daemon.
 /// The events are [`EventListenerRegisteredEvent`] and [`EventListenerDeregisteredEvent`].
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[allow(clippy::module_name_repetitions)]
 pub enum EventListenerEvents {
 	/// See: [`EventListenerRegisteredEvent`].
 	Registered(EventListenerRegisteredEvent),

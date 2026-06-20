@@ -348,7 +348,7 @@ impl From<&str> for State {
 	}
 }
 
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "repeated module name in item")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 /// The bitflag representation of all states an object may have.
 pub struct StateSet(BitFlags<State>);
@@ -496,7 +496,7 @@ impl Serialize for StateSet {
 
 		// This cast is safe and truncation is intentional.
 		//The shift is sound provided that `State` is `#[repr(u64)]`
-		#[allow(clippy::cast_possible_truncation)]
+		#[expect(clippy::cast_possible_truncation, reason = "High bits are truncated on purpose.")]
 		seq.serialize_element(&(bits as u32))?;
 		seq.serialize_element(&((bits >> 32) as u32))?;
 		seq.end()

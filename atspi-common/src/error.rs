@@ -1,4 +1,4 @@
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "repeated module name in item")]
 #[derive(Debug)]
 #[non_exhaustive]
 /// An error type that can describe atspi and `std` and different `zbus` errors.
@@ -199,7 +199,7 @@ impl From<ObjectPathConversionError> for AtspiError {
 	}
 }
 
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "Repeated module name in item name.")]
 #[derive(Clone, Debug)]
 pub enum ObjectPathConversionError {
 	NoIdAvailable,

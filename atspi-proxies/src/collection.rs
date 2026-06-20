@@ -197,7 +197,7 @@ pub trait Collection {
 	/// [`ObjectMatchRule`]: atspi_common::object_match::ObjectMatchRule
 	/// [`SortOrder`]: atspi_common::SortOrder
 	/// [`TreeTraversalType`]: atspi_common::TreeTraversalType
-	#[allow(clippy::too_many_arguments)]
+	#[expect(clippy::too_many_arguments, reason = "Method requires \"too many\" argument count.")]
 	fn get_matches_to(
 		&self,
 		current_object: &zbus::zvariant::ObjectPath<'_>,
