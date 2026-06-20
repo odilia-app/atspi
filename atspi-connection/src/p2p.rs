@@ -479,7 +479,7 @@ impl Peers {
 		executor.spawn(async move {
     		let dbus_proxy = match DBusProxy::new(&conn).await {
     			Ok(proxy) => proxy,
-    			#[expect(unused_variables, reason = "Variable is only used when `tracing` feature is set.")]
+                #[cfg_attr(not(feature = "tracing"), expect(unused_variables))]
     			Err(err) => {
     				#[cfg(feature = "tracing")]
     				tracing::error!("Failed to create DBusProxy for peer listener: {err}");
@@ -487,7 +487,7 @@ impl Peers {
     			}
     		};
 
-			let Ok(mut name_owner_changed_stream) = dbus_proxy.receive_name_owner_changed().await.inspect_err(|#[expect(unused_variables, reason = "Variable is only used when `tracing` feature is set.")] err| {
+			let Ok(mut name_owner_changed_stream) = dbus_proxy.receive_name_owner_changed().await.inspect_err(|#[cfg_attr(not(feature = "tracing"), expect(unused_variables))] err| {
 				#[cfg(feature = "tracing")]
 				debug!("Failed to receive `NameOwnerChanged` stream: {err}");
 			}) else {
@@ -521,7 +521,7 @@ impl Peers {
 								(None, Some(new_owner)) => {
 									debug_assert_eq!(new_owner, &unique_name, "When a name appears on the bus, the new owner must be the unique name itself.");
 
-									if let Ok(()) = peers.insert_unique(&unique_name, &conn).await.inspect_err(|#[expect(unused_variables, reason = "Variable is only used when `tracing` feature is set.")] err| {
+									if let Ok(()) = peers.insert_unique(&unique_name, &conn).await.inspect_err(|#[cfg_attr(not(feature = "tracing"), expect(unused_variables))] err| {
 										#[cfg(feature = "tracing")]
 										warn!("Failed to insert unique name: {unique_name}: {err}");
 									}) {
@@ -560,7 +560,7 @@ impl Peers {
 										&well_known_name,
 										new_owner_unique_name,
 										&conn,
-									).await.inspect_err(|#[expect(unused_variables, reason = "Variable is only used when `tracing` feature is set.")] err| {
+									).await.inspect_err(|#[cfg_attr(not(feature = "tracing"), expect(unused_variables))] err| {
 										#[cfg(feature = "tracing")]
 										warn!("Failed to insert well-known name: {} with owner: {} - {}", &well_known_name, &new_owner_unique_name, err);
 									}) {
@@ -586,7 +586,7 @@ impl Peers {
 
 								// Well-known name received a new owner on the bus.
 								(Some(old_owner_unique_name), Some(new_owner_unique_name)) => {
-									if let Ok(()) = peers.update_well_known_owner(&well_known_name, old_owner_unique_name, new_owner_unique_name, &conn).await.inspect_err(|#[expect(unused_variables, reason = "Variable is only used when `tracing` feature is set.")] err| {
+									if let Ok(()) = peers.update_well_known_owner(&well_known_name, old_owner_unique_name, new_owner_unique_name, &conn).await.inspect_err(| #[cfg_attr(not(feature = "tracing"), expect(unused_variables))] err| {
 										#[cfg(feature = "tracing")]
 										warn!("Failed to update well-known name: {} owner from: {} to: {} - {}", &well_known_name, &old_owner_unique_name, &new_owner_unique_name, err);
 									}) {
