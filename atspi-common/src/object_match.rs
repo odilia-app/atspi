@@ -180,12 +180,8 @@ impl ObjectMatchRuleBuilder {
 pub enum MatchType {
 	/// No objects match under this criterion.
 	///
-	/// *Note:* This will invalidate the entire `ObjectMatchRule`.\
-	/// There is no filter function implemented in the reference
-	/// implementation [`atk-adaptor`](https://github.com/GNOME/at-spi2-core/blob/main/atk-adaptor/adaptors/collection-adaptor.c#L190-L214).
-	/// This variant is ignored.
-	///
-	/// This represents an invalid or uninitialized match criterion.
+	/// This represents an invalid or uninitialized match criterion with atleast some implementations.
+	/// This variant will invalidate the whole match-rule in some, if not most implementations.
 	Invalid = 0,
 
 	/// Objects meeting all of the specified criteria match.
@@ -202,10 +198,7 @@ pub enum MatchType {
 
 	/// No objects match under this criterion.
 	///
-	/// # Unimplemented
-	/// This is unimplemented in the upstream server-side C library,
-	/// Use of this variant is ignored, just as `Invalid`, using `Empty` as `MatchType` in
-	/// an [`ObjectMatchRule`] will invalidate the match rule.
+	/// This variant invalidates the whole match-rule in some, if not most implementations.
 	Empty = 4,
 }
 
