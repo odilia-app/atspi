@@ -3,7 +3,7 @@ use serde::{
 	ser::{SerializeSeq, Serializer},
 	Deserialize, Serialize,
 };
-use std::fmt;
+use std::{fmt, iter::FusedIterator};
 use zvariant::Type;
 
 use crate::AtspiError;
@@ -698,13 +698,19 @@ impl RoleSet {
 
 	/// Returns an iterator yielding each set [`Role`].
 	#[must_use]
-	pub fn iter(&self) -> RoleSetIter {
-		RoleSetIter { set: *self, index: 0 }
+	pub fn iter(&self) -> RoleSetIterator {
+		RoleSetIterator { set: *self, index: 0, remaining: self.len() }
+	}
+
+	/// Returns the number of roles in this set.
+	#[must_use]
+	pub fn len(&self) -> u32 {
+		self.0.iter().map(|&bits| (bits).count_ones()).sum::<u32>()
 	}
 }
 
 impl IntoIterator for RoleSet {
-	type IntoIter = RoleSetIter;
+	type IntoIter = RoleSetIterator;
 	type Item = Role;
 
 	fn into_iter(self) -> Self::IntoIter {
@@ -713,7 +719,7 @@ impl IntoIterator for RoleSet {
 }
 
 impl IntoIterator for &RoleSet {
-	type IntoIter = RoleSetIter;
+	type IntoIter = RoleSetIterator;
 	type Item = Role;
 
 	fn into_iter(self) -> Self::IntoIter {
@@ -792,22 +798,39 @@ impl std::ops::BitAndAssign for RoleSet {
 }
 
 #[derive(Clone, Debug)]
-pub struct RoleSetIter {
+pub struct RoleSetIterator {
 	set: RoleSet,
 	index: u32,
+	remaining: u32,
 }
 
-impl Iterator for RoleSetIter {
+impl Iterator for RoleSetIterator {
 	type Item = Role;
 
 	fn next(&mut self) -> Option<Self::Item> {
+		if self.remaining == 0 {
+			return None;
+		}
 		while let Ok(role) = Role::try_from(self.index) {
 			self.index += 1;
 			if self.set.contains(role) {
+				self.remaining -= 1;
 				return Some(role);
 			}
 		}
 		None
+	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(self.remaining as usize, Some(self.remaining as usize))
+	}
+}
+
+impl FusedIterator for RoleSetIterator {}
+
+impl ExactSizeIterator for RoleSetIterator {
+	fn len(&self) -> usize {
+		self.remaining as usize
 	}
 }
 
@@ -1050,5 +1073,63 @@ pub mod tests {
 		assert_eq!(decoded, set);
 		assert!(decoded.contains(Role::Alert));
 		assert!(decoded.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_len() {
+		let mut set = RoleSet::empty();
+		assert_eq!(set.len(), 0);
+
+		set.insert(Role::Alert);
+		assert_eq!(set.len(), 1);
+
+		// Duplicate insert must not change the length
+		set.insert(Role::Alert);
+		assert_eq!(set.len(), 1);
+
+		set.insert(Role::Button);
+		set.insert(Role::Window);
+		assert_eq!(set.len(), 3);
+
+		set.remove(Role::Button);
+		assert_eq!(set.len(), 2);
+	}
+
+	#[test]
+	fn test_role_set_iterator_exact_size() {
+		let set = RoleSet::new([Role::Alert, Role::Button, Role::Window]);
+		let mut iter = set.iter();
+
+		assert_eq!(iter.len(), 3);
+		assert_eq!(iter.size_hint(), (3, Some(3)));
+
+		assert_eq!(iter.next(), Some(Role::Alert));
+		assert_eq!(iter.len(), 2);
+		assert_eq!(iter.size_hint(), (2, Some(2)));
+
+		assert_eq!(iter.next(), Some(Role::Button));
+		assert_eq!(iter.len(), 1);
+		assert_eq!(iter.size_hint(), (1, Some(1)));
+
+		assert_eq!(iter.next(), Some(Role::Window));
+		assert_eq!(iter.len(), 0);
+		assert_eq!(iter.size_hint(), (0, Some(0)));
+
+		assert_eq!(iter.next(), None);
+		assert_eq!(iter.len(), 0);
+		assert_eq!(iter.size_hint(), (0, Some(0)));
+	}
+
+	#[test]
+	fn test_role_set_iterator_fused() {
+		let set = RoleSet::new([Role::Alert]);
+		let mut iter = set.iter();
+
+		assert_eq!(iter.next(), Some(Role::Alert));
+
+		assert_eq!(iter.next(), None);
+
+		assert_eq!(iter.next(), None, "Fused, must return None");
+		assert_eq!(iter.next(), None, "Fused, must return None");
 	}
 }
