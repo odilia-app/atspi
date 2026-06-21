@@ -794,21 +794,17 @@ impl std::ops::BitAndAssign for RoleSet {
 #[derive(Clone, Debug)]
 pub struct RoleSetIter {
 	set: RoleSet,
-	index: usize,
+	index: u32,
 }
 
 impl Iterator for RoleSetIter {
 	type Item = Role;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let bitfield_length = std::mem::size_of_val(&self.set.0) * (u8::BITS as usize);
-		while self.index < bitfield_length {
-			let current = u32::try_from(self.index).ok()?;
+		while let Ok(role) = Role::try_from(self.index) {
 			self.index += 1;
-			if let Ok(role) = Role::try_from(current) {
-				if self.set.contains(role) {
-					return Some(role);
-				}
+			if self.set.contains(role) {
+				return Some(role);
 			}
 		}
 		None
