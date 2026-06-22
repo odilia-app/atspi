@@ -173,8 +173,6 @@ impl ObjectMatchRuleBuilder {
 /// This specifies the matching criteria for properties such as states, roles, interfaces, and attributes.
 ///
 /// [`ObjectRef`]: crate::object_ref::ObjectRef
-///
-// <https://github.com/GNOME/at-spi2-core/blob/main/atspi/atspi-constants.h#L203-L228>
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Default)]
 #[repr(i32)]
 pub enum MatchType {
