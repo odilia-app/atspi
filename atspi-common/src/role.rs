@@ -704,8 +704,8 @@ impl RoleSet {
 
 	/// Returns the number of roles in this set.
 	#[must_use]
-	pub fn len(&self) -> u32 {
-		self.0.iter().map(|&bits| (bits).count_ones()).sum::<u32>()
+	pub fn len(&self) -> usize {
+		self.0.iter().map(|&bits| (bits).count_ones()).sum::<u32>() as usize
 	}
 }
 
@@ -801,7 +801,7 @@ impl std::ops::BitAndAssign for RoleSet {
 pub struct RoleSetIterator {
 	set: RoleSet,
 	index: u32,
-	remaining: u32,
+	remaining: usize,
 }
 
 impl Iterator for RoleSetIterator {
@@ -811,6 +811,7 @@ impl Iterator for RoleSetIterator {
 		if self.remaining == 0 {
 			return None;
 		}
+
 		while let Ok(role) = Role::try_from(self.index) {
 			self.index += 1;
 			if self.set.contains(role) {
@@ -822,7 +823,7 @@ impl Iterator for RoleSetIterator {
 	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
-		(self.remaining as usize, Some(self.remaining as usize))
+		(self.remaining, Some(self.remaining))
 	}
 }
 
@@ -830,7 +831,7 @@ impl FusedIterator for RoleSetIterator {}
 
 impl ExactSizeIterator for RoleSetIterator {
 	fn len(&self) -> usize {
-		self.remaining as usize
+		self.remaining
 	}
 }
 
