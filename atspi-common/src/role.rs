@@ -626,15 +626,10 @@ impl std::fmt::Display for Role {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 pub struct RoleSet([i32; 5]);
 
-fn element_idx_and_bit_for(role: Role) -> (usize, usize) {
-	let role_val = role as usize;
-	let index = role_val / 32;
-	debug_assert!(index < RoleSet::empty().0.len());
-	let bit = role_val % 32;
-	(index, bit)
-}
-
 impl RoleSet {
+	// Determines the number of elements in the backing array at compile time.
+	const ARRAY_LEN: usize = std::mem::size_of::<Self>() / std::mem::size_of::<i32>();
+
 	/// Create a new `RoleSet` from a collection of roles.
 	pub fn new<I>(roles: I) -> Self
 	where
@@ -646,7 +641,7 @@ impl RoleSet {
 	/// Create an empty `RoleSet`.
 	#[must_use]
 	pub const fn empty() -> Self {
-		Self([0; 5])
+		Self([0; RoleSet::ARRAY_LEN])
 	}
 
 	/// Checks if all roles are unset.
@@ -658,7 +653,7 @@ impl RoleSet {
 	/// Checks if a specific [`Role`] is in the set.
 	#[must_use]
 	pub fn contains(&self, role: Role) -> bool {
-		let (index, bit) = element_idx_and_bit_for(role);
+		let (index, bit) = Self::element_idx_and_bit_for(role);
 		if let Some(&bits) = self.0.get(index) {
 			(bits >> bit) & 0b1 == 0b1
 		} else {
@@ -668,7 +663,7 @@ impl RoleSet {
 
 	/// Inserts a [`Role`] into the set.
 	pub fn insert(&mut self, role: Role) {
-		let (index, bit) = element_idx_and_bit_for(role);
+		let (index, bit) = Self::element_idx_and_bit_for(role);
 		if let Some(bits) = self.0.get_mut(index) {
 			*bits |= 1 << bit;
 		}
@@ -676,7 +671,7 @@ impl RoleSet {
 
 	/// Removes a [`Role`] from the set.
 	pub fn remove(&mut self, role: Role) {
-		let (index, bit) = element_idx_and_bit_for(role);
+		let (index, bit) = Self::element_idx_and_bit_for(role);
 		if let Some(bits) = self.0.get_mut(index) {
 			*bits &= !(1 << bit);
 		}
@@ -684,7 +679,7 @@ impl RoleSet {
 
 	/// Toggles a [`Role`] in the set.
 	pub fn toggle(&mut self, role: Role) {
-		let (index, bit) = element_idx_and_bit_for(role);
+		let (index, bit) = Self::element_idx_and_bit_for(role);
 		if let Some(bits) = self.0.get_mut(index) {
 			*bits ^= 1 << bit;
 		}
@@ -692,7 +687,7 @@ impl RoleSet {
 
 	/// Returns the raw bits representing the set.
 	#[must_use]
-	pub fn bits(&self) -> [i32; 5] {
+	pub fn bits(&self) -> [i32; RoleSet::ARRAY_LEN] {
 		self.0
 	}
 
@@ -706,6 +701,15 @@ impl RoleSet {
 	#[must_use]
 	pub fn len(&self) -> usize {
 		self.0.iter().map(|&bits| (bits).count_ones()).sum::<u32>() as usize
+	}
+
+	// takes a `Role`, calculates the index and bit position in the array.
+	fn element_idx_and_bit_for(role: Role) -> (usize, usize) {
+		let role_val = role as usize;
+		let index = role_val / 32;
+		debug_assert!(index < RoleSet::ARRAY_LEN);
+		let bit = role_val % 32;
+		(index, bit)
 	}
 }
 
@@ -854,8 +858,7 @@ impl<'de> Deserialize<'de> for RoleSet {
 			where
 				D: Deserializer<'de>,
 			{
-				let arr =
-					<[i32; RoleSet::empty().0.len()] as Deserialize>::deserialize(deserializer)?;
+				let arr = <[i32; RoleSet::ARRAY_LEN] as Deserialize>::deserialize(deserializer)?;
 				Ok(RoleSet(arr))
 			}
 		}
@@ -869,7 +872,7 @@ impl Serialize for RoleSet {
 	where
 		S: Serializer,
 	{
-		let mut seq = serializer.serialize_seq(Some(5))?;
+		let mut seq = serializer.serialize_seq(Some(RoleSet::ARRAY_LEN))?;
 		for &bits in &self.0 {
 			seq.serialize_element(&bits)?;
 		}
