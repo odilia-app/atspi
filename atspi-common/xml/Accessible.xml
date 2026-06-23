@@ -727,6 +727,8 @@
               indicate what the actual change is. Since: 2.36
 
         129 - ATSPI_ROLE_PUSH_BUTTON_MENU: A specialized push button to open a menu. Since: 2.46
+
+        130 - ATSPI_ROLE_SWITCH: A switch that can be toggled on/off. Since: 2.56
     -->
     <method name="GetRole">
       <arg direction="out" type="u"/>
