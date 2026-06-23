@@ -1,4 +1,9 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+	de::{Deserializer, Visitor},
+	ser::{SerializeSeq, Serializer},
+	Deserialize, Serialize,
+};
+use std::{fmt, iter::FusedIterator};
 use zvariant::Type;
 
 use crate::AtspiError;
@@ -617,9 +622,268 @@ impl std::fmt::Display for Role {
 	}
 }
 
+/// The bitflag representation of all roles an object may have.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
+pub struct RoleSet([i32; 5]);
+
+fn element_idx_and_bit_for(role: Role) -> (usize, usize) {
+	let role_val = role as usize;
+	let index = role_val / 32;
+	debug_assert!(index < RoleSet::empty().0.len());
+	let bit = role_val % 32;
+	(index, bit)
+}
+
+impl RoleSet {
+	/// Create a new `RoleSet` from a collection of roles.
+	pub fn new<I>(roles: I) -> Self
+	where
+		I: IntoIterator<Item = Role>,
+	{
+		Self::from_iter(roles)
+	}
+
+	/// Create an empty `RoleSet`.
+	#[must_use]
+	pub const fn empty() -> Self {
+		Self([0; 5])
+	}
+
+	/// Checks if all roles are unset.
+	#[must_use]
+	pub fn is_empty(&self) -> bool {
+		self.0.iter().all(|&bits| bits == 0)
+	}
+
+	/// Checks if a specific [`Role`] is in the set.
+	#[must_use]
+	pub fn contains(&self, role: Role) -> bool {
+		let (index, bit) = element_idx_and_bit_for(role);
+		if let Some(&bits) = self.0.get(index) {
+			(bits >> bit) & 0b1 == 0b1
+		} else {
+			false
+		}
+	}
+
+	/// Inserts a [`Role`] into the set.
+	pub fn insert(&mut self, role: Role) {
+		let (index, bit) = element_idx_and_bit_for(role);
+		if let Some(bits) = self.0.get_mut(index) {
+			*bits |= 1 << bit;
+		}
+	}
+
+	/// Removes a [`Role`] from the set.
+	pub fn remove(&mut self, role: Role) {
+		let (index, bit) = element_idx_and_bit_for(role);
+		if let Some(bits) = self.0.get_mut(index) {
+			*bits &= !(1 << bit);
+		}
+	}
+
+	/// Toggles a [`Role`] in the set.
+	pub fn toggle(&mut self, role: Role) {
+		let (index, bit) = element_idx_and_bit_for(role);
+		if let Some(bits) = self.0.get_mut(index) {
+			*bits ^= 1 << bit;
+		}
+	}
+
+	/// Returns the raw bits representing the set.
+	#[must_use]
+	pub fn bits(&self) -> [i32; 5] {
+		self.0
+	}
+
+	/// Returns an iterator yielding each set [`Role`].
+	#[must_use]
+	pub fn iter(&self) -> RoleSetIterator {
+		RoleSetIterator { set: *self, index: 0, remaining: self.len() }
+	}
+
+	/// Returns the number of roles in this set.
+	#[must_use]
+	pub fn len(&self) -> usize {
+		self.0.iter().map(|&bits| (bits).count_ones()).sum::<u32>() as usize
+	}
+}
+
+impl IntoIterator for RoleSet {
+	type IntoIter = RoleSetIterator;
+	type Item = Role;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl IntoIterator for &RoleSet {
+	type IntoIter = RoleSetIterator;
+	type Item = Role;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl FromIterator<Role> for RoleSet {
+	fn from_iter<I: IntoIterator<Item = Role>>(iter: I) -> Self {
+		let mut set = Self::empty();
+		for role in iter {
+			set.insert(role);
+		}
+		set
+	}
+}
+
+impl<'a> FromIterator<&'a Role> for RoleSet {
+	fn from_iter<I: IntoIterator<Item = &'a Role>>(iter: I) -> Self {
+		let mut set = Self::empty();
+		for &role in iter {
+			set.insert(role);
+		}
+		set
+	}
+}
+
+impl From<Role> for RoleSet {
+	fn from(value: Role) -> Self {
+		let mut set = Self::empty();
+		set.insert(value);
+		set
+	}
+}
+
+impl std::ops::BitXor for RoleSet {
+	type Output = RoleSet;
+
+	fn bitxor(self, other: Self) -> Self::Output {
+		RoleSet(std::array::from_fn(|i| self.0[i] ^ other.0[i]))
+	}
+}
+
+impl std::ops::BitXorAssign for RoleSet {
+	fn bitxor_assign(&mut self, other: Self) {
+		*self = *self ^ other;
+	}
+}
+
+impl std::ops::BitOr for RoleSet {
+	type Output = RoleSet;
+
+	fn bitor(self, other: Self) -> Self::Output {
+		RoleSet(std::array::from_fn(|i| self.0[i] | other.0[i]))
+	}
+}
+
+impl std::ops::BitOrAssign for RoleSet {
+	fn bitor_assign(&mut self, other: Self) {
+		*self = *self | other;
+	}
+}
+
+impl std::ops::BitAnd for RoleSet {
+	type Output = RoleSet;
+
+	fn bitand(self, other: Self) -> Self::Output {
+		RoleSet(std::array::from_fn(|i| self.0[i] & other.0[i]))
+	}
+}
+
+impl std::ops::BitAndAssign for RoleSet {
+	fn bitand_assign(&mut self, other: Self) {
+		*self = *self & other;
+	}
+}
+
+#[derive(Clone, Debug)]
+pub struct RoleSetIterator {
+	set: RoleSet,
+	index: u32,
+	remaining: usize,
+}
+
+impl Iterator for RoleSetIterator {
+	type Item = Role;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		if self.remaining == 0 {
+			return None;
+		}
+
+		while let Ok(role) = Role::try_from(self.index) {
+			self.index += 1;
+			if self.set.contains(role) {
+				self.remaining -= 1;
+				return Some(role);
+			}
+		}
+		None
+	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(self.remaining, Some(self.remaining))
+	}
+}
+
+impl FusedIterator for RoleSetIterator {}
+
+impl ExactSizeIterator for RoleSetIterator {
+	fn len(&self) -> usize {
+		self.remaining
+	}
+}
+
+impl<'de> Deserialize<'de> for RoleSet {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		struct RoleSetVisitor;
+
+		impl<'de> Visitor<'de> for RoleSetVisitor {
+			type Value = RoleSet;
+
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+				formatter
+					.write_str("a sequence comprised of five i32 that represents a valid RoleSet")
+			}
+
+			fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+			where
+				D: Deserializer<'de>,
+			{
+				let arr =
+					<[i32; RoleSet::empty().0.len()] as Deserialize>::deserialize(deserializer)?;
+				Ok(RoleSet(arr))
+			}
+		}
+
+		deserializer.deserialize_newtype_struct("RoleSet", RoleSetVisitor)
+	}
+}
+
+impl Serialize for RoleSet {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		let mut seq = serializer.serialize_seq(Some(5))?;
+		for &bits in &self.0 {
+			seq.serialize_element(&bits)?;
+		}
+		seq.end()
+	}
+}
+
+impl Type for RoleSet {
+	const SIGNATURE: &'static zvariant::Signature = <Vec<i32> as Type>::SIGNATURE;
+}
+
 #[cfg(test)]
 pub mod tests {
-	use super::Role;
+	use super::{Role, RoleSet};
 	use zvariant::serialized::Context;
 	use zvariant::{to_bytes, LE};
 
@@ -647,5 +911,226 @@ pub mod tests {
 				from_role as u32
 			);
 		}
+	}
+
+	#[test]
+	fn test_role_set_ops_empty() {
+		let set = RoleSet::empty();
+		assert!(set.is_empty());
+	}
+
+	#[test]
+	fn test_role_set_ops_remove() {
+		let mut set = RoleSet::new([Role::Arrow]);
+		assert!(!set.is_empty());
+		set.remove(Role::Arrow);
+		assert!(set.is_empty());
+	}
+
+	#[test]
+	fn test_role_set_ops_insert() {
+		let mut set = RoleSet::empty();
+
+		set.insert(Role::Alert);
+		set.insert(Role::Animation);
+		set.insert(Role::Header);
+		assert_eq!(set, RoleSet::new([Role::Alert, Role::Animation, Role::Header]));
+	}
+
+	#[test]
+	fn test_role_set_ops_contains() {
+		let mut set = RoleSet::empty();
+		assert!(set.is_empty());
+		assert!(!set.contains(Role::Alert));
+		assert!(!set.contains(Role::Button));
+
+		set.insert(Role::Alert);
+		assert!(!set.is_empty());
+		assert!(set.contains(Role::Alert));
+		assert!(!set.contains(Role::Button));
+
+		set.insert(Role::Button);
+		assert!(set.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_ops_toggle() {
+		let mut set = RoleSet::empty();
+		set.toggle(Role::Alert);
+		assert!(set.contains(Role::Alert));
+		set.toggle(Role::Alert);
+		assert!(!set.contains(Role::Alert));
+	}
+
+	#[test]
+	fn test_role_set_ops_bits() {
+		let mut set = RoleSet::new([Role::Alert, Role::Button]);
+		assert_eq!(set.bits(), [4, 2048, 0, 0, 0]);
+
+		set.insert(Role::Window);
+		assert_eq!(set.bits(), [4, 2048, 32, 0, 0]);
+	}
+
+	#[test]
+	fn test_role_set_ops_iter() {
+		let mut set = RoleSet::empty();
+		set.insert(Role::Alert);
+		set.insert(Role::Button);
+		assert_eq!(set.iter().collect::<Vec<_>>(), vec![Role::Alert, Role::Button]);
+	}
+
+	#[test]
+	fn test_role_set_bitops_xor() {
+		let set1 = RoleSet::new([Role::Alert, Role::Button]);
+		let set2 = RoleSet::new([Role::Button, Role::Window]);
+		let result = set1 ^ set2;
+
+		assert!(result.contains(Role::Alert));
+		assert!(result.contains(Role::Window));
+		assert!(!result.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_bitops_and() {
+		let set1 = RoleSet::new([Role::Alert, Role::Button]);
+		let set2 = RoleSet::new([Role::Button, Role::Window]);
+		let result = set1 & set2;
+
+		assert!(!result.contains(Role::Alert));
+		assert!(!result.contains(Role::Window));
+		assert!(result.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_bitops_or() {
+		let set1 = RoleSet::new([Role::Alert, Role::Button]);
+		let set2 = RoleSet::new([Role::Button, Role::Window]);
+		let result = set1 | set2;
+		assert!(result.contains(Role::Alert));
+		assert!(result.contains(Role::Window));
+		assert!(result.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_bitops_xor_assign() {
+		let set1 = RoleSet::new([Role::Alert, Role::Button]);
+		let set2 = RoleSet::new([Role::Button, Role::Window]);
+		let mut set1_clone = set1;
+		set1_clone ^= set2;
+		assert_ne!(set1_clone, set1);
+		assert!(set1_clone.contains(Role::Alert));
+		assert!(set1_clone.contains(Role::Window));
+		assert!(!set1_clone.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_bitops_and_assign() {
+		let set1 = RoleSet::new([Role::Alert, Role::Button]);
+		let set2 = RoleSet::new([Role::Button, Role::Window]);
+		let mut set1_clone = set1;
+		set1_clone &= set2;
+		assert_ne!(set1_clone, set1);
+		assert!(!set1_clone.contains(Role::Alert));
+		assert!(!set1_clone.contains(Role::Window));
+		assert!(set1_clone.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_bitops_or_assign() {
+		let set1 = RoleSet::new([Role::Alert, Role::Button]);
+		let set2 = RoleSet::new([Role::Button, Role::Window]);
+		let mut set2_clone = set2;
+		set2_clone |= set1;
+		assert_ne!(set2_clone, set2);
+		assert!(set2_clone.contains(Role::Alert));
+		assert!(set2_clone.contains(Role::Window));
+		assert!(set2_clone.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_serialization_deserialization() {
+		use super::RoleSet;
+		use zvariant::serialized::Data;
+
+		let mut set = RoleSet::empty();
+		set.insert(Role::Alert); // Role::Alert is index 2, bit 2 inside the first i32 element.
+		set.insert(Role::Button); // Role::Button is index 43, bit 11 inside the second i32 element (43 - 32 = 11).
+
+		let ctxt = Context::new_dbus(LE, 0);
+		let encoded = to_bytes(ctxt, &set).unwrap();
+
+		let expected_bytes = &[
+			20, 0, 0, 0, // D-Bus array length header = 20 bytes
+			4, 0, 0, 0, // Index 0: 1 << 2 = 4
+			0, 8, 0, 0, // Index 1: 1 << 11 = 2048 (0x0800 in Little-Endian)
+			0, 0, 0, 0, // Index 2: 0
+			0, 0, 0, 0, // Index 3: 0
+			0, 0, 0, 0, // Index 4: 0
+		];
+		assert_eq!(encoded.bytes(), expected_bytes);
+
+		let data = Data::new::<&[u8]>(expected_bytes, ctxt);
+		let (decoded, _) = data.deserialize::<RoleSet>().unwrap();
+		assert_eq!(decoded, set);
+		assert!(decoded.contains(Role::Alert));
+		assert!(decoded.contains(Role::Button));
+	}
+
+	#[test]
+	fn test_role_set_len() {
+		let mut set = RoleSet::empty();
+		assert_eq!(set.len(), 0);
+
+		set.insert(Role::Alert);
+		assert_eq!(set.len(), 1);
+
+		// Duplicate insert must not change the length
+		set.insert(Role::Alert);
+		assert_eq!(set.len(), 1);
+
+		set.insert(Role::Button);
+		set.insert(Role::Window);
+		assert_eq!(set.len(), 3);
+
+		set.remove(Role::Button);
+		assert_eq!(set.len(), 2);
+	}
+
+	#[test]
+	fn test_role_set_iterator_exact_size() {
+		let set = RoleSet::new([Role::Alert, Role::Button, Role::Window]);
+		let mut iter = set.iter();
+
+		assert_eq!(iter.len(), 3);
+		assert_eq!(iter.size_hint(), (3, Some(3)));
+
+		assert_eq!(iter.next(), Some(Role::Alert));
+		assert_eq!(iter.len(), 2);
+		assert_eq!(iter.size_hint(), (2, Some(2)));
+
+		assert_eq!(iter.next(), Some(Role::Button));
+		assert_eq!(iter.len(), 1);
+		assert_eq!(iter.size_hint(), (1, Some(1)));
+
+		assert_eq!(iter.next(), Some(Role::Window));
+		assert_eq!(iter.len(), 0);
+		assert_eq!(iter.size_hint(), (0, Some(0)));
+
+		assert_eq!(iter.next(), None);
+		assert_eq!(iter.len(), 0);
+		assert_eq!(iter.size_hint(), (0, Some(0)));
+	}
+
+	#[test]
+	fn test_role_set_iterator_fused() {
+		let set = RoleSet::new([Role::Alert]);
+		let mut iter = set.iter();
+
+		assert_eq!(iter.next(), Some(Role::Alert));
+
+		assert_eq!(iter.next(), None);
+
+		assert_eq!(iter.next(), None, "Fused, must return None");
+		assert_eq!(iter.next(), None, "Fused, must return None");
 	}
 }

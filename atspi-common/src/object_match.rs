@@ -3,7 +3,7 @@ use std::{borrow::Borrow, collections::HashMap, marker::PhantomData};
 use serde::{Deserialize, Serialize};
 use zvariant::{Signature, Type};
 
-use crate::{Interface, InterfaceSet, Role, State, StateSet};
+use crate::{Interface, InterfaceSet, Role, RoleSet, State, StateSet};
 
 /// Defines how an object-tree is to be traversed.
 /// Used in `CollectionProxy`.
@@ -30,13 +30,18 @@ pub enum TreeTraversalType {
 /// let builder = MatchRule::builder();
 /// ```
 ///
+/// # Note on Naming
+/// This struct is named `ObjectMatchRule` instead of `MatchRule` to avoid
+/// naming conflicts and confusion with [`zbus::MatchRule`], which is used for
+/// lower-level D-Bus message filtering.
+///
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ObjectMatchRule {
 	pub states: StateSet,
 	pub states_mt: MatchType,
 	pub attr: HashMap<String, String>,
 	pub attr_mt: MatchType,
-	pub roles: Vec<Role>,
+	pub roles: RoleSet,
 	pub roles_mt: MatchType,
 	pub ifaces: InterfaceSet,
 	pub ifaces_mt: MatchType,
@@ -65,7 +70,7 @@ impl Type for ObjectMatchRule {
 		&Signature::I32,
 		<HashMap<&str, &str>>::SIGNATURE,
 		&Signature::I32,
-		<Vec<i32>>::SIGNATURE,
+		<RoleSet as Type>::SIGNATURE,
 		&Signature::I32,
 		<Vec<&str>>::SIGNATURE,
 		&Signature::I32,
@@ -89,7 +94,7 @@ pub struct ObjectMatchRuleBuilder {
 	states_mt: MatchType,
 	attr: HashMap<String, String>,
 	attr_mt: MatchType,
-	roles: Vec<Role>,
+	roles: RoleSet,
 	roles_mt: MatchType,
 	ifaces: InterfaceSet,
 	ifaces_mt: MatchType,
@@ -101,10 +106,9 @@ impl ObjectMatchRuleBuilder {
 	#[must_use]
 	pub fn states<I>(mut self, states: I, mt: MatchType) -> Self
 	where
-		I: IntoIterator,
-		I::Item: Borrow<State>,
+		I: IntoIterator<Item = State>,
 	{
-		self.states = states.into_iter().map(|state| *state.borrow()).collect();
+		self.states = StateSet::from_iter(states);
 		self.states_mt = mt;
 		self
 	}
@@ -120,7 +124,7 @@ impl ObjectMatchRuleBuilder {
 	/// Insert a slice of `Role`s
 	#[must_use]
 	pub fn roles(mut self, roles: &[Role], mt: MatchType) -> Self {
-		self.roles = roles.into();
+		self.roles = RoleSet::from_iter(roles);
 		self.roles_mt = mt;
 		self
 	}
@@ -164,28 +168,36 @@ impl ObjectMatchRuleBuilder {
 	}
 }
 
-/// Enumeration used by [`ObjectMatchRule`] to specify how to interpret [`ObjectRef`] objects.
+/// Enumeration used by [`ObjectMatchRule`] to specify how to select for [`ObjectRef`] objects.
+///
+/// This specifies the matching criteria for properties such as states, roles, interfaces, and attributes.
 ///
 /// [`ObjectRef`]: crate::object_ref::ObjectRef
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type, Default)]
 #[repr(i32)]
 pub enum MatchType {
+	/// No objects match under this criterion.
+	///
+	/// This represents an invalid or uninitialized match criterion with atleast some implementations.
+	/// This variant will invalidate the whole match-rule in some, if not most implementations.
+	Invalid = 0,
+
+	/// Objects meeting all of the specified criteria match.
+	///
+	/// If the set is empty, all objects match.
 	#[default]
-	/// Invalidates match criterion. Meanting: the search of this property will not be performed.
-	Invalid,
+	All = 1,
 
-	/// All of the criteria must be met.
-	All,
+	/// Objects meeting at least one of the specified criteria match.
+	Any = 2,
 
-	/// Any of the criteria must criteria must be met.
-	Any,
+	/// Objects meeting none of the specified criteria match.
+	None = 3,
 
-	/// None of the criteria must be met.
-	NA,
-
-	/// Same as [`Self::All`] if the criterion item is non-empty - All of the criteria must be met.
-	/// For empty criteria this rule requires the returned value to also have empty set.
-	Empty,
+	/// No objects match under this criterion.
+	///
+	/// This variant invalidates the whole match-rule in some, if not most implementations.
+	Empty = 4,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -274,7 +286,7 @@ mod tests {
 
 		assert_eq!(rule.states, StateSet::default());
 		assert_eq!(rule.attr, HashMap::new());
-		assert_eq!(rule.roles, Vec::new());
+		assert_eq!(rule.roles, RoleSet::default());
 		assert_eq!(rule.ifaces, InterfaceSet::default());
 		assert!(!rule.invert);
 	}
@@ -297,7 +309,7 @@ mod tests {
 			rule.attr,
 			[("name".to_string(), "value".to_string())].iter().cloned().collect()
 		);
-		assert_eq!(rule.roles, vec![Role::Alert]);
+		assert_eq!(rule.roles, RoleSet::new([Role::Alert]));
 		assert_eq!(rule.ifaces, InterfaceSet::new(Interface::Action));
 		assert!(rule.invert);
 	}

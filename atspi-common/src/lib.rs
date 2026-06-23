@@ -40,7 +40,7 @@ pub use error::AtspiError;
 pub mod events;
 pub use events::{EventProperties, EventTypeProperties};
 mod role;
-pub use role::Role;
+pub use role::{Role, RoleSet};
 mod relation_type;
 pub use relation_type::RelationType;
 
