@@ -1136,4 +1136,12 @@ pub mod tests {
 		assert_eq!(iter.next(), None, "Fused, must return None");
 		assert_eq!(iter.next(), None, "Fused, must return None");
 	}
+
+	#[test]
+	fn last_variant_fits_in_role_set() {
+		let last_role_variant =
+			(0..).into_iter().find(|&i| Role::try_from(i).ok().is_none()).unwrap() - 1;
+		let index_in_array = last_role_variant / 32;
+		assert_eq!(5, index_in_array + 1, "RoleSet's array has insufficient number of elements");
+	}
 }
