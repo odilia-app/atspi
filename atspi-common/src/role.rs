@@ -676,6 +676,18 @@ pub mod tests {
 	}
 
 	#[test]
+	fn roles_have_human_readable_names() {
+		assert_eq!(Role::Invalid.name(), "invalid");
+		assert_eq!(Role::AcceleratorLabel.name(), "accelerator label");
+		assert_eq!(Role::Switch.name(), "switch");
+	}
+
+	#[test]
+	fn role_last_variant_is_different_from_the_first() {
+		assert_ne!(Role::last_variant(), Role::Invalid);
+	}
+
+	#[test]
 	fn test_role_set_ops_empty() {
 		let set = RoleSet::empty();
 		assert!(set.is_empty());
