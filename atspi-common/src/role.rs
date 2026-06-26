@@ -58,7 +58,7 @@ macro_rules! role_enum {
 				variant
 			}
 
-			const LAST_VARIANT: Self = Self::last_variant();
+			pub const LAST_VARIANT: Self = Self::last_variant();
 		}
 
 		impl std::fmt::Display for Role {
@@ -651,13 +651,11 @@ pub mod tests {
 	use zvariant::serialized::Context;
 	use zvariant::{to_bytes, LE};
 
-	const HIGHEST_ROLE_VALUE: u32 = 130;
-
 	#[test]
 	fn test_serialization_matches_from_impl() {
 		let ctxt = Context::new_dbus(LE, 0);
 
-		for role_num in 1..=HIGHEST_ROLE_VALUE {
+		for role_num in 1..=(Role::LAST_VARIANT as u32) {
 			let from_role = Role::try_from(role_num)
 				.unwrap_or_else(|_| panic!("Unable to convert {role_num} into Role"));
 			let encoded = to_bytes(ctxt, &from_role)
