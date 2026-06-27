@@ -85,8 +85,8 @@ impl Peer {
 			.await?
 			.into_iter()
 			.filter_map(|name| {
-				if let BusName::WellKnown(well_nown_name) = name.clone().inner() {
-					Some(OwnedWellKnownName::from(well_nown_name.clone()))
+				if let BusName::WellKnown(well_known_name) = name.clone().inner() {
+					Some(OwnedWellKnownName::from(well_known_name.clone()))
 				} else {
 					None
 				}
