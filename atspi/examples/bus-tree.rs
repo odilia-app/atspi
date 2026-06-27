@@ -134,7 +134,7 @@ impl A11yNode {
 				.map(|role| A11yNode { role: role.ok(), children: Vec::new() })
 				.collect::<Vec<_>>();
 
-			// Finaly get this node's role and create an `A11yNode` with it.
+			// Finally get this node's role and create an `A11yNode` with it.
 			let role = ap.get_role().await.ok();
 			nodes.push(A11yNode { role, children });
 		}

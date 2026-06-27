@@ -17,7 +17,7 @@ pub struct CacheItem {
 	pub app: ObjectRefOwned,
 	/// The parent object.  (so)
 	pub parent: ObjectRefOwned,
-	/// The accessbile index in parent.  i
+	/// The accessible index in parent.  i
 	pub index: i32,
 	/// Child count of the accessible  i
 	pub children: i32,
