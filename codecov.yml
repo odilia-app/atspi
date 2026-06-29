@@ -2,11 +2,11 @@ coverage:
   status:
     project:
       default:
-		# auto will use main unless it's a branch of a branch
+        # auto will use main unless it's a branch of a branch
         target: auto
-		# fail only above 1% decrease
+        # fail only above 1% decrease
         threshold: 1%
-		# don't worry if there isn't a comparable report
+        # don't worry if there isn't a comparable report
         if_not_found: success
-		# show new code line differential on PR, don't fail
+        # show new code line differential on PR, don't fail
         informational: true
