@@ -12,7 +12,7 @@
 ///     fn sender(&self) -> UniqueName<'_> {
 ///         self.item
 ///             .name()
-///             .expect("Events are constructed with valid ObjetRef")
+///             .expect("Events are constructed with valid ObjectRef")
 ///             .as_ref()
 ///     }
 ///     fn path(&self) -> ObjectPath<'_> {
@@ -26,7 +26,7 @@ macro_rules! impl_event_properties {
 			fn sender(&self) -> zbus_names::UniqueName<'_> {
 				self.item
 					.name()
-					.expect("Events are received with valid ObjetRef")
+					.expect("Events are received with valid ObjectRef")
 					.as_ref()
 			}
 
@@ -44,7 +44,7 @@ macro_rules! impl_event_properties {
 /// impl_from_object_ref!(TextAttributesChangedEvent);
 /// ```
 ///
-/// Exapnds to:
+/// Expands to:
 ///
 /// ```ignore
 /// impl From<ObjectRef> for TextAttributesChangedEvent {
@@ -158,7 +158,7 @@ macro_rules! impl_from_user_facing_event_for_interface_event_enum {
 /// 1. the user facing event type `(inner_type)`
 ///    which relies on a conversion to its interface variant enum type variant.
 /// 2. the outer `Event::<Interface(<InterfaceEnum>)>` wrapper.,
-///    the enum type and outtermost variant.
+///    the enum type and outermost variant.
 ///
 /// ```ignore                                   user facing type, outer event variant
 /// impl_from_user_facing_type_for_event_enum!(StateChangedEvent, Event::Object);
@@ -736,7 +736,7 @@ macro_rules! event_wrapper_test_cases {
 			// In `MouseEvents::Abs(msg.try_into()?)`, it is the `msg.try_into()?` that should fail.
 			// The `msg.try_into()?` is provided through the `impl_from_dbus_message` macro.
 
-			// Additioanlly, we check against the same method in `Event`; the overarchive enum that
+			// Additionally, we check against the same method in `Event`; the overarchive enum that
 			// contains all other events as variants.
 
 			let mod_type = <$iface_enum>::try_from(&fake_msg);

@@ -457,7 +457,7 @@
              of textual information, see ATSPI_ROLE_STATIC.
 
         62 - ATSPI_ROLE_TOGGLE_BUTTON: A specialized push button that can be checked or
-             unchecked, but does not procide a separate indicator for the current
+             unchecked, but does not provide a separate indicator for the current
              state.
 
         63 - ATSPI_ROLE_TOOL_BAR: A bar or palette usually composed of push buttons or
@@ -538,7 +538,7 @@
 
         83 - ATSPI_ROLE_HEADING: The object serves as a heading for content which
              follows it in a document. The 'heading level' of the heading, if
-             availabe,  may be obtained by       querying the object's attributes.
+             available,  may be obtained by       querying the object's attributes.
 
         84 - ATSPI_ROLE_PAGE: The object is a containing instance which encapsulates a
              page of information. ATSPI_ROLE_PAGE is used in documents and content which

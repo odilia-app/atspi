@@ -59,7 +59,7 @@
 //! let obj_ref = ObjectRefOwned::from_static_str_unchecked("1:1000", "/org/a11y/atspi/accessible/root");
 //! let accessible_proxy = obj_ref.into_accessible_proxy(&conn).await?;
 //!
-//! // Convert the `AccesssibleProxy` to [`Proxies`][prxs], a safe conversion type:
+//! // Convert the `AccessibleProxy` to [`Proxies`][prxs], a safe conversion type:
 //! let proxies = accessible_proxy.proxies().await?;
 //!
 //! // Convert a to `TextProxy`, this will return an error if `TextProxy` is not implemented.

@@ -190,7 +190,7 @@ pub trait Collection {
 	/// * `sortby` - A [`SortOrder`] specifying the way the results are to be sorted.
 	/// * `tree` - A [`TreeTraversalType`] specifying restrictions on the objects to be traversed.
 	/// * `limit_scope` - If `true`, only descendants of `current_object`'s parent will be returned.
-	///    Otherwise (if `false`), any accessible may be returned if it would preceed `current_object` in a flattened hierarchy.
+	///    Otherwise (if `false`), any accessible may be returned if it would proceed `current_object` in a flattened hierarchy.
 	/// * `count` - The maximum number of results to return, or 0 for no limit.
 	/// * `traverse` - Not supported by the known implementation (atk-collection).
 	///
