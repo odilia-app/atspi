@@ -23,48 +23,35 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v6
-      - name: Cache cargo home
-        uses: actions/cache@v5
-        env:
-          cache-name: cache-cargo-home
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
         with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+          toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Compile benchmarks (1k)
         run: cargo bench --no-run --bench event_parsing
       - name: Compile benchmarks (100k)
         run: cargo bench --no-run --bench event_parsing_100k
   clippy:
     runs-on: ubuntu-latest
-    needs: [rustfmt, no-unused-dependencies, wasm-compatible-common-crate, typos]
+    needs:
+      [rustfmt, no-unused-dependencies, wasm-compatible-common-crate, typos]
     name: nightly Clippy
     steps:
       - name: Git checkout
         uses: actions/checkout@v6
-      - name: Cache cargo home
-        uses: actions/cache@v5
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
           components: clippy
           toolchain: nightly
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - uses: taiki-e/install-action@cargo-hack
       - name: Clippy hack
         run: cargo hack --feature-powerset --workspace clippy --benches --examples --tests --no-deps -- -D warnings
@@ -74,23 +61,14 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v6
-      - name: Cache cargo home
-        uses: actions/cache@v5
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Install Dependencies
         run: |
           sudo apt -y install at-spi2-core systemd
@@ -116,23 +94,14 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v6
-      - name: Cache cargo home
-        uses: actions/cache@v5
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Generate Documentation
         env:
           RUSTDOCFLAGS: -D warnings
@@ -143,23 +112,15 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v6
-      - name: Cache cargo home
-        uses: actions/cache@v5
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
+          cache-targets: "false"
       - name: Install Deny
         uses: taiki-e/install-action@cargo-deny
       - name: Check For Unsuitable Licenses
@@ -174,23 +135,15 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v6
-      - name: Cache cargo home
-        uses: actions/cache@v5
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
+          cache-targets: "false"
       - name: Install Cargo Machete
         uses: taiki-e/install-action@cargo-machete
       - name: Check For Unused Dependencies
@@ -212,23 +165,14 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v6
-      - name: Cache cargo home
-        uses: actions/cache@v5
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Install Semver Checks
         uses: taiki-e/install-action@main
         with:
@@ -245,6 +189,10 @@ jobs:
           toolchain: ${{ needs.find-msrv.outputs.version }}
       - name: Git checkout
         uses: actions/checkout@v6
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Check MSRV Compliance
         run: cargo test --workspace --no-run --all-features
   wasm-compatible-common-crate:
@@ -259,6 +207,10 @@ jobs:
           toolchain: stable
       - name: Install WASM target(s)
         run: rustup target add wasm32-wasip1 && rustup target add wasm32-unknown-unknown
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Test Common Compilation (wasm32-unknown-unknown)
         run: cargo build -p atspi-common --no-default-features --target wasm32-unknown-unknown
       - name: Test Common Compilation (wasm32-wasip1)
@@ -274,6 +226,10 @@ jobs:
         with:
           toolchain: stable
           components: llvm-tools-preview
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: cargo generate-lockfile
@@ -310,18 +266,22 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: main
-
       - name: Git checkout test project
         uses: actions/checkout@v6
         with:
           repository: luukvanderduim/test-atspi-p2p
           path: test-atspi-p2p
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
+          workspaces: |
+            main
+            test-atspi-p2p
       - name: Install Dependencies
         run: |
           sudo apt-get -y update
@@ -338,7 +298,6 @@ jobs:
             gedit \
             caja \
             gsettings-desktop-schemas
-
       - name: Setup virtual display and AT-SPI environment
         run: |
           # Start virtual display
