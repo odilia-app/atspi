@@ -266,15 +266,18 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: main
+
       - name: Git checkout test project
         uses: actions/checkout@v6
         with:
           repository: luukvanderduim/test-atspi-p2p
           path: test-atspi-p2p
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
@@ -282,6 +285,7 @@ jobs:
           workspaces: |
             main
             test-atspi-p2p
+
       - name: Install System Dependencies
         run: |
           sudo apt-get -y update
@@ -292,13 +296,14 @@ jobs:
             gedit \
             metacity \
             caja
+
       - name: Setup virtual display and AT-SPI environment
         run: |
           # Start virtual display and wait until it's ready (max 10s)
-          Xvfb :99 -screen 0 1024x768x24 -nolisten tcp &
+          Xvfb :99 -screen 0 1024x768x24 &
           for i in $(seq 1 10); do
             xdpyinfo -display :99 >/dev/null 2>&1 && break
-            sleep 0.1
+            sleep 1
           done
           # Ensure Xvfb is truly stable for subsequent GUI apps
           sleep 0.5
@@ -325,23 +330,33 @@ jobs:
             fi
             sleep 0.1
           done
+          # Ensure AT-SPI bus is truly stable
+          sleep 0.1
+
+          # Explicitly enable accessibility
+          gsettings set org.gnome.desktop.interface toolkit-accessibility true
 
           # Export environment for subsequent steps
           echo "DISPLAY=:99" >> $GITHUB_ENV
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
+          echo "GTK_MODULES=gail:atk-bridge" >> $GITHUB_ENV
+
       - name: Add local crates to P2P test project
         working-directory: ./test-atspi-p2p
         run: |
           cargo add --path ../main/atspi-connection
           cargo add --path ../main/atspi-common
           cargo add --path ../main/atspi-proxies
+
       - name: Build P2P test project
         working-directory: ./test-atspi-p2p
         run: cargo build
+
       - name: Run P2P test with GUI applications
         working-directory: ./test-atspi-p2p
         run: |
-          RUST_LOG=debug cargo run
+          # Run with either Gnome Calculator or Gedit, depending on which one works
+          GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gedit --sleep 1
         env:
           DISPLAY: ${{ env.DISPLAY }}
           DBUS_SESSION_BUS_ADDRESS: ${{ env.DBUS_SESSION_BUS_ADDRESS }}
