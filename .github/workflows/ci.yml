@@ -306,7 +306,7 @@ jobs:
             sleep 1
           done
           # Ensure Xvfb is truly stable for subsequent GUI apps
-          sleep 0.5
+          sleep 1
 
           # Set the display for this step
           export DISPLAY=:99
@@ -316,11 +316,11 @@ jobs:
 
           # Start a minimal window manager
           metacity &
-          sleep 0.5
+          sleep 1
 
           # Start a desktop shell to provide the root desktop object
           caja &
-          sleep 0.5
+          sleep 1
 
           # Start AT-SPI bus and registry the standard way, then wait for it (max 15s)
           /usr/libexec/at-spi-bus-launcher --launch-immediately &
@@ -328,10 +328,10 @@ jobs:
             if dbus-send --session --dest=org.a11y.Bus --print-reply /org/a11y/bus org.a11y.Bus.GetAddress >/dev/null 2>&1; then
               break
             fi
-            sleep 0.1
+            sleep 1
           done
           # Ensure AT-SPI bus is truly stable
-          sleep 0.1
+          sleep 1
 
           # Explicitly enable accessibility
           gsettings set org.gnome.desktop.interface toolkit-accessibility true
