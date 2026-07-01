@@ -1,0 +1,11 @@
+[package]
+name = "atspi-test-p2p"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+atspi = { path = "../atspi", features = ["tracing", "p2p", "tokio", "zbus"] }
+tokio = { version = "1.38.2", features = ["macros", "rt-multi-thread", "time"] }
+tracing = { workspace = true, features = ["std"] }
+tracing-subscriber = "0.3"

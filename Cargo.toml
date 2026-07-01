@@ -1,5 +1,5 @@
 [workspace]
-members  = ["atspi", "atspi-common", "atspi-connection", "atspi-proxies"]
+members  = ["atspi", "atspi-common", "atspi-connection", "atspi-proxies",  "atspi-test-p2p"]
 resolver = "2"
 
 
