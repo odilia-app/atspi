@@ -282,27 +282,26 @@ jobs:
           workspaces: |
             main
             test-atspi-p2p
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install \
+          sudo apt-get -y install --no-install-recommends -y \
             at-spi2-core \
-            libatspi2.0-dev \
             xvfb \
             dbus-x11 \
-            libgtk-3-dev \
-            gir1.2-gtk-3.0 \
-            mate-calc \
-            gnome-calculator \
-            metacity \
             gedit \
-            caja \
-            gsettings-desktop-schemas
+            metacity \
+            caja
       - name: Setup virtual display and AT-SPI environment
         run: |
-          # Start virtual display
-          Xvfb :99 -screen 0 1024x768x24 &
-          sleep 2
+          # Start virtual display and wait until it's ready (max 10s)
+          Xvfb :99 -screen 0 1024x768x24 -nolisten tcp &
+          for i in $(seq 1 10); do
+            xdpyinfo -display :99 >/dev/null 2>&1 && break
+            sleep 0.1
+          done
+          # Ensure Xvfb is truly stable for subsequent GUI apps
+          sleep 0.5
 
           # Set the display for this step
           export DISPLAY=:99
@@ -312,37 +311,38 @@ jobs:
 
           # Start a minimal window manager
           metacity &
-          sleep 2
+          sleep 0.5
 
           # Start a desktop shell to provide the root desktop object
           caja &
-          sleep 2
+          sleep 0.5
 
-          # Start AT-SPI bus and registry the standard way
+          # Start AT-SPI bus and registry the standard way, then wait for it (max 15s)
           /usr/libexec/at-spi-bus-launcher --launch-immediately &
-          sleep 5
-
-          # Explicitly enable accessibility
-          gsettings set org.gnome.desktop.interface toolkit-accessibility true
+          for i in $(seq 1 15); do
+            if dbus-send --session --dest=org.a11y.Bus --print-reply /org/a11y/bus org.a11y.Bus.GetAddress >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.1
+          done
 
           # Export environment for subsequent steps
           echo "DISPLAY=:99" >> $GITHUB_ENV
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
-          echo "GTK_MODULES=gail:atk-bridge" >> $GITHUB_ENV
-
-      - name: Run P2P test
+      - name: Add local crates to P2P test project
         working-directory: ./test-atspi-p2p
         run: |
-          # Add local crates
           cargo add --path ../main/atspi-connection
           cargo add --path ../main/atspi-common
           cargo add --path ../main/atspi-proxies
-
-          # Run with both GTK apps to see which one works
-          GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gnome-calculator --sleep 5 || \
-          GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gedit --sleep 5
+      - name: Build P2P test project
+        working-directory: ./test-atspi-p2p
+        run: cargo build
+      - name: Run P2P test with GUI applications
+        working-directory: ./test-atspi-p2p
+        run: |
+          RUST_LOG=debug cargo run
         env:
           DISPLAY: ${{ env.DISPLAY }}
           DBUS_SESSION_BUS_ADDRESS: ${{ env.DBUS_SESSION_BUS_ADDRESS }}
-          GTK_MODULES: gail:atk-bridge
           RUST_BACKTRACE: 1
