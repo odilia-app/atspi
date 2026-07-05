@@ -8,7 +8,6 @@ use crate::{error::AtspiError, events::MessageConversion, EventProperties};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "zbus")]
 use zbus::message::{Body as DbusBody, Header};
-use zbus_lockstep_macros::validate;
 use zbus_names::{OwnedUniqueName, UniqueName};
 use zvariant::Type;
 
@@ -120,7 +119,7 @@ impl_member_interface_registry_string_and_match_rule_for_event!(
 
 /// Signal type emitted by `EventListenerRegistered` and `EventListenerDeregistered` signals,
 /// which belong to the `Registry` interface, implemented by the registry-daemon.
-#[validate(signal: "EventListenerRegistered")]
+#[cfg_attr(test, zbus_lockstep_macros::validate(signal: "EventListenerRegistered"))]
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
 pub struct EventListeners {
 	pub bus_name: OwnedUniqueName,
