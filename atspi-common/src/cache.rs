@@ -8,7 +8,7 @@ use zvariant::Type;
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-#[cfg_attr(test, zbus_lockstep_macros::validate(signal: "AddAccessible"))]
+#[cfg_attr(test, zbus_lockstep::validate(signal: "AddAccessible"))]
 pub struct CacheItem {
 	/// The accessible object (within the application)   (so)
 	pub object: ObjectRefOwned,
