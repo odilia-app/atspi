@@ -477,23 +477,9 @@ dependencies = [
 
 [[package]]
 name = "crossbeam-epoch"
-version = "0.8.0"
+version = "0.9.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5064ebdbf05ce3cb95e45c8b086f72263f4166b29b97f6baff7ef7fe047b55ac"
-dependencies = [
- "autocfg 0.1.6",
- "cfg-if 0.1.2",
- "crossbeam-utils 0.7.0",
- "lazy_static",
- "memoffset 0.5.0",
- "scopeguard",
-]
-
-[[package]]
-name = "crossbeam-queue"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfd6515864a82d2f877b42813d4553292c6659498c9a2aa31bab5a15243c2700"
+checksum = "2d6914041f254d6e9176c01941b21115dcfb7089e55135a35411081bd106ef3f"
 dependencies = [
  "crossbeam-utils 0.7.0",
 ]
@@ -896,14 +882,13 @@ dependencies = [
 
 [[package]]
 name = "is-terminal"
-version = "0.4.6"
+version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "256017f749ab3117e93acb91063009e1f1bb56d03965b14c2c8df4eb02c524d8"
+checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
- "io-lifetimes",
- "rustix 0.37.0",
- "windows-sys 0.45.0",
+ "libc",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
