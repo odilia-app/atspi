@@ -118,7 +118,7 @@ impl Serialize for Properties {
 /// own type: [`EventBodyQtOwned`].
 ///
 /// Signature `(siiva{sv})`,
-#[cfg_attr(test, zbus_lockstep_macros::validate(signal: "PropertyChange"))]
+#[cfg_attr(test, zbus_lockstep::validate(signal: "PropertyChange"))]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Type)]
 pub struct EventBodyOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",
@@ -401,8 +401,8 @@ impl<'a> EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:  
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// The borrowed variant will error if the following conditions are met:
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn as_owned(&self) -> Result<EventBodyOwned, AtspiError> {
 		match self {
@@ -416,8 +416,8 @@ impl<'a> EventBody<'_> {
 	/// Does cloning.
 	///
 	/// # Errors
-	/// The borrowed variant will error if the following conditions are met:  
-	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and  
+	/// The borrowed variant will error if the following conditions are met:
+	/// 1. the `any_data` field contains an [`std::os::fd::OwnedFd`] type, and
 	/// 2. the maximum number of open files for the process is exceeded.
 	pub fn into_owned(self) -> Result<EventBodyOwned, AtspiError> {
 		match self {

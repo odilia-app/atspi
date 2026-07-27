@@ -24,7 +24,7 @@ pub(crate) const TEST_DEFAULT_OBJECT_REF: ObjectRef<'static> =
 /// using an application's bus name and object path. "(so)"
 ///
 /// Emitted by `RemoveAccessible` and `Available`
-#[cfg_attr(test, zbus_lockstep_macros::validate(signal: "Available"))]
+#[cfg_attr(test, zbus_lockstep::validate(signal: "Available"))]
 #[derive(Clone, Debug, Eq, Type)]
 #[zvariant(signature = "(so)")]
 pub enum ObjectRef<'o> {
@@ -262,7 +262,7 @@ impl Default for ObjectRef<'_> {
 
 /// A wrapper around the static variant of `ObjectRef`.
 /// This is guaranteed to have a `'static` lifetime.
-#[cfg_attr(test, zbus_lockstep_macros::validate(signal: "Available"))]
+#[cfg_attr(test, zbus_lockstep::validate(signal: "Available"))]
 #[derive(Clone, Debug, Default, Eq, Type)]
 pub struct ObjectRefOwned(pub(crate) ObjectRef<'static>);
 
