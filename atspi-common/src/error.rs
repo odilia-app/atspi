@@ -74,6 +74,9 @@ pub enum AtspiError {
 
 	/// An infallible error; this is just something to satisfy the compiler.
 	Infallible,
+
+	/// A clientside traversal timed out
+	TraversalTimeoutError,
 }
 
 impl std::error::Error for AtspiError {}
@@ -143,6 +146,7 @@ impl std::fmt::Display for AtspiError {
 				e.fmt(f)
 			}
 			Self::MissingName => f.write_str("Missing name for a bus."),
+			Self::TraversalTimeoutError => f.write_str("Traversal timed out."),
 			Self::Infallible => {
 				f.write_str("Infallible; only to trick the compiler. This should never happen.")
 			}
