@@ -3,7 +3,6 @@ use serde::{
 	ser::{SerializeMap, SerializeTuple},
 	Deserialize, Serialize,
 };
-use zbus_lockstep_macros::validate;
 use zvariant::{ObjectPath, OwnedValue, Type, Value};
 
 /// Event body as used exclusively by 'Qt' toolkit.
@@ -119,7 +118,7 @@ impl Serialize for Properties {
 /// own type: [`EventBodyQtOwned`].
 ///
 /// Signature `(siiva{sv})`,
-#[validate(signal: "PropertyChange")]
+#[cfg_attr(test, zbus_lockstep_macros::validate(signal: "PropertyChange"))]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Type)]
 pub struct EventBodyOwned {
 	/// kind variant, used for specifying an event triple "object:state-changed:focused",

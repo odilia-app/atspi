@@ -475,15 +475,10 @@ impl<'de> Deserialize<'de> for StateSet {
 			where
 				D: Deserializer<'de>,
 			{
-				match <Vec<u32> as Deserialize>::deserialize(deserializer) {
-					Ok(states) if states.len() == 2 => {
-						let mut bits = u64::from(states[0]);
-						bits |= (u64::from(states[1])) << 32;
-						StateSet::from_bits(bits).map_err(|_| de::Error::custom("invalid state"))
-					}
-					Ok(states) => Err(de::Error::invalid_length(states.len(), &"array of size 2")),
-					Err(e) => Err(e),
-				}
+				let arr = <[u32; 2] as Deserialize>::deserialize(deserializer)?;
+				let mut bits = u64::from(arr[0]);
+				bits |= (u64::from(arr[1])) << 32;
+				StateSet::from_bits(bits).map_err(|_| de::Error::custom("invalid state"))
 			}
 		}
 

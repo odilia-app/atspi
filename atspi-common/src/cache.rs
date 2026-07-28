@@ -3,13 +3,12 @@
 
 use crate::{object_ref::ObjectRefOwned, InterfaceSet, ObjectRef, Role, StateSet};
 use serde::{Deserialize, Serialize};
-use zbus_lockstep_macros::validate;
 use zvariant::Type;
 
 /// The item type provided by `Cache:Add` signals
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq, Hash)]
-#[validate(signal: "AddAccessible")]
+#[cfg_attr(test, zbus_lockstep_macros::validate(signal: "AddAccessible"))]
 pub struct CacheItem {
 	/// The accessible object (within the application)   (so)
 	pub object: ObjectRefOwned,
@@ -17,7 +16,7 @@ pub struct CacheItem {
 	pub app: ObjectRefOwned,
 	/// The parent object.  (so)
 	pub parent: ObjectRefOwned,
-	/// The accessbile index in parent.  i
+	/// The accessible index in parent.  i
 	pub index: i32,
 	/// Child count of the accessible  i
 	pub children: i32,

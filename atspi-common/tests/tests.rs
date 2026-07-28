@@ -126,7 +126,7 @@ async fn test_recv_add_accessible() {
 }
 
 // It appears to be common practice to send the `Cache` signals with the
-// body sent unmarshalled - with outer paretheses. This is a test to ensure
+// body sent unmarshalled - with outer parentheses. This is a test to ensure
 // that we can handle that case.
 #[tokio::test]
 async fn test_recv_add_accessible_unmarshalled_body() {

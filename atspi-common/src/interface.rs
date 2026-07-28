@@ -282,7 +282,7 @@ mod tests {
 			InterfaceSet::new(Interface::Accessible | Interface::Action | Interface::Component);
 		let encoded = to_bytes(ctxt, &object).unwrap();
 		let (decoded, _) = encoded.deserialize::<InterfaceSet>().unwrap();
-		assert!(object == decoded);
+		assert_eq!(object, decoded);
 	}
 
 	// The order of appearance of the interfaces is equal to the order in the enum.

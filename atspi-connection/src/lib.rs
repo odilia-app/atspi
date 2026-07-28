@@ -199,6 +199,13 @@ impl AccessibilityConnection {
 				Err(e) => return Some(Err(e.into())),
 			};
 
+			// Only signals are required to include an interface header field,
+			// we should first affirm this message is a signal. Otherwise not
+			// having an interface isn't an error at all.
+			if msg.message_type() != MessageType::Signal {
+				return None;
+			}
+
 			let msg_header = msg.header();
 			let Some(msg_interface) = msg_header.interface() else {
 				return Some(Err(AtspiError::MissingInterface));
@@ -207,9 +214,7 @@ impl AccessibilityConnection {
 			// Most events we encounter are sent on an "org.a11y.atspi.Event.*" interface,
 			// but there are exceptions like "org.a11y.atspi.Cache" or "org.a11y.atspi.Registry".
 			// So only signals with a suitable interface name will be parsed.
-			if msg_interface.starts_with("org.a11y.atspi")
-				&& msg.message_type() == MessageType::Signal
-			{
+			if msg_interface.starts_with("org.a11y.atspi") {
 				Some(Event::try_from(&msg))
 			} else {
 				None
@@ -387,6 +392,7 @@ impl AccessibilityConnection {
 			.expect("Registry default_service is set");
 		let registry = AccessibleProxy::builder(self.connection())
 			.destination(registry_well_known_name)?
+			.path(atspi_common::ACCESSIBLE_ROOT_PATH)?
 			// registry has an incomplete implementation of the DBus interface
 			// and therefore cannot be cached; thus we always disable caching it
 			.cache_properties(CacheProperties::No)

@@ -14,83 +14,61 @@ jobs:
     outputs:
       version: ${{ steps.step2.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: step2
         run: echo "version=`cat Cargo.toml | sed -n 's/rust-version = "\(.*\)"/\1/p' | xargs`" >> "$GITHUB_OUTPUT"
   benchmarks:
     runs-on: ubuntu-latest
-    needs: [clippy, no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies, typos]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
+        uses: actions/checkout@v6
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
         with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+          toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Compile benchmarks (1k)
         run: cargo bench --no-run --bench event_parsing
       - name: Compile benchmarks (100k)
         run: cargo bench --no-run --bench event_parsing_100k
   clippy:
     runs-on: ubuntu-latest
-    needs: [rustfmt, no-unused-dependencies, wasm-compatible-common-crate]
+    needs:
+      [rustfmt, no-unused-dependencies, wasm-compatible-common-crate, typos]
     name: nightly Clippy
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+        uses: actions/checkout@v6
       - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
           components: clippy
           toolchain: nightly
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - uses: taiki-e/install-action@cargo-hack
       - name: Clippy hack
         run: cargo hack --feature-powerset --workspace clippy --benches --examples --tests --no-deps -- -D warnings
   tests:
     runs-on: ubuntu-latest
-    needs: [clippy, no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies, typos]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Install Dependencies
         run: |
           sudo apt -y install at-spi2-core systemd
@@ -102,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
@@ -112,52 +90,37 @@ jobs:
         run: cargo fmt --all --check
   rustdoc:
     runs-on: ubuntu-latest
-    needs: [clippy, no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies, typos]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Generate Documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
         run: cargo doc --workspace --no-deps --document-private-items
   cargo-deny:
     runs-on: ubuntu-latest
-    needs: [rustfmt]
+    needs: [rustfmt, typos]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
+          cache-targets: "false"
       - name: Install Deny
         uses: taiki-e/install-action@cargo-deny
       - name: Check For Unsuitable Licenses
@@ -168,100 +131,105 @@ jobs:
         run: cargo deny check sources
   no-unused-dependencies:
     runs-on: ubuntu-latest
-    needs: [rustfmt]
+    needs: [rustfmt, typos]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
+          cache-targets: "false"
       - name: Install Cargo Machete
         uses: taiki-e/install-action@cargo-machete
       - name: Check For Unused Dependencies
         run: cargo machete
-  semver-compliance:
+  typos:
     runs-on: ubuntu-latest
-    needs: [clippy, no-unused-dependencies]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
+        uses: actions/checkout@v6
+      - name: Install Typos Tool
+        uses: taiki-e/install-action@main
         with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+          tool: typos
+      - name: Check for Typos
+        run: typos
+  semver-compliance:
+    runs-on: ubuntu-latest
+    needs: [clippy, no-unused-dependencies, typos]
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: Install Semver Checks
-        # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
         uses: taiki-e/install-action@main
         with:
           tool: cargo-semver-checks
       - name: Check Semver Compliance
-        run: cargo semver-checks check-release -p atspi --default-features
+        run: cargo semver-checks check-release --workspace --all-features
   msrv-compliance:
     runs-on: ubuntu-latest
-    needs: [clippy, no-unused-dependencies, find-msrv]
+    needs: [clippy, no-unused-dependencies, find-msrv, typos]
     steps:
       - name: install stable toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.find-msrv.outputs.version }}
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-msrv-cache"
       - name: Check MSRV Compliance
         run: cargo test --workspace --no-run --all-features
   wasm-compatible-common-crate:
     runs-on: ubuntu-latest
-    needs: [rustfmt]
+    needs: [rustfmt, typos]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
       - name: Install WASM target(s)
         run: rustup target add wasm32-wasip1 && rustup target add wasm32-unknown-unknown
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-wasm-cache"
       - name: Test Common Compilation (wasm32-unknown-unknown)
         run: cargo build -p atspi-common --no-default-features --target wasm32-unknown-unknown
       - name: Test Common Compilation (wasm32-wasip1)
         run: cargo build -p atspi-common --no-default-features --target wasm32-wasip1
   coverage:
     runs-on: ubuntu-latest
-    needs: [clippy, no-unused-dependencies]
+    needs: [clippy, no-unused-dependencies, typos]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           components: llvm-tools-preview
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: cargo generate-lockfile
@@ -273,7 +241,7 @@ jobs:
       - name: cargo llvm-cov
         run: cargo llvm-cov --workspace --locked --lcov --output-path lcov.info
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -281,7 +249,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install nightly toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -290,49 +258,51 @@ jobs:
         # Create a lockfile with minimal direct versions for reproducible builds.
         # See advisory: https://blog.rust-lang.org/2023/08/29/committing-lockfiles/
         run: cargo +nightly generate-lockfile -Z direct-minimal-versions
-        
+
   run-test-atspi-p2p:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout main project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: main
-
       - name: Git checkout test project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           repository: luukvanderduim/test-atspi-p2p
           path: test-atspi-p2p
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable    
-
-      - name: Install Dependencies
+          toolchain: stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "atspi-shared-cache"
+          workspaces: |
+            main
+            test-atspi-p2p
+      - name: Install System Dependencies
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install \
+          sudo apt-get -y install --no-install-recommends -y \
             at-spi2-core \
-            libatspi2.0-dev \
             xvfb \
             dbus-x11 \
-            libgtk-3-dev \
-            gir1.2-gtk-3.0 \
-            mate-calc \
-            gnome-calculator \
-            metacity \
             gedit \
-            caja \
-            gsettings-desktop-schemas
-
+            metacity \
+            caja
       - name: Setup virtual display and AT-SPI environment
         run: |
-          # Start virtual display
-          Xvfb :99 -screen 0 1024x768x24 &
-          sleep 2
-          
+          # Start virtual display and wait until it's ready (max 10s)
+          Xvfb :99 -screen 0 1024x768x24 -nolisten tcp &
+          for i in $(seq 1 10); do
+            xdpyinfo -display :99 >/dev/null 2>&1 && break
+            sleep 0.1
+          done
+          # Ensure Xvfb is truly stable for subsequent GUI apps
+          sleep 0.5
+
           # Set the display for this step
           export DISPLAY=:99
 
@@ -341,37 +311,38 @@ jobs:
 
           # Start a minimal window manager
           metacity &
-          sleep 2
+          sleep 0.5
 
           # Start a desktop shell to provide the root desktop object
           caja &
-          sleep 2
-          
-          # Start AT-SPI bus and registry the standard way
+          sleep 0.5
+
+          # Start AT-SPI bus and registry the standard way, then wait for it (max 15s)
           /usr/libexec/at-spi-bus-launcher --launch-immediately &
-          sleep 5
-          
-          # Explicitly enable accessibility
-          gsettings set org.gnome.desktop.interface toolkit-accessibility true
-          
+          for i in $(seq 1 15); do
+            if dbus-send --session --dest=org.a11y.Bus --print-reply /org/a11y/bus org.a11y.Bus.GetAddress >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.1
+          done
+
           # Export environment for subsequent steps
           echo "DISPLAY=:99" >> $GITHUB_ENV
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> $GITHUB_ENV
-          echo "GTK_MODULES=gail:atk-bridge" >> $GITHUB_ENV
-
-      - name: Run P2P test
+      - name: Add local crates to P2P test project
         working-directory: ./test-atspi-p2p
         run: |
-          # Add local crates
           cargo add --path ../main/atspi-connection
           cargo add --path ../main/atspi-common
           cargo add --path ../main/atspi-proxies
-          
-          # Run with both GTK apps to see which one works
-          GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gnome-calculator --sleep 5 || \
-          GTK_MODULES=gail:atk-bridge RUST_LOG=debug cargo run -- gedit --sleep 5
+      - name: Build P2P test project
+        working-directory: ./test-atspi-p2p
+        run: cargo build
+      - name: Run P2P test with GUI applications
+        working-directory: ./test-atspi-p2p
+        run: |
+          RUST_LOG=debug cargo run
         env:
           DISPLAY: ${{ env.DISPLAY }}
           DBUS_SESSION_BUS_ADDRESS: ${{ env.DBUS_SESSION_BUS_ADDRESS }}
-          GTK_MODULES: gail:atk-bridge
           RUST_BACKTRACE: 1

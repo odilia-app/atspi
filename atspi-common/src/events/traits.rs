@@ -62,12 +62,12 @@ pub(crate) trait EventWrapperMessageConversion {
 }
 
 // TODO: Document why this can't be `TryFrom<&zbus::Message>`.
-#[cfg(all(feature = "zbus", feature = "wrappers"))]
-pub(crate) trait TryFromMessage {
-	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
-	where
-		Self: Sized;
-}
+//#[cfg(all(feature = "zbus", feature = "wrappers"))]
+//pub(crate) trait TryFromMessage {
+//	fn try_from_message(msg: &zbus::Message) -> Result<Self, AtspiError>
+//	where
+//		Self: Sized;
+//}
 
 /// The `DBus` member for the event.
 /// For example, for an [`crate::events::object::TextChangedEvent`] this should be `"TextChanged"`
@@ -177,7 +177,7 @@ where
 			return Err(AtspiError::SignatureMatch(format!(
 				"The message signature {} does not match the signal's body signature: {}",
 				body_signature,
-				&expected_signature.to_string(),
+				expected_signature.to_string(),
 			)));
 		}
 		Ok(())
