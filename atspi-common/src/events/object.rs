@@ -534,7 +534,7 @@ pub struct TextBoundsChangedEvent {
 impl_event_type_properties_for_event!(TextBoundsChangedEvent);
 
 /// The user's selection of a piece of text has changed.
-/// This event does _not_ specify what the new selection is, nor its indecies; it is only to notify an AT that the selection has changed.
+/// This event does _not_ specify what the new selection is, nor its indices; it is only to notify an AT that the selection has changed.
 /// To query information about the new state of the selection, use `atspi_proxies::TextProxy`'s methods.
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, Eq, Hash, Default)]
 pub struct TextSelectionChangedEvent {

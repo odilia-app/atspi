@@ -383,7 +383,7 @@
 		</item>
 		<item name="atspi_role_table" value="55">
 			<description>
-				 An object used to repesent information in terms of rows
+				 An object used to represent information in terms of rows
 							 and columns.
 
 			</description>
@@ -440,7 +440,7 @@
 		<item name="atspi_role_toggle_button" value="62">
 			<description>
 				 A specialized push button that can be checked or
-							 unchecked, but does not procide a separate indicator for the current
+							 unchecked, but does not provide a separate indicator for the current
 							 state.
 
 			</description>
@@ -605,7 +605,7 @@
 			<description>
 				 The object serves as a heading for content which
 							 follows it in a document. The 'heading level' of the heading, if
-							 availabe,  may be obtained by       querying the object's attributes.
+							 available,  may be obtained by       querying the object's attributes.
 
 			</description>
 		</item>

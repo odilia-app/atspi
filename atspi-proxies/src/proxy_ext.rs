@@ -35,6 +35,12 @@ impl<'a> ProxyExt<'a> for AccessibleProxy<'a> {
 }
 
 impl<'a> Proxies<'a> {
+	/// Get the `InterfaceSet` for the proxies.
+	#[must_use]
+	pub fn interfaces(&self) -> InterfaceSet {
+		self.interfaces
+	}
+
 	/// Get the `Action` interface proxy.
 	///
 	/// # Errors
@@ -63,9 +69,9 @@ impl<'a> Proxies<'a> {
 			Ok(ApplicationProxy::builder(self.proxy.connection())
 				.cache_properties(zbus::proxy::CacheProperties::No)
 				.destination(self.proxy.destination())?
-				.path(self.proxy.path())?
 				.build()
 				.await?)
+		// Relies on ApplicationProxy default root path
 		} else {
 			Err(AtspiError::InterfaceNotAvailable("Application"))
 		}
@@ -81,9 +87,9 @@ impl<'a> Proxies<'a> {
 			Ok(CacheProxy::builder(self.proxy.connection())
 				.cache_properties(zbus::proxy::CacheProperties::No)
 				.destination(self.proxy.destination())?
-				.path(self.proxy.path())?
 				.build()
 				.await?)
+		// Relies on CacheProxy default path
 		} else {
 			Err(AtspiError::InterfaceNotAvailable("Cache"))
 		}
@@ -97,9 +103,9 @@ impl<'a> Proxies<'a> {
 	pub async fn collection(&self) -> Result<CollectionProxy<'a>> {
 		if self.interfaces.contains(Interface::Collection) {
 			Ok(CollectionProxy::builder(self.proxy.connection())
+				.path(self.proxy.path())?
 				.cache_properties(zbus::proxy::CacheProperties::No)
 				.destination(self.proxy.destination())?
-				.path(self.proxy.path())?
 				.build()
 				.await?)
 		} else {

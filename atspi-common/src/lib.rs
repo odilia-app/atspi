@@ -9,6 +9,8 @@
 //! Any type ending in `*Proxy` is in `atspi-proxies`.
 //!
 
+pub const ACCESSIBLE_ROOT_PATH: &str = "/org/a11y/atspi/accessible/root";
+
 #[macro_use]
 extern crate static_assertions;
 #[macro_use]
@@ -38,7 +40,7 @@ pub use error::AtspiError;
 pub mod events;
 pub use events::{EventProperties, EventTypeProperties};
 mod role;
-pub use role::Role;
+pub use role::{Role, RoleSet};
 mod relation_type;
 pub use relation_type::RelationType;
 
