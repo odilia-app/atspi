@@ -85,7 +85,7 @@ pub trait CollectionClientside {
 		traverse: bool,
 	) -> impl std::future::Future<Output = Result<Vec<AccessibleProxy<'_>>, AtspiError>> + Send;
 
-	/// Retrieves objects *after* `current_object`, matching a given `rule`.
+	/// Retrieves objects after `current_object`, matching a given `rule`.
 	///
 	/// As on the `Collection` interface, `current_object` is addressed by object path alone;
 	/// it is resolved against the bus name of the traversal root, of which it must be the
@@ -120,7 +120,8 @@ pub trait CollectionClientside {
 	/// Retrieves objects *before* `current_object`, matching a given `rule`.
 	///
 	/// The tree is walked backwards from `current_object`, so a non-zero `count` yields the
-	/// matches *nearest* to it. `current_object` is addressed as in [`get_matches_from`].
+	/// matches *nearest* to it. `current_object` is addressed as in
+	/// [`get_matches_from`](Self::get_matches_from).
 	///
 	/// # Arguments
 	///
