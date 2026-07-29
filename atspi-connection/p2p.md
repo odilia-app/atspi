@@ -8,8 +8,7 @@ The `Application` interface offers `GetApplicationBusAddress` which returns a bu
 
 ## `AccessibilityConnection`
 
-To avoid querying each object whether their bus name supports P2P, `AccessibilityConnection` keeps a list of all accessible applications on the bus that support P2P and continuously updates it.
-`AccessibilityConnection` is always in scope when performing operations on the accessibility bus, therefore it is the perfect place to keep the list of peers.
+`AccessibilityConnection` discovers an application's direct address only when a P2P-aware lookup first targets that application. Ready connections are reused, concurrent lookups for the same unique owner share one attempt, and normal P2P unavailability transparently falls back to the connection's long-lived accessibility bus.
 
 In practice, if you want to perform a method call on an `ObjectRef`, just get the `AccessibleProxy` for that object with `object_as_accessible`:
 
@@ -22,14 +21,13 @@ let name = obj_ap.name().await?;
 
 For `atspi` users who do not perform method calls or query properties, P2P is gated behind the "p2p" feature. Those users will need to opt out of default features.
 
-The feature "p2p" is enabled by default and if enabled, the `AccessibilityConnection` gains a list of applications that support P2P communication on initialization.
-Initialization of an `AccessibilityConnection` will also spawn a task to continuously listen for new applications entering or leaving the bus. It does so by listening for the `NameOwnerChanged` event emitted by the D-Bus daemon.
+The feature "p2p" is enabled by default. Initialization does not enumerate applications, request direct addresses, or open direct connections. It only starts a `NameOwnerChanged` listener used to invalidate cached identities; ownership signals never trigger discovery themselves.
 
-If users opt out, no list of `Peer`s will be kept and atspi will not listen for updates.
+If users opt out, no peer discovery state is kept and atspi does not start this listener.
 
 ## traits `P2P` and `Peer`
 
-As stated before, a list of `Peer`s is kept by the `AccessibilityConnection`.
+Ready peers are kept privately by `AccessibilityConnection`.
 
 The `Peer` struct can be considered a handle to individual peers that do support P2P and allows:
 
@@ -39,9 +37,52 @@ The `Peer` struct can be considered a handle to individual peers that do support
 
 The P2P trait offers the higher level API and is implemented for `AccessibilityConnection` and allows:
 
-- getting a peer by bus name
+- asynchronously discovering or getting a peer by bus name
+- taking a detached, unique-name-sorted snapshot of currently ready peers
 - getting an `AccessibleProxy` for the root object by bus name - may or may not support P2P
 - getting an `AccessibleProxy` for any `ObjectRef` - may or may not support P2P
+
+`get_peer` returns `Ok(Some(peer))` when a direct connection is ready. `Ok(None)` means the application definitively does not support P2P, a capability probe or connection attempt failed transiently, a transient failure is still in backoff, or ownership changed during discovery. Name-resolution and other failures that prevent correct shared-bus routing remain errors. Errors returned by `GetApplicationBusAddress` itself are optional-P2P failures and do not prevent shared-bus fallback.
+
+Ready transport is canonical by unique owner and never stores a discovery-order alias. For compatibility, `Peer::well_known_name()` describes the current lookup: unique-name lookups and `peers()` snapshots return `None`, while a well-known lookup returns the alias requested by that call. Two aliases for one owner therefore share one connection while each lookup reports its own alias.
+
+Invalid addresses and direct connection failures use per-owner retry delays of 1, 2, 4, 8, and 16 seconds, then 30 seconds. Unsupported applications remain cached until their owner changes. Negative state is bounded, so eviction can cause a later lookup to retry but never changes fallback correctness.
+
+```rust,no_run
+use atspi_connection::{AccessibilityConnection, P2P};
+use zbus::names::BusName;
+
+# async fn example() -> Result<(), Box<dyn std::error::Error>> {
+let connection = AccessibilityConnection::new().await?;
+let name = BusName::try_from(":1.42")?;
+
+if let Some(peer) = connection.get_peer(&name).await? {
+    println!("direct peer: {}", peer.unique_name());
+}
+
+// This is an owned snapshot. Iterating or retaining it never locks discovery.
+for peer in connection.peers() {
+    println!("ready peer: {}", peer.unique_name());
+}
+# Ok(())
+# }
+```
+
+## Migrating from eager peer storage
+
+`get_peer` changed from `Option<Peer>` to `AtspiResult<Option<Peer>>` and now performs discovery. Add `.await?` before handling the option:
+
+```text
+connection.get_peer(&name)          // old
+connection.get_peer(&name).await?   // new
+```
+
+`peers` changed from `Arc<Mutex<Vec<Peer>>>` to an owned `Vec<Peer>`. Remove locking and iterate the returned snapshot directly:
+
+```text
+connection.peers().lock().unwrap().iter() // old
+connection.peers().iter()                 // new
+```
 
 ## `p2p_tree` example
 

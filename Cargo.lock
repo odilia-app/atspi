@@ -252,6 +252,7 @@ dependencies = [
  "atspi-common",
  "atspi-proxies",
  "enumflags2",
+ "event-listener",
  "futures-lite",
  "tokio-test",
  "tracing",

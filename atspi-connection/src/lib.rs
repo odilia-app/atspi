@@ -78,14 +78,7 @@ impl AccessibilityConnection {
 		tracing::debug!(address = %a11y_bus_addr, "Got a11y bus address");
 		let addr: Address = a11y_bus_addr.parse()?;
 
-		let accessibility_conn = Self::from_address(addr).await?;
-
-		#[cfg(feature = "p2p")]
-		accessibility_conn
-			.peers
-			.spawn_peer_listener_task(accessibility_conn.connection());
-
-		Ok(accessibility_conn)
+		Self::from_address(addr).await
 	}
 
 	/// Returns an [`AccessibilityConnection`], a wrapper for the [`RegistryProxy`]; a handle for the registry provider
@@ -99,7 +92,8 @@ impl AccessibilityConnection {
 	///
 	/// # Errors
 	///
-	/// `RegistryProxy` is configured with invalid path, interface or destination
+	/// Returns an error if the bus connection, registry proxy, D-Bus proxy, or
+	/// P2P ownership-signal subscription cannot be established.
 	pub async fn from_address(bus_addr: Address) -> AtspiResult<Self> {
 		#[cfg(feature = "tracing")]
 		tracing::info!("Connecting to a11y bus");
@@ -116,9 +110,11 @@ impl AccessibilityConnection {
 		return Ok(Self { registry, dbus_proxy });
 
 		#[cfg(feature = "p2p")]
-		let peers = Peers::initialize_peers(&bus).await?;
-		#[cfg(feature = "p2p")]
-		return Ok(Self { registry, dbus_proxy, peers });
+		{
+			let connection = Self { registry, dbus_proxy, peers: Peers::default() };
+			connection.peers.spawn_listener(connection.connection()).await?;
+			Ok(connection)
+		}
 	}
 
 	/// Stream yielding all `Event` types.
@@ -408,6 +404,23 @@ impl Deref for AccessibilityConnection {
 
 	fn deref(&self) -> &Self::Target {
 		&self.registry
+	}
+}
+
+#[cfg(all(test, feature = "p2p"))]
+mod p2p_constructor_tests {
+	use super::*;
+
+	#[test]
+	fn from_address_waits_for_peer_listener_subscription() {
+		let address = std::env::var("DBUS_SESSION_BUS_ADDRESS")
+			.expect("tests require a session bus address")
+			.parse()
+			.expect("session bus address must be valid");
+		let connection =
+			futures_lite::future::block_on(AccessibilityConnection::from_address(address))
+				.expect("connection to test session bus must succeed");
+		assert!(connection.peers.listener_started());
 	}
 }
 
