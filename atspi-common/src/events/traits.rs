@@ -41,7 +41,9 @@ pub trait EventProperties {
 	fn sender(&self) -> UniqueName<'_>;
 	fn path(&self) -> ObjectPath<'_>;
 	fn object_ref(&self) -> ObjectRef<'_> {
-		ObjectRef::new(self.sender(), self.path())
+		// Reconstruct the event source, not a wire `(so)` pair. A signal
+		// emitted from `/org/a11y/atspi/null` still has a real sender.
+		ObjectRef::Borrowed { name: self.sender(), path: self.path() }
 	}
 }
 
@@ -236,4 +238,31 @@ pub trait MessageConversion<'a>: DBusProperties {
 
 	/// The body of the object.
 	fn body(&self) -> Self::Body<'_>;
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	struct NullPathEvent;
+
+	impl EventProperties for NullPathEvent {
+		fn sender(&self) -> UniqueName<'_> {
+			UniqueName::from_static_str_unchecked(":1.23")
+		}
+		fn path(&self) -> ObjectPath<'_> {
+			ObjectPath::from_static_str_unchecked("/org/a11y/atspi/null")
+		}
+	}
+
+	// `object_ref` identifies the event source, so unlike the wire
+	// constructors it must keep the sender even when the signal is emitted
+	// from the null path.
+	#[test]
+	fn object_ref_keeps_sender_on_null_path() {
+		let object_ref = NullPathEvent.object_ref();
+		assert!(!object_ref.is_null());
+		assert_eq!(object_ref.name_as_str(), Some(":1.23"));
+		assert_eq!(object_ref.path_as_str(), "/org/a11y/atspi/null");
+	}
 }

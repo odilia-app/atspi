@@ -63,7 +63,7 @@ impl<'o> ObjectRef<'o> {
 		let name: UniqueName<'static> = name.into();
 		let path: ObjectPath<'static> = path.into();
 
-		ObjectRefOwned(ObjectRef::Owned { name, path })
+		from_name_and_path(name, path).into()
 	}
 
 	/// Create a new, borrowed `ObjectRef`.
@@ -89,7 +89,7 @@ impl<'o> ObjectRef<'o> {
 		let name: UniqueName<'o> = name.into();
 		let path: ObjectPath<'o> = path.into();
 
-		ObjectRef::Borrowed { name, path }
+		from_name_and_path(name, path)
 	}
 
 	/// Create a new `ObjectRef`, from `BusName` and `ObjectPath`.
@@ -109,6 +109,11 @@ impl<'o> ObjectRef<'o> {
 	}
 
 	/// Create a new `ObjectRef`, unchecked.
+	///
+	/// Does **not** apply the null-path rule: a `/org/a11y/atspi/null` path
+	/// stays `Owned` rather than becoming [`ObjectRef::Null`]. Use
+	/// [`Self::new`] / [`Self::new_borrowed`] / [`Self::new_owned`] when the
+	/// pair comes from the bus.
 	///
 	/// # Safety
 	/// The caller must ensure that the strings are valid.
@@ -289,6 +294,9 @@ impl ObjectRefOwned {
 
 	/// Create a new `ObjectRefOwned` from `&'static str` unchecked.
 	///
+	/// Does **not** apply the null-path rule. See
+	/// [`ObjectRef::from_static_str_unchecked`].
+	///
 	/// # Safety
 	/// The caller must ensure that the strings are valid.
 	#[must_use]
@@ -436,18 +444,8 @@ impl<'de: 'o, 'o> Deserialize<'de> for ObjectRef<'o> {
 					.next_element()?
 					.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
 
-				if path == *NULL_OBJECT_PATH {
-					Ok(ObjectRef::Null)
-				} else {
-					assert!(
-						!name.is_empty(),
-						"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
-					);
-					Ok(ObjectRef::Borrowed {
-						name: UniqueName::try_from(name).map_err(serde::de::Error::custom)?,
-						path,
-					})
-				}
+				from_wire_name_and_path(zvariant::Str::from(name), path)
+					.map_err(serde::de::Error::custom)
 			}
 		}
 
@@ -554,6 +552,9 @@ impl<'m: 'o, 'o> TryFrom<&'m zbus::message::Header<'_>> for ObjectRef<'o> {
 		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
 		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
 
+		// Keep the sender even when the path is `/org/a11y/atspi/null`;
+		// collapsing to `Null` would drop the name and break
+		// `EventProperties::sender`.
 		Ok(ObjectRef::Borrowed { name: name.clone(), path: path.clone() })
 	}
 }
@@ -563,23 +564,63 @@ impl<'m> TryFrom<&'m zbus::message::Header<'_>> for ObjectRefOwned {
 	type Error = crate::AtspiError;
 
 	/// Construct an `ObjectRefOwned` from a `zbus::message::Header`.
+	///
+	/// # Errors
+	/// See [`ObjectRef`]'s `TryFrom<&zbus::message::Header>` implementation,
+	/// which this delegates to.
 	fn try_from(header: &'m zbus::message::Header) -> Result<Self, Self::Error> {
-		let path = header.path().ok_or(crate::AtspiError::MissingPath)?;
-		let name = header.sender().ok_or(crate::AtspiError::MissingName)?;
-
-		let object_ref =
-			ObjectRef::Owned { name: name.clone().into_owned(), path: path.clone().into_owned() };
-		Ok(ObjectRefOwned(object_ref))
+		Ok(ObjectRef::try_from(header)?.into())
 	}
+}
+
+/// Build an [`ObjectRef`] from a typed name and path.
+///
+/// A `/org/a11y/atspi/null` path is [`ObjectRef::Null`] regardless of the
+/// name. Public constructors go through this so the null-path rule cannot
+/// drift from [`from_wire_name_and_path`]. Message-header conversions and
+/// [`crate::EventProperties::object_ref`] do not: a message sender is a real
+/// unique name even when the signal is emitted from the null path.
+fn from_name_and_path<'a>(name: UniqueName<'a>, path: ObjectPath<'a>) -> ObjectRef<'a> {
+	if path == *NULL_OBJECT_PATH {
+		ObjectRef::Null
+	} else {
+		ObjectRef::Borrowed { name, path }
+	}
+}
+
+/// Build an [`ObjectRef`] from the AT-SPI wire pair `(name, path)`.
+///
+/// A `/org/a11y/atspi/null` path is [`ObjectRef::Null`] regardless of the
+/// name. zbus property getters convert replies through `TryFrom<OwnedValue>`
+/// rather than `Deserialize`, so this mapping has to live here too —
+/// otherwise a null parent becomes a hybrid ref that `is_null()` misses,
+/// and proxying it emits a method call with an empty destination that
+/// dbus-daemon answers by dropping the connection.
+fn from_wire_name_and_path<'a>(
+	name: zvariant::Str<'a>,
+	path: ObjectPath<'a>,
+) -> Result<ObjectRef<'a>, zvariant::Error> {
+	if path == *NULL_OBJECT_PATH {
+		return Ok(ObjectRef::Null);
+	}
+	if name.is_empty() {
+		return Err(zvariant::Error::Message(format!(
+			"A non-null ObjectRef requires a name and a path but got: (\"\", {path})"
+		)));
+	}
+	let name = UniqueName::try_from(name).map_err(|e| zvariant::Error::Message(e.to_string()))?;
+	Ok(from_name_and_path(name, path))
 }
 
 impl<'v> TryFrom<zvariant::Value<'v>> for ObjectRef<'v> {
 	type Error = zvariant::Error;
 
 	fn try_from(value: zvariant::Value<'v>) -> Result<Self, Self::Error> {
-		// Relies on the generic `Value` to tuple conversion `(UniqueName, ObjectPath)`.
-		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
-		Ok(ObjectRef::new_borrowed(name, path))
+		// Convert via `(Str, ObjectPath)` rather than `(UniqueName, ObjectPath)`
+		// so a null-object name (`""`) is not rejected before we can map the
+		// null path to `ObjectRef::Null`.
+		let (name, path): (zvariant::Str<'v>, ObjectPath<'v>) = value.try_into()?;
+		from_wire_name_and_path(name, path)
 	}
 }
 
@@ -587,26 +628,22 @@ impl<'v> TryFrom<zvariant::Value<'v>> for ObjectRefOwned {
 	type Error = zvariant::Error;
 
 	fn try_from(value: zvariant::Value<'v>) -> Result<Self, Self::Error> {
-		// Relies on the generic `Value` to tuple conversion `(UniqueName, ObjectPath)`.
-		let (name, path): (UniqueName, ObjectPath) = value.try_into()?;
-		Ok(ObjectRef::new_borrowed(name, path).into())
+		ObjectRef::try_from(value).map(Into::into)
 	}
 }
 
 impl TryFrom<zvariant::OwnedValue> for ObjectRef<'static> {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
-		Ok(ObjectRef::Owned { name, path })
+		let (name, path): (zvariant::Str<'static>, ObjectPath<'static>) = value.try_into()?;
+		from_wire_name_and_path(name, path).map(ObjectRef::into_owned)
 	}
 }
 
 impl TryFrom<zvariant::OwnedValue> for ObjectRefOwned {
 	type Error = zvariant::Error;
 	fn try_from(value: zvariant::OwnedValue) -> Result<Self, Self::Error> {
-		let (name, path): (UniqueName<'static>, ObjectPath<'static>) = value.try_into()?;
-		let obj = ObjectRef::Owned { name, path };
-		Ok(ObjectRefOwned(obj))
+		ObjectRef::try_from(value).map(ObjectRefOwned::new)
 	}
 }
 
@@ -644,7 +681,7 @@ impl From<ObjectRefOwned> for zvariant::Structure<'_> {
 mod tests {
 	use std::hash::{DefaultHasher, Hash, Hasher};
 
-	use super::ObjectRef;
+	use super::{ObjectRef, ObjectRefOwned};
 	use crate::object_ref::{NULL_OBJECT_PATH, NULL_PATH_STR};
 	use zbus::zvariant;
 	use zbus::{names::UniqueName, zvariant::ObjectPath};
@@ -669,8 +706,54 @@ mod tests {
 			UniqueName::from_static_str(":1.23").unwrap(),
 			ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH),
 		);
+		assert!(matches!(object_ref, ObjectRef::Borrowed { .. }));
 		assert_eq!(object_ref.name_as_str(), Some(":1.23"));
 		assert_eq!(object_ref.path_as_str(), TEST_OBJECT_PATH);
+	}
+
+	#[test]
+	fn new_borrowed_maps_null_path_to_null() {
+		let object_ref = ObjectRef::new_borrowed(
+			UniqueName::from_static_str_unchecked(":1.23"),
+			NULL_OBJECT_PATH.clone(),
+		);
+		assert!(object_ref.is_null());
+		assert!(object_ref.name().is_none());
+		assert_eq!(object_ref.path(), NULL_OBJECT_PATH);
+	}
+
+	#[test]
+	fn new_owned_maps_null_path_to_null() {
+		let object_ref = ObjectRef::new_owned(
+			UniqueName::from_static_str_unchecked(":1.23"),
+			NULL_OBJECT_PATH.clone(),
+		);
+		assert!(object_ref.is_null());
+		assert!(object_ref.name().is_none());
+		assert_eq!(object_ref.path(), NULL_OBJECT_PATH);
+	}
+
+	#[cfg(feature = "zbus")]
+	#[test]
+	fn header_conversion_keeps_sender_on_null_path() {
+		let sender = UniqueName::from_static_str_unchecked(":1.23");
+		let msg = zbus::Message::signal(NULL_PATH_STR, "org.a11y.atspi.Cache", "AddAccessible")
+			.unwrap()
+			.sender(&sender)
+			.unwrap()
+			.build(&())
+			.unwrap();
+		let header = msg.header();
+
+		let object_ref = ObjectRef::try_from(&header).unwrap();
+		assert!(!object_ref.is_null());
+		assert_eq!(object_ref.name_as_str(), Some(":1.23"));
+		assert_eq!(object_ref.path_as_str(), NULL_PATH_STR);
+
+		let owned = ObjectRefOwned::try_from(&header).unwrap();
+		assert!(!owned.is_null());
+		assert_eq!(owned.name_as_str(), Some(":1.23"));
+		assert_eq!(owned.path_as_str(), NULL_PATH_STR);
 	}
 
 	#[test]
@@ -828,6 +911,39 @@ mod tests {
 	}
 
 	#[test]
+	fn try_from_value_maps_null_path_to_null_object_ref() {
+		let value: Value = ObjectRef::Null.into();
+		let obj: ObjectRef = value.try_into().unwrap();
+		assert!(obj.is_null());
+		assert!(obj.name().is_none());
+		assert_eq!(obj.path(), NULL_OBJECT_PATH);
+
+		let value: Value = ObjectRef::Null.into();
+		let owned: ObjectRefOwned = value.try_into().unwrap();
+		assert!(owned.is_null());
+	}
+
+	#[test]
+	fn try_from_owned_value_maps_null_path_to_null_object_ref() {
+		let value: Value = ObjectRef::Null.into();
+		let owned_value: OwnedValue = value.try_into().unwrap();
+		let obj: ObjectRef = owned_value.try_into().unwrap();
+		assert!(obj.is_null());
+
+		let value: Value = ObjectRef::Null.into();
+		let owned_value: OwnedValue = value.try_into().unwrap();
+		let owned: ObjectRefOwned = owned_value.try_into().unwrap();
+		assert!(owned.is_null());
+	}
+
+	#[test]
+	fn try_from_value_rejects_empty_name_on_non_null_path() {
+		let value = Value::from(("", ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH)));
+		let obj: Result<ObjectRef, _> = value.try_into();
+		assert!(obj.is_err());
+	}
+
+	#[test]
 	fn hash_and_object_coherence() {
 		let name = UniqueName::from_static_str_unchecked(":1.23");
 		let path = ObjectPath::from_static_str_unchecked(TEST_OBJECT_PATH);
@@ -855,17 +971,19 @@ mod tests {
 		assert!(matches!(obj, ObjectRef::Borrowed { .. }));
 	}
 
-	// Check that the Deserialize implementation correctly panics
 	#[test]
-	#[should_panic(
-		expected = r#"A non-null ObjectRef requires a name and a path but got: ("", /org/a11y/atspi/path/007)"#
-	)]
 	fn empty_name_valid_path_object_ref() {
 		let object_ref = ObjectRef::from_static_str_unchecked("", TEST_OBJECT_PATH);
 
 		let ctxt = Context::new_dbus(LE, 0);
 		let encoded = to_bytes(ctxt, &object_ref).unwrap();
 
-		let (_obj, _) = encoded.deserialize::<ObjectRef>().unwrap();
+		let err = encoded.deserialize::<ObjectRef>().unwrap_err();
+		assert!(
+			err.to_string().contains(
+				r#"A non-null ObjectRef requires a name and a path but got: ("", /org/a11y/atspi/path/007)"#
+			),
+			"{err}"
+		);
 	}
 }
