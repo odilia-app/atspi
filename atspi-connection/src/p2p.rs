@@ -289,7 +289,10 @@ impl Peers {
 	/// This function can return an error in the following cases:
 	/// - the `AccessibleProxy` to the registry cannot be created.
 	/// - the registry returns an error when querying for children.
-	/// - for any child, the `AccessibleProxy` cannot be created or the `ApplicationProxy` cannot be created.
+	///
+	/// Applications that cannot be queried are skipped: a single inaccessible
+	/// application (e.g. one whose security policy denies access to its
+	/// D-Bus interfaces) must not prevent establishing the connection.
 	pub(crate) async fn initialize_peers(conn: &zbus::Connection) -> AtspiResult<Self> {
 		let registry_well_known_name = RegistryProxy::DESTINATION
 			.as_ref()
@@ -305,14 +308,82 @@ impl Peers {
 		let mut peers = Vec::with_capacity(accessible_applications.len());
 
 		for app in accessible_applications {
-			let accessible_proxy = app.as_accessible_proxy(conn).await?;
-			let proxies = accessible_proxy.proxies().await?;
-			let application_proxy = proxies.application().await?;
+			// An application may refuse to answer our queries (e.g. a
+			// snap-confined application whose AppArmor profile denies
+			// `org.a11y.atspi.Accessible.GetInterfaces` to unconfined peers).
+			// Skip it instead of failing the whole initialization; this mirrors
+			// the tolerance below for `get_application_bus_address` and
+			// `Peer::try_new`.
+			let accessible_proxy = match app.as_accessible_proxy(conn).await {
+				Ok(proxy) => proxy,
+
+				#[cfg(feature = "tracing")]
+				Err(e) => {
+					tracing::warn!("Skipping inaccessible application {:?}: {}", app.name_as_str(), e);
+					continue;
+				}
+
+				#[cfg(all(debug_assertions, not(feature = "tracing")))]
+				Err(e) => {
+					eprintln!("Skipping inaccessible application {:?}: {}", app.name_as_str(), e);
+					continue;
+				}
+
+				#[cfg(not(any(feature = "tracing", debug_assertions)))]
+				Err(_) => {
+					// Ignore inaccessible application
+					continue;
+				}
+			};
+			let proxies = match accessible_proxy.proxies().await {
+				Ok(proxies) => proxies,
+
+				#[cfg(feature = "tracing")]
+				Err(e) => {
+					tracing::warn!("Skipping inaccessible application {:?}: {}", app.name_as_str(), e);
+					continue;
+				}
+
+				#[cfg(all(debug_assertions, not(feature = "tracing")))]
+				Err(e) => {
+					eprintln!("Skipping inaccessible application {:?}: {}", app.name_as_str(), e);
+					continue;
+				}
+
+				#[cfg(not(any(feature = "tracing", debug_assertions)))]
+				Err(_) => {
+					// Ignore inaccessible application
+					continue;
+				}
+			};
+			let application_proxy = match proxies.application().await {
+				Ok(application) => application,
+
+				#[cfg(feature = "tracing")]
+				Err(e) => {
+					tracing::warn!("Skipping inaccessible application {:?}: {}", app.name_as_str(), e);
+					continue;
+				}
+
+				#[cfg(all(debug_assertions, not(feature = "tracing")))]
+				Err(e) => {
+					eprintln!("Skipping inaccessible application {:?}: {}", app.name_as_str(), e);
+					continue;
+				}
+
+				#[cfg(not(any(feature = "tracing", debug_assertions)))]
+				Err(_) => {
+					// Ignore inaccessible application
+					continue;
+				}
+			};
 
 			// Get the application bus address
 			// aka: Does the application support P2P connections?
 			if let Ok(address) = application_proxy.get_application_bus_address().await {
-				let name = app.name().ok_or(AtspiError::MissingName)?;
+				let Some(name) = app.name() else {
+					continue;
+				};
 				let bus_name = BusName::from(name.clone());
 
 				match Peer::try_new(bus_name, address.as_str(), conn).await {
