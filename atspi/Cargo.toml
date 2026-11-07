@@ -17,7 +17,7 @@ version                = "0.31.0"
 
 [features]
 default    = ["connection", "proxies", "p2p", "wrappers"]
-wrappers   = ["atspi-common/wrappers"]
+wrappers   = ["atspi-common/wrappers", "atspi-connection?/wrappers"]
 proxies    = ["dep:atspi-proxies"]
 connection = ["dep:atspi-connection"]
 p2p        = ["atspi-connection/p2p"]
@@ -27,7 +27,7 @@ x11-legacy = ["atspi-proxies/x11-legacy"]
 
 [dependencies]
 atspi-common     = { path = "../atspi-common", version = "0.15.0", default-features = false }
-atspi-connection = { path = "../atspi-connection", version = "0.15.0", optional = true }
+atspi-connection = { path = "../atspi-connection", version = "0.15.0", default-features = false, optional = true }
 atspi-proxies    = { path = "../atspi-proxies", version = "0.15.0", optional = true }
 zbus             = { workspace = true, optional = true }
 
