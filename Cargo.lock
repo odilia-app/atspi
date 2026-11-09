@@ -249,9 +249,11 @@ dependencies = [
 name = "atspi-connection"
 version = "0.15.0"
 dependencies = [
+ "async-io",
  "atspi-common",
  "atspi-proxies",
  "enumflags2",
+ "event-listener",
  "futures-lite",
  "tokio-test",
  "tracing",
