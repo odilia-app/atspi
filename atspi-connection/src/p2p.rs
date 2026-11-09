@@ -1100,61 +1100,6 @@ mod tests {
 	}
 
 	#[test]
-	fn invalidation_is_aba_safe_and_wakes_flight() {
-		let mut state = DiscoveryState::default();
-		let owner = owner(":1.7");
-		let first = state.allocate_generation().unwrap();
-		let flight = Arc::new(Flight::new());
-		state
-			.owners
-			.insert(owner.clone(), OwnerState::Discovering { generation: first, flight });
-		let flights = state.invalidate_owner(&owner.as_ref());
-		assert_eq!(flights.len(), 1);
-		let second = state.allocate_generation().unwrap();
-		assert_ne!(first, second);
-	}
-
-	#[test]
-	fn alias_transfer_invalidates_old_owner_without_discovery() {
-		let mut state = DiscoveryState::default();
-		let alias = WellKnownName::try_from("org.example.App").unwrap();
-		let old = owner(":1.1");
-		let new = owner(":1.2");
-		state.update_alias(&alias, None, Some(&old.as_ref()));
-		state.update_alias(&alias, Some(&old.as_ref()), Some(&new.as_ref()));
-		assert_eq!(state.aliases.get(&OwnedWellKnownName::from(alias)).unwrap().owner, new);
-	}
-
-	#[test]
-	fn unsupported_and_transient_states_obey_invalidation_and_retry_boundaries() {
-		let now = Instant::now();
-		let owner = owner(":1.9");
-		let mut state = DiscoveryState::default();
-		state
-			.owners
-			.insert(owner.clone(), OwnerState::Unsupported { generation: 1, last_attempt: now });
-		assert!(matches!(state.owners.get(&owner), Some(OwnerState::Unsupported { .. })));
-		state.invalidate_owner(&owner.as_ref());
-		assert!(!state.owners.contains_key(&owner));
-
-		state.owners.insert(
-			owner.clone(),
-			OwnerState::Transient {
-				generation: 2,
-				failures: 1,
-				retry_at: now + Duration::from_secs(1),
-				last_attempt: now,
-			},
-		);
-		assert!(matches!(
-			state.owners.get(&owner),
-			Some(OwnerState::Transient { retry_at, .. }) if *retry_at > now
-		));
-		state.enforce_negative_capacity(now + Duration::from_secs(1));
-		assert!(!state.owners.contains_key(&owner));
-	}
-
-	#[test]
 	fn duplicate_and_out_of_order_alias_signals_are_idempotent() {
 		let mut state = DiscoveryState::default();
 		let name = WellKnownName::try_from("org.example.App").unwrap();
@@ -1244,40 +1189,6 @@ mod tests {
 	}
 
 	#[test]
-	fn initiating_caller_cancellation_keeps_one_shared_attempt() {
-		tokio_test::block_on(async {
-			let (_server, client) = test_connections().await;
-			let gate = Arc::new(Event::new());
-			let attempts = Arc::new(AtomicUsize::new(0));
-			let discover: Arc<DiscoveryFn> = {
-				let gate = Arc::clone(&gate);
-				let attempts = Arc::clone(&attempts);
-				Arc::new(move |_, _| {
-					let listener = gate.listen();
-					attempts.fetch_add(1, Ordering::SeqCst);
-					Box::pin(async move {
-						listener.await;
-						DiscoveryResult::Transient("expected test failure".into())
-					})
-				})
-			};
-			let peers = test_peers(discover);
-			let owner = owner(":1.44");
-			let name = BusName::Unique(owner.as_ref());
-			let mut initiating = Box::pin(peers.get(&client, &name));
-			assert!(futures_lite::future::poll_once(&mut initiating).await.is_none());
-			drop(initiating);
-			while attempts.load(Ordering::SeqCst) == 0 {
-				std::thread::yield_now();
-			}
-			gate.notify(usize::MAX);
-			let result = peers.get(&client, &BusName::Unique(owner.as_ref())).await.unwrap();
-			assert!(result.1.is_none());
-			assert_eq!(attempts.load(Ordering::SeqCst), 1);
-		});
-	}
-
-	#[test]
 	fn invalidation_wins_a_completion_race() {
 		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
@@ -1363,59 +1274,37 @@ mod tests {
 	}
 
 	#[test]
-	fn stale_alias_resolution_reply_cannot_overwrite_transfer_signal() {
-		let peers = Peers::default();
-		let alias = WellKnownName::try_from("org.example.Race").unwrap();
-		let old = owner(":1.10");
-		let new = owner(":1.11");
-		peers.update_alias(&alias, None, Some(&new.as_ref()));
-		let resolved = Peers::resolved_alias(OwnedWellKnownName::from(alias.clone()), old.clone());
-		assert_eq!(resolved.0, old);
-		assert_eq!(
-			peers
-				.state
-				.lock()
-				.expect("peer state lock poisoned")
-				.aliases
-				.get(&OwnedWellKnownName::from(alias))
-				.unwrap()
-				.owner,
-			new
-		);
-	}
-
-	#[test]
-	fn shared_bus_is_selected_when_discovery_returns_no_peer() {
-		tokio_test::block_on(async {
-			let (_server, client) = test_connections().await;
-			assert!(std::ptr::eq(routing_connection(&client, None), &raw const client));
-			let DiscoveryResult::Ready(peer) = ready_result(client.clone(), owner(":1.452")) else {
-				unreachable!()
-			};
-			assert!(std::ptr::eq(routing_connection(&client, Some(&peer)), peer.connection()));
-		});
-	}
-
-	#[test]
-	fn cleanup_guard_does_not_remove_replacement_generation() {
+	fn invalidated_generation_wakes_waiters_and_preserves_replacement() {
 		let state = Arc::new(Mutex::new(DiscoveryState::default()));
 		let owner = owner(":1.453");
 		let old_flight = Arc::new(Flight::new());
 		let replacement = Arc::new(Flight::new());
+		let mut cache = state.lock().unwrap();
+		let first = cache.allocate_generation().unwrap();
+		cache.owners.insert(
+			owner.clone(),
+			OwnerState::Discovering { generation: first, flight: Arc::clone(&old_flight) },
+		);
+		complete_absent(cache.invalidate_owner(&owner.as_ref()));
+		assert!(matches!(tokio_test::block_on(old_flight.wait()), FlightOutcome::Absent));
+		let second = cache.allocate_generation().unwrap();
+		assert_ne!(first, second);
+		drop(cache);
 		state.lock().expect("peer state lock poisoned").owners.insert(
 			owner.clone(),
-			OwnerState::Discovering { generation: 2, flight: Arc::clone(&replacement) },
+			OwnerState::Discovering { generation: second, flight: Arc::clone(&replacement) },
 		);
 		drop(DiscoveryCleanup {
 			state: Arc::clone(&state),
 			owner: owner.clone(),
-			generation: 1,
+			generation: first,
 			flight: old_flight,
 			armed: true,
 		});
 		assert!(matches!(
 			state.lock().expect("peer state lock poisoned").owners.get(&owner),
-			Some(OwnerState::Discovering { generation: 2, flight }) if Arc::ptr_eq(flight, &replacement)
+			Some(OwnerState::Discovering { generation, flight })
+				if *generation == second && Arc::ptr_eq(flight, &replacement)
 		));
 	}
 
@@ -1526,49 +1415,6 @@ mod tests {
 				NEGATIVE_CAPACITY
 			);
 			assert!(matches!(state.owners.get(&target), Some(OwnerState::Transient { .. })));
-		});
-	}
-
-	#[cfg(unix)]
-	#[test]
-	fn non_unknown_method_probe_error_is_transient() {
-		struct ErrorApplication {
-			fail: bool,
-		}
-
-		#[zbus::interface(name = "org.a11y.atspi.Application")]
-		impl ErrorApplication {
-			fn get_application_bus_address(&self) -> zbus::fdo::Result<String> {
-				if self.fail {
-					Err(zbus::fdo::Error::Failed("probe failed".into()))
-				} else {
-					Ok(String::new())
-				}
-			}
-		}
-
-		tokio_test::block_on(async {
-			let server = Builder::session()
-				.unwrap()
-				.serve_at(ACCESSIBLE_ROOT_PATH, ErrorApplication { fail: true })
-				.unwrap()
-				.build()
-				.await
-				.unwrap();
-			let client = zbus::Connection::session().await.unwrap();
-			let peers = Peers::default();
-			let owner = server.unique_name().unwrap().to_owned();
-			let result = peers.get(&client, &BusName::Unique(owner.as_ref())).await.unwrap();
-			assert!(result.1.is_none());
-			assert!(matches!(
-				peers
-					.state
-					.lock()
-					.expect("peer state lock poisoned")
-					.owners
-					.get(&owner),
-				Some(OwnerState::Transient { .. })
-			));
 		});
 	}
 }

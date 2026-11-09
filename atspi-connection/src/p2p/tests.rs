@@ -1,21 +1,27 @@
 use super::*;
 
+enum Capability {
+	Address(String),
+	Failed,
+	Silent,
+}
+
 struct TestApplication {
-	address: String,
+	capability: Capability,
 	probes: Arc<std::sync::atomic::AtomicUsize>,
-	silent: bool,
 	delay: Duration,
 }
 
 #[zbus::interface(name = "org.a11y.atspi.Application")]
 impl TestApplication {
-	async fn get_application_bus_address(&self) -> String {
+	async fn get_application_bus_address(&self) -> zbus::fdo::Result<String> {
 		self.probes.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-		if self.silent {
-			std::future::pending::<()>().await;
-		}
 		async_io::Timer::after(self.delay).await;
-		self.address.clone()
+		match &self.capability {
+			Capability::Address(address) => Ok(address.clone()),
+			Capability::Failed => Err(zbus::fdo::Error::Failed("probe failed".into())),
+			Capability::Silent => std::future::pending().await,
+		}
 	}
 }
 
@@ -29,15 +35,13 @@ impl TestAccessible {
 }
 
 async fn application(
-	address: String,
-	silent: bool,
+	capability: Capability,
 ) -> (zbus::Connection, Arc<std::sync::atomic::AtomicUsize>) {
-	application_delayed(address, silent, Duration::ZERO).await
+	application_delayed(capability, Duration::ZERO).await
 }
 
 async fn application_delayed(
-	address: String,
-	silent: bool,
+	capability: Capability,
 	delay: Duration,
 ) -> (zbus::Connection, Arc<std::sync::atomic::AtomicUsize>) {
 	let probes = Arc::new(std::sync::atomic::AtomicUsize::new(0));
@@ -45,7 +49,7 @@ async fn application_delayed(
 		.unwrap()
 		.serve_at(
 			ACCESSIBLE_ROOT_PATH,
-			TestApplication { address, silent, delay, probes: Arc::clone(&probes) },
+			TestApplication { capability, delay, probes: Arc::clone(&probes) },
 		)
 		.unwrap()
 		.serve_at(ACCESSIBLE_ROOT_PATH, TestAccessible("shared"))
@@ -117,7 +121,7 @@ fn invalidation_and_clear_cancel_silent_handshakes_after_caller_drop() {
 	tokio_test::block_on(bounded(async {
 		for clear in [false, true] {
 			let socket = PeerSocket::new();
-			let (server, _) = application(socket.address(), false).await;
+			let (server, _) = application(Capability::Address(socket.address())).await;
 			let client = zbus::Connection::session().await.unwrap();
 			let peers = Peers::default();
 			let name = BusName::Unique(server.unique_name().unwrap().as_ref());
@@ -146,7 +150,7 @@ fn invalidation_and_clear_cancel_silent_handshakes_after_caller_drop() {
 fn direct_discovery_serves_a_real_accessible_method() {
 	tokio_test::block_on(bounded(async {
 		let socket = PeerSocket::new();
-		let (server, probes) = application(socket.address(), false).await;
+		let (server, probes) = application(Capability::Address(socket.address())).await;
 		let wrapper = wrapper().await;
 		let name = BusName::Unique(server.unique_name().unwrap().as_ref());
 		let serve = async {
@@ -176,10 +180,10 @@ fn direct_discovery_serves_a_real_accessible_method() {
 }
 
 #[test]
-fn failures_use_shared_bus_and_listener_does_not_probe_untargeted_clients() {
+fn listener_drains_churn_without_probing_untargeted_clients() {
 	tokio_test::block_on(bounded(async {
 		let wrapper = wrapper().await;
-		let (silent, probes) = application(String::new(), true).await;
+		let (silent, probes) = application(Capability::Silent).await;
 		// Exceed the ownership stream's queue capacity with a silent client present.
 		for index in 0..80 {
 			let alias = format!("org.example.Churn{index}");
@@ -196,16 +200,51 @@ fn failures_use_shared_bus_and_listener_does_not_probe_untargeted_clients() {
 			.await
 			.is_ok());
 		assert_eq!(probes.load(std::sync::atomic::Ordering::SeqCst), 0);
-		for address in
-			[String::new(), "not a dbus address".into(), "unix:path=/nonexistent/atspi-peer".into()]
-		{
-			let (server, probes) = application(address, false).await;
+	}));
+}
+
+#[test]
+fn unavailable_capabilities_use_shared_bus_and_cache_failures() {
+	tokio_test::block_on(bounded(async {
+		let wrapper = wrapper().await;
+		for capability in [
+			Capability::Address(String::new()),
+			Capability::Address("not a dbus address".into()),
+			Capability::Address("unix:path=/nonexistent/atspi-peer".into()),
+			Capability::Failed,
+		] {
+			let unsupported =
+				matches!(&capability, Capability::Address(address) if address.is_empty());
+			let (server, probes) = application(capability).await;
 			let name = BusName::Unique(server.unique_name().unwrap().as_ref());
 			for _ in 0..2 {
 				let proxy = wrapper.bus_name_as_root_accessible(&name).await.unwrap();
 				assert_eq!(proxy.get_role_name().await.unwrap(), "shared");
 			}
 			assert_eq!(probes.load(std::sync::atomic::Ordering::SeqCst), 1);
+			let owner = server.unique_name().unwrap();
+			{
+				let state = wrapper.peers.state.lock().unwrap();
+				assert!(if unsupported {
+					matches!(state.owners.get(owner.as_str()), Some(OwnerState::Unsupported { .. }))
+				} else {
+					matches!(state.owners.get(owner.as_str()), Some(OwnerState::Transient { .. }))
+				});
+			}
+			if unsupported {
+				wrapper.peers.invalidate_owner(owner);
+				assert_eq!(
+					wrapper
+						.bus_name_as_root_accessible(&name)
+						.await
+						.unwrap()
+						.get_role_name()
+						.await
+						.unwrap(),
+					"shared"
+				);
+				assert_eq!(probes.load(std::sync::atomic::Ordering::SeqCst), 2);
+			}
 		}
 		assert!(wrapper.peers().is_empty());
 	}));
@@ -213,49 +252,33 @@ fn failures_use_shared_bus_and_listener_does_not_probe_untargeted_clients() {
 
 #[cfg(unix)]
 #[test]
-fn silent_direct_handshake_deadline_closes_socket_and_routes_shared() {
+fn total_discovery_deadline_closes_silent_socket_and_routes_shared() {
 	tokio_test::block_on(bounded(async {
 		let socket = PeerSocket::new();
-		let (server, probes) = application(socket.address(), false).await;
+		let (server, probes) =
+			application_delayed(Capability::Address(socket.address()), Duration::from_millis(650))
+				.await;
 		let wrapper = wrapper().await;
 		let name = BusName::Unique(server.unique_name().unwrap().as_ref());
+		let start = Instant::now();
 		let mut lookup = Box::pin(wrapper.bus_name_as_root_accessible(&name));
 		assert!(futures_lite::future::poll_once(&mut lookup).await.is_none());
 		let accepted = socket.accept().await;
 		assert_eq!(lookup.await.unwrap().get_role_name().await.unwrap(), "shared");
+		assert!(
+			start.elapsed() < Duration::from_millis(1400),
+			"probe must not reset direct-build budget"
+		);
 		expect_closed(accepted).await;
 		assert!(wrapper.get_peer(&name).await.unwrap().is_none());
 		assert_eq!(probes.load(std::sync::atomic::Ordering::SeqCst), 1);
 	}));
 }
 
-#[cfg(unix)]
-#[test]
-fn capability_and_direct_build_share_one_total_deadline() {
-	tokio_test::block_on(bounded(async {
-		let socket = PeerSocket::new();
-		let (server, _) =
-			application_delayed(socket.address(), false, Duration::from_millis(650)).await;
-		let client = zbus::Connection::session().await.unwrap();
-		let peers = Peers::default();
-		let name = BusName::Unique(server.unique_name().unwrap().as_ref());
-		let start = Instant::now();
-		let mut lookup = Box::pin(peers.get(&client, &name));
-		assert!(futures_lite::future::poll_once(&mut lookup).await.is_none());
-		let accepted = socket.accept().await;
-		assert!(lookup.await.unwrap().1.is_none());
-		assert!(
-			start.elapsed() < Duration::from_millis(1400),
-			"probe must not reset direct-build budget"
-		);
-		expect_closed(accepted).await;
-	}));
-}
-
 #[test]
 fn silent_capability_probe_has_a_shared_deadline_and_falls_back() {
 	tokio_test::block_on(bounded(async {
-		let (server, probes) = application(String::new(), true).await;
+		let (server, probes) = application(Capability::Silent).await;
 		let wrapper = wrapper().await;
 		let name = BusName::Unique(server.unique_name().unwrap().as_ref());
 		let mut first = Box::pin(wrapper.get_peer(&name));
@@ -271,7 +294,7 @@ fn silent_capability_probe_has_a_shared_deadline_and_falls_back() {
 #[test]
 fn immediate_peer_constructor_also_bounds_the_capability_probe() {
 	tokio_test::block_on(bounded(async {
-		let (server, _) = application(String::new(), true).await;
+		let (server, _) = application(Capability::Silent).await;
 		let client = zbus::Connection::session().await.unwrap();
 		let result = Peer::try_from_bus_name(
 			BusName::Unique(server.unique_name().unwrap().as_ref()),
@@ -302,7 +325,7 @@ async fn wait_until(mut condition: impl FnMut() -> bool) {
 #[test]
 fn alias_transfer_during_discovery_rejects_stale_shared_fallback() {
 	tokio_test::block_on(bounded(async {
-		let (old, probes) = application(String::new(), true).await;
+		let (old, probes) = application(Capability::Silent).await;
 		let new = zbus::Connection::session().await.unwrap();
 		let wrapper = wrapper().await;
 		let alias = WellKnownName::try_from("org.example.DuringDiscovery").unwrap();
