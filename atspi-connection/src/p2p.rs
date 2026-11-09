@@ -25,6 +25,9 @@ use zbus::{
 use crate::AtspiResult;
 
 const NEGATIVE_CAPACITY: usize = 1_024;
+// A single conservative budget covers the capability call AND direct transport
+// authentication/build. async-io's shared reactor timer works with either zbus runtime.
+const DISCOVERY_DEADLINE: Duration = Duration::from_secs(1);
 
 type DiscoveryFuture = Pin<Box<dyn Future<Output = DiscoveryResult> + Send + 'static>>;
 type DiscoveryFn = dyn Fn(zbus::Connection, OwnedUniqueName) -> DiscoveryFuture + Send + Sync;
@@ -84,7 +87,8 @@ impl Peer {
 	///
 	/// # Errors
 	/// Returns an error if name resolution, address retrieval, address parsing,
-	/// or connection creation fails.
+	/// or connection creation fails, including the one-second combined capability
+	/// probe and direct-connection deadline.
 	pub async fn try_from_bus_name(
 		bus_name: BusName<'_>,
 		conn: &zbus::Connection,
@@ -134,7 +138,7 @@ impl Peer {
 	/// Returns an accessible proxy for `obj` over this peer connection.
 	///
 	/// # Errors
-	/// Returns an error if the object has no path or the proxy cannot be built.
+	/// Returns an error if the proxy cannot be built.
 	pub async fn as_accessible_proxy(
 		&self,
 		obj: &ObjectRefOwned,
@@ -167,7 +171,12 @@ impl Flight {
 	}
 
 	fn complete(&self, outcome: FlightOutcome) {
-		*self.outcome.lock().expect("peer flight lock poisoned") = Some(outcome);
+		let mut current = self.outcome.lock().expect("peer flight lock poisoned");
+		if current.is_some() {
+			return;
+		}
+		*current = Some(outcome);
+		drop(current);
 		self.event.notify(usize::MAX);
 	}
 
@@ -250,15 +259,41 @@ struct DiscoveryState {
 	owners: HashMap<OwnedUniqueName, OwnerState>,
 	aliases: HashMap<OwnedWellKnownName, Alias>,
 	next_generation: u64,
+	// Conservative fence for lookup-local GetNameOwner replies, including removed aliases.
+	ownership_epoch: u64,
 }
 
 impl Default for DiscoveryState {
 	fn default() -> Self {
-		Self { owners: HashMap::new(), aliases: HashMap::new(), next_generation: 1 }
+		Self {
+			owners: HashMap::new(),
+			aliases: HashMap::new(),
+			next_generation: 1,
+			ownership_epoch: 0,
+		}
 	}
 }
 
 impl DiscoveryState {
+	fn validate_lookup(
+		&self,
+		epoch: Option<u64>,
+		alias: Option<&OwnedWellKnownName>,
+		owner: &OwnedUniqueName,
+	) -> AtspiResult<()> {
+		let current_owner_matches = alias
+			.and_then(|alias| self.aliases.get(alias))
+			.is_some_and(|current| &current.owner == owner);
+		if epoch.is_some_and(|epoch| {
+			epoch == u64::MAX || (epoch != self.ownership_epoch && !current_owner_matches)
+		}) {
+			return Err(AtspiError::Owned(
+				"ownership changed during peer lookup; retry lookup".into(),
+			));
+		}
+		Ok(())
+	}
+
 	fn allocate_generation(&mut self) -> Result<u64, Vec<Arc<Flight>>> {
 		let generation = self.next_generation;
 		if generation == 0 {
@@ -272,6 +307,7 @@ impl DiscoveryState {
 	}
 
 	fn clear(&mut self) -> Vec<Arc<Flight>> {
+		self.ownership_epoch = self.ownership_epoch.saturating_add(1);
 		let flights = self
 			.owners
 			.values()
@@ -286,6 +322,7 @@ impl DiscoveryState {
 	}
 
 	fn invalidate_owner(&mut self, owner: &UniqueName<'_>) -> Vec<Arc<Flight>> {
+		self.ownership_epoch = self.ownership_epoch.saturating_add(1);
 		self.aliases.retain(|_, alias| alias.owner.as_str() != owner.as_str());
 		self.owners
 			.remove(owner.as_str())
@@ -302,6 +339,7 @@ impl DiscoveryState {
 		old_owner: Option<&UniqueName<'_>>,
 		new_owner: Option<&UniqueName<'_>>,
 	) -> Vec<Arc<Flight>> {
+		self.ownership_epoch = self.ownership_epoch.saturating_add(1);
 		let mut flights = Vec::new();
 		let owned_name = OwnedWellKnownName::from(name.clone());
 		let current_owner = self.aliases.get(&owned_name).map(|alias| alias.owner.clone());
@@ -507,10 +545,16 @@ impl Peers {
 		connection: &zbus::Connection,
 		name: &BusName<'_>,
 	) -> AtspiResult<(OwnedUniqueName, Option<Peer>)> {
+		// Even an uncached alias needs a fence: a queued method reply can predate
+		// a transfer already consumed by the ownership listener. Keep this token
+		// through discovery so fallback cannot route the previous owner either.
+		let epoch = matches!(name, BusName::WellKnown(_))
+			.then(|| self.state.lock().expect("peer state lock poisoned").ownership_epoch);
 		let (owner, alias) = self.resolve_owner(connection, name).await?;
 		let now = (self.clock)();
 		let action = {
 			let mut state = self.state.lock().expect("peer state lock poisoned");
+			state.validate_lookup(epoch, alias.as_ref(), &owner)?;
 			match state.owners.get(&owner) {
 				Some(OwnerState::Ready { peer, .. }) => {
 					LookupAction::Ready(peer.for_alias(alias.clone()))
@@ -557,10 +601,13 @@ impl Peers {
 			}
 		};
 
-		match flight.wait().await {
+		let outcome = flight.wait().await;
+		let state = self.state.lock().expect("peer state lock poisoned");
+		state.validate_lookup(epoch, alias.as_ref(), &owner)?;
+		match outcome {
 			FlightOutcome::Ready { generation, peer } => {
 				let valid = matches!(
-					self.state.lock().expect("peer state lock poisoned").owners.get(&owner),
+					state.owners.get(&owner),
 					Some(OwnerState::Ready { generation: current, .. }) if *current == generation
 				);
 				Ok((owner, valid.then(|| peer.for_alias(alias))))
@@ -594,7 +641,17 @@ impl Peers {
 					flight: Arc::clone(&flight),
 					armed: true,
 				};
-				let result = discover(task_connection, owner.clone()).await;
+				// Invalidation completes the flight, independently of any caller.
+				// Dropping the losing discovery future also releases pending I/O.
+				let result = futures_lite::future::or(
+					async { Some(discover(task_connection, owner.clone()).await) },
+					async {
+						flight.wait().await;
+						None
+					},
+				)
+				.await;
+				let Some(result) = result else { return };
 				let now = clock();
 				let outcome = {
 					let mut state = state.lock().expect("peer state lock poisoned");
@@ -767,6 +824,14 @@ async fn resolve_owner(
 }
 
 async fn discover(connection: zbus::Connection, owner: OwnedUniqueName) -> DiscoveryResult {
+	futures_lite::future::or(discover_inner(connection, owner), async {
+		async_io::Timer::after(DISCOVERY_DEADLINE).await;
+		DiscoveryResult::Transient("peer discovery deadline exceeded".into())
+	})
+	.await
+}
+
+async fn discover_inner(connection: zbus::Connection, owner: OwnedUniqueName) -> DiscoveryResult {
 	let builder = match ApplicationProxy::builder(&connection).destination(&owner) {
 		Ok(builder) => builder,
 		Err(error) => return DiscoveryResult::Transient(error.to_string()),
@@ -858,7 +923,11 @@ pub trait P2P {
 	///
 	/// # Errors
 	/// Returns an error when the target's canonical owner cannot be resolved or
-	/// discovery fails in a way that prevents reliable routing.
+	/// discovery fails in a way that prevents reliable routing. A well-known-name
+	/// lookup conservatively returns an error if ownership changes while it is
+	/// pending; retry rather than routing a potentially stale owner. Capability
+	/// probing and direct connection setup share a private one-second deadline,
+	/// after which lookup falls back to the shared bus.
 	///
 	/// ```no_run
 	/// # use atspi_connection::{AccessibilityConnection, P2P};
@@ -928,6 +997,10 @@ impl P2P for crate::AccessibilityConnection {
 }
 
 #[cfg(test)]
+#[path = "p2p/tests.rs"]
+mod production_tests;
+
+#[cfg(test)]
 mod tests {
 	use super::*;
 	use std::sync::atomic::{AtomicUsize, Ordering};
@@ -948,7 +1021,7 @@ mod tests {
 			clock: Arc::new(Instant::now),
 			discover,
 			spawn: Arc::new(|_, task| {
-				std::thread::spawn(move || futures_lite::future::block_on(task));
+				std::thread::spawn(move || tokio_test::block_on(task));
 			}),
 			listener_started: Arc::new(AtomicBool::new(false)),
 			after_publish: Arc::new(|_, _| {}),
@@ -965,6 +1038,19 @@ mod tests {
 	}
 
 	#[test]
+	fn cached_alias_lookup_ignores_unrelated_ownership_changes() {
+		let mut state = DiscoveryState::default();
+		let alias = WellKnownName::try_from("org.example.Stable").unwrap();
+		let target = owner(":1.800");
+		state.update_alias(&alias, None, Some(&target.as_ref()));
+		let epoch = state.ownership_epoch;
+		state.invalidate_owner(&owner(":1.801").as_ref());
+		assert!(state
+			.validate_lookup(Some(epoch), Some(&OwnedWellKnownName::from(alias)), &target)
+			.is_ok());
+	}
+
+	#[test]
 	fn retry_policy_is_bounded_and_saturating() {
 		assert_eq!(retry_delay(1), Duration::from_secs(1));
 		assert_eq!(retry_delay(2), Duration::from_secs(2));
@@ -978,7 +1064,7 @@ mod tests {
 
 	#[test]
 	fn listener_readiness_is_pending_until_subscription_reports_success() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let ready = Arc::new(ListenerReady::new());
 			let mut waiting = Box::pin(ready.wait());
 			assert!(futures_lite::future::poll_once(&mut waiting).await.is_none());
@@ -1110,13 +1196,13 @@ mod tests {
 		complete_absent(flights);
 		assert!(state.owners.is_empty());
 		assert!(state.aliases.is_empty());
-		assert!(matches!(futures_lite::future::block_on(first.wait()), FlightOutcome::Absent));
-		assert!(matches!(futures_lite::future::block_on(second.wait()), FlightOutcome::Absent));
+		assert!(matches!(tokio_test::block_on(first.wait()), FlightOutcome::Absent));
+		assert!(matches!(tokio_test::block_on(second.wait()), FlightOutcome::Absent));
 	}
 
 	#[test]
 	fn unique_then_alias_and_two_alias_orders_have_lookup_specific_metadata() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			for aliases in [
 				["org.example.First", "org.example.Second"],
 				["org.example.Second", "org.example.First"],
@@ -1159,7 +1245,7 @@ mod tests {
 
 	#[test]
 	fn initiating_caller_cancellation_keeps_one_shared_attempt() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
 			let gate = Arc::new(Event::new());
 			let attempts = Arc::new(AtomicUsize::new(0));
@@ -1193,9 +1279,11 @@ mod tests {
 
 	#[test]
 	fn invalidation_wins_a_completion_race() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
 			let gate = Arc::new(Event::new());
+			let settled = Arc::new(Event::new());
+			let settlement = settled.listen();
 			let discover: Arc<DiscoveryFn> = {
 				let gate = Arc::clone(&gate);
 				Arc::new(move |connection, owner| {
@@ -1206,7 +1294,14 @@ mod tests {
 					})
 				})
 			};
-			let peers = test_peers(discover);
+			let mut peers = test_peers(discover);
+			peers.spawn = Arc::new(move |_, task| {
+				let settled = Arc::clone(&settled);
+				std::thread::spawn(move || {
+					tokio_test::block_on(task);
+					settled.notify(usize::MAX);
+				});
+			});
 			let owner = owner(":1.45");
 			let name = BusName::Unique(owner.as_ref());
 			let mut lookup = Box::pin(peers.get(&client, &name));
@@ -1214,13 +1309,19 @@ mod tests {
 			peers.invalidate_owner(&owner.as_ref());
 			gate.notify(usize::MAX);
 			assert!(lookup.await.unwrap().1.is_none());
+			// Observe task settlement, not just the invalidation-time snapshot.
+			futures_lite::future::or(settlement, async {
+				async_io::Timer::after(Duration::from_secs(3)).await;
+				panic!("discovery task did not settle");
+			})
+			.await;
 			assert!(peers.snapshot().is_empty());
 		});
 	}
 
 	#[test]
 	fn completion_then_invalidation_removes_ready_transport() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
 			let discover: Arc<DiscoveryFn> = Arc::new(move |connection, owner| {
 				Box::pin(async move { ready_result(connection, owner) })
@@ -1241,7 +1342,7 @@ mod tests {
 
 	#[test]
 	fn invalidation_between_ready_publication_and_notification_returns_absent() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
 			let discover: Arc<DiscoveryFn> = Arc::new(move |connection, owner| {
 				Box::pin(async move { ready_result(connection, owner) })
@@ -1285,9 +1386,9 @@ mod tests {
 
 	#[test]
 	fn shared_bus_is_selected_when_discovery_returns_no_peer() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
-			assert!(std::ptr::eq(routing_connection(&client, None), &client));
+			assert!(std::ptr::eq(routing_connection(&client, None), &raw const client));
 			let DiscoveryResult::Ready(peer) = ready_result(client.clone(), owner(":1.452")) else {
 				unreachable!()
 			};
@@ -1320,7 +1421,7 @@ mod tests {
 
 	#[test]
 	fn aborted_discovery_cleans_matching_generation_and_wakes_waiter() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
 			let gate = Arc::new(Event::new());
 			let attempts = Arc::new(AtomicUsize::new(0));
@@ -1359,7 +1460,7 @@ mod tests {
 
 	#[test]
 	fn actual_get_applies_backoff_and_capacity_with_injected_time() {
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let (_server, client) = test_connections().await;
 			let now = Arc::new(Mutex::new(Instant::now()));
 			let attempts = Arc::new(AtomicUsize::new(0));
@@ -1446,7 +1547,7 @@ mod tests {
 			}
 		}
 
-		futures_lite::future::block_on(async {
+		tokio_test::block_on(async {
 			let server = Builder::session()
 				.unwrap()
 				.serve_at(ACCESSIBLE_ROOT_PATH, ErrorApplication { fail: true })

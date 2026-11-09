@@ -44,7 +44,11 @@ The P2P trait offers the higher level API and is implemented for `AccessibilityC
 
 `get_peer` returns `Ok(Some(peer))` when a direct connection is ready. `Ok(None)` means the application definitively does not support P2P, a capability probe or connection attempt failed transiently, a transient failure is still in backoff, or ownership changed during discovery. Name-resolution and other failures that prevent correct shared-bus routing remain errors. Errors returned by `GetApplicationBusAddress` itself are optional-P2P failures and do not prevent shared-bus fallback.
 
-Ready transport is canonical by unique owner and never stores a discovery-order alias. For compatibility, `Peer::well_known_name()` describes the current lookup: unique-name lookups and `peers()` snapshots return `None`, while a well-known lookup returns the alias requested by that call. Two aliases for one owner therefore share one connection while each lookup reports its own alias.
+Ready transport is canonical by unique owner and never stores a discovery-order alias. `Peer::well_known_name()` now describes the current lookup: unique-name lookups and `peers()` snapshots return `None`, while a well-known lookup returns the alias requested by that call. Two aliases for one owner therefore share one connection while each lookup reports its own alias.
+
+Capability probing and direct connection setup share a one-second deadline. Expiry is a transient P2P failure, so proxy helpers can continue over the shared bus. Owner invalidation cancels pending discovery I/O; cancelling one caller alone does not cancel an attempt shared by other callers. This deadline does not apply to later application method calls.
+
+Well-known-name lookups reject ownership changes observed while the lookup is pending rather than routing to a potentially stale owner. The fence is conservative for aliases not yet cached by the listener: unrelated ownership changes can also produce a retry error. A cached alias whose owner is unchanged remains usable during unrelated churn.
 
 Invalid addresses and direct connection failures use per-owner retry delays of 1, 2, 4, 8, and 16 seconds, then 30 seconds. Unsupported applications remain cached until their owner changes. Negative state is bounded, so eviction can cause a later lookup to retry but never changes fallback correctness.
 

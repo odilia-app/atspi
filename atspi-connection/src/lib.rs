@@ -417,9 +417,8 @@ mod p2p_constructor_tests {
 			.expect("tests require a session bus address")
 			.parse()
 			.expect("session bus address must be valid");
-		let connection =
-			futures_lite::future::block_on(AccessibilityConnection::from_address(address))
-				.expect("connection to test session bus must succeed");
+		let connection = tokio_test::block_on(AccessibilityConnection::from_address(address))
+			.expect("connection to test session bus must succeed");
 		assert!(connection.peers.listener_started());
 	}
 }
